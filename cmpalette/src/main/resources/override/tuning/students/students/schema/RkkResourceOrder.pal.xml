@@ -1,6 +1,45 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
   <schema extends="RkkResource" name="RkkResourceOrder">
+    <boolean name="$hideUnusedActions" temporal="true">
+      <meta>
+        <documentation>Управление видимостью системных кнопок</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+(link.?[rel=='http://intertrust.ru/cmj/relations#applyTemplateButton'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#applyTemplateButton'].get(0)) : true)]]></script>
+      </calc-values>
+    </boolean>
+
+    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.java.lang.String);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.Date);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.java.lang.Integer);
+importClass(Packages.org.slf4j.LoggerFactory);
+
+function querySave(object, document) {
+var jobname;
+jobname = object.tuning().getValues().get('inputHeaderWithOutPlus').getValue();
+
+object.tuning().getValues().put("title", TuningHelper.createPropertyValue(jobname, object.tuning().getSchema().getProperty("title")));
+
+}]]></custom-event-handler>
+
+    <string name="inputHeaderWithOutPlus">
+      <storage-field name="inputHeaderWithOutPlus"/>
+    </string>
+
     <string name="showIdent" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Приказ']]></script>
@@ -19,19 +58,14 @@
     <!--Текст "Срок"-->
     <string name="dateT" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['Срок:']]></script>
+        <script event="open" lang="SPEL"><![CDATA['Дата:']]></script>
       </calc-values>
     </string>
-    <string name="dateH" temporal="true">
-      <!--
+    <date name="dateH">
       <calc-values>
-        <script event="open" lang="SPEL"></script>
+        <script event="open" lang="SPEL"><![CDATA[docDate]]></script>
       </calc-values>
-      -->
-      <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['Запрос']]></script>
-      </calc-values>
-    </string>
+    </date>
     <string name="statusT" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Статус:']]></script>
@@ -40,20 +74,20 @@
     <!--Значение статуса-->
     <string name="statusH" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['Запрос']]></script>
+        <script event="open" lang="SPEL"><![CDATA['Не указано']]></script>
       </calc-values>
     </string>
-    <string name="signT" temporal="true">
+    <string name="signT" >
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Подпись:']]></script>
       </calc-values>
     </string>
     <!--Значение статуса-->
-    <string name="signH" temporal="true">
+    <actor name="signH" >
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['Запрос']]></script>
+        <script event="open" lang="SPEL"><![CDATA[signPerson]]></script>
       </calc-values>
-    </string>
+    </actor>
     <string name="docType">
       <storage-field name="docType"/>
     </string>
@@ -66,9 +100,9 @@
     <string name="speciality">
       <storage-field name="speciality"/>
     </string>
-    <string name="signPerson">
+    <actor name="signPerson">
       <storage-field name="signPerson"/>
-    </string>
+    </actor>
     <string name="registration.place">
       <storage-field name="registration.place"/>
     </string>
