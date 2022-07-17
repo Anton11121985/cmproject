@@ -5,20 +5,44 @@
     <table>
       <columns>
         <column-ref ref="self"/>
-        <column-ref ref="s.nameSem_st" filter="true" sort-desc="true" sort-asc="true"/>
-        <column-ref ref="s.veduschiy_st" filter="true" sort-desc="true" sort-asc="true"/>
-        <column-ref ref="s.participants_st" filter="true" sort-desc="true" sort-asc="true"/>
-        <column-ref ref="s.place_st" filter="true" sort-desc="true" sort-asc="true"/>
-        <column-ref ref="s.dataivremya_st" filter="true" sort-desc="true" sort-asc="true"/>
-        <column-ref ref="s.materials_st" filter="true" sort-desc="true" sort-asc="true"/>
+        <column-ref ref="nameSem" filter="true" sort-desc="true" sort-asc="true"/>
+        <column-ref ref="veduschiy" filter="true" sort-desc="true" sort-asc="true"/>
+        <column-ref ref="participants" filter="true" sort-desc="true" sort-asc="true"/>
+        <column-ref ref="place" filter="true" sort-desc="true" sort-asc="true"/>
+        <column-ref ref="dataivremya" filter="true" sort-desc="true" sort-asc="true"/>
+        <column-ref ref="materials" filter="true" sort-desc="true" sort-asc="true"/>
 
       </columns>
     </table>
   </custom-descriptor>
-  <column name="s.nameSem_st" extends="string" subject="${nameSem:Название семинара}"/>
-  <column name="s.veduschiy_st" extends="string" subject="${veduschiy:Ведущий}"/>
-  <column name="s.participants_st" extends="string" subject="${participants:Ведущий}"/>
-  <column name="s.place_st" extends="string" subject="${place:Ведущий}"/>
-  <column name="s.dataivremya_st" extends="string" subject="${dataivremya:Ведущий}"/>
-  <column name="s.materials_st" extends="string" subject="${materials:Ведущий}"/>
+  <column name="nameSem" extends="string" subject="${nameSem:Название}"/>
+
+  <!-- <column name="veduschiy" extends="actor" subject="${veduschiy:Ведущий}"/> -->
+
+  <complex-column name="veduschiy" subject="${veduschiy:Ведущий}" extends="vcard">
+    <meta>
+      <documentation>Ведущий</documentation>
+    </meta>
+    <eval-expression lang="SPEL"><![CDATA[#this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.EventEntity) && 'SEND1_21'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId())
+		? T(java.util.Collections).emptyList()
+		: #this.getEntity().getDocument().getExecutors()]]></eval-expression>
+    <column-ref ref="responsible"/>
+    <column-ref ref="hint"/>
+  </complex-column>
+
+  <complex-column name="participants" subject="${participants:Участники}" extends="vcard">
+    <meta>
+      <documentation>Участники</documentation>
+    </meta>
+    <eval-expression lang="SPEL"><![CDATA[#this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.EventEntity) && 'SEND1_21'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId())
+		? T(java.util.Collections).emptyList()
+		: #this.getEntity().getDocument().getExecutors()]]></eval-expression>
+    <column-ref ref="responsible"/>
+    <column-ref ref="hint"/>
+  </complex-column>
+
+  <!-- <column name="participants" extends="actor" subject="${participants:Участники}"/> -->
+  <column name="place" extends="string" subject="${place:Место проведения}"/>
+  <column name="dataivremya" extends="datetime" subject="${dataivremya:Дата/Время проведения}"/>
+  <column name="materials" extends="string" subject="${materials:Материалы семинара}"/>
 </catalog>
