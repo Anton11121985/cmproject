@@ -1,0 +1,167 @@
+<collection name="JobDirectory_(vw_cmj_all)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[Select
+	id,
+	created_date,
+	updated_date,
+	Module,
+	self_1,
+	self_2,
+	self_3,
+	Country,
+	Locality,
+	Address,
+	Floor,
+	Room
+from
+	(
+	select
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.updated_date,
+		rkkbase.module as Module,
+		'<id>' as self_1,
+		':' as self_2,
+		'</>' as self_3,
+		(
+		select
+			tfs."value" as v
+		from
+			tn_field
+		join tn_field_string tfs on
+			tn_field.access_object_id = tfs.id
+		where
+			tn_field."owner" = rkkbase.id
+			and tn_field.owner_type = rkkbase.id_type
+			and tn_field.cmjfield = 'Country') as Country,
+		(
+		select
+			tfs."value" as v
+		from
+			tn_field
+		join tn_field_string tfs on
+			tn_field.access_object_id = tfs.id
+		where
+			tn_field."owner" = rkkbase.id
+			and tn_field.owner_type = rkkbase.id_type
+			and tn_field.cmjfield = 'Locality') as Locality,
+		(
+		select
+			tfs."value" as v
+		from
+			tn_field
+		join tn_field_string tfs on
+			tn_field.access_object_id = tfs.id
+		where
+			tn_field."owner" = rkkbase.id
+			and tn_field.owner_type = rkkbase.id_type
+			and tn_field.cmjfield = 'Address') as Address,
+		(
+		select
+			tfs."value" as v
+		from
+			tn_field
+		join tn_field_string tfs on
+			tn_field.access_object_id = tfs.id
+		where
+			tn_field."owner" = rkkbase.id
+			and tn_field.owner_type = rkkbase.id_type
+			and tn_field.cmjfield = 'Floor') as Floor,
+		(
+		select
+			tfs."value" as v
+		from
+			tn_field
+		join tn_field_string tfs on
+			tn_field.access_object_id = tfs.id
+		where
+			tn_field."owner" = rkkbase.id
+			and tn_field.owner_type = rkkbase.id_type
+			and tn_field.cmjfield = 'Room') as Room
+	from
+		F_DP_Intrkk internalrkk
+	join f_dp_rkk rkk on
+		rkk.id = internalrkk.id
+	join f_dp_rkkbase rkkbase on
+		rkkbase.id = rkk.id
+	where
+		rkkbase.isdeleted <> 1) s
+where 1=1 ::where-clause]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+				COUNT(1)
+                FROM (
+                       select
+	rkkbase.id,
+    rkkbase.created_date,
+    rkkbase.updated_date,
+    rkkbase.module                                   AS Module,
+    '<id>'                                           AS self_1,
+    ':'                                              AS self_2,
+    '</>'                                            AS self_3
+	FROM F_DP_Intrkk internalrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = internalrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                  JOIN F_DP_Intrkk_Executor executor ON executor.owner = internalrkk.id
+                  JOIN so_beard beard ON beard.id = executor.executor
+         WHERE rkkbase.isdeleted <> 1
+           AND rkk.regnumcnt IS NULL
+		   ) s
+                WHERE 1=1 ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause"><![CDATA[ Module = {0} and id = {1} ]]></criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="Country">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   Country = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="Locality">
+        <criteria placeholder="where-clause">
+        <![CDATA[
+                   Locality = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="Address">
+        <criteria placeholder="where-clause">
+        <![CDATA[
+                   Address = {0}
+                ]]>
+    </criteria>
+    </filter>
+    <filter name="Floor">
+        <criteria placeholder="where-clause">
+        <![CDATA[
+                   Floor = {0}
+                ]]>
+    </criteria>
+    </filter>
+    <filter name="Room">
+        <criteria placeholder="where-clause">
+        <![CDATA[
+                   Room = {0}
+                ]]>
+    </criteria>
+    </filter>
+</collection>
