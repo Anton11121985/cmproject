@@ -36,28 +36,16 @@ from
 			tn_field."owner" = rkkbase.id
 			and tn_field.owner_type = rkkbase.id_type
 			and tn_field.cmjfield = 'nameSem') as nameSem,
-			(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'veduschiy') as veduschiy,
-			(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'participants') as participants,
+		coalesce((SELECT  string_agg(SPLIT_PART(tfs.value, '%', 1),',') AS v
+ FROM tn_field
+ JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+ WHERE tn_field."owner" = rkkbase.id AND tn_field.cmjfield = 'Tn$_veduschiy'),'Не 1 указано'
+) AS veduschiy,
+		coalesce((SELECT  string_agg(SPLIT_PART(tfs.value, '%', 1),',') AS v
+ FROM tn_field
+ JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+ WHERE tn_field."owner" = rkkbase.id AND tn_field.cmjfield = 'Tn$_participants'),'Не 2 указано'
+) AS participants,
 			(
 		select
 			tfs."value" as v
@@ -70,16 +58,11 @@ from
 			and tn_field.owner_type = rkkbase.id_type
 			and tn_field.cmjfield = 'place') as place,
 			(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'dataivremya') as dataivremya,
+		select tfs."value" as v
+from tn_field
+join tn_field_datetime  tfs on tn_field.access_object_id = tfs.id
+where tn_field."owner" = rkkbase.id and tn_field.owner_type = rkkbase.id_type
+and tn_field.cmjfield = 'Tn$_dataivremya') as dataivremya,
 		(
 		select
 			tfs."value" as v
