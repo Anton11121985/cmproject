@@ -1,26 +1,24 @@
-<collection name="JobDirectory_(vw_cmj_all)" idField="id" replace="runtime">
+<collection name="JobRequest_(vw_cmj_all)" idField="id" replace="runtime">
     <prototype>
-        <![CDATA[Select
+        <![CDATA[select
 	id,
 	created_date,
 	updated_date,
-	Module,
+	module,
 	self_1,
 	self_2,
 	self_3,
 	subject,
-	Country,
-	Locality,
-	Address,
-	Floors,
-	Rooms
+	Initiator,
+	Employee,
+	Workplaces
 from
 	(
 	select
 		rkkbase.id,
 		rkkbase.created_date,
 		rkkbase.updated_date,
-		rkkbase.module as Module,
+		rkkbase.module as module,
 		rkkbase.subject as subject,
 		'<id>' as self_1,
 		':' as self_2,
@@ -35,51 +33,9 @@ from
 		where
 			tn_field."owner" = rkkbase.id
 			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'Country') as Country,
-		(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'Locality') as Locality,
-		(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'Address') as Address,
-		(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'Floors') as Floors,
-		(
-		select
-			tfs."value" as v
-		from
-			tn_field
-		join tn_field_string tfs on
-			tn_field.access_object_id = tfs.id
-		where
-			tn_field."owner" = rkkbase.id
-			and tn_field.owner_type = rkkbase.id_type
-			and tn_field.cmjfield = 'Rooms') as Rooms
+			and tn_field.cmjfield = 'Workplaces') as Workplaces,
+		coalesce((select string_agg(SPLIT_PART(tfs.value, '%', 1), ',') as v from tn_field join tn_field_string tfs on tn_field.access_object_id = tfs.id where tn_field."owner" = rkkbase.id and tn_field.cmjfield = 'Initiator'), 'Не указано' ) as Initiator,
+		coalesce((select string_agg(SPLIT_PART(tfs.value, '%', 1), ',') as v from tn_field join tn_field_string tfs on tn_field.access_object_id = tfs.id where tn_field."owner" = rkkbase.id and tn_field.cmjfield = 'Employee'), 'Не указано' ) as Employee
 	from
 		F_DP_Intrkk internalrkk
 	join f_dp_rkk rkk on
@@ -88,7 +44,8 @@ from
 		rkkbase.id = rkk.id
 	where
 		rkkbase.isdeleted <> 1) s
-where 1=1 ::where-clause]]>
+where
+	1 = 1 ::where-clause]]>
     </prototype>
     <counting-prototype>
         <![CDATA[
@@ -131,38 +88,24 @@ where 1=1 ::where-clause]]>
                 ]]>
         </criteria>
     </filter>
-    <filter name="Country">
+    <filter name="Initiator">
         <criteria placeholder="where-clause">
             <![CDATA[
-                   Country = {0}
+                   Initiator = {0}
                 ]]>
         </criteria>
     </filter>
-    <filter name="Locality">
+    <filter name="Employee">
         <criteria placeholder="where-clause">
         <![CDATA[
-                   Locality = {0}
+                   Employee = {0}
                 ]]>
         </criteria>
     </filter>
-    <filter name="Address">
+    <filter name="Workplaces">
         <criteria placeholder="where-clause">
         <![CDATA[
-                   Address = {0}
-                ]]>
-    </criteria>
-    </filter>
-    <filter name="Floors">
-        <criteria placeholder="where-clause">
-        <![CDATA[
-                   Floors = {0}
-                ]]>
-    </criteria>
-    </filter>
-    <filter name="Rooms">
-        <criteria placeholder="where-clause">
-        <![CDATA[
-                   Rooms = {0}
+                   Workplaces = {0}
                 ]]>
     </criteria>
     </filter>
