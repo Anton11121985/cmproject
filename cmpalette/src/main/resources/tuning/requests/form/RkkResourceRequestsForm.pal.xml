@@ -195,109 +195,504 @@
           <system name="delete"/>
         </action>
       </button>
-      <button name="${ui.form.RkkResourceRequestsForm.button.Читатели.name:Читатели}">
-        <properties>
-          <hide condition-union="AND">
-            <negative-condition-ref ref="read"/>
-            <negative-condition-ref ref="ReadersRequests"/>
-          </hide>
-        </properties>
-        <hint-pop-up>${ui.form.RkkResourceRequestsForm.button.Читатели.hintPopUp:Читатели}</hint-pop-up>
-        <action>
-          <custom>
-            <operation>
-              <handler-ref ref="ReadersMultiForm"/>
-            </operation>
-          </custom>
-        </action>
-      </button>
-      <button name="${ui.form.RkkResourceRequestsForm.button.Читатели.name:Читатели}">
-        <properties>
-          <hide condition-union="AND">
-            <negative-condition-ref ref="read"/>
-            <condition>true</condition>
-          </hide>
-        </properties>
-        <hint-pop-up>${ui.form.RkkResourceRequestsForm.button.Читатели.hintPopUp:Читатели}</hint-pop-up>
-        <action>
-          <system name="http://intertrust.ru/cmj/relations#acl"/>
-        </action>
-      </button>
-      <section id="Content" name="${ui.form.RkkResourceRequestsForm.section.Content.name:Содержание}"/>
       <section id="Header">
         <component>
-          <section id="row1" group="true">
+          <section id="headerlineone" group="true">
             <appearance field-layout="horizontal"/>
             <component>
-              <field attribute-ref="showIdent">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance align="left" importance="normal">
-                  <label-style field-width="20" field-unit="symbol"/>
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementWithIcon"/>
-                      <enable condition-union="AND">
-                        <condition-ref ref="edit"/>
-                        <condition-ref ref="read"/>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-              </field>
-              <field attribute-ref="showType">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance align="left" importance="normal">
-                  <label-style field-width="15" field-unit="symbol"/>
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementWithIcon"/>
-                      <enable condition-union="AND">
-                        <condition-ref ref="edit"/>
-                        <condition-ref ref="read"/>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-              </field>
-              <field attribute-ref="$tagsHeader">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="$MEDO">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isMEDODocument"/>
-                  </hide>
-                </properties>
-                <appearance align="left">
-                  <label-style field-unit="symbol" field-width="15"/>
-                </appearance>
-              </field>
-              <field attribute-ref="$signStatusInfo">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance align="left" importance="normal">
-                  <label-style field-unit="symbol"/>
-                </appearance>
-              </field>
-              <section id="row11" group="true">
+              <section id="row1" group="true">
+                <appearance field-layout="horizontal"/>
                 <component>
+                  <field attribute-ref="showIdent">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal">
+                      <label-style field-width="20" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition-ref ref="edit"/>
+                            <condition-ref ref="read"/>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="showType">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal" multiline="true">
+                      <label-style field-width="45" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition-ref ref="edit"/>
+                            <condition-ref ref="read"/>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <section id="securityStamp" group="true">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="securityStampIsEmpty"/>
+                        <condition-ref ref="readRkkResource"/>
+                      </hide>
+                    </properties>
+                    <appearance field-layout="horizontal">
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="horizontalSection"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                    <component>
+                      <section id="securityStampValue" group="true">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="ShowSecurityStampField"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <field attribute-ref="securityStamp" recalc="true"
+                                 name="${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampText.name:Гриф доступа:}">
+                            <properties>
+                              <hide condition-union="AND">
+                                <condition-ref ref="docReasonWithdrawalIsView"/>
+                                <condition-ref ref="docReasonWithdrawalManualIsView"/>
+                                <condition-ref ref="docReasonWithdrawalReasonIsView"/>
+                              </hide>
+                            </properties>
+                            <appearance importance="high" align="left">
+                              <label-style field-unit="symbol" field-width="27">
+                                <style id="tunBlack"/>
+                              </label-style>
+                              <field-style>
+                                <value-style>
+                                  <style id="tunBlack"/>
+                                </value-style>
+                              </field-style>
+                            </appearance>
+                            <directories>
+                              <directory-select-value attribute-ref="personGrifs"/>
+                            </directories>
+                            <hint-pop-up>${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampText.hintPopUp:Гриф ограничения доступа к документу}
+                            </hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                      <field attribute-ref="docReasonWithdrawlObj.Link"
+                             name="${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampLink.name:Гриф доступа}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="docReasonWithdrawalIsView"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="high">
+                          <label-style field-width="6">
+                            <style id="tunBold"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="docReasonWithdrawlObj.GrifLabel">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="docReasonWithdrawalManualIsView"/>
+                            <negative-condition-ref ref="docReasonWithdrawalReasonIsView"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style field-width="11">
+                            <style id="tunGray"/>
+                            <style id="tunResetBtnStyles"/><!-- стиль tunResetBtnStyles, чтобы был такой же margin-top, как у кнопки "снят" -->
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="docReasonWithdrawalManualIsView"/>
+                          </hide>
+                        </properties>
+                        <appearance align="left">
+                          <label-style unit="symbol" width="6">
+                            <style id="tunBlue"/>
+                            <style id="tunUnderline"/>
+                            <style id="tunBold"/>
+                          </label-style>
+                        </appearance>
+                        <action>
+                          <custom>
+                            <change-subobject schema-ref="ReasonDocDialog"/>
+                          </custom>
+                        </action>
+                      </button>
+                      <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="read"/>
+                            <negative-condition-ref ref="docReasonWithdrawalReasonIsView"/>
+                          </hide>
+                        </properties>
+                        <appearance align="left">
+                          <label-style unit="symbol" width="6">
+                            <style id="tunBlue"/>
+                            <style id="tunUnderline"/>
+                            <style id="tunBold"/>
+                          </label-style>
+                        </appearance>
+                        <action>
+                          <custom>
+                            <change-subobject schema-ref="ReasonDocTextDialog"/>
+                          </custom>
+                        </action>
+                      </button>
+                      <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="edit"/>
+                            <negative-condition-ref ref="docReasonWithdrawalReasonIsView"/>
+                          </hide>
+                        </properties>
+                        <appearance align="left">
+                          <label-style unit="symbol" width="6">
+                            <style id="tunBlue"/>
+                            <style id="tunUnderline"/>
+                            <style id="tunBold"/>
+                          </label-style>
+                        </appearance>
+                        <action>
+                          <custom>
+                            <change-subobject schema-ref="ReasonDocTextEditDialog"/>
+                          </custom>
+                        </action>
+                      </button>
+                      <field attribute-ref="addLinkedDocGrif" recalc="true">
+                        <properties>
+                          <hide>
+                            <condition>true</condition>
+                          </hide>
+                        </properties>
+                      </field>
+                      <field attribute-ref="docReasonWithdrawlObj.withdrawStampReasonText" recalc="true">
+                        <properties>
+                          <hide>
+                            <condition>true</condition>
+                          </hide>
+                        </properties>
+                      </field>
+                      <field attribute-ref="PaperDocNumbers" name="${ui.form.RkkResourceRequestsForm.section.Header.section.row15.field.PaperDocNumbers.name:№ экз:}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <condition>true</condition>
+                          </hide>
+                        </properties>
+                        <appearance importance="high" align="right">
+                          <label-style field-unit="symbol" field-width="15">
+                            <style id="tunBlack"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBlack"/>
+                            </value-style>
+                          </field-style>
+                          <alt-appearancies>
+                            <alt-appearance>
+                              <appearance-ref ref="css_headerElementBold"/>
+                              <enable condition-union="AND">
+                                <condition>true</condition>
+                              </enable>
+                            </alt-appearance>
+                          </alt-appearancies>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Header.section.row15.field.PaperDocNumbers.hintPopUp:№ бумажного документа, через запятую}
+                        </hint-pop-up>
+                      </field>
+                      <field attribute-ref="DOPName">
+                        <properties>
+                          <hide condition-union="AND">
+                            <condition>true</condition>
+                          </hide>
+                        </properties>
+                      </field>
+                      <field attribute-ref="securityStamp" recalc="true">
+                        <properties>
+                          <hide condition-union="AND">
+                            <condition>true</condition>
+                          </hide>
+                        </properties>
+                      </field>
+                    </component>
+                  </section>
+                  <field attribute-ref="$MEDO">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isMEDODocument"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style field-unit="symbol" field-width="15"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="showState">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="right" importance="high" multiline="false">
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="rightAlign"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                  <label-style field-width="7" field-unit="symbol">
+                    <style id="tunBold"/>
+                  </label-style>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <section id="headerlinetwo" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <section id="columnheaderleft" group="true">
+                <component>
+                  <section group="true" id="row2">
+                    <component>
+                      <field attribute-ref="showProject">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="IsProject_RKK"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="7"/>
+                          <alt-appearancies>
+                            <alt-appearance>
+                              <appearance-ref ref="css_headerElementGrayBold"/>
+                              <enable condition-union="AND">
+                                <condition>true</condition>
+                              </enable>
+                            </alt-appearance>
+                          </alt-appearancies>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="projectNumber">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="IsProject_RKK"/>
+                          </hide>
+                        </properties>
+                        <appearance location="subform" importance="normal"/>
+                      </field>
+                      <field attribute-ref="showRegInfo">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="Registrated_RKK"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false" location="subform"/>
+                      </field>
+                    </component>
+                    <appearance field-layout="horizontal"/>
+                  </section>
+                  <field attribute-ref="$titleHeader">
+                    <properties>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                      </require>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" multiline="false">
+                      <label-style>
+                        <style id="tunFontSize14"/>
+                        <style id="tunClickableUnderline"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunFontSize14"/>
+                          <style id="tunClickableUnderline"/>
+                        </value-style>
+                      </field-style>
+                      <limit max-lenght="1024"/>
+                    </appearance>
+                    <hint-in-field>${ui.form.RkkResourceRequestsForm.section.Header.field.titleHeader.hintInField:Введите заголовок документа}</hint-in-field>
+                    <directories manual-input="true">
+                      <directory-ref ref="subject"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="$titleHeader">
+                    <properties>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                      </require>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" multiline="false">
+                      <label-style>
+                        <style id="tunFontSize14"/>
+                        <style id="tunClickableUnderline"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunFontSize14"/>
+                          <style id="tunClickableUnderline"/>
+                        </value-style>
+                      </field-style>
+                      <limit max-lenght="1024"/>
+                    </appearance>
+                    <hint-in-field>${ui.form.RkkResourceRequestsForm.section.Header.field.titleHeader.hintInField:Введите заголовок документа}</hint-in-field>
+                    <directories manual-input="true">
+                      <directory-ref ref="subject"/>
+                    </directories>
+                  </field>
+                </component>
+              </section>
+              <section id="columnheaderright" group="true">
+                <component>
+                  <section id="showStateAndSign" group="true">
+                    <appearance field-layout="horizontal"/>
+                    <component>
+                      <field attribute-ref="$signStatusInfo">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance align="right" importance="normal">
+                          <label-style field-width="22" field-unit="symbol">
+                            <style id="tunBold"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBold"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="signatureTextReject">
+                        <appearance align="right" importance="normal">
+                          <label-style field-unit="symbol" field-width="36"/>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBold"/>
+                              <style id="tunFontSize12"/>
+                            </value-style>
+                          </field-style>
+                          <alt-appearancies>
+                            <alt-appearance>
+                              <appearance-ref ref="rightAlign"/>
+                              <enable condition-union="AND">
+                                <condition>true</condition>
+                              </enable>
+                            </alt-appearance>
+                          </alt-appearancies>
+                        </appearance>
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="Signing_StatusRejected"/>
+                          </hide>
+                        </properties>
+                      </field>
+                    </component>
+                  </section>
                   <field attribute-ref="$regStatusInfo">
                     <appearance align="right" importance="normal">
                       <label-style field-width="22" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="rightAlign"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="RkkResource_regStatusInfoIsEmpty"/>
+                      </hide>
+                    </properties>
+                  </field>
+                  <field attribute-ref="stampInfo">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isInStamp"/>
+                      </hide>
+                    </properties>
+                    <appearance align="right" importance="normal">
+                      <label-style field-width="30" field-unit="symbol">
+                        <style id="tunBlack"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBlack"/>
+                        </value-style>
+                      </field-style>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="rightAlign"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="$reviewStatusInfo">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="OnReview_RKK"/>
+                      </hide>
+                    </properties>
+                    <appearance align="right" importance="normal">
+                      <label-style field-width="15" field-unit="symbol"/>
                       <alt-appearancies>
                         <alt-appearance>
                           <appearance-ref ref="rightAlign"/>
@@ -312,56 +707,6 @@
               </section>
             </component>
           </section>
-          <field attribute-ref="$titleHeader">
-            <properties>
-              <require condition-union="AND">
-                <condition>true</condition>
-              </require>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="edit"/>
-              </hide>
-            </properties>
-            <appearance importance="normal">
-              <label-style>
-                <style id="tunFontSize14"/>
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunFontSize14"/>
-                </value-style>
-              </field-style>
-            </appearance>
-            <hint-in-field>${ui.form.RkkResourceRequestsForm.section.Header.field.titleHeader.hintInField:Введите заголовок документа}</hint-in-field>
-            <directories manual-input="true" limit-livesearch="no-restrictions">
-              <directory-ref ref="typeT"/>
-            </directories>
-          </field>
-          <field attribute-ref="$titleHeader">
-            <properties>
-              <require condition-union="AND">
-                <condition>true</condition>
-              </require>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="read"/>
-              </hide>
-            </properties>
-            <appearance importance="normal">
-              <label-style>
-                <style id="tunFontSize14"/>
-                <style id="tunClickableUnderline"/>
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunFontSize14"/>
-                  <style id="tunClickableUnderline"/>
-                </value-style>
-              </field-style>
-            </appearance>
-            <hint-in-field>${ui.form.RkkResourceRequestsForm.section.Header.field.titleHeader.hintInField:Введите заголовок документа}</hint-in-field>
-            <directories manual-input="true" limit-livesearch="no-restrictions">
-              <directory-ref ref="typeT"/>
-            </directories>
-          </field>
           <field attribute-ref="$previous">
             <properties>
               <read-only condition-union="AND">
@@ -375,62 +720,6 @@
           <section id="row21" group="true">
             <appearance field-layout="horizontal"/>
             <component>
-              <field attribute-ref="showProject">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="IsProject_RKK"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal">
-                  <label-style>
-                    <style id="tunWhiteSpacePreWrap"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunWhiteSpacePreWrap"/>
-                    </value-style>
-                  </field-style>
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementGrayBold"/>
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-              </field>
-              <field attribute-ref="showRegInfo">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="Registrated_RKK"/>
-                  </hide>
-                </properties>
-                <appearance location="subform" importance="normal">
-                  <label-style>
-                    <style id="tunWhiteSpacePreWrap"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunWhiteSpacePreWrap"/>
-                    </value-style>
-                  </field-style>
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="subform"/>
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-              </field>
               <field attribute-ref="$correspondentInfo">
                 <properties>
                   <read-only condition-union="AND">
@@ -480,7 +769,7 @@
                     <negative-condition-ref ref="isRequestLegal"/>
                   </hide>
                 </properties>
-                <appearance align="left" importance="normal">
+                <appearance align="left" importance="high">
                   <label-style>
                     <style id="tunBlack"/>
                     <style id="tunWhiteSpacePreWrap"/>
@@ -502,7 +791,8 @@
                     <negative-condition-ref ref="isRequestCitizen"/>
                   </hide>
                 </properties>
-                <appearance align="left" importance="normal">
+                <appearance align="left" importance="high" multiline="false">
+                  <limit max-height-scroll="1"/>
                   <label-style>
                     <style id="tunBlack"/>
                     <style id="tunWhiteSpacePreWrap"/>
@@ -583,6 +873,11 @@
                 </appearance>
               </field>
               <field attribute-ref="secondary" name="${ui.form.RkkResourceRequestsForm.section.Header.section.row3.field.secondary.name:Вторичное}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
                 <appearance align="left" importance="normal">
                   <label-style field-width="3" field-unit="symbol"/>
                   <alt-appearancies>
@@ -597,16 +892,6 @@
               </field>
               <field attribute-ref="sstu" name="${ui.form.RkkResourceRequestsForm.section.Header.section.row3.field.sstu.name:Не выгружать в ССТУ}">
                 <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="$reviewStatusInfo">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance align="right" importance="normal">
-                  <label-style field-width="15" field-unit="symbol"/>
-                </appearance>
               </field>
               <field attribute-ref="$approvStatusInfo">
                 <properties>
@@ -635,20 +920,6 @@
               <system name="ADD_LINK_TO_FAVORITE_FOLDER"/>
             </action>
           </button>
-          <section id="SEND" name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.SEND.name:Отправить}">
-            <component>
-              <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.SEND.button.По Email.name:По Email}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="read"/>
-                  </hide>
-                </properties>
-                <action>
-                  <system name="http://intertrust.ru/cmj/relations#create.email"/>
-                </action>
-              </button>
-            </component>
-          </section>
           <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.button.RememberLinkAction.name:RememberLinkAction}">
             <properties>
               <hide condition-union="AND">
@@ -694,41 +965,164 @@
                   </custom>
                 </action>
               </button>
+              <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.SEND.button.По Email.name:Переслать по Email}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+                <action>
+                  <system name="http://intertrust.ru/cmj/relations#create.email"/>
+                </action>
+              </button>
+              <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.button.Читатели.name:Читатели}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.button.Читатели.hintPopUp:Читатели}</hint-pop-up>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler-ref ref="ReadersMultiForm"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.button.Читатели.name:Читатели}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="read"/>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.button.Читатели.hintPopUp:Читатели}</hint-pop-up>
+                <action>
+                  <system name="http://intertrust.ru/cmj/relations#acl"/>
+                </action>
+              </button>
+              <section id="PRINTED_FORM" name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.section.PRINTED_FORM.name:Печатная форма}">
+                <appearance turn="true">
+                  <action>
+                    <system name="PRINTED_FORM"/>
+                  </action>
+                </appearance>
+                <component>
+                  <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.section.PRINTED_FORM.button.BarcodeExtended.name:Штрихкод с доп. реквизитами}">
+                    <action position="100">
+                      <custom>
+                        <operation>
+                          <handler-ref ref="PrintExtendedBarcodeHandler"/>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.RkkResourceRequestsForm.section.RootMenu.section.OTHER.section.PRINTED_FORM.button.Barcode.name:Штрихкод}">
+                    <action position="101">
+                      <custom>
+                        <operation>
+                          <handler-ref ref="PrintBarcodeHandler"/>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                </component>
+              </section>
+            </component>
+          </section>
+          <section id="OTHER_EDIT" name="${ui.form.RkkResourceForm.section.RootMenu.section.OTHER.name:Другое}">
+            <appearance turn="true">
+              <action position="30" />
+            </appearance>
+            <properties>
+              <hide>
+                <negative-condition-ref ref="edit"/>
+              </hide>
+            </properties>
+            <component>
+              <section id="removeGrifMenu" name="${ui.form.RkkresourceForm.removeGrifMenu:Снять гриф доступа}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="showDeleteButton"/>
+                    <negative-condition-ref ref="docReasonWithdrawalIsView"/>
+                    <negative-condition-ref ref="docReasonWithdrawalManualIsView"/>
+                    <negative-condition-ref ref="docReasonWithdrawalReasonIsView"/>
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <rename name="${ui.form.RkkResourceForm.changeRemoveGrifMenu:Изменить причину снятия грифа}">
+                  <condition-ref ref="docReasonWithdrawalIsView"/>
+                  <condition-ref ref="docReasonWithdrawalManualIsView"/>
+                  <condition-ref ref="docReasonWithdrawalReasonIsView"/>
+                </rename>
+                <component>
+                  <button name="${ui.form.RkkResourceForm.removeGrifMenu.selectReasonText:Указать причину}">
+                    <action>
+                      <custom>
+                        <change-subobject schema-ref="ReasonDocTextEditDialog"/>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.RkkResourceForm.removeGrifMenu.selectReasonDoc:Выбрать документ-основание}" attribute-ref="addLinkedDocGrif">
+                    <action>
+                      <custom>
+                        <update-linked-doc schema-ref="ReasonWithdrawalOfGrifResource"/>
+                      </custom>
+                    </action>
+                  </button>
+                </component>
+              </section>
             </component>
           </section>
         </component>
       </section>
       <section id="Attributes" name="${ui.form.RkkResourceRequestsForm.section.Attributes.name:Реквизиты}">
+        <appearance>
+          <label-style width="19" unit="symbol"/>
+        </appearance>
         <component>
-          <section id="linksAccessSection" group="true">
-            <appearance>
-              <label-style width="30" unit="symbol"/>
-            </appearance>
+          <section id="Main" group="true">
             <component>
-              <field attribute-ref="disableLinkAccess" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям:}">
-                <appearance align="right" importance="normal">
-                  <label-style field-width="2" field-unit="symbol"/>
-                </appearance>
-                <hint-in-field>${ui.form.RkkResourceRequestsForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.hintInField:Не дается доступ к текущему документу читателям связанных документов}</hint-in-field>
-              </field>
-            </component>
-          </section>
-          <field autofill="true" recalc="true" attribute-ref="appealWay" name="${ui.form.RkkResourceRequestsForm.section.Attributes.field.appealWay.name:Способ обращения:}">
-            <properties>
-              <require condition-union="AND">
-                <condition>true</condition>
-              </require>
-            </properties>
-            <appearance align="left" importance="normal"/>
-            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.field.appealWay.hintPopUp:Способ обращения}</hint-pop-up>
-            <directories limit-livesearch="sys-current">
-              <directory-ref ref="typeAppeal"/>
-            </directories>
-          </field>
-          <section id="Main" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.name:Основные}">
-            <component>
-              <field recalc="true" attribute-ref="requestType">
+              <field attribute-ref="LabelMain">
                 <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <label-style field-unit="symbol">
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field autofill="true" recalc="true" attribute-ref="appealWay" name="${ui.form.RkkResourceRequestsForm.section.Attributes.field.appealWay.name:Способ обращения:}">
+                <properties>
+                  <require condition-union="AND">
+                    <condition-ref ref="edit"/>
+                  </require>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.field.appealWay.hintPopUp:Способ обращения}</hint-pop-up>
+                <directories limit-livesearch="sys-current">
+                  <directory-ref ref="typeAppeal"/>
+                </directories>
+              </field>
+              <field recalc="true" attribute-ref="requestType" name="${ui.form.RkkResourceRequestsForm.section.Attributes.field.requestType.name:Кто обратился:}">
+                <properties>
+                  <require condition-union="AND">
+                    <condition-ref ref="edit"/>
+                  </require>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="isEnableTypeRequestLegal"/>
                   </hide>
@@ -740,11 +1134,19 @@
               </field>
               <field attribute-ref="type" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.type.name:Вид обращения:}">
                 <properties>
-                  <read-only condition-union="AND">
+                  <require condition-union="AND">
                     <condition-ref ref="Registrated_RKK"/>
-                  </read-only>
+                  </require>
                 </properties>
                 <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
                   <limit max-size="1"/>
                 </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.type.hintPopUp:Вид обращения}</hint-pop-up>
@@ -760,6 +1162,14 @@
                 </properties>
                 <appearance importance="normal">
                   <limit max-size="1"/>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
                 </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.type.hintPopUp:Тип обращения}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
@@ -775,30 +1185,73 @@
                     <negative-condition-ref ref="isRequestLegal"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+              <field attribute-ref="deliveryInfo" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.deliveryInfo.name:Вид доставки:}">
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.deliveryInfo.hintPopUp:Вид доставки}</hint-pop-up>
+                <directories limit-livesearch="sys-current">
+                  <directory-ref ref="Вид доставки"/>
+                </directories>
               </field>
               <field attribute-ref="receiveDate" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.receiveDate.name:Дата приема:}">
                 <properties>
                   <require condition-union="AND">
-                    <condition>true</condition>
+                    <condition-ref ref="edit"/>
                   </require>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.receiveDate.hintPopUp:Дата приема}</hint-pop-up>
               </field>
               <field autofill="true" attribute-ref="receivePlace" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.receivePlace.name:Место приема:}">
                 <properties>
                   <require condition-union="AND">
-                    <condition>true</condition>
+                    <condition-ref ref="edit"/>
                   </require>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.receivePlace.hintPopUp:Место приема}</hint-pop-up>
                 <directories manual-input="true" limit-livesearch="sys-current">
                   <directory-ref ref="receivePlace"/>
@@ -810,7 +1263,16 @@
                     <negative-condition-ref ref="isCorpProjectEdit"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.currDate.hintPopUp:Дата регистрации}</hint-pop-up>
               </field>
               <field recalc="true" attribute-ref="registration.date" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.registration.date.name:Дата регистрации:}">
@@ -819,9 +1281,202 @@
                     <condition-ref ref="isCorpProjectEdit"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.registration.date.hintPopUp:Дата регистрации}</hint-pop-up>
               </field>
+              <section group="true" id="receiveBeginTime">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="isRequestPersonalAno" />
+                  </hide>
+                </properties>
+                <component>
+                  <field attribute-ref="receiveBeginTimeHour" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.receiveBeginTime.field.receiveBeginTimeHour.name:Время начала личного приёма:}">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <condition-ref ref="isClerk"/>
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="3"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Hours"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiveBeginTimeHour"
+                         name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.receiveBeginTime.field.receiveBeginTimeHour.name:Время начала личного приёма:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isClerk"/>
+                        <negative-condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="12"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Hours"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiveBeginTimeHour"
+                         name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.receiveBeginTime.field.receiveBeginTimeHour.name:Время начала личного приёма:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isClerk"/>
+                        <negative-condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="3"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Hours"/>
+                    </directories>
+                  </field>
+
+                  <field attribute-ref="delim">
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="1"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="receiveBeginTimeMin">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <condition-ref ref="isClerk" />
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="12" />
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Minutes" />
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiveBeginTimeMin">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isClerk" />
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="12" />
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Minutes" />
+                    </directories>
+                  </field>
+                </component>
+                <appearance field-layout="horizontal" />
+              </section>
+
+
+              <section group="true" id="receiveEndTime">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="isRequestPersonalAno" />
+                  </hide>
+                </properties>
+                <component>
+                  <field attribute-ref="receiveEndTimeHour"
+                         name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.receiveEndTime.field.receiveEndTimeHour.name:Время окончания личного приёма:}">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <condition-ref ref="isClerk"/>
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="3"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Hours"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiveEndTimeHour"
+                         name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.receiveEndTime.field.receiveEndTimeHour.name:Время окончания личного приёма:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isClerk"/>
+                        <negative-condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="12"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Hours"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiveEndTimeHour"
+                         name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.receiveEndTime.field.receiveEndTimeHour.name:Время окончания личного приёма:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isClerk"/>
+                        <negative-condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="3"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Hours"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="delim">
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="1"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="receiveEndTimeMin">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <condition-ref ref="isClerk" />
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="12" />
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Minutes" />
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiveEndTimeMin">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isClerk" />
+                      </hide>
+                    </properties>
+                    <appearance multiline="false">
+                      <label-style field-unit="symbol" field-width="12" />
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="Minutes" />
+                    </directories>
+                  </field>
+                </component>
+                <appearance field-layout="horizontal" />
+              </section>
               <field attribute-ref="receiveDateKrsk" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.receiveDateKrsk.name:Дата поступления:}">
                 <properties>
                   <hide condition-union="AND">
@@ -829,7 +1484,14 @@
                   </hide>
                 </properties>
                 <appearance importance="normal" align="left">
-                  <label-style field-width="18"/>
+                  <label-style field-width="22">
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
                 </appearance>
               </field>
               <field attribute-ref="receiveWay" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.receiveWay.name:Способ получения:}">
@@ -838,7 +1500,16 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="requestReceiveWay"/>
                 </directories>
@@ -849,7 +1520,16 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="receptionInMode"/>
                 </directories>
@@ -860,7 +1540,16 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <show-value schema-ref="VCardResource.FullName"/>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="unitsWithout_RVZ"/>
@@ -879,7 +1568,17 @@
                         <negative-condition-ref ref="isRequestGroup"/>
                       </hide>
                     </properties>
-                    <appearance importance="normal"/>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                      <limit max-lenght="253"/>
+                    </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.correspondent.hintPopUp:Корреспондент}</hint-pop-up>
                   </field>
                   <field attribute-ref="correspondent.authorPersonal" recalc="true" name="${ui.form.RkkResourceRequestsForm.correspondent:Корреспондент:}">
@@ -888,7 +1587,16 @@
                         <negative-condition-ref ref="isRequestAssociation"/>
                       </hide>
                     </properties>
-                    <appearance importance="normal"/>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.correspondent.hintPopUp:Корреспондент}</hint-pop-up>
                     <directories limit-livesearch="sys-current">
                       <directory-ref ref="foreign_ogs_sprav"/>
@@ -902,6 +1610,14 @@
                       </hide>
                     </properties>
                     <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
                       <limit max-size="1"/>
                     </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.correspondent.hintPopUp:Корреспондент}</hint-pop-up>
@@ -916,7 +1632,16 @@
                         <negative-condition-ref ref="isCorrAssociationSelected"/>
                       </hide>
                     </properties>
-                    <appearance importance="normal"/>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <directories limit-livesearch="no-restrictions">
                       <directory-select-org attribute-ref="correspondent.authorPersonal" ref="foreign_human"/>
                     </directories>
@@ -939,6 +1664,16 @@
                     <rename name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.corrSection.field.correspondent.authorPersonal.rename.name:Заявитель, пришедший на личный прием:}" condition-union="AND">
                       <condition-ref ref="isRequestPersonalReception"/>
                     </rename>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.corrSection.field.correspondent.authorPersonal.hintPopUp:Заявитель}</hint-pop-up>
                     <directories limit-livesearch="no-restrictions">
                       <directory-ref ref="PrivatePeople"/>
@@ -951,6 +1686,17 @@
                         <negative-condition-ref ref="isRequestGroup"/>
                       </hide>
                     </properties>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                      <limit max-lenght="253"/>
+                    </appearance>
                     <rename name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.corrSection.field.correspondent.authorPersonal.rename.name:Заявитель, пришедший на личный прием:}" condition-union="AND">
                       <negative-condition-ref ref="isRequestPersonalReception"/>
                     </rename>
@@ -971,9 +1717,18 @@
                         <condition-ref ref="isSelectOrganization"/>
                       </hide>
                     </properties>
-                    <appearance importance="normal"/>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.legalSection.field.legal.legalOrganization.hintPopUp:Корреспондент}</hint-pop-up>
-                    <directories limit-livesearch="sys-current">
+                    <directories>
                       <directory-ref ref="FOREIGN_ORGS"/>
                       <directory-ref ref="FV_FOREIGN_ORG_HUMAN_HH"/>
                     </directories>
@@ -984,6 +1739,16 @@
                         <negative-condition-ref ref="isLegalOrgSelected"/>
                       </hide>
                     </properties>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.legalSection.field.legal.legalAuthor.hintPopUp:Автор}</hint-pop-up>
                     <directories limit-livesearch="sys-current">
                       <directory-select-org attribute-ref="legal.legalOrganization" ref="ALIEN_BEARDS"/>
@@ -1010,6 +1775,16 @@
                     <negative-condition-ref ref="isRequestPersonal"/>
                   </hide>
                 </properties>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field attribute-ref="addressLegal" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressLegal.name:Адрес:}">
                 <properties>
@@ -1020,7 +1795,16 @@
                     <negative-condition-ref ref="isLegalOrgSelected"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressLegal.hintPopUp:Адрес}</hint-pop-up>
               </field>
               <field attribute-ref="addressString" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressString.name:Адрес:}">
@@ -1035,7 +1819,16 @@
                 <rename name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressString.rename.name:Почтовый адрес для ответа:}" condition-union="AND">
                   <condition-ref ref="isRequestPersonalReception"/>
                 </rename>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressString.hintPopUp:Адрес}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.street" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.street.name:Улица:}">
@@ -1045,7 +1838,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.street.hintPopUp:Улица}</hint-pop-up>
               </field>
               <section id="Улица+Тип" group="true">
@@ -1059,36 +1861,39 @@
                   <field attribute-ref="correspondent.address.streetType" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.Улица+Тип.field.correspondent.address.streetType.name:Улица:}">
                     <properties>
                       <hide condition-union="AND">
-                        <condition-ref ref="read"/>
                         <negative-condition-ref ref="isRequestGroup"/>
-                        <negative-condition-ref ref="isRequestAnonymous"/>
                       </hide>
                     </properties>
-                    <appearance align="right" importance="normal">
-                      <label-style field-width="15" field-unit="symbol"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
                     </appearance>
                     <directories limit-livesearch="sys-current">
                       <directory-ref ref="StreetType"/>
                     </directories>
                   </field>
-                  <field attribute-ref="correspondent.address.streetType" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.Улица+Тип.field.correspondent.address.streetType.name:Улица:}">
-                    <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="read"/>
-                        <negative-condition-ref ref="isRequestGroup"/>
-                        <negative-condition-ref ref="isRequestAnonymous"/>
-                      </hide>
-                    </properties>
-                    <appearance align="left" importance="normal"/>
-                  </field>
                   <field attribute-ref="correspondent.address.street">
                     <properties>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="isRequestGroup"/>
-                        <negative-condition-ref ref="isRequestAnonymous"/>
                       </hide>
                     </properties>
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                   </field>
                 </component>
               </section>
@@ -1098,7 +1903,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.house.hintPopUp:Дом}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.housing" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.housing.name:Корпус:}">
@@ -1107,7 +1921,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.housing.hintPopUp:Корпус}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.build" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.build.name:Строение:}">
@@ -1116,7 +1939,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.build.hintPopUp:Строение}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.office" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.office.name:Номер квартиры/офиса:}">
@@ -1125,7 +1957,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.office.hintPopUp:Номер квартиры/офиса}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.city" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.city.name:Город/Населенный пункт:}">
@@ -1134,7 +1975,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.city.hintPopUp:Город/Населенный пункт}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.locality" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.locality.name:Район/Округ:}">
@@ -1143,7 +1993,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.locality.hintPopUp:Район}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.region" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.region.name:Регион:}">
@@ -1152,7 +2011,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.region.hintPopUp:Регион}</hint-pop-up>
               </field>
               <field attribute-ref="postalCodeStr" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.postalCodeStr.name:Индекс:}">
@@ -1164,7 +2032,16 @@
                     <negative-condition-ref ref="isRequestPersonal"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.postalCodeStr.hintPopUp:Индекс}</hint-pop-up>
               </field>
               <field attribute-ref="correspondent.address.zipCode" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.correspondent.address.zipCode.name:Индекс:}">
@@ -1173,7 +2050,16 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field attribute-ref="country" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.country.name:Страна:}">
                 <properties>
@@ -1181,14 +2067,32 @@
                     <negative-condition-ref ref="isRequestGroup"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.country.hintPopUp:Страна}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="countryCorrespondent"/>
                 </directories>
               </field>
               <field attribute-ref="benefitGroups" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.benefitGroups.name:Льготный состав:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.benefitGroups.hintPopUp:Льготный состав}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="Льготный состав"/>
@@ -1200,13 +2104,31 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="specPosition"/>
                 </directories>
               </field>
               <field attribute-ref="occupation" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.occupation.name:Род занятий:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field recalc="true" attribute-ref="representative.authorPersonal" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.authorPersonal.name:Представитель:}">
                 <properties>
@@ -1214,7 +2136,16 @@
                     <negative-condition-ref ref="isRequestPersonalOrAssociationAndNotPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.authorPersonal.hintPopUp:Представитель}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="PrivatePeople"/>
@@ -1227,7 +2158,16 @@
                     <negative-condition-ref ref="isRequestLegalAndNotPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.authorPersonal.hintPopUp:Представитель}</hint-pop-up>
               </field>
               <field attribute-ref="representative.authorGroup" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.authorGroup.name:Представитель:}">
@@ -1236,7 +2176,16 @@
                     <negative-condition-ref ref="isRequestGroupAndNotPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.authorGroup.hintPopUp:Представитель}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="AlienBeards"/>
@@ -1249,10 +2198,61 @@
                     <condition>true</condition>
                   </read-only>
                   <hide condition-union="AND">
+                    <negative-condition-ref ref="isRequestPersonalOrAssociationAndNotPersonalReception"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressStringRepr.hintPopUp:Адрес представителя}</hint-pop-up>
+              </field>
+              <field attribute-ref="addressStringRepr" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressStringRepr.name:Адрес представителя:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="isRequestLegalAndNotPersonalReception"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressStringRepr.hintPopUp:Адрес представителя}</hint-pop-up>
+              </field>
+              <field attribute-ref="addressStringRepr" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressStringRepr.name:Адрес представителя:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
                     <negative-condition-ref ref="isRequestGroupAndNotPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressStringRepr.hintPopUp:Адрес представителя}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.street" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.street.name:Улица:}">
@@ -1262,7 +2262,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.street.hintPopUp:Улица}</hint-pop-up>
               </field>
               <section id="Улица+Тип (Представитель)" group="true">
@@ -1278,36 +2287,39 @@
                   <field attribute-ref="representative.address.streetType" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.Улица+Тип (Представитель).field.representative.address.streetType.name:Улица:}">
                     <properties>
                       <hide condition-union="AND">
-                        <condition-ref ref="read"/>
                         <negative-condition-ref ref="isRequestGroup"/>
-                        <negative-condition-ref ref="isRequestAnonymous"/>
                       </hide>
                     </properties>
-                    <appearance align="right" importance="normal">
-                      <label-style field-width="15" field-unit="symbol"/>
+                    <appearance align="left">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
                     </appearance>
                     <directories limit-livesearch="sys-current">
                       <directory-ref ref="StreetType"/>
                     </directories>
                   </field>
-                  <field attribute-ref="representative.address.streetType" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.Улица+Тип (Представитель).field.representative.address.streetType.name:Улица:}">
-                    <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="read"/>
-                        <negative-condition-ref ref="isRequestGroup"/>
-                        <negative-condition-ref ref="isRequestAnonymous"/>
-                      </hide>
-                    </properties>
-                    <appearance align="left" importance="normal"/>
-                  </field>
                   <field attribute-ref="representative.address.street">
                     <properties>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="isRequestGroup"/>
-                        <negative-condition-ref ref="isRequestAnonymous"/>
                       </hide>
                     </properties>
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                   </field>
                 </component>
               </section>
@@ -1319,7 +2331,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.house.hintPopUp:Дом}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.housing" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.housing.name:Корпус:}">
@@ -1330,7 +2351,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.housing.hintPopUp:Корпус}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.build" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.build.name:Строение:}">
@@ -1341,7 +2371,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.build.hintPopUp:Строение}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.office" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.office.name:Номер квартиры/офиса:}">
@@ -1352,7 +2391,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.office.hintPopUp:Номер квартиры/офиса}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.city" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.city.name:Город/Населенный пункт:}">
@@ -1363,7 +2411,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.city.hintPopUp:Город/Населенный пункт}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.locality" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.locality.name:Район/Округ:}">
@@ -1374,7 +2431,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.locality.hintPopUp:Район/Округ}</hint-pop-up>
               </field>
               <field attribute-ref="representative.address.region" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.region.name:Регион:}">
@@ -1384,25 +2450,70 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.region.hintPopUp:Регион}</hint-pop-up>
               </field>
               <field attribute-ref="corrEmail" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.corrEmail.name:E-mail:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.corrEmail.hintPopUp:E-mail}</hint-pop-up>
               </field>
               <field attribute-ref="addressForAnswer" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressForAnswer.name:Адрес для ответа:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.addressForAnswer.hintPopUp:Адрес для ответа}</hint-pop-up>
               </field>
               <field attribute-ref="incomingSign" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.incomingSign.name:Признак поступления:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="Признак поступления"/>
                 </directories>
               </field>
               <field attribute-ref="received" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.received.name:Поступило:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="Поступило"/>
                 </directories>
@@ -1414,7 +2525,16 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.representative.address.country.hintPopUp:Страна}</hint-pop-up>
               </field>
               <field clickable="true" recalc="true" attribute-ref="questionsTable" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.questionsTable.name:Тематика:}">
@@ -1423,7 +2543,16 @@
                     <negative-condition-ref ref="edit"/>
                   </hide>
                 </properties>
-                <appearance location="table" importance="normal" clickable="true"/>
+                <appearance location="table" importance="normal" clickable="true">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.questionsTable.hintPopUp:Тематика}</hint-pop-up>
               </field>
               <field clickable="true" attribute-ref="questionsTableDisplay" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.questionsTableDisplay.name:Тематика:}">
@@ -1432,7 +2561,16 @@
                     <condition-ref ref="edit"/>
                   </hide>
                 </properties>
-                <appearance location="table" importance="normal" clickable="true"/>
+                <appearance location="table" importance="normal" clickable="true">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.questionsTableDisplay.hintPopUp:Тематика}</hint-pop-up>
               </field>
               <field attribute-ref="madeAppointment" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.madeAppointment.name:Уполномоченное лицо, записавшее заявителя на прием:}">
@@ -1441,7 +2579,16 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="CURRENT_SYS_HUMAN_Hierarchy"/>
                   <directory-ref ref="CURRENT_SYS_HUMAN"/>
@@ -1460,7 +2607,16 @@
                         <negative-condition-ref ref="isRequestNotPersonalReception"/>
                       </hide>
                     </properties>
-                    <appearance importance="normal"/>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.adrSection.field.addressee.hintPopUp:Адресаты}</hint-pop-up>
                     <directories limit-livesearch="sys-current">
                       <directory-ref ref="CURRENT_ORG_DEP_HUMAN_HH"/>
@@ -1481,14 +2637,24 @@
                   <field attribute-ref="addressee" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.section.adrSection.field.addressee.name2:Руководитель, уполномоченное лицо, осуществляющее прием:}">
                     <properties>
                       <require condition-union="AND">
-                        <condition>true</condition>
+                        <condition-ref ref="edit"/>
                       </require>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="isRequestPersonalReception"/>
                       </hide>
                     </properties>
-                    <directories limit-livesearch="sys-current">
-                      <directory-ref ref="FV_CURR_ALL"/>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="FV_CURR_HUMAN_HH_FOREIGN_HUMAN"/>
                       <directory-ref ref="CURRENT_SYS_HUMAN_Hierarchy"/>
                       <directory-ref ref="CURRENT_SYS_HUMAN"/>
                       <directory-ref ref="PrivatePeople"/>
@@ -1503,7 +2669,16 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current" manual-input="true">
                   <directory-ref ref="theContentOfTheOralAnswerOnTheMeritsOfTheQuestionsPosedInTheOralCommunication"/>
                 </directories>
@@ -1514,7 +2689,16 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field attribute-ref="transferClarification" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.transferClarification.name:Содержание разъяснения заявителю об обеспечении дополнительного приема у другого уполномоченного лица:}">
                 <properties>
@@ -1522,21 +2706,57 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field attribute-ref="referenceObject" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.referenceObject.name:Предмет ведения:}">
                 <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
                   <limit max-size="1"/>
                 </appearance>
                 <directories manual-input="true" limit-livesearch="sys-current">
                   <directory-ref ref="Предмет ведения"/>
                 </directories>
               </field>
-              <field attribute-ref="notes" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.notes.name:Примечания:}">
-                <appearance importance="normal"/>
+              <field attribute-ref="comment" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.comment.name:Примечание:}">
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.comment.hintPopUp:Примечание}</hint-pop-up>
               </field>
               <field attribute-ref="keyWords" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.keyWords.name:Ключевые слова:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field attribute-ref="controlHI" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Main.field.controlHI.name:Контроль вышестоящей инстанции}">
                 <appearance importance="normal"/>
@@ -1547,76 +2767,213 @@
                     <negative-condition-ref ref="isRequestPersonalReception"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="requestAddresseeWay"/>
                 </directories>
               </field>
             </component>
           </section>
-          <section id="RequestsExecution" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.name:Исполнение}">
+          <section id="RequestsExecution" group="true">
             <component>
-              <field attribute-ref="isSubControl" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.isSubControl.name:Доп. контроль:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.isSubControl.hintPopUp:Доп. контроль}</hint-pop-up>
-              </field>
-              <field recalc="true" attribute-ref="subControlDeadline" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlDeadline.name:Срок доп.контроля:}">
+              <field attribute-ref="LabelExecution">
                 <properties>
-                  <require condition-union="AND">
+                  <read-only condition-union="AND">
                     <condition>true</condition>
-                  </require>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isSubControl"/>
-                  </hide>
+                  </read-only>
                 </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlDeadline.hintPopUp:Срок доп.контроля}</hint-pop-up>
+                <appearance align="left" importance="normal">
+                  <label-style field-unit="symbol">
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
               </field>
-              <field recalc="true" attribute-ref="subConNotice" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subConNotice.name:Напоминание}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isSubControl"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subConNotice.hintPopUp:Напоминание}</hint-pop-up>
-              </field>
-              <field attribute-ref="subControlExecFact" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlExecFact.name:Дата факт. исполнения}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isSubControl"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlExecFact.hintPopUp:Дата факт. исполнения}</hint-pop-up>
-              </field>
+              <section id="subControl" group="true">
+                <appearance field-layout="horizontal" >
+                  <label-style>
+                    <style id="tunNowrapTitle"/>
+                  </label-style>
+                </appearance>
+                <component>
+                  <section id="leftRowControlFields" group="true">
+                    <appearance field-layout="horizontal">
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <section id="isSubControlSection" group="true">
+                        <component>
+                          <field attribute-ref="isSubControl" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.isSubControl.name:Доп. контроль:}">
+                            <appearance importance="normal"/>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.isSubControl.hintPopUp:Доп. контроль}</hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                      <section id="subControlDeadlineSection" group="true">
+                        <component>
+                          <field recalc="true" attribute-ref="subControlDeadline" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlDeadline.name:Срок доп. контроля:}">
+                            <properties>
+                              <require condition-union="AND">
+                                <condition-ref ref="edit"/>
+                              </require>
+                              <hide condition-union="AND">
+                                <negative-condition-ref ref="isSubControl"/>
+                              </hide>
+                            </properties>
+                            <appearance importance="normal">
+                              <label-style field-width="21" field-unit="symbol">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                              <field-style>
+                                <value-style>
+                                  <style id="tunBorderedFieldLight"/>
+                                </value-style>
+                              </field-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlDeadline.hintPopUp:Срок доп. контроля}</hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                  <section id="rightRowControlFields" group="true">
+                    <appearance field-layout="horizontal"/>
+                    <component>
+                      <section id="subConNoticeSection" group="true">
+                        <component>
+                          <field recalc="true" attribute-ref="subConNotice" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subConNotice.name:Напоминание}">
+                            <properties>
+                              <hide condition-union="AND">
+                                <negative-condition-ref ref="isSubControl"/>
+                              </hide>
+                            </properties>
+                            <appearance>
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                              <field-style>
+                                <value-style>
+                                  <style id="tunBorderedFieldLight"/>
+                                </value-style>
+                              </field-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subConNotice.hintPopUp:Напоминание}</hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                      <section id="subControlExecFactSection" group="true">
+                        <component>
+                          <field attribute-ref="subControlExecFact"  name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlExecFact.name:Дата факт. исполнения}">
+                            <properties>
+                              <hide condition-union="AND">
+                                <negative-condition-ref ref="isSubControl"/>
+                              </hide>
+                            </properties>
+                            <appearance>
+                              <label-style field-width="21" field-unit="symbol">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                              <field-style>
+                                <value-style>
+                                  <style id="tunBorderedFieldLight"/>
+                                </value-style>
+                              </field-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.subControlExecFact.hintPopUp:Дата факт. исполнения}</hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                </component>
+              </section>
               <field attribute-ref="executionComment" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.executionComment.name:Исполнение:}">
-                <appearance importance="normal"/>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
                 <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.executionComment.hintPopUp:Исполнение}</hint-pop-up>
               </field>
-              <field attribute-ref="execution.reviewResults" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.reviewResults.name:Результаты рассмотрения:}">
-                <appearance importance="normal">
-                  <limit max-size="1"/>
-                </appearance>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.reviewResults.hintPopUp:Результаты рассмотрения}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="reviewResults"/>
-                </directories>
-              </field>
-              <field attribute-ref="execution.solution" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.solution.name:Принято решение:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.solution.hintPopUp:Принято решение}</hint-pop-up>
-                <directories manual-input="true" limit-livesearch="sys-current">
-                  <directory-ref ref="Solution"/>
-                </directories>
-              </field>
+              <section id="executionCommentAndReviewResults" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                    <section id="sectionReviewResults" group="true">
+                        <appearance field-layout="horizontal">
+                            <dialog-mode width="50" unit="percent"/>
+                        </appearance>
+                        <component>
+                            <field attribute-ref="execution.reviewResults" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.reviewResults.name:Результаты рассмотрения:}">
+                                <appearance importance="normal">
+                                    <label-style>
+                                        <style id="tunBorderedFieldLight"/>
+                                    </label-style>
+                                    <field-style>
+                                        <value-style>
+                                            <style id="tunBorderedFieldLight"/>
+                                        </value-style>
+                                    </field-style>
+                                    <limit max-size="1"/>
+                                </appearance>
+                                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.reviewResults.hintPopUp:Результаты рассмотрения}</hint-pop-up>
+                                <directories limit-livesearch="sys-current">
+                                    <directory-ref ref="reviewResults"/>
+                                </directories>
+                            </field>
+                        </component>
+                    </section>
+                    <section id="sectionSolution" group="true">
+                        <component>
+                            <field attribute-ref="execution.solution" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.solution.name:Принято решение:}">
+                                <appearance>
+                                    <label-style>
+                                        <style id="tunBorderedFieldLight"/>
+                                    </label-style>
+                                    <field-style>
+                                        <value-style>
+                                            <style id="tunBorderedFieldLight"/>
+                                        </value-style>
+                                    </field-style>
+                                </appearance>
+                                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.RequestsExecution.field.execution.solution.hintPopUp:Принято решение}</hint-pop-up>
+                                <directories manual-input="true" limit-livesearch="sys-current">
+                                    <directory-ref ref="Solution"/>
+                                </directories>
+                            </field>
+                        </component>
+                    </section>
+                </component>
+              </section>
               <field clickable="true" attribute-ref="qexecution">
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="edit"/>
                   </hide>
                 </properties>
-                <appearance location="table" clickable="true"/>
+                <appearance location="table" clickable="true">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field clickable="true" attribute-ref="qexecutionDisplay">
                 <properties>
@@ -1624,89 +2981,478 @@
                     <condition-ref ref="edit"/>
                   </hide>
                 </properties>
-                <appearance location="table" clickable="true"/>
-              </field>
-            </component>
-          </section>
-          <section id="Redirection" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.name:Направление}">
-            <component>
-              <field attribute-ref="redirectedToMultipleOrg"
-                     name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirectedToMultipleOrg.name:Адресаты:}">
-                <appearance importance="normal">
-                  <field-style group="true"/>
+                <appearance location="table" clickable="true">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
                 </appearance>
-                <directories limit-livesearch="no-restrictions">
-                  <directory-ref ref="ALIEN_BEARDS_HIER"/>
-                  <directory-ref ref="FV_FOREIGN_ORG"/>
-                </directories>
-              </field>
-              <field attribute-ref="redirection.date" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.date.name:Дата направления:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.date.hintPopUp:Дата направления}</hint-pop-up>
               </field>
             </component>
           </section>
-          <section id="Additional" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.name:Дополнительные}">
+          <section id="Redirection" group="true">
             <component>
-              <field recalc="true" attribute-ref="registration.place" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.place.name:Место регистрации:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.place.hintPopUp:Место регистрации}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="regplaces-collection"/>
-                  <directory-ref ref="CURRENT_SYS_DEP"/>
-                  <directory-ref ref="CURRENT_SYS_DEP_HIER"/>
-                  <directory-ref ref="FV_CURR_HH_DEP_ORG"/>
+              <field attribute-ref="LabelRedirection">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <label-style field-unit="symbol">
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="redirectionFields" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="redirection.to.organization" recalc="true" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.to.organization.name:Организация:}">
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.to.organization.hintPopUp:Организация}</hint-pop-up>
+                    <directories limit-livesearch="sys-current">
+                      <directory-ref ref="FOREIGN_ORGS"/>
+                      <directory-ref ref="FV_FOREIGN_ORG"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="redirection.date" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.date.name:Дата направления:}">
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.date.hintPopUp:Дата направления}</hint-pop-up>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="redirection.to.orgAddressees" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.to.orgAddressees.name:Адресаты:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="isSelectOrganization"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Redirection.field.redirection.to.orgAddressees.hintPopUp:Адресаты}</hint-pop-up>
+                <directories limit-livesearch="sys-current" livesearch="true">
+                  <directory-select-org attribute-ref="redirection.to.organization" ref="ALIEN_BEARDS"/>
                 </directories>
-              </field>
-              <field attribute-ref="deliveryInfo" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.deliveryInfo.name:Вид доставки:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.deliveryInfo.hintPopUp:Вид доставки}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="Вид доставки"/>
-                </directories>
-              </field>
-              <field attribute-ref="pages" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.pages.name:Кол-во листов:}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isRequestNotOral"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.pages.hintPopUp:Кол-во листов}</hint-pop-up>
-              </field>
-              <field attribute-ref="copies" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.copies.name:Кол-во экземпляров:}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isRequestNotOral"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.copies.hintPopUp:Кол-во экземпляров}</hint-pop-up>
-              </field>
-              <field attribute-ref="appendices" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendices.name:Кол-во приложений:}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isRequestNotOral"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendices.hintPopUp:Кол-во приложений}</hint-pop-up>
-              </field>
-              <field attribute-ref="appendicesPages" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendicesPages.name:Листов приложения:}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isRequestNotOral"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendicesPages.hintPopUp:Листов приложения}</hint-pop-up>
-              </field>
-              <field attribute-ref="comment" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.comment.name:Комментарий:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.comment.hintPopUp:Комментарий}</hint-pop-up>
               </field>
             </component>
           </section>
+          <section id="Additional" group="true">
+            <component>
+              <field attribute-ref="labelAdditional">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <label-style field-unit="symbol">
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section group="true" id="additional_regplace_and_dep">
+                <component>
+                  <section id="columnAdditional_regplace" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                      <label-style width="19" unit="symbol"/>
+                    </appearance>
+                    <component>
+                      <field recalc="true" attribute-ref="registration.place"
+                             name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.place.name:Место регистрации:}" tid="/registration/place">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                          <hide condition-union="AND">
+                            <condition-ref ref="Registrated_RKK"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.place.hintPopUp:Место регистрации}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="regplaces-collection"/>
+                          <directory-ref ref="CURRENT_SYS_DEP"/>
+                          <directory-ref ref="CURRENT_SYS_DEP_HIER"/>
+                          <directory-ref ref="FV_CURR_HH_DEP_ORG"/>
+                        </directories>
+                      </field>
+                      <field attribute-ref="showRegPlace"
+                             name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.place.name:Место регистрации:}" tid="/registration/place">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="Registrated_RKK"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="columnAdditiona2_departament" group="true">
+                    <appearance>
+                      <label-style width="19" unit="symbol"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="regPlaceParentDep" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.state.regPlaceParentDep.name:Вышестоящее подразделение:}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance align="left" importance="normal" multiline="true">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                        <show-value schema-ref="VCardResource.EmployeeShortInfo"/>
+                        <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.state.regPlaceParentDep.name.hintPopUp:Самостоятельное или вышестоящее подразделение}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <section group="true" id="additional_registrator_and_delo">
+                <component>
+                  <section id="columnAdditional_registrator" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                      <label-style width="19" unit="symbol"/>
+                    </appearance>
+                    <component>
+                      <field recalc="true" attribute-ref="registration.state.changedBy"
+                             name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.state.changedBy.name:Регистратор:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                            <condition-ref ref="Registrated_RKK"/>
+                          </require>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.registration.state.changedBy.name.hintPopUp:Регистратор}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="columnAdditiona2_delo" group="true">
+                    <appearance>
+                      <label-style width="19" unit="symbol"/>
+                    </appearance>
+                    <component>
+                      <section id="deloDop" group="true">
+                        <appearance field-layout="horizontal"/>
+                        <component>
+                          <field recalc="true" attribute-ref="frFile" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.frFile.name:Дело:}">
+                            <properties>
+                              <read-only>
+                                <condition-ref ref="canNotEditNdDeal"/>
+                              </read-only>
+                              <hide condition-union="OR">
+                                <condition-ref ref="isOldFrCompatible"/>
+                                <condition-ref ref="Registrated_RKK"/>
+                              </hide>
+                            </properties>
+                            <appearance importance="normal" multiline="true" open-form="newTab">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                            <directories relation="inventory-all-frFile" limit-livesearch="sys-current" digest="grid" dialog-title="Выберите дело">
+                              <directory-category-custom-coll attribute-ref="regPlaceID" ref="inventory-all-frFile"/>
+                            </directories>
+                            <hint-pop-up>${ui.form.RkkResourceContractsForm.section.Attributes.section.Additional.field.frFile.hintPopUp:Дело}</hint-pop-up>
+                          </field>
+                          <field attribute-ref="deloLinkLabel" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.frFile.name:Дело:}">
+                            <properties>
+                              <read-only condition-union="AND">
+                                <condition>true</condition>
+                              </read-only>
+                              <hide condition-union="OR">
+                                <condition-ref ref="isOldFrCompatible"/>
+                                <condition-ref ref="IsProject_RKK"/>
+                              </hide>
+                            </properties>
+                            <appearance align="left">
+                              <label-style>
+                                <style id="tunGray"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <section group="true" id="additional_count">
+                <component>
+                  <section id="columnAdditional41" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <section id="rowAdditional41" group="true">
+                        <appearance field-layout="horizontal"/>
+                        <component>
+                          <field attribute-ref="pages" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.pages.name:Кол-во листов:}">
+                            <appearance importance="normal">
+                              <label-style label-width="19" label-unit="symbol" field-width="20" field-unit="symbol">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.pages.hintPopUp:Кол-во листов}</hint-pop-up>
+                          </field>
+                          <field attribute-ref="copies" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.copies.name:Кол-во экземпляров:}">
+                            <appearance importance="normal" align="left">
+                              <label-style label-unit="symbol" label-width="19">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.copies.hintPopUp:Кол-во экземпляров}</hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                  <section id="columnAdditional42" group="true">
+                    <appearance>
+                      <label-style width="19" unit="symbol"/>
+                    </appearance>
+                    <component>
+                      <section id="rowAdditional42" group="true">
+                        <appearance field-layout="horizontal"/>
+                        <component>
+                          <field attribute-ref="appendices"
+                                 name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendices.name:Кол-во приложений:}">
+                            <appearance importance="normal">
+                              <label-style field-unit="symbol" field-width="20">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendices.hintPopUp:Кол-во приложений}</hint-pop-up>
+                          </field>
+                          <field attribute-ref="appendicesPages"
+                                 name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendicesPages.name:Листов приложения:}">
+                            <appearance importance="normal" align="left">
+                              <label-style label-unit="symbol" label-width="19">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                            <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.Additional.field.appendicesPages.hintPopUp:Листов приложения}
+                            </hint-pop-up>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal" >
+                  <label-style>
+                    <style id="tunNowrapTitle"/>
+                  </label-style>
+                </appearance>
+              </section>
+              <section id="additional_recalcSelectedDoc" group="true">
+                <appearance field-layout="horizontal"/>
+                <properties>
+                  <hide>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+                <component>
+                  <field attribute-ref="frFile" recalc="true">
+                    <properties>
+                      <hide>
+                        <condition>true</condition>
+                      </hide>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+              <section id="additional_stamp_and_links_and" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="columnAdditional_stamp" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                      <label-style width="19" unit="symbol"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="barCode" name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.linksAccessSection.field.barCode.name:Штрихкод:}">
+                        <appearance importance="normal" widget="barcode">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkResourceRequestsForm.section.Attributes.section.linksAccessSection.field.barCode.hintInField:Штрихкод}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="columnAdditional_links" group="true">
+                    <component>
+                      <field attribute-ref="disableLinkAccess"
+                             name="${ui.form.RkkResourceRequestsForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям}">
+                        <appearance align="left" importance="normal">
+                          <label-style label-unit="symbol" label-width="30"/>
+                        </appearance>
+                        <hint-in-field>
+                          ${ui.form.RkkResourceRequestsForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.hintInField:Не дается доступ к текущему документу читателям связанных документов}
+                        </hint-in-field>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="ContentSection" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.name:Содержание}">
+        <component>
+          <section id="contentMenu" group="true">
+            <appearance widget="leftMenu"/>
+            <component>
+              <section id="documentContentSection" group="true" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.section.documentContentSection.field.content.name:Документ}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="contentEmpty"/>
+                  </hide>
+                </properties>
+                <component>
+                  <field attribute-ref="fillLabelsInContentFiles" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.field.fillLabelsInContentFiles.name:Обновлять docx при сохранении карточки}">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="read"/>
+                      </hide>
+                      <read-only>
+                        <condition-ref ref="OnReview_RKK"/>
+                        <condition-ref ref="Certified_RKK"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left">
+                      <label-style label-width="30" label-unit="symbol"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="$content">
+                    <appearance importance="normal"/>
+                    <properties>
+                      <read-only>
+                        <condition-ref ref="OnReview_RKK"/>
+                        <condition-ref ref="Certified_RKK"/>
+                      </read-only>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="$content" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.field.content.name:Документ}">
+                <appearance importance="normal"/>
+                <properties>
+                  <read-only>
+                    <condition-ref ref="OnReview_RKK"/>
+                    <condition-ref ref="Certified_RKK"/>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <condition-ref ref="contentEmpty"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="sigContent" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.field.sigContent.name:Подписи и штампы}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="hasSigContent"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="contentAdd" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="contentAddEmpty"/>
+                  </hide>
+                  <read-only>
+                    <condition-ref ref="OnReview_RKK"/>
+                    <condition-ref ref="Certified_RKK"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="contentAdd" name="${ui.form.RkkResourceRequestsForm.section.ContentSection.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="contentAddEmpty"/>
+                  </hide>
+                  <read-only>
+                    <condition-ref ref="OnReview_RKK"/>
+                    <condition-ref ref="Certified_RKK"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="contentEmptyLabel">
+            <properties>
+              <read-only>
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="read"/>
+                <negative-condition-ref ref="contentSectionEmpty"/>
+              </hide>
+            </properties>
+          </field>
         </component>
       </section>
       <section id="CoveringLetter" name="${ui.form.RkkResourceRequestsForm.section.CoveringLetter.name:Источник поступления}"/>
@@ -1722,7 +3468,7 @@
       <section id="Links" name="${ui.form.RkkResourceRequestsForm.section.Links.name:Связанные}">
         <appearance widget="leftMenu"/>
         <component>
-          <section id="Documеnts" name="${ui.form.RkkResourceRequestsForm.section.Links.section.Documеnts.name:Документы}"/>
+          <section id="Documents" name="${ui.form.RkkResourceRequestsForm.section.Links.section.Documеnts.name:Документы}"/>
           <section id="Cases" name="${ui.form.RkkResourceRequestsForm.section.Links.section.Cases.name:Кейсы}">
             <properties>
               <hide condition-union="AND">
@@ -1730,7 +3476,60 @@
               </hide>
             </properties>
           </section>
-          <section id="FilesWithCopies" name="${ui.form.RkkResourceRequestsForm.section.Links.section.FilesWithCopies.name:Дела}"/>
+          <field attribute-ref="$fdndFilesWithCopies" name="${ui.form.RkkResourceRequestsForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="OR">
+                <condition-ref ref="isOldFrCompatible"/>
+                <condition-ref ref="IsProject_RKK"/>
+                <condition-ref ref="isNotRegPlaceClerk"/>
+              </hide>
+              <read-only condition-union="OR">
+                <condition-ref ref="dialog"/>
+              </read-only>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="fdnd-by-regplace-with-originalInfo"/>
+              <directory-ref ref="inventory-all-cases-with-originalInfo"/>
+            </directories>
+          </field>
+          <field attribute-ref="$fdndFilesWithCopies" name="${ui.form.RkkResourceRequestsForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="OR">
+                <condition-ref ref="isOldFrCompatible"/>
+                <condition-ref ref="IsProject_RKK"/>
+                <condition-ref ref="isRegPlaceClerk"/>
+              </hide>
+              <read-only condition-union="OR">
+                <condition-ref ref="dialog"/>
+              </read-only>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="inventory-all-cases-with-originalInfo"/>
+            </directories>
+          </field>
+          <field attribute-ref="$fdndFiles" name="${ui.form.RkkResourceRequestsForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="isNewFrCompatible"/>
+                <condition-ref ref="isNotRegPlaceClerk"/>
+              </hide>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="fdnd-by-regplace-old"/>
+              <directory-ref ref="inventory-all-cases"/>
+            </directories>
+          </field>
+          <field attribute-ref="$fdndFiles" name="${ui.form.RkkResourceRequestsForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="isNewFrCompatible"/>
+                <condition-ref ref="isRegPlaceClerk"/>
+              </hide>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="inventory-all-cases"/>
+            </directories>
+          </field>
           <section id="Visualization" name="${ui.form.RkkResourceRequestsForm.section.Links.section.Visualization.name:Визуализация}"/>
           <section id="AllRequests" name="${ui.form.RkkResourceRequestsForm.section.Links.section.AllRequests.name:Все обращения}">
             <properties>

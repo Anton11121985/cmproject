@@ -17,6 +17,7 @@
         <script event="save" lang="SPEL"><![CDATA[null]]></script>
       </calc-values>
     </actor>
+    <string name="sourceDesc" system="true"/>
     <actor name="f_read_allowbyctx_pers" array="true" computed="true" >
       <calc-values>
         <script event="save" lang="SPEL"><![CDATA[#getDPs(registration?.place, 'Input')]]></script>
@@ -48,6 +49,11 @@
         <script event="open" lang="SPEL"><![CDATA[correspondent!=null && correspondent.type==T(ru.intertrust.cmj.dp.DPMInput$RKKOrRKKTemplate$Correspondent$Type).PRIVATE_HUMAN_MANUAL]]></script>
       </calc-values>
     </boolean>
+    <boolean name="$isHuman" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[correspondent!=null && correspondent.type==T(ru.intertrust.cmj.dp.DPMInput$RKKOrRKKTemplate$Correspondent$Type).PRIVATE_HUMAN]]></script>
+      </calc-values>
+    </boolean>
     <boolean name="$canVerify" system="true" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#verify'].size() > 0]]></script>
@@ -62,13 +68,14 @@
         </script>
       </calc-values>
     </boolean>
-
+    <schema-ref ref="ReceiptTableDisplay" array="true" name="receiptTablesDisplay" createlog="true"/>
+    <schema-ref ref="ReceiptTable" array="true" name="receiptTables" createlog="true"/>
     <string name="autoReceiptTable" createlog="true" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[#this.tuning().getValues().get("receiptTables") == null ?
     (#this.isMedoDocument ? {
         #db = T(ru.intertrust.cmj.af.core.AFCMDomino).getSODb(),
-        #outDate = T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(#db, #this.getId().substring(17)).getCreated().toJavaDate(),
+        #outDate = T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(#db, #this.getId().substring(17)).getItemValue("OutDate").get(0).toJavaDate(),
         #ent = new java.util.HashMap(),
         #ent.put("type", "МЭДО"),
         #ent.put("date", T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(#outDate, false)),
@@ -77,12 +84,18 @@
             "receiptTables",
             T(java.util.Arrays).asList(#ent),
             #this.tuning().getSchema().getProperty("receiptTables")
+        ),
+  T(ru.intertrust.cmj.rest.tuning.TuningHelper).processProperty(
+            #this.tuning().getValues(),
+            "receiptTablesDisplay",
+            T(java.util.Arrays).asList(#ent),
+            #this.tuning().getSchema().getProperty("receiptTablesDisplay")
         )
-    }[5]
+    }[6]
     :
         #this.integrationId != null ? {
             #db = T(ru.intertrust.cmj.af.core.AFCMDomino).getSODb(),
-            #outDate = T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(#db, #this.getId().substring(17)).getCreated().toJavaDate(),
+            #outDate = T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(#db, #this.getId().substring(17)).getItemValue("OutDate").get(0).toJavaDate() ,
             #ent = new java.util.HashMap(), #ent.put("type", "Шлюз"),
             #ent.put("date", T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(#outDate, false)),
             T(ru.intertrust.cmj.rest.tuning.TuningHelper).processProperty(
@@ -90,23 +103,73 @@
                 "receiptTables",
                 T(java.util.Arrays).asList(#ent),
                 #this.tuning().getSchema().getProperty("receiptTables")
-            )
-        }[5]
+            ),
+   T(ru.intertrust.cmj.rest.tuning.TuningHelper).processProperty(
+            #this.tuning().getValues(),
+            "receiptTablesDisplay",
+            T(java.util.Arrays).asList(#ent),
+            #this.tuning().getSchema().getProperty("receiptTablesDisplay")
+   )
+        }[6]
         : ""
     )
 : ""]]></script>
       </calc-values>
     </string>
-    <schema-ref ref="ReceiptTableDisplay" array="true" name="receiptTablesDisplay" createlog="true"/>
+    <string name="regPlaceFullName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.registration == null || #this.registration.place == null) ? '' : {
+	#regplacefullname = T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place)?.originalData()?.getParty()?.getBeard()?.originalData()?.getFullName(),
+	#regplacefullname != null ? #regplacefullname.trim() : ''
+}[1]]]></script>
+      </calc-values>
+    </string>
     <schema-ref ref="MedoPart" name="medoPart" system="true"/>
+    <string name="receiptTablesDigest" array="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.receiptTables != null ? (#this.receiptTables.size() > 0 ? #this.receiptTables.![type] : null) : null]]></script>
+      </calc-values>
+    </string>
     <string name="LabelWithoutDate" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['без даты']]></script>
+        <script event="open" lang="SPEL"><![CDATA['Без даты']]></script>
       </calc-values>
     </string>
     <string name="LabelWithoutNumber" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['без номера']]></script>
+        <script event="open" lang="SPEL"><![CDATA['Без номера']]></script>
+      </calc-values>
+    </string>
+    <boolean name="isAutoReg" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.bf.ModuleID).INPUT.getModule().isAutoRegister(#this.getComplect(), #this.getDbIdent())]]></script>
+      </calc-values>
+    </boolean>
+    <string name="$emailHeader" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+        (#this.type != null ? (((#this.MedoGateState==2 || #this.MedoGateState==3) && #this.type.indexOf(':') != -1) ? (#this.type.substring(0, #this.type.indexOf(':'))) : #this.type) : '')
+        + ((#this.registration!=null && #this.registration.number!=null) ? (
+        (registration.date==null ? '' : (' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date)))
+        + (' № ' + #this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix)
+        ) : (
+        (#this.correspondent?.regDate==null ? '' : ' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.correspondent.regDate))
+        + (#this.correspondent?.regNumber == null ? ' проект' : ' проект № ' + (#this.correspondent.regNumber))
+        ))
+        + ' (от ' + T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().toString(T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME) + ')']]></script>
+      </calc-values>
+    </string>
+    <string name="$emailTitle" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.type != null ? #this.type : '')
+        + ((#this.registration!=null && #this.registration.number!=null) ? (
+        (registration.date==null ? '' : (' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date)))
+        + (' № ' + #this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix)
+        ) : (
+        (#this.correspondent?.regDate==null ? '' : ' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.correspondent.regDate))
+        + (#this.correspondent?.regNumber == null ? ' проект' : ' проект № ' + (#this.correspondent.regNumber))
+        ))+ ' «' + #this.title + '»']]>
+        </script>
       </calc-values>
     </string>
     <string name="$medoProcessingStatus" temporal="true">
@@ -115,12 +178,8 @@
       </calc-values>
     </string>
     <schema-ref ref="DeliveryByBarcodeResource" array="true" name="deliveryByBarcode" system="true"/>
-    <schema-ref ref="ReceiptTable" array="true" name="receiptTables" createlog="true"/>
     <schema-ref ref="AdditionalCorrespondentDisplay" array="true" name="additionalCorrespondentsDisplay" createlog="true"/>
     <schema-ref ref="MovingCopiesTable" array="true" name="movingCopiesTable" createlog="true"/>
-    <string name="dialogueComment" createlog="true">
-      <storage-field name="dialogueComment"/>
-    </string>
     <string name="dialogueCommentReg" createlog="true">
       <storage-field name="dialogueCommentReg"/>
     </string>
@@ -132,6 +191,13 @@
     <boolean temporal="true" name="autoDetectRegPlaceInGateway">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(T(ru.intertrust.cmj.af.core.AFCMDomino).ormUNIDToCMFullUNID(#this.id)[0]).autoDetectRegPlaceInGateway]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isEnabledExecuteRkk" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA[T(ru.intertrust.cmj.rest.bf.ModuleID).INPUT.getModule().isEnabledExecuteRkkWithControlledResolutions(#this.getComplect(), #this.getDbIdent())
+|| T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(NotCompletedCtrldResForRkk)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() == 0]]></script>
       </calc-values>
     </boolean>
     <string name="documentPlace">
@@ -146,73 +212,163 @@
     <string name="medoAttachmentsInfo" array="true">
       <storage-field name="medoAppendixSync"/>
     </string>
-    <boolean name="tDeleted" temporal="true">
+    <actor name="addresseeWD" array="true" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[T(java.lang.Boolean).TRUE.equals(status.deleted)]]></script>
+        <script event="open" lang="SPEL">
+          <![CDATA[{
+            #list = new java.util.ArrayList(),
+            #AddAddressee = ((#this?.addressee != null && #this?.addressee.size() > 0) ? #list.addAll(T(com.google.common.collect.Lists).transform(#this.addressee, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard)) : false),
+            #AddRedirected = ((#this?.delivery?.redirectedTo!= null && #this?.delivery?.redirectedTo.size() > 0) ? #list.addAll(T(com.google.common.collect.Lists).transform(#this.delivery.redirectedTo, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard)) : false),
+            (#AddAddressee || #AddRedirected) ? #list : null
+         }[3]]]>
+        </script>
+      </calc-values>
+    </actor>
+
+    <string name="regInfoDigestWD" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!(
+                    #this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP)) ?
+                        ''
+                        :
+                        (#this.registration.number == null ?
+                            ((#this.projectNumber.numberCharacter == null ?
+                                'Проект'
+                                :
+                                'Проект № ' + (#this.projectNumber.projectNumber)) +' от '
+                                + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.creationDate.toInstant())))
+                            :
+                            (#this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix)
+                            + ' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date))
+                            +
+                            ((#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) ?
+                                ('(вх.' + (#this.correspondent.withoutNumber == true ?
+                                    'б/н'
+                                    :
+                                    #this.correspondent.regNumber)
+                                    + (#this.correspondent.withoutDate == true ?
+                                    ', б/д':' от '
+                                    + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.correspondent.regDate)) + ')'):'')]]>
+        </script>
+      </calc-values>
+    </string>
+    <boolean name="movingCopiesEnable" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).movingCopies]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="rejectionReasonsDictionaryLinkAdded" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[#root.isMedoDocument
+        && #root.link.add(T(ru.intertrust.cmj.rest.core.ResourceLink).getResourceLink(
+          'http://intertrust.ru/cmj/relations#rejection.reasons.dictionary',
+          new ru.intertrust.cmj.rest.tuning.TuningDictionaryComplex.Reference(
+                'value',
+                'ComplectClassifierMedoReasonForRejectRegistration',
+                T(java.util.Collections).emptyMap(),
+                true,
+                T(java.util.Collections).emptySet()
+          ),
+          ''))]]></script>
       </calc-values>
     </boolean>
     <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.af.so);
 importPackage(Packages.ru.intertrust.cmj.dp);
-importPackage(Packages.ru.intertrust.cmj.rest.tuning); 
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFNotice);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.java.util.Date);
+importClass(Packages.java.util.HashMap);
+importClass(Packages.java.lang.System);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK.Registration);
+importClass(Packages.ru.intertrust.cmj.dp.utils.DPUtils);
+importClass(Packages.ru.intertrust.af.storage.AFStorage);
+importClass(Packages.ru.intertrust.cmj.dp.fdnd.FDSharedToolsD);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RPBeard);
+
+function queryCreate(object) {
+   object.registration().setDate(AFDate.createCurrent().toJavaDate());
+   var values = object.tuning().getValues();
+
+   var temp = getTypeReqTNObjectByKey("InputDocs");
+   if (temp != null && (object.getType() == null || object.getType().isEmpty()) && object.getTemplateId() == null) {
+      object.setType(temp.getItemValueString("DocTypeValue"));
+   }
+   if (object.isNew()) {
+     if (object.getTemplateId()==null) {
+        object.content().getFileItems().clear();
+        object.content().setRichText(null);
+        object.content().specification().setAppendixesCount("");
+        object.content().specification().setAppendixesPagesCount("");
+      }
+   }
+}
+
+function recalc(object, changedField)
+{
+    if (changedField == "correspondent.organization.organization")
+    {
+      if (object.correspondent()!=null && object.correspondent().getType()!=null) {
+         var corrType = object.correspondent().getType().toString();
+         if (object.correspondent().regNumber!= null && !object.correspondent().regNumber.isEmpty() && !object.correspondent().withoutNumberFlag())
+         {
+            if (corrType != null && corrType.equals("PRIVATE_HUMAN")) {
+               object.correspondent().setWithoutNumberFlag(true);
+            } else {
+               object.correspondent().setWithoutNumberFlag(false);
+            }
+
+         }
+      }
+    }
+}
+
+function getTypeReqTNObjectByKey(key) {
+   var db = AFCMDomino.getDbByIdent("DocumentTypeSettings", "");
+   if (db == null) {
+      return null;
+   }
+   var coll = null;
+   var vw = db.getView("(vw_cmj_class)");
+   if (vw != null) {
+      try {
+         coll = vw.getAllDocumentsByKey(key);
+         var doc = coll.getFirstDocument();
+         while (doc != null) {
+            if (doc.getItemValueString("DocTypeValue") != null && doc.getItemValueString("DocTypeValue") != "") {
+               break;
+            }
+            doc = coll.getNextDocument(doc);
+         }
+         if (doc != null) {
+            return doc;
+         }
+      } finally {
+         DominoUtils.recycle(coll);
+         DominoUtils.recycle(vw);
+      }
+   }
+}
 
 function querySave(object, document) {
-    if (object.tuning().getValues().containsKey("receiptTables") ) {
-        computeSchemaProperties(object,"receiptTables","receiptTablesDisplay");
+    if (object.isDeleted()) {
+        return true;
     }
-    if (object.tuning().getValues().containsKey("additionalCorrespondents") ) {
-        computeSchemaProperties(object,"additionalCorrespondents","additionalCorrespondentsDisplay");
-    }
-    if (object.correspondent().getOrganization() != null) {
-//подставляем только пока документ в состянии проект. 
-        if (!object.registration().getRegisteredInfo()) {
-            var organization = object.correspondent().getOrganization().getOrganization();
-            if (organization != null) {
-                var mandatory = organization.requiredAddressees();
-                mandatory.removeAll(object.addressees().getList());
-                object.addressees().getList().addAll(mandatory);
-            }
-        }
-    }
-    return true;
+
+   if (object.registration().isSaveWithRegistration) {
+   }
+   return true;
 }
-
-function postSave(object) {}
-
-function recalc(object, changedField) {
-	if (changedField == "registration.place" && object.registration().getState() == DPM.RKK.Registration.State.SENT) {
-		object.registration().state = null
-	}
-}
-
-//заполнение "схемы отображения" для таблиц "Способ получения" и "Корреспондент"
-function computeSchemaProperties(object, strSchema, strSchemaDisplay) {
-    var schemaList = object.tuning().getValues().get(strSchema).getValues();
-    var schemaDisplay;
-    //если ВхД только создан, то "схема отображения" = null, а значит нужно её заполнить
-    if ((schemaDisplay = object.tuning().getValues().get(strSchemaDisplay)) === null) {
-        processProperty(object, schemaList, strSchemaDisplay);
-    } else {
-        //иначе проверяем что данные схемы и схемы отображения отличаются, и только тогда перезаписываем
-        var schemaDisplayList = schemaDisplay.getValues();
-        if (schemaList.size() === schemaDisplayList.size()) {
-            for (var i = 0; i < schemaList.size(); i++) {
-                if (!schemaList.get(i).getValues().equals(schemaDisplayList.get(i).getValues())) {
-                    processProperty(object, schemaList, strSchemaDisplay);
-                }
-            }
-        } else {
-            processProperty(object, schemaList, strSchemaDisplay);
-        }
-    }
-}
-
-function processProperty(object, schema, strSchemaDisplay) {
-    TuningHelper.processProperty(
-        object.tuning().getValues(),
-        strSchemaDisplay,
-        schema,
-        object.tuning().getSchema().getProperty(strSchemaDisplay)
-    );
-}]]></custom-event-handler>
+]]></custom-event-handler>
   </schema>
 </schemas>

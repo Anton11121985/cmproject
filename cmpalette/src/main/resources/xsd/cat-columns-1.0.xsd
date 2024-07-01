@@ -57,6 +57,67 @@
         </xs:simpleContent>
     </xs:complexType>
 
+    <!-- Базовые типы -->
+    <xs:simpleType name="extendsBaseType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Базовые типы]]></xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="string">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Текстовый]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="number">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Числовой]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="datetime">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Дата/время]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="date">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Дата]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="boolean">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Логический]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="vcard">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Субъект СО]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="object">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Объект]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="tunable">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Настраиваемый объект]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Типы данных колонки -->
+    <xs:simpleType name="extendsType">
+        <xs:annotation>
+            <xs:documentation> <![CDATA[Типы данных]]></xs:documentation>
+        </xs:annotation>
+        <xs:union memberTypes="extendsBaseType xs:string"/>
+    </xs:simpleType>
+
     <!--Св-во колонки -->
     <xs:attributeGroup name="attrGroupColumnType">
         <xs:attribute name="subject" type="com:placeholderType" use="optional">
@@ -64,14 +125,14 @@
                 <xs:documentation><![CDATA[Название колонки]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="extends" type="xs:string" use="optional">
+        <xs:attribute name="extends" type="extendsType" use="optional">
             <xs:annotation>
                 <xs:documentation><![CDATA[Родительский тип]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="open-document" type="xs:boolean" use="optional" default="false">
             <xs:annotation>
-                <xs:documentation><![CDATA[Открыть документы при нажатии на значения из колонки]]></xs:documentation>
+                <xs:documentation><![CDATA[Открыть документ при нажатии на значение в колонке]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="hide-subject" type="xs:boolean" use="optional" default="false">
@@ -106,7 +167,7 @@
         </xs:annotation>
         <xs:restriction base="xs:string"/>
     </xs:simpleType>
-
+    
     <!--Св-во колонки в таблице-->
     <xs:attributeGroup name="attrGroupColumnTableType">
         <xs:attribute name="sort-asc" type="xs:boolean" use="optional" default="false">

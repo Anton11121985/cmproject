@@ -9,10 +9,20 @@
     </properties>
     <appearance widget="tabs"/>
     <component>
+    <button name="${ui.form.ResolutionTasksResource.button.В корзину.name:В корзину}">
+        <properties>
+            <hide condition-union="AND">
+                <negative-condition-ref ref="CanTrashTasksResolution"/>
+            </hide>
+        </properties>
+        <hint-pop-up>${ui.form.ResolutionTasksResource.button.В корзину.hintPopUp:В корзину}</hint-pop-up>
+        <action>
+            <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+    </button>
       <button name="${ui.form.ResolutionTasksResourceForm.button.Связанный документ.name:Связанный документ}">
         <properties>
           <hide condition-union="AND">
-            <negative-condition-ref ref="Registrated_Task"/>
             <negative-condition-ref ref="read"/>
           </hide>
         </properties>
@@ -21,9 +31,26 @@
           <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
         </action>
       </button>
+        <button name="${ui.form.ResolutionTasksResourceForm.button.Сохранить и заполнить файл(ы).name:Сохранить и заполнить файл(ы)}">
+            <properties>
+                <hide condition-union="AND">
+                    <negative-condition-ref ref="$canFillFilesTasks"/>
+                </hide>
+            </properties>
+            <hint-pop-up>${ui.form.ResolutionTasksResourceForm.button.Сохранить и заполнить файл(ы).hintPopUp:Сохранить и заполнить файл(ы)}
+            </hint-pop-up>
+            <action>
+                <system name="http://intertrust.ru/cmj/relations#save.and.fill.files"/>
+            </action>
+        </button>
       <section id="ExecutionTab" name="${ui.form.ResolutionTasksResourceForm.section.ExecutionTab.name:Исполнение}">
         <component>
           <field attribute-ref="category" name="${ui.form.ResolutionTasksResourceForm.section.ExecutionTab.field.category.name:Тематика:}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
             <appearance importance="normal"/>
             <hint-pop-up>${ui.form.ResolutionTasksResourceForm.section.ExecutionTab.field.category.hintPopUp:Тематика}</hint-pop-up>
           </field>
@@ -47,20 +74,20 @@
                   </read-only>
                 </properties>
                 <appearance align="left">
-                  <label-style field-width="5" field-unit="symbol"/>
+                  <label-style field-width="4" field-unit="symbol"/>
                 </appearance>
               </field>
-              <field attribute-ref="date"/>
+              <field recalc="true" attribute-ref="date"/>
             </component>
           </section>
-          <field attribute-ref="executor">
+          <field attribute-ref="executor" recalc="true">
             <hint-in-field>${ui.form.ResolutionTasksResourceForm.section.ExecutionTab.field.executor.hintInField:Выберите исполнителей}</hint-in-field>
             <directories livesearch="true" limit-livesearch="no-restrictions">
               <directory-ref ref="CURRENT_All"/>
               <directory-ref ref="CURRENT_All_Hierarchy"/>
               <directory-ref ref="AlienBeards"/>
               <directory-ref ref="sendlist"/>
-              <directory-ref ref="FV_CURR_AND_FOREIGN_HUMAN_HH_DEP_ORG"/>
+              <directory-ref ref="FV_CURR_AND_FOREIGN_HUMAN_HH_DEP_ORG_SYS"/>
             </directories>
           </field>
           <field attribute-ref="execNotice">
@@ -70,116 +97,191 @@
               </hide>
             </properties>
           </field>
-        </component>
-      </section>
-      <section id="PeriodicResolutionParameters" name="${ui.form.ResolutionTasksResource.section.Periodic.name:Параметры периодичности}">
-        <properties>
-          <hide>
-            <negative-condition-ref ref="ResolutionTasksResource_showPeriodicParameters"/>
-          </hide>
-        </properties>
-        <component>
-          <field attribute-ref="isPeriodic" name="${ui.form.ResolutionTasksResource.isPeriodicTask:Периодическое поручение}" recalc="true"/>
-          <section id="PeriodParams" group="true">
-            <properties>
-              <hide>
-                <negative-condition-ref ref="ResolutionTasksResource_isPeriodic"/>
-              </hide>
-            </properties>
-            <component>
-              <field attribute-ref="periodicParameters.periodType" name="${ui.form.ResolutionTasksResource.periodType:Тип периода:}" recalc="true">
-                <directories>
-                  <directory-ref ref="periodType"/>
-                </directories>
+          <section id="PeriodicResolutionParameters"
+                     name="${ui.form.ResolutionTasksResource.section.Periodic.name:Параметры периодичности}" group="true">
                 <properties>
-                  <require>
-                    <condition>true</condition>
-                  </require>
+                    <hide>
+                        <negative-condition-ref ref="ResolutionTasksResource_showPeriodicParameters"/>
+                    </hide>
                 </properties>
-              </field>
-              <field attribute-ref="periodicParameters.period" name="${ui.form.ResolutionTasksResource.period:Период:}" recalc="true">
-                <properties>
-                  <hide>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
-                  </hide>
-                  <require>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
-                  </require>
-                </properties>
-              </field>
-              <field attribute-ref="periodicParameters.nextDueDate" name="${ui.form.ResolutionTasksResource.nextDueDateTask:Срок следующего поручения:}" recalc="true">
-                <properties>
-                  <hide>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
-                  </hide>
-                  <require>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
-                  </require>
-                </properties>
-              </field>
-              <field attribute-ref="periodicParameters.periodSubtype" name="${ui.form.ResolutionTasksResource.periodSubtype:Доп. параметры:}">
-                <properties>
-                  <hide>
-                    <negative-condition-ref ref="ResolutionTasksResource_isPeriodTypeMonthly"/>
-                  </hide>
-                  <require>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeMonthly"/>
-                  </require>
-                </properties>
-                <directories>
-                  <directory-ref ref="period.subtype"/>
-                </directories>
-              </field>
-              <field attribute-ref="periodicParameters.createBefore" name="${ui.form.ResolutionTasksResource.createBefore:Создать за (раб. дней):}">
-                <properties>
-                  <hide>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
-                  </hide>
-                  <require>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
-                  </require>
-                </properties>
-              </field>
-              <field attribute-ref="periodicParameters.endDate" name="${ui.form.ResolutionTasksResource.endDate:Окончание:}">
-                <properties>
-                  <hide>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
-                  </hide>
-                  <require>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
-                  </require>
-                </properties>
-              </field>
-              <field attribute-ref="periodicParameters.dismissalNoticeLabel" name="${ui.form.ResolutionTasksResource.dismissalNoticeLabel:При увольнении исполнителя уведомлять:}">
-                <properties>
-                  <read-only>
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-              </field>
-              <field attribute-ref="periodicParameters.dismissalNoticeAuthor" name="${ui.form.ResolutionTasksResource.dismissalNoticeAuthor:Автора:}"/>
-              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionTasksResource.dismissalNoticeController:Контроллёра:}"/>
-              <button recalc="true" attribute-ref="fillSchedule" name="${ui.form.DatesSchedule.compute:Вычислить график}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="edit"/>
-                    <negative-condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
-                  </hide>
-                </properties>
-              </button>
-              <field attribute-ref="periodicParameters.resolutionDatesSchedule">
-                <properties>
-                  <read-only>
-                    <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
-                  </read-only>
-                  <hide>
-                    <negative-condition-ref ref="ResolutionTasksResource_isSchedulePresent"/>
-                  </hide>
-                </properties>
-                <appearance location="table" importance="normal"/>
-              </field>
-            </component>
-          </section>
+                <component>
+                    <section id="periodic_row1" group="true">
+                        <appearance field-layout="horizontal"/>
+                        <component>
+                            <field attribute-ref="isPeriodic"
+                                   name="${ui.form.ResolutionTasksResource.isPeriodicTask:Периодическое поручение}" recalc="true">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="25" field-width="6" field-unit="symbol"/>
+                                </appearance>
+                            </field>
+                            <section id="PeriodParams_row1_col2" group="true">
+                                <properties>
+                                    <hide>
+                                        <negative-condition-ref ref="ResolutionTasksResource_isPeriodic"/>
+                                    </hide>
+                                </properties>
+                                <component>
+                                    <button recalc="true" attribute-ref="fillSchedule" name="${ui.form.DatesSchedule.compute:Вычислить график}">
+                                        <properties>
+                                            <hide condition-union="AND">
+                                                <negative-condition-ref ref="edit"/>
+                                                <negative-condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
+                                            </hide>
+                                        </properties>
+                                    </button>
+                                </component>
+                            </section>
+                        </component>
+                    </section>
+                    <section id="periodic_row2" group="true">
+                        <properties>
+                            <hide>
+                                <negative-condition-ref ref="ResolutionTasksResource_isPeriodic"/>
+                            </hide>
+                        </properties>
+                        <appearance field-layout="horizontal" />
+                        <component>
+                            <field attribute-ref="periodicParameters.periodType" name="${ui.form.ResolutionTasksResource.periodType:Тип периода:}" recalc="true">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="15" field-unit="symbol" field-width="25"/>
+                                </appearance>
+                                <directories>
+                                    <directory-ref ref="periodType"/>
+                                </directories>
+                                <properties>
+                                    <require condition-union="AND">
+                                        <condition-ref ref="edit"/>
+                                    </require>
+                                </properties>
+                            </field>
+                            <field attribute-ref="periodicParameters.period" name="${ui.form.ResolutionTasksResource.period:Период:}" recalc="true">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="8" field-unit="symbol" field-width="25"/>
+                                </appearance>
+                                <properties>
+                                    <hide>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
+                                    </hide>
+                                    <require condition-union="AND">
+                                        <condition-ref ref="edit"/>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
+                                    </require>
+                                </properties>
+                            </field>
+                            <field attribute-ref="periodicParameters.nextDueDate" name="${ui.form.ResolutionTasksResource.nextDueDateTask:Срок следующего поручения:}" recalc="true">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="26" field-unit="symbol" field-width="10"/>
+                                </appearance>
+                                <properties>
+                                    <hide>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
+                                    </hide>
+                                    <require condition-union="AND">
+                                        <condition-ref ref="edit"/>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
+                                    </require>
+                                </properties>
+                            </field>
+                            <field attribute-ref="periodicParameters.createBefore" name="${ui.form.ResolutionTasksResource.createBefore:Создать за (раб. дней):}">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="23" field-unit="symbol" field-width="25"/>
+                                </appearance>
+                                <properties>
+                                    <hide>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
+                                    </hide>
+                                    <require condition-union="AND">
+                                        <condition-ref ref="edit"/>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
+                                    </require>
+                                </properties>
+                            </field>
+                        </component>
+                    </section>
+                    <section id="periodic_row3" group="true">
+                        <appearance field-layout="horizontal"/>
+                        <properties>
+                            <hide>
+                                <negative-condition-ref ref="ResolutionTasksResource_isPeriodic"/>
+                            </hide>
+                        </properties>
+                        <component>
+                            <field attribute-ref="periodicParameters.endDate" name="${ui.form.ResolutionTasksResource.endDate:Окончание:}">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="15" field-unit="symbol" field-width="25"/>
+                                </appearance>
+                                <properties>
+                                    <hide>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeDates"/>
+                                    </hide>
+                                    <require condition-union="AND">
+                                        <condition-ref ref="edit"/>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
+                                    </require>
+                                </properties>
+                            </field>
+                            <field attribute-ref="periodicParameters.dismissalNoticeLabel" name="${ui.form.ResolutionTasksResource.dismissalNoticeLabel:При увольнении исполнителя уведомлять:}">
+                                <appearance align="left">
+                                    <label-style label-unit="symbol" label-width="38" field-unit="symbol" field-width="2"/>
+                                </appearance>
+                                <properties>
+                                    <read-only>
+                                        <condition>true</condition>
+                                    </read-only>
+                                </properties>
+                            </field>
+                            <field attribute-ref="periodicParameters.dismissalNoticeAuthor" name="${ui.form.ResolutionTasksResource.dismissalNoticeAuthor:Автора:}">
+                                <appearance align="left">
+                                    <label-style field-unit="symbol" field-width="2"/>
+                                </appearance>
+                            </field>
+                            <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionTasksResource.dismissalNoticeController:Контролера:}">
+                                <appearance align="left">
+                                    <label-style field-unit="symbol" field-width="2"/>
+                                </appearance>
+                            </field>
+                        </component>
+                    </section>
+                    <field attribute-ref="periodicParameters.periodSubtype" name="${ui.form.ResolutionTasksResource.periodSubtype:Доп. параметры:}">
+                        <appearance align="left">
+                            <label-style label-unit="symbol" label-width="15" field-unit="symbol" field-width="25"/>
+                        </appearance>
+                        <properties>
+                            <hide>
+                                <negative-condition-ref ref="ResolutionTasksResource_isPeriodTypeMonthly"/>
+                            </hide>
+                            <require condition-union="AND">
+                                <condition-ref ref="edit"/>
+                                <condition-ref ref="ResolutionTasksResource_isPeriodTypeMonthly"/>
+                            </require>
+                        </properties>
+                        <directories>
+                            <directory-ref ref="period.subtype"/>
+                        </directories>
+                    </field>
+                    <section id="periodic_row4" group="true">
+                        <appearance field-layout="horizontal"/>
+                        <properties>
+                            <hide>
+                                <negative-condition-ref ref="ResolutionTasksResource_isPeriodic"/>
+                            </hide>
+                        </properties>
+                        <component>
+                            <field attribute-ref="periodicParameters.resolutionDatesSchedule">
+                                <properties>
+                                    <read-only>
+                                        <condition-ref ref="ResolutionTasksResource_isPeriodTypeNotDates"/>
+                                    </read-only>
+                                    <hide>
+                                        <negative-condition-ref ref="ResolutionTasksResource_isSchedulePresent"/>
+                                    </hide>
+                                </properties>
+                                <appearance location="table" importance="normal"/>
+                            </field>
+                        </component>
+                    </section>
+                </component>
+            </section>
         </component>
       </section>
       <section id="Header">
@@ -206,208 +308,237 @@
                 </appearance>
               </field>
               <field attribute-ref="priority">
-                <appearance align="left"/>
-              </field>
-              <section id="row15" group="true">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition-ref ref="securityStampIsEmptyTask"/>
-                    <condition-ref ref="readTaskResource"/>
-                  </hide>
-                </properties>
-                <appearance field-layout="horizontal">
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="horizontalSection"/>
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
+                <appearance align="left">
+                    <label-style field-unit="symbol" field-width="27"/>
                 </appearance>
-                <component>
-                  <section id="securityStampValue" group="true">
+              </field>
+                <section id="securityStampValue" group="true">
                     <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="ShowSecurityStampFieldTask"/>
-                      </hide>
+                        <hide condition-union="AND">
+                            <negative-condition-ref ref="ShowSecurityStampFieldTask"/>
+                        </hide>
                     </properties>
                     <component>
-                      <field attribute-ref="securityStamp" recalc="true"
-                             name="${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampText.name:Гриф доступа:}">
-                        <properties>
-                          <hide condition-union="AND">
-                            <condition-ref ref="docReasonWithdrawalIsViewTask"/>
-                            <condition-ref ref="docReasonWithdrawalManualIsViewTask"/>
-                            <condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
-                          </hide>
-                        </properties>
-                        <appearance importance="high" align="left">
-                          <label-style field-unit="symbol" field-width="27">
-                            <style id="tunBlack"/>
-                          </label-style>
-                          <field-style>
-                            <value-style>
-                              <style id="tunBlack"/>
-                            </value-style>
-                          </field-style>
-                        </appearance>
-                        <directories>
-                          <directory-select-value attribute-ref="personGrifs"/>
-                        </directories>
-                        <hint-pop-up>${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampText.hintPopUp:Гриф ограничения доступа к документу}
-                        </hint-pop-up>
-                      </field>
+                        <field attribute-ref="securityStamp" recalc="true"
+                               name="${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampText.name:Гриф доступа:}">
+                            <properties>
+                                <hide condition-union="AND">
+                                    <condition-ref ref="docReasonWithdrawalIsViewTask"/>
+                                    <condition-ref ref="docReasonWithdrawalManualIsViewTask"/>
+                                    <condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
+                                </hide>
+                            </properties>
+                            <appearance importance="high" align="center">
+                                <label-style field-unit="symbol" field-width="27">
+                                    <style id="tunBlack"/>
+                                </label-style>
+                                <field-style>
+                                    <value-style>
+                                        <style id="tunBlack"/>
+                                    </value-style>
+                                </field-style>
+                            </appearance>
+                            <directories>
+                                <directory-select-value attribute-ref="personGrifs"/>
+                            </directories>
+                            <hint-pop-up>
+                                ${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampText.hintPopUp:Гриф ограничения доступа к документу}
+                            </hint-pop-up>
+                        </field>
                     </component>
-                  </section>
-                  <field attribute-ref="docReasonWithdrawlObj.Link"
-                         name="${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampLink.name:Гриф доступа}">
+                </section>
+                <field attribute-ref="docReasonWithdrawlObj.Link"
+                       name="${ui.form.RkkResourceForm.section.Header.section.row15.field.securityStampLink.name:Гриф доступа}">
                     <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="docReasonWithdrawalIsViewTask"/>
-                      </hide>
+                        <read-only condition-union="AND">
+                            <condition>true</condition>
+                        </read-only>
+                        <hide condition-union="AND">
+                            <negative-condition-ref ref="docReasonWithdrawalIsViewTask"/>
+                        </hide>
                     </properties>
                     <appearance importance="high">
-                      <label-style field-width="6">
-                        <style id="tunBold"/>
-                      </label-style>
+                        <label-style field-width="6">
+                            <style id="tunBold"/>
+                        </label-style>
                     </appearance>
-                  </field>
-                  <field attribute-ref="docReasonWithdrawlObj.GrifLabel">
+                </field>
+                <field attribute-ref="docReasonWithdrawlObj.GrifLabel">
                     <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="docReasonWithdrawalManualIsViewTask"/>
-                        <negative-condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
-                      </hide>
+                        <read-only condition-union="AND">
+                            <condition>true</condition>
+                        </read-only>
+                        <hide condition-union="AND">
+                            <negative-condition-ref ref="docReasonWithdrawalManualIsViewTask"/>
+                            <negative-condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
+                        </hide>
                     </properties>
                     <appearance importance="normal">
-                      <label-style field-width="11">
-                        <style id="tunGray"/>
-                        <style id="tunResetBtnStyles"/><!-- стиль tunResetBtnStyles, чтобы был такой же margin-top, как у кнопки "снят" -->
-                      </label-style>
+                        <label-style field-width="11">
+                            <style id="tunGray"/>
+                            <style id="tunResetBtnStyles"/><!-- стиль tunResetBtnStyles, чтобы был такой же margin-top, как у кнопки "снят" -->
+                        </label-style>
                     </appearance>
-                  </field>
-                  <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
+                </field>
+                <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
                     <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="docReasonWithdrawalManualIsViewTask"/>
-                      </hide>
+                        <hide condition-union="AND">
+                            <negative-condition-ref ref="docReasonWithdrawalManualIsViewTask"/>
+                        </hide>
                     </properties>
                     <appearance align="left">
-                      <label-style unit="symbol" width="6">
-                        <style id="tunBlue"/>
-                        <style id="tunUnderline"/>
-                        <style id="tunBold"/>
-                      </label-style>
+                        <label-style unit="symbol" width="6">
+                            <style id="tunBlue"/>
+                            <style id="tunUnderline"/>
+                            <style id="tunBold"/>
+                        </label-style>
                     </appearance>
                     <action>
-                      <custom>
-                        <change-subobject schema-ref="ReasonDocDialog"/>
-                      </custom>
+                        <custom>
+                            <change-subobject schema-ref="ReasonDocDialog"/>
+                        </custom>
                     </action>
-                  </button>
-                  <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
+                </button>
+                <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
                     <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="read"/>
-                        <negative-condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
-                      </hide>
+                        <hide condition-union="AND">
+                            <negative-condition-ref ref="read"/>
+                            <negative-condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
+                        </hide>
                     </properties>
                     <appearance align="left">
-                      <label-style unit="symbol" width="6">
-                        <style id="tunBlue"/>
-                        <style id="tunUnderline"/>
-                        <style id="tunBold"/>
-                      </label-style>
+                        <label-style unit="symbol" width="6">
+                            <style id="tunBlue"/>
+                            <style id="tunUnderline"/>
+                            <style id="tunBold"/>
+                        </label-style>
                     </appearance>
                     <action>
-                      <custom>
-                        <change-subobject schema-ref="ReasonDocTextDialog"/>
-                      </custom>
+                        <custom>
+                            <change-subobject schema-ref="ReasonDocTextDialog"/>
+                        </custom>
                     </action>
-                  </button>
-                  <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
+                </button>
+                <button attribute-ref="docReasonWithdrawlObj" name="${grifWithdrawed:снят}">
                     <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="edit"/>
-                        <negative-condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
-                      </hide>
+                        <hide condition-union="AND">
+                            <negative-condition-ref ref="edit"/>
+                            <negative-condition-ref ref="docReasonWithdrawalReasonIsViewTask"/>
+                        </hide>
                     </properties>
                     <appearance align="left">
-                      <label-style unit="symbol" width="6">
-                        <style id="tunBlue"/>
-                        <style id="tunUnderline"/>
-                        <style id="tunBold"/>
-                      </label-style>
+                        <label-style unit="symbol" width="6">
+                            <style id="tunBlue"/>
+                            <style id="tunUnderline"/>
+                            <style id="tunBold"/>
+                        </label-style>
                     </appearance>
                     <action>
-                      <custom>
-                        <change-subobject schema-ref="ReasonDocTextEditDialog"/>
-                      </custom>
+                        <custom>
+                            <change-subobject schema-ref="ReasonDocTextEditDialog"/>
+                        </custom>
                     </action>
-                  </button>
-                  <field attribute-ref="addLinkedDocGrif" recalc="true">
+                </button>
+                <field attribute-ref="addLinkedDocGrif" recalc="true">
                     <properties>
-                      <hide>
-                        <condition>true</condition>
-                      </hide>
+                        <hide>
+                            <condition>true</condition>
+                        </hide>
                     </properties>
-                  </field>
-                  <field attribute-ref="docReasonWithdrawlObj.withdrawStampReasonText" recalc="true">
+                </field>
+                <field attribute-ref="docReasonWithdrawlObj.withdrawStampReasonText" recalc="true">
                     <properties>
-                      <hide>
-                        <condition>true</condition>
-                      </hide>
+                        <hide>
+                            <condition>true</condition>
+                        </hide>
                     </properties>
-                  </field>
-                  <field attribute-ref="PaperDocNumbers" name="${ui.form.ResolutionTasksResourceForm.section.Header.section.row15.field.PaperDocNumbers.name:№ экз:}">
+                </field>
+                <field attribute-ref="PaperDocNumbers"
+                       name="${ui.form.ResolutionTasksResourceForm.section.Header.section.row15.field.PaperDocNumbers.name:№ экз:}">
                     <properties>
-                      <hide condition-union="AND">
-                        <condition>true</condition>
-                      </hide>
+                        <hide condition-union="AND">
+                            <condition>true</condition>
+                        </hide>
                     </properties>
                     <appearance importance="high" align="right">
-                      <label-style field-unit="symbol" field-width="15">
-                        <style id="tunBlack"/>
-                      </label-style>
-                      <field-style>
-                        <value-style>
-                          <style id="tunBlack"/>
-                        </value-style>
-                      </field-style>
-                      <alt-appearancies>
-                        <alt-appearance>
-                          <appearance-ref ref="css_headerElementBold"/>
-                          <enable condition-union="AND">
-                            <condition>true</condition>
-                          </enable>
-                        </alt-appearance>
-                      </alt-appearancies>
+                        <label-style field-unit="symbol" field-width="15">
+                            <style id="tunBlack"/>
+                        </label-style>
+                        <field-style>
+                            <value-style>
+                                <style id="tunBlack"/>
+                            </value-style>
+                        </field-style>
+                        <alt-appearancies>
+                            <alt-appearance>
+                                <appearance-ref ref="css_headerElementBold"/>
+                                <enable condition-union="AND">
+                                    <condition>true</condition>
+                                </enable>
+                            </alt-appearance>
+                        </alt-appearancies>
                     </appearance>
-                    <hint-pop-up>${ui.form.ResolutionTasksResourceForm.section.Header.section.row15.field.PaperDocNumbers.hintPopUp:№ бумажного документа, через запятую}</hint-pop-up>
-                  </field>
-                  <field attribute-ref="DOPName">
+                    <hint-pop-up>
+                        ${ui.form.ResolutionTasksResourceForm.section.Header.section.row15.field.PaperDocNumbers.hintPopUp:№ бумажного документа, через запятую}
+                    </hint-pop-up>
+                </field>
+                <field attribute-ref="DOPName">
                     <properties>
-                      <hide condition-union="AND">
-                        <condition>true</condition>
-                      </hide>
+                        <hide condition-union="AND">
+                            <condition>true</condition>
+                        </hide>
                     </properties>
-                  </field>
-                  <field attribute-ref="securityStamp" recalc="true">
+                </field>
+                <field attribute-ref="securityStamp" recalc="true">
                     <properties>
-                      <hide condition-union="AND">
-                        <condition>true</condition>
-                      </hide>
+                        <hide condition-union="AND">
+                            <condition>true</condition>
+                        </hide>
                     </properties>
-                  </field>
-                </component>
-              </section>
+                </field>
+                <section id="column13" group="true">
+                    <appearance field-layout="vertical"/>
+                    <component>
+                        <field attribute-ref="showState">
+                            <properties>
+                                <read-only condition-union="AND">
+                                    <condition>true</condition>
+                                </read-only>
+                            </properties>
+                            <appearance align="right" importance="high" multiline="false">
+                                <alt-appearancies>
+                                    <alt-appearance>
+                                        <appearance-ref ref="rightAlign"/>
+                                        <enable condition-union="AND">
+                                            <condition>true</condition>
+                                        </enable>
+                                    </alt-appearance>
+                                </alt-appearancies>
+                                <label-style field-width="7" field-unit="symbol">
+                                    <style id="tunBold"/>
+                                </label-style>
+                            </appearance>
+                        </field>
+                        <section id="row15" group="true">
+                            <properties>
+                                <hide condition-union="AND">
+                                    <condition-ref ref="securityStampIsEmptyTask"/>
+                                    <condition-ref ref="readTaskResource"/>
+                                </hide>
+                            </properties>
+                            <appearance field-layout="horizontal">
+                                <alt-appearancies>
+                                    <alt-appearance>
+                                        <appearance-ref ref="horizontalSection"/>
+                                        <enable condition-union="AND">
+                                            <condition>true</condition>
+                                        </enable>
+                                    </alt-appearance>
+                                </alt-appearancies>
+                            </appearance>
+                        </section>
+                    </component>
+                </section>
             </component>
           </section>
           <field attribute-ref="$titleHeader">
@@ -429,6 +560,7 @@
               </field-style>
             </appearance>
             <hint-in-field>${ui.form.ResolutionTasksResourceForm.section.Header.field.titleHeader.hintInField:Введите текст поручения}</hint-in-field>
+            <hint-pop-up>${ui.form.ResolutionTasksResourceForm.section.Header.field.titleHeader.hintInField:Введите текст поручения}</hint-pop-up>
             <directories manual-input="true" limit-livesearch="no-restrictions">
               <directory-ref ref="taskText"/>
             </directories>
@@ -436,7 +568,7 @@
           <field attribute-ref="$titleHeader">
             <properties>
               <require condition-union="AND">
-                <condition>true</condition>
+                  <condition-ref ref="edit"/>
               </require>
               <hide condition-union="AND">
                 <negative-condition-ref ref="edit"/>
@@ -444,6 +576,7 @@
             </properties>
             <appearance importance="normal"/>
             <hint-in-field>${ui.form.ResolutionTasksResourceForm.section.Header.field.titleHeader.hintInField:Введите текст поручения}</hint-in-field>
+            <hint-pop-up>${ui.form.ResolutionTasksResourceForm.section.Header.field.titleHeader.hintInField:Введите текст поручения}</hint-pop-up>
             <directories manual-input="true" limit-livesearch="sys-current">
               <directory-ref ref="taskText"/>
             </directories>
@@ -460,7 +593,7 @@
                     <negative-condition-ref ref="IsProject_Task"/>
                   </hide>
                 </properties>
-                <appearance align="left">
+                <appearance align="left" multiline="false">
                   <label-style field-width="7" field-unit="symbol"/>
                 </appearance>
               </field>
@@ -473,35 +606,54 @@
                     <negative-condition-ref ref="Registrated_Task"/>
                   </hide>
                 </properties>
-                <appearance location="subform" align="left">
+                <appearance location="subform" align="left" multiline="false">
                   <label-style field-width="20" field-unit="symbol"/>
                 </appearance>
               </field>
-              <field attribute-ref="showAuthor">
+              <field attribute-ref="showAuthor" recalc="true">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance location="subform" align="left">
+                <appearance location="subform" align="left" multiline="false">
                   <label-style field-width="18" field-unit="symbol"/>
                 </appearance>
               </field>
-              <field attribute-ref="resdeadline">
-                <appearance align="left" importance="normal">
-                  <label-style field-width="16" field-unit="symbol"/>
+              <field recalc="true" attribute-ref="resdeadline">
+                <appearance align="right" importance="normal">
+                  <label-style field-width="15" field-unit="symbol"/>
                 </appearance>
               </field>
               <field recalc="true" attribute-ref="control">
-                <appearance location="subform" align="left" importance="normal">
+                <appearance location="subform" align="right" importance="normal">
                   <label-style field-width="5" field-unit="symbol"/>
                 </appearance>
               </field>
               <field attribute-ref="$executionAction">
-                <appearance align="left" importance="normal">
+                <appearance align="right" importance="normal">
                   <label-style field-width="5" field-unit="symbol"/>
                 </appearance>
               </field>
+                <field attribute-ref="labelContentTemp">
+                    <properties>
+                        <read-only>
+                            <condition>true</condition>
+                        </read-only>
+                    </properties>
+                    <appearance align="right">
+                        <label-style field-width="46" field-unit="symbol"/>
+                        <alt-appearancies>
+                            <alt-appearance>
+                                <appearance-ref ref="rightAlign"/>
+                                <enable condition-union="AND">
+                                    <condition>true</condition>
+                                </enable>
+                            </alt-appearance>
+                        </alt-appearancies>
+                    </appearance>
+                </field>
+
             </component>
           </section>
           <section id="linksAccessSection" group="true">
@@ -511,7 +663,7 @@
             <component>
               <field attribute-ref="disableLinkAccess" name="${ui.form.ResolutionTasksResourceForm.section.Header.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям}">
                 <appearance align="right" importance="normal">
-                  <label-style field-width="2" field-unit="symbol"/>
+                  <label-style field-width="3" field-unit="symbol"/>
                 </appearance>
                 <hint-in-field>${ui.form.ResolutionTasksResourceForm.section.Header.section.linksAccessSection.field.disableLinkAccess.hintInField:Не дается доступ к текущему документу читателям связанных документов}</hint-in-field>
               </field>
@@ -521,6 +673,16 @@
       </section>
       <section id="RootMenu">
         <component>
+            <button name="${ui.form.ResolutionTasksResourceForm.section.RootMenu.button.saveAsTemplate.name:Сохранить как шаблон}">
+                <properties>
+                    <hide>
+                        <condition-ref ref="edit"/>
+                    </hide>
+                </properties>
+                <action>
+                    <system name="SAVE_AS_TEMPLATE"/>
+                </action>
+            </button>
           <button name="${ui.form.ResolutionTasksResourceForm.section.RootMenu.button.AddLinkToFavoriteFolderAction.name:AddLinkToFavoriteFolderAction}">
             <properties>
               <hide condition-union="AND">
@@ -543,6 +705,42 @@
               <system name="REMEMBER_LINK"/>
             </action>
           </button>
+          <button name="${ui.ResolutionTasksResourceForm.send:Отправить}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+                <condition-ref ref="edit"/>
+                <condition-ref ref="isAuthorOrSubTask"/>
+              </hide>
+            </properties>
+            <action>
+              <system name="SEND_ORDER_WITH_OPEN_REPORT"/>
+            </action>
+          </button>
+          <button name="${ui.ResolutionTasksResourceForm.send:Отправить}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+                <condition-ref ref="edit"/>
+                <condition-ref ref="isAuthorOrSubTask"/>
+              </hide>
+            </properties>
+            <action>
+              <system name="SEND_ORDER"/>
+            </action>
+          </button>
+          <button name="${ui.ResolutionTasksResourceForm.send:Отправить}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+                <condition-ref ref="read"/>
+                <condition-ref ref="isAuthorOrSubTask"/>
+              </hide>
+            </properties>
+            <action>
+              <system name="ORDER_FIX"/>
+            </action>
+          </button>
           <field attribute-ref="$delete">
             <properties>
               <hide condition-union="AND">
@@ -552,7 +750,21 @@
             <hint-pop-up>${ui.ResolutionTasksResourceForm.delete:Удалить}</hint-pop-up>
             <hint-in-field>${ui.ResolutionTasksResourceForm.delete:Удалить}</hint-in-field>
           </field>
-          <section id="OTHER_EDIT" name="${ui.form.RkkResourceForm.section.RootMenu.section.OTHER.name:Другое}">
+            <button name="${ui.form.ResolutionTasksResourceForm.section.RootMenu.button.SendToApproving.name:Направить руководителю}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="ResolutionTasksResource_isSendToApproving"/>
+                    </hide>
+                </properties>
+                <action>
+                    <custom>
+                        <operation>
+                            <handler-ref ref="ResolutionTasksResource_sendToApproving"/>
+                        </operation>
+                    </custom>
+                </action>
+            </button>
+            <section id="OTHER_EDIT" name="${ui.form.RkkResourceForm.section.RootMenu.section.OTHER.name:Другое}">
           <appearance turn="true">
             <action position="30" />
           </appearance>
@@ -598,7 +810,77 @@
         </section>
         </component>
       </section>
-      <section id="InfoMaterials" name="${ui.form.ResolutionTasksResourceForm.section.InfoMaterials.name:Информационные материалы}"/>
+      <section id="ContentSection" name="${ui.form.ResolutionTasksResourceForm.section.ContentSection.name:Содержание}">
+        <appearance/>
+        <component>
+          <section id="contentMenu" group="true">
+            <appearance widget="leftMenu"/>
+            <component>
+              <field attribute-ref="$content"
+                     name="${ui.form.ResolutionTasksResourceForm.section.ContentSection.field.content.name:Документ}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="contentTaskEmpty"/>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="CanNotModifyContent"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="$content"
+                     name="${ui.form.ResolutionTasksResourceForm.section.ContentSection.field.content.name:Документ}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="contentTaskNotEmpty"/>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="CanNotModifyContent"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="contentAdd"
+                     name="${ui.form.ResolutionTasksResourceForm.section.ContentSection.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="contentAddTaskEmpty"/>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="CanNotModifyContent"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="contentAdd"
+                     name="${ui.form.ResolutionTasksResourceForm.section.ContentSection.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="contentAddTaskNotEmpty"/>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="CanNotModifyContent"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="contentTaskEmptyLabel">
+            <properties>
+              <read-only>
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="read"/>
+                <negative-condition-ref ref="contentTaskSectionEmpty"/>
+              </hide>
+            </properties>
+          </field>
+        </component>
+      </section>
       <section id="LinksWithOutLeftMenu" name="${ui.form.ResolutionTasksResourceForm.section.LinksWithOutLeftMenu.name:Связанные}">
         <component>
           <section id="Documents"/>
@@ -609,6 +891,9 @@
           <hide condition-union="AND">
             <negative-condition-ref ref="canDiscuss(ResolutionTasks)"/>
           </hide>
+            <read-only>
+                <condition-ref ref="edit"/>
+            </read-only>
         </properties>
       </section>
       <section id="History" name="${ui.form.ResolutionTasksResourceForm.section.History.name:История}"/>

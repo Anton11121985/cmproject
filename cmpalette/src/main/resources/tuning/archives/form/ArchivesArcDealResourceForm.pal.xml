@@ -8,127 +8,340 @@
       </hide>
     </properties>
     <component>
+      <button name="${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.name:Связанный документ}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+        </action>
+      </button>
+      <button name="${ui.form.AgreementResourceForm.button.В корзину.name:В корзину}">
+        <hint-pop-up>${ui.form.AgreementResourceForm.button.В корзину.hintPopUp:В корзину}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.name:Восстановить}">
+        <hint-pop-up>${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.hintPopUp:Восстановить}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#restore.from.trash"/>
+        </action>
+      </button>
+      <button attribute-ref="$canSendToApproving" name="${ui.form.RkkResourceContractsForm.button.canSendToApproving.name:На согласование}">
+        <hint-pop-up>${ui.form.RkkResourceContractsForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#approving.start"/>
+        </action>
+      </button>
+      <section id="RootMenu">
+        <component>
+          <button name="${ui.form.ArchivesArcDealResourceForm.section.RootMenu.button.Verify.name:Заверить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="ArcDeal_canVerify" />
+              </hide>
+            </properties>
+            <action position="10">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">ArcDealVerify</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.DeletePermanent.name:Удалить из корзины}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="ArchivesArcDeal_isSuperAdminAndDeleted"/>
+              </hide>
+            </properties>
+            <action position="30">
+              <custom>
+                <operation>
+                  <handler-ref ref="DeletePermanentlyArcDocs"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+        </component>
+      </section>
       <section group="true" id="Header">
         <component>
           <section group="true" id="row1">
+            <appearance field-layout="horizontal" />
             <component>
-              <field attribute-ref="showident">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal" align="left">
-                  <label-style field-unit="symbol" field-width="12" />
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementWithIcon" />
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-              </field>
-              <field attribute-ref="Organization">
-                <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
-                    <condition>true</condition>
-                  </require>
-                  <read-only condition-union="AND">
-                    <negative-condition-ref ref="TObjectIsNotNew" />
-                  </read-only>
-                </properties>
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="30" />
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementWithIcon" />
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-                <directories>
-                  <directory-ref ref="sysOrgs" />
-                </directories>
-              </field>
-              <field attribute-ref="AccessRestrictionMark">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal" multiline="false" align="center">
-                  <label-style field-unit="symbol" field-width="30" />
-                </appearance>
-              </field>
-              <section group="true" id="index">
+              <section group="true" id="col1_11">
+                <appearance field-layout="horizontal"/>
                 <component>
-                  <field attribute-ref="Index1" name="${ui.form.ArchivesArcDealResourceForm.section.Header.section.row1.section.index.field.Index1.name:Индекс дела:}">
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="5" >
-                        <style id="tunBorderedField"/>
-                      </label-style>
-                    </appearance>
-                  </field>
-                  <field attribute-ref="ShowDash">
+                  <field attribute-ref="showident">
                     <properties>
                       <read-only condition-union="AND">
                         <condition>true</condition>
                       </read-only>
                     </properties>
-                    <appearance importance="normal" multiline="false" align="center">
-                      <label-style field-unit="symbol" field-width="1" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="Index2">
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="5" >
-                        <style id="tunBorderedField"/>
+                    <appearance importance="normal" align="left">
+                      <label-style field-unit="symbol" field-width="12" >
+                        <style id="tunIconProgress"/>
                       </label-style>
                     </appearance>
                   </field>
-                  <field attribute-ref="ShowDash">
+                  <field attribute-ref="organization" recalc="true">
                     <properties>
-                      <read-only condition-union="AND">
+                      <require condition-union="AND">
                         <condition>true</condition>
+                      </require>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile" />
                       </read-only>
+                      <hide>
+                        <condition-ref ref="edit"/>
+                      </hide>
                     </properties>
-                    <appearance importance="normal" multiline="false" align="center">
-                      <label-style field-unit="symbol" field-width="1" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="Index3">
                     <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="5" >
-                        <style id="tunBorderedField"/>
+                      <label-style field-unit="symbol" field-width="25" >
+                        <style id="tunIconProgress"/>
                       </label-style>
                     </appearance>
+                    <directories livesearch="true" limit-livesearch="no-restrictions" relation="NdOrgAndDepsHasNdo" digest="digestSOLiveSearch">
+                      <directory-ref ref="CURRENT_ORG_ONLY"/>
+                      <directory-ref ref="NdDepsHasNdo"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="organization" recalc="true">
+                    <properties>
+                      <require condition-union="AND">
+                        <condition>true</condition>
+                      </require>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile" />
+                      </read-only>
+                      <hide>
+                        <condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" multiline="true" align="left">
+                      <label-style field-unit="symbol" field-width="25" >
+                        <style id="tunIconProgress"/>
+                      </label-style>
+                    </appearance>
+                    <directories livesearch="true" limit-livesearch="no-restrictions" relation="NdOrgAndDepsHasNdo" digest="digestSOLiveSearch">
+                      <directory-ref ref="CURRENT_ORG_ONLY"/>
+                      <directory-ref ref="NdDepsHasNdo"/>
+                    </directories>
                   </field>
                 </component>
-                <appearance field-layout="horizontal" />
               </section>
-              <field attribute-ref="MainState">
+              <section group="true" id="col1_21">
+                <appearance align="right" field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="accessRestrictionMark">
+                    <properties>
+                      <hide>
+                        <negative-condition-ref ref="edit"/>
+                        <negative-condition-ref ref="archivesDoc_canEditAccessMark"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" multiline="false">
+                      <label-style label-unit="symbol" label-width="3" field-unit="symbol" field-width="40"/>
+                      <field-style space-for-empty-name="true"/>
+                    </appearance>
+                    <hint-in-field>${ui.form.ArchivesArcDealResourceForm.section.Header.field.accessRestrictionMark.hintInField:Ограничение доступа}</hint-in-field>
+                  </field>
+                  <field attribute-ref="accessRestrictionMark">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="edit"/>
+                        <negative-condition-ref ref="archivesDoc_canNotEditAccessMark"/>
+                      </hide>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false">
+                      <label-style label-unit="symbol" label-width="3" field-unit="symbol" field-width="5">
+                        <style id="tunBgGray"/>
+                      </label-style>
+                      <field-style space-for-empty-name="true">
+                        <value-style>
+                          <style id="tunBgGray"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="accessRestrictionMark">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="read"/>
+                        <negative-condition-ref ref="archivesDoc_canSeeAccessMark"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" multiline="false">
+                      <label-style label-unit="symbol" label-width="3" field-unit="symbol" field-width="5">
+                        <style id="tunBgGray"/>
+                      </label-style>
+                      <field-style space-for-empty-name="true">
+                        <value-style>
+                          <style id="tunBgGray"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="linkFrFile">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="ArcDeal_canSeeBase"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal"/>
+                  </field>
+                  <section group="true" id="indexFullRow">
+                    <appearance field-layout="horizontal" align="right"/>
+                    <component>
+                      <field attribute-ref="indexFullLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                          <hide>
+                            <negative-condition-ref ref="edit"/>
+                            <negative-condition-ref ref="archivesDoc_canEditAccessMark"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                          <label-style field-unit="symbol" field-width="10">
+                            <style id="tunRequiredStar"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="indexFullLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                          <hide>
+                            <negative-condition-ref ref="edit"/>
+                            <negative-condition-ref ref="archivesDoc_canNotEditAccessMark"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                          <label-style label-unit="symbol" label-width="3" field-unit="symbol" field-width="10">
+                            <style id="tunRequiredStar"/>
+                          </label-style>
+                          <field-style space-for-empty-name="true"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="indexFullLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                          <hide>
+                            <negative-condition-ref ref="read"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                          <label-style label-unit="symbol" label-width="3" field-unit="symbol" field-width="10">
+                            <style id="tunRequiredStar"/>
+                          </label-style>
+                          <field-style space-for-empty-name="true"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="indexFull">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition-ref ref="ArcDeal_basedFrFile"/>
+                          </read-only>
+                          <require>
+                            <condition>true</condition>
+                          </require>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                          <label-style field-unit="symbol" field-width="15" />
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+              <field attribute-ref="mainState">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
+                <appearance importance="high" multiline="false" align="right" />
                 <directories>
                   <directory-ref ref="archivesArcDealState" />
                 </directories>
-                <appearance importance="high" multiline="false" align="right" />
               </field>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
           <section group="true" id="row2">
+            <appearance field-layout="horizontal" />
             <component>
+              <field attribute-ref="isDepartment" recalc="true">
+                <properties>
+                  <read-only>
+                    <condition-ref ref="ArcDeal_isNotProject"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" widget="radio">
+                  <label-style field-unit="symbol" field-width="55"/>
+                </appearance>
+                <directories>
+                  <directory-ref ref="archivesPartitionTypes" />
+                </directories>
+              </field>
               <field attribute-ref="departmentTitle">
                 <properties>
+                  <hide>
+                    <negative-condition-ref ref="ArcDeal_isDepartment"/>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" multiline="false" align="left">
+                  <label-style field-unit="symbol" field-width="20" >
+                    <style id="tunRequiredStar"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field recalc="true" attribute-ref="department">
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="ArcDeal_isDepartment"/>
+                  </hide>
+                  <require condition-union="AND">
+                    <condition>true</condition>
+                  </require>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="ArcDeal_canNotEditDepDirWork"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" multiline="false" align="left">
+                  <label-style field-unit="symbol" field-width="33" />
+                  <limit height="1" />
+                </appearance>
+                <directories livesearch="true" relation="Archives-DepRVZisCodeni-live-search">
+                  <directory-ref ref="Archives-DepRVZisCodeni" />
+                </directories>
+                <show-value schema-ref="VCardResource.TitleOrFullName"/>
+              </field>
+              <field attribute-ref="DirectionWorkTitle">
+                <properties>
+                  <hide>
+                    <condition-ref ref="ArcDeal_isDepartment"/>
+                  </hide>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
@@ -137,36 +350,72 @@
                   <label-style field-unit="symbol" field-width="20" />
                 </appearance>
               </field>
-              <field attribute-ref="Department">
+              <field attribute-ref="directionWork">
                 <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
-                    <condition>true</condition>
+                  <hide>
+                    <condition-ref ref="ArcDeal_isDepartment"/>
+                  </hide>
+                  <require>
+                    <condition-ref ref="ArcDeal_isNotDepartment"/>
                   </require>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="ArcDeal_canNotEditDepDirWork"/>
+                  </read-only>
                 </properties>
                 <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="33" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
-                  <limit height="1" />
+                  <label-style field-width="45" field-unit="symbol"/>
+                  <limit max-lenght="45"/>
                 </appearance>
-                <directories>
-                  <directory-ref ref="CURRENT_ORG_WITH_DEP" />
-                </directories>
               </field>
-              <field attribute-ref="KindDeal">
+              <button recalc="true" attribute-ref="formedLink" name="${ui.form.formedLink.name:Не сформировано}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="ArcDeal_canSeeFormedLink"/>
+                  </hide>
+                </properties>
+                <rename name="${ui.form.formedLink2.name:Сформировано}">
+                  <condition-ref ref="ArcDeal_needRenameFormedButton"/>
+                </rename>
+                <appearance>
+                  <label-style>
+                    <style id="tunBlue"/>
+                    <style id="tunClickableUnderline"/>
+                  </label-style>
+                </appearance>
+              </button>
+              <field attribute-ref="kindDeal" recalc="true">
                 <properties>
                   <require condition-union="AND">
-                    <condition-ref ref="edit"/>
                     <condition>true</condition>
                   </require>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="ArcDeal_canEditKindDeal"/>
+                  </read-only>
                 </properties>
-                <appearance importance="normal" align="center" widget="radio" />
+                <appearance importance="normal" align="center" widget="radio">
+                  <label-style field-unit="symbol" field-width="27"/>
+                </appearance>
                 <directories>
                   <directory-ref ref="archivesKindDeals" />
                 </directories>
               </field>
-              <field attribute-ref="AdditionalState">
+              <button recalc="true" attribute-ref="viewedLink" name="${ui.form.formedLink.name:Не просмотрено}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="ArcDeal_canSeeViewedLink"/>
+                  </hide>
+                </properties>
+                <rename name="${ui.form.formedLink2.name:Просмотрено}">
+                  <condition-ref ref="ArcDeal_needRenameViewedButton"/>
+                </rename>
+                <appearance>
+                  <label-style>
+                    <style id="tunBlue"/>
+                    <style id="tunClickableUnderline"/>
+                  </label-style>
+                </appearance>
+              </button>
+              <field attribute-ref="additionalState">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
@@ -175,169 +424,386 @@
                 <appearance importance="high" align="right" />
               </field>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
           <section group="true" id="row3">
+            <appearance field-layout="horizontal" />
             <component>
               <field attribute-ref="ArchiveOrgTitle">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="ArcDeal_canSeeArchiveOrg"/>
+                  </hide>
                 </properties>
                 <appearance importance="normal" multiline="false" align="left">
                   <label-style field-unit="symbol" field-width="15" />
                 </appearance>
               </field>
-              <field attribute-ref="ArchiveOrg">
-                <appearance importance="normal" multiline="false" align="left" >
-                <label-style >
-                  <style id="tunBorderedField"/>
-                </label-style>
-                </appearance>
+              <field attribute-ref="archiveOrg">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="ArcDeal_canSeeArchiveOrg"/>
+                  </hide>
+                  <require condition-union="AND">
+                    <condition-ref ref="ArcDeal_canSeeArchiveOrg"/>
+                  </require>
+                </properties>
+                <appearance importance="normal" multiline="false" align="left" />
               </field>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
-          <field attribute-ref="Subject">
+          <field attribute-ref="subject">
             <properties>
               <require condition-union="AND">
                 <condition-ref ref="edit"/>
                 <condition>true</condition>
               </require>
+              <read-only condition-union="AND">
+                <condition-ref ref="ArcDeal_basedFrFile"/>
+              </read-only>
             </properties>
-            <appearance importance="normal" multiline="false" align="left" >
-              <label-style >
-                <style id="tunBorderedField"/>
-              </label-style>
-            </appearance>
+            <appearance importance="normal" multiline="false" align="left" />
             <hint-in-field>${ui.form.ArchivesArcDealResourceForm.section.Header.field.Subject.hintInField:Введите заголовок документа}</hint-in-field>
           </field>
         </component>
       </section>
-      <section id="RootMenu">
+      <section id="ContentSection" name="${ui.form.ArchivesDepDealResourceForm.section.ContentSection.name:Содержание}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="FullAccess"/>
+          </hide>
+        </properties>
         <component>
-          <button name="${ui.form.ArchivesArcDealResourceForm.section.RootMenu.button.Сохранить скрыта системная.name:Сохранить скрыта системная}">
+          <field attribute-ref="empty">
             <properties>
               <hide condition-union="AND">
+                <negative-condition-ref ref="archivesDeal_contentDocumentsEmpty"/>
+                <negative-condition-ref ref="read"/>
+              </hide>
+              <read-only>
                 <condition>true</condition>
-              </hide>
+              </read-only>
             </properties>
-            <action>
-              <system name="SAVE" />
-            </action>
-          </button>
-          <button name="${ui.form.ArchivesArcDealResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
+          </field>
+          <field attribute-ref="contentDocuments.content">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="TNObjectIsShowSaveButtonForNew" />
+                <negative-condition-ref ref="archivesDeal_contentDocumentsNotEmpty"/>
               </hide>
             </properties>
-            <appearance>
-              <label-style>
-                <style id="tunBtnHeader" />
-                <style id="tunIconSave" />
-              </label-style>
+            <appearance importance="normal">
+              <field-style>
+                <value-style>
+                  <style id="tunContentHideScan"/>
+                </value-style>
+              </field-style>
             </appearance>
-            <action>
-              <custom>
-                <save />
-              </custom>
-            </action>
-          </button>
-          <button name="${ui.form.ArchivesArcDealResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
+          </field>
+          <field attribute-ref="contentDocuments.content">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="TNObjectIsShowSaveButton" />
+                <negative-condition-ref ref="archivesDeal_contentDocumentsEmpty"/>
+                <negative-condition-ref ref="edit"/>
               </hide>
             </properties>
-            <appearance>
-              <label-style>
-                <style id="tunBtnHeader" />
-                <style id="tunIconSave" />
-              </label-style>
-            </appearance>
-            <action>
-              <custom>
-                <save-existing />
-              </custom>
-            </action>
-          </button>
+            <appearance importance="normal"/>
+          </field>
         </component>
       </section>
       <section group="true" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.name:Реквизиты}" id="Requisites">
+        <appearance field-layout="vertical" />
+        <properties>
+          <hide>
+            <negative-condition-ref ref="FullAccess"/>
+          </hide>
+        </properties>
         <component>
           <section group="true" id="row10">
+            <appearance field-layout="horizontal" />
             <component>
-              <field attribute-ref="ArchiveCode" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row10.field.ArchiveCode.name:Архивный шифр:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="1" />
+              <section group="true" id="arcCipher">
+                <appearance field-layout="horizontal">
+                  <dialog-mode unit="percent" width="55" />
                 </appearance>
-              </field>
-              <section group="true" id="rowChifr">
                 <component>
-                  <field attribute-ref="ArcCipherF" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row10.field.ArcCipherF.name:Ф.№:}">
+                  <field attribute-ref="ArchiveCodeLabel">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
                     <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="10" >
-                        <style id="tunBorderedField"/>
-                      </label-style>
+                      <label-style field-unit="symbol" field-width="13"/>
                     </appearance>
                   </field>
-                  <field attribute-ref="ArcCipherOp" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row10.field.ArcCipherOp.name:Оп. №:}">
+                  <section group="true" id="rowChifr">
+                    <appearance field-layout="horizontal">
+                      <label-style unit="symbol" width="5" />
+                    </appearance>
+                    <component>
+                      <field attribute-ref="arcCipherFLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="4"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="arcCipherF">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left"/>
+                      </field>
+                      <field attribute-ref="arcCipherOpLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="5"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="arcCipherOp">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left"/>
+                      </field>
+                      <field attribute-ref="arcCipherDLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="4"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="arcCipherD">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left"/>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+            </component>
+          </section>
+          <section group="true" id="row15">
+            <appearance field-layout="horizontal" />
+            <component>
+              <section group="true" id="row15_01">
+                <appearance field-layout="horizontal">
+                  <dialog-mode unit="percent" width="55" />
+                </appearance>
+                <component>
+                  <field attribute-ref="existDealLabel">
+                    <properties>
+                      <hide>
+                        <negative-condition-ref ref="ArcDeal_isNotProject"/>
+                      </hide>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
                     <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="10" >
-                        <style id="tunBorderedField"/>
-                      </label-style>
+                      <label-style field-unit="symbol" field-width="11"/>
                     </appearance>
                   </field>
-                  <field attribute-ref="ArcCipherD" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row10.field.ArcCipherD.name:Д. №:}">
+                  <field attribute-ref="existDeal">
+                    <properties>
+                      <hide>
+                        <negative-condition-ref ref="ArcDeal_isNotProject"/>
+                      </hide>
+                      <require>
+                        <condition-ref ref="ArcDeal_isNotProject"/>
+                      </require>
+                    </properties>
+                    <appearance importance="normal"/>
+                    <directories>
+                      <directory-ref ref="existDealEnum" />
+                    </directories>
+                  </field>
+                  <field attribute-ref="hasCopiesLabel">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
                     <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="10" >
-                        <style id="tunBorderedField"/>
-                      </label-style>
+                      <label-style field-unit="symbol" field-width="19"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="hasCopies">
+                    <properties>
+                      <read-only>
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal">
+                      <label-style field-unit="symbol" field-width="3" />
                     </appearance>
                   </field>
                 </component>
-                <appearance field-layout="horizontal">
-                  <label-style unit="symbol" width="7" />
-                </appearance>
               </section>
+              <field attribute-ref="fileWithOrigIndexLabel">
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="ArcDeal_hasCopies"/>
+                  </hide>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" multiline="false" align="left">
+                  <label-style field-unit="symbol" field-width="30"/>
+                </appearance>
+              </field>
+              <field attribute-ref="fileWithOrigIndex">
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="ArcDeal_hasCopies"/>
+                  </hide>
+                  <read-only>
+                    <condition-ref ref="ArcDeal_basedFrFile"/>
+                  </read-only>
+                  <require>
+                    <condition-ref ref="ArcDeal_hasCopies"/>
+                  </require>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
           <section group="true" id="row20">
+            <appearance field-layout="horizontal" />
             <component>
-              <field attribute-ref="NumPart" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row20.field.NumPart.name:Номер тома(части):}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="10" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
+              <section group="true" id="row20_01">
+                <appearance field-layout="horizontal">
+                  <dialog-mode unit="percent" width="55" />
                 </appearance>
-              </field>
-              <field attribute-ref="StorageTerm" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row20.field.StorageTerm.name:Срок хранения:}">
+                <component>
+                  <field attribute-ref="numPartLabel">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left">
+                      <label-style field-unit="symbol" field-width="15"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="numPart">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left"/>
+                  </field>
+                  <field attribute-ref="storageTermLabel">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left">
+                      <label-style field-unit="symbol" field-width="12">
+                        <style id="tunRequiredStar"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                  <field tid="storageTerm" attribute-ref="storageTerm">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="ArcDeal_showStorageTerm"/>
+                      </hide>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                        <condition>true</condition>
+                      </require>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left"/>
+                  </field>
+                  <field tid="storageTerm" recalc="true" attribute-ref="spdPeriodInfo">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="ArcDeal_showStorageTerm"/>
+                      </hide>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                        <condition>true</condition>
+                      </require>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left"/>
+                    <directories>
+                      <directory-ref ref="fr-vw-cmj-period-info"/>
+                    </directories>
+                  </field>
+                  <field tid="storageTerm" recalc="true" attribute-ref="spdPeriodInfo">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="edit"/>
+                        <negative-condition-ref ref="ArcDeal_periodInfoException"/>
+                      </hide>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                        <condition>true</condition>
+                      </require>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left"/>
+                    <directories>
+                      <directory-ref ref="fr-vw-cmj-period-info"/>
+                    </directories>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="boundaryDateLabel">
                 <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
+                  <read-only>
                     <condition>true</condition>
-                  </require>
+                  </read-only>
                 </properties>
                 <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="28" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
+                  <label-style field-unit="symbol" field-width="11"/>
                 </appearance>
               </field>
-              <field attribute-ref="BoundaryDateBeg" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row20.field.BoundaryDateBeg.name:Крайние даты:}">
+              <field attribute-ref="boundaryDateBeg">
                 <properties>
                   <require condition-union="AND">
-                    <condition-ref ref="edit"/>
+                    <condition-ref ref="ArcDeal_HasDocs"/>
                     <condition>true</condition>
                   </require>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
                 </properties>
                 <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="12" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
+                  <label-style field-unit="symbol" field-width="8" />
                   <field-style date-format="dd.MM.yyyy" />
                 </appearance>
               </field>
@@ -351,71 +817,162 @@
                   <label-style field-unit="symbol" field-width="1" />
                 </appearance>
               </field>
-              <field attribute-ref="BoundaryDateEnd">
+              <field attribute-ref="boundaryDateEnd">
                 <properties>
                   <require condition-union="AND">
-                    <condition-ref ref="edit"/>
+                    <condition-ref ref="ArcDeal_HasDocs"/>
                     <condition>true</condition>
                   </require>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
                 </properties>
                 <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="12" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
+                  <label-style field-unit="symbol" field-width="8" />
                   <field-style date-format="dd.MM.yyyy" />
                 </appearance>
               </field>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
           <section group="true" id="row30">
+            <appearance field-layout="horizontal"/>
             <component>
-              <field attribute-ref="SheetsPaper" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row30.field.SheetsPaper.name:Кол-во листов:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="10" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
-                </appearance>
-              </field>
-              <field attribute-ref="SizeDocs" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.section.row30.field.SizeDocs.name:Объём, Мб:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="10" >
-                    <style id="tunBorderedField"/>
-                  </label-style>
-                </appearance>
-              </field>
               <section group="true" id="row30_01">
+                <appearance field-layout="horizontal">
+                  <dialog-mode unit="percent" width="55" />
+                </appearance>
                 <component>
-                  <field attribute-ref="MediaInfo">
-                    <appearance importance="normal" multiline="false" align="left" >
-                      <label-style field-unit="symbol" field-width="20" />
+                  <field attribute-ref="sheetsPaperLabel">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="ArcDeal_isNotPaper"/>
+                      </hide>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left">
+                      <label-style field-unit="symbol" field-width="11"/>
                     </appearance>
                   </field>
-                  <field attribute-ref="StorageDevice">
+                  <field attribute-ref="sheetsPaper">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="ArcDeal_isNotPaper"/>
+                      </hide>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                      <require>
+                        <condition>true</condition>
+                      </require>
+                    </properties>
                     <appearance importance="normal" multiline="false" align="left">
-                      <label-style >
-                        <style id="tunBorderedField"/>
+                      <label-style field-unit="symbol" field-width="9"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="sizeDocsLabel">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="ArcDeal_isPaper"/>
+                      </hide>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left">
+                      <label-style field-unit="symbol" field-width="9">
+                        <style id="tunRequiredStar"/>
                       </label-style>
                     </appearance>
                   </field>
+                  <field attribute-ref="sizeDocs">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="ArcDeal_isPaper"/>
+                      </hide>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="ArcDeal_basedFrFile"/>
+                      </read-only>
+                      <require>
+                        <condition>true</condition>
+                      </require>
+                    </properties>
+                    <appearance importance="normal" multiline="false" align="left">
+                      <label-style field-unit="symbol" field-width="11"/>
+                    </appearance>
+                  </field>
+                  <section id="MediaInfoGroup" group="true">
+                    <appearance field-layout="horizontal" align="right"/>
+                    <component>
+                      <field attribute-ref="MediaInfo">
+                        <properties>
+                          <hide>
+                            <condition-ref ref="ArcDeal_isPaper"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false" >
+                          <label-style field-unit="symbol" field-width="19" />
+                        </appearance>
+                      </field>
+                      <field attribute-ref="storageDevice">
+                        <properties>
+                          <hide>
+                            <condition-ref ref="ArcDeal_isPaper"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" multiline="false"/>
+                      </field>
+                    </component>
+                  </section>
                 </component>
-                <appearance field-layout="horizontal"/>
               </section>
             </component>
-            <appearance field-layout="horizontal"/>
           </section>
-          <field attribute-ref="AddInformations" name="${ui.form.ArchivesArcDealResourceForm.section.Requisites.field.AddInformations.name:Дополнительная информация:}">
+          <section group="true" id="storagePlaceRow">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="storagePlaceLabel">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" multiline="false" align="left">
+                  <label-style field-unit="symbol" field-width="12"/>
+                </appearance>
+              </field>
+              <field attribute-ref="storagePlace">
+                <appearance importance="normal" multiline="false"/>
+                <properties>
+                  <read-only>
+                      <condition-ref ref="archivesArcDeal_canEditStoragePlace"/>
+                  </read-only>
+                </properties>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="addInformationsLabel">
+            <properties>
+              <read-only>
+                <condition>true</condition>
+              </read-only>
+            </properties>
             <appearance importance="normal" multiline="false" align="left">
-              <label-style>
-                <style id="tunBorderedField"/>
-              </label-style>
+              <label-style field-unit="symbol" field-width="25"/>
             </appearance>
+          </field>
+          <field attribute-ref="addInformations">
+            <appearance importance="normal" multiline="true" align="left"/>
           </field>
           <field attribute-ref="ArcDealExtractTableLabel">
             <properties>
               <read-only condition-union="AND">
                 <condition>true</condition>
               </read-only>
+              <hide>
+                <condition>true</condition>
+              </hide>
             </properties>
             <appearance importance="normal">
               <label-style>
@@ -431,6 +988,11 @@
             </appearance>
           </field>
           <section group="true" id="ArcDealExtractTableRow">
+            <properties>
+              <hide>
+                <condition>true</condition>
+              </hide>
+            </properties>
             <component>
               <field attribute-ref="ArcDealExtractTable" recalc="true">
                 <appearance>
@@ -447,9 +1009,232 @@
             </component>
           </section>
         </component>
-        <appearance field-layout="vertical" />
       </section>
-      <section name="${ui.form.ArchivesArcDealResourceForm.section.History.name:История}" id="History" />
+      <section group="true" name="${ui.form.ArchivesArcDealResourceForm.section.Docs.name:Документы дела}" id="Docs">
+        <properties>
+          <hide>
+            <negative-condition-ref ref="showDocs"/>
+          </hide>
+        </properties>
+        <appearance field-layout="vertical" />
+        <component>
+          <section id="arcDocsTableButtons" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <button name="${ui.form.NdpRegister.Header.section.Attributes.section.FileRegisterActions.button.CreateFileRegister:Создать арх. документ}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="read"/>
+                    <negative-condition-ref ref="archivesDoc_canCreateDocs"/>
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style width="15">
+                    <style id="tunIconAdd"/>
+                    <style id="tunUnderline"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">ArchivesDocCreateFromDeal</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.NdpRegister.Header.section.Attributes.section.FileRegisterActions.button.CreateFileRegister:Переместить в другое дело}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="read"/>
+                    <negative-condition-ref ref="archivesDoc_canReadDocs"/>
+                    <negative-condition-ref ref="archivesDoc_canMoveDocs"/>
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style width="15">
+                    <style id="tunUnderline"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">ArchivesDealMoveDoc</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+          </section>
+          <field attribute-ref="arcDocsTable">
+            <appearance widget="grid" open-form="full"/>
+            <directories>
+              <directory-category-custom-coll attribute-ref="selfunid" ref="Archives-ArcDocByArcDeal"/>
+            </directories>
+            <properties>
+              <hide>
+                <negative-condition-ref ref="FullAccess"/>
+              </hide>
+            </properties>
+          </field>
+          <field attribute-ref="arcDocsTable">
+            <appearance widget="grid"/>
+            <directories>
+              <directory-category-custom-coll attribute-ref="selfunid" ref="Archives-ArcDocByArcDeal-WOA"/>
+            </directories>
+            <properties>
+              <hide>
+                <condition-ref ref="FullAccess"/>
+              </hide>
+            </properties>
+          </field>
+        </component>
+      </section>
+      <section name="${ui.form.ArchivesArcDealResourceForm.section.ReadersSection.name:Читатели по срокам}" id="ReadersSection">
+        <properties>
+          <hide>
+            <negative-condition-ref ref="FullAccess"/>
+          </hide>
+        </properties>
+        <component>
+          <section name="${ui.form.ArchivesArcDealResourceForm.section.ReadersSection.Current.name:Читатели (актуальный список)}" id="CurrentReaders">
+            <component>
+              <field attribute-ref="currentReadersByDeadline">
+                <appearance importance="normal" location="table"/>
+              </field>
+            </component>
+          </section>
+          <section name="${ui.form.ArchivesArcDealResourceForm.section.ReadersSection.Readers.name:Читатели по срокам доступа}" id="Readers">
+            <component>
+              <section id="ReadersSectionButtons" group="true">
+                <appearance field-layout="horizontal"/>
+                <properties>
+                  <hide>
+                    <condition-ref ref="ArcDeal_isNotArchived"/>
+                  </hide>
+                </properties>
+                <component>
+                  <button recalc="true" attribute-ref="addReader" name="${ui.form.OtherPartiesTable.button.Добавить.name:Добавить}">
+                    <properties>
+                      <hide>
+                        <negative-condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style width="8" unit="symbol">
+                        <style id="tunIconAdd" />
+                        <style id="tunBlue" />
+                        <style id="tunUnderline" />
+                        <style id="tunClickableRed" />
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">ArchivesDealAddReader</script>
+                          </handler>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.OtherPartiesTable.button.Change.name:Изменить срок доступа}">
+                    <properties>
+                      <hide>
+                        <negative-condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style width="19" unit="symbol">
+                        <style id="tunBlue" />
+                        <style id="tunUnderline" />
+                        <style id="tunClickableRed" />
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">ArchivesDealChangeAccessDate</script>
+                          </handler>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.OtherPartiesTable.button.Change.name:Исключить}">
+                    <properties>
+                      <hide>
+                        <negative-condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style width="9" unit="symbol">
+                        <style id="tunBlue" />
+                        <style id="tunUnderline" />
+                        <style id="tunClickableRed" />
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">ArchivesDealRemoveReader</script>
+                          </handler>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                </component>
+              </section>
+              <field attribute-ref="readersByDeadline">
+                <appearance importance="normal" location="table"/>
+              </field>
+              <field attribute-ref="addReader" recalc="true">
+                <properties>
+                  <hide>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+              </field>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="Links" name="${ui.form.ArchivesArcDealResourceForm.section.Links.name:Связанные}">
+        <properties>
+          <hide>
+            <negative-condition-ref ref="FullAccess"/>
+          </hide>
+        </properties>
+        <appearance widget="leftMenu"/>
+        <component>
+          <section id="Documents" name="${ui.form.ArchivesArcDealResourceForm.section.Links.section.Documеnts.name:Документы}"/>
+          <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Links.section.Visualization.name:Визуализация}" id="Visualization"/>
+        </component>
+      </section>
+      <section name="${ui.form.ArchivesArcDealResourceForm.section.History.name:История}" id="History" >
+        <properties>
+          <hide>
+            <negative-condition-ref ref="FullAccess"/>
+          </hide>
+        </properties>
+      </section>
+      <section name="${ui.form.ArchivesArcDealResourceForm.section.empty: }" id="empty" >
+        <properties>
+          <hide>
+            <condition-ref ref="showDocs"/>
+          </hide>
+        </properties>
+        <component>
+          <field attribute-ref="empty">
+          </field>
+        </component>
+      </section>
     </component>
   </form>
 </ui>

@@ -45,10 +45,20 @@
             <hint-pop-up>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.field.text.hintPopUp:Текст}</hint-pop-up>
             <hint-in-field>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.field.text.hintInField:&lt;без текста>}</hint-in-field>
           </field>
+          <field attribute-ref="comments" name="${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.field.comments.name:Примечание:}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="ResolutionResource_commentsIsEmpty"/>
+              </hide>
+            </properties>
+            <appearance importance="normal" multiline="true" align="left">
+              <limit max-lenght="256"/>
+            </appearance>
+          </field>
           <field attribute-ref="control.controller" name="${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.field.control.controller.name:Контролеры:}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="resolutionControllerIsEmpty"/>
+                <condition-ref ref="ResolutionResource_hideControllers"/>
               </hide>
             </properties>
             <appearance importance="normal"/>
@@ -96,19 +106,9 @@
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isMedoResolution"/>
-                  </hide>
                 </properties>
-                <appearance align="left" importance="normal">
-                  <label-style field-width="12" field-unit="symbol">
-                    <style id="showSimpleText"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="showSimpleText"/>
-                    </value-style>
-                  </field-style>
+                <appearance align="left">
+                  <label-style field-width="12" field-unit="symbol"/>
                 </appearance>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.medoPart.field.medoPart.part.hintPopUp:Пункт}</hint-pop-up>
                 <hint-in-field>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.medoPart.field.medoPart.part.hintInField:Пункт}</hint-in-field>
@@ -118,20 +118,8 @@
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="isMedoResolution"/>
-                  </hide>
                 </properties>
-                <appearance align="left" importance="normal">
-                  <label-style>
-                    <style id="showSimpleText"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="showSimpleText"/>
-                    </value-style>
-                  </field-style>
-                </appearance>
+                <appearance align="left"/>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.medoPart.field.medoPart.contents.hintPopUp:Содержание}</hint-pop-up>
                 <hint-in-field>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.medoPart.field.medoPart.contents.hintInField:Содержание}</hint-in-field>
               </field>
@@ -202,6 +190,11 @@
             </appearance>
           </field>
           <section id="Notifications" group="true">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="resolutionIsControlled"/>
+              </hide>
+            </properties>
             <appearance style="ResolutionBodyPart"/>
             <component>
               <field attribute-ref="execNotice"/>
@@ -212,7 +205,7 @@
               <dialog-mode width="1" unit="symbol"/>
             </appearance>
             <component>
-              <field attribute-ref="$isSendToApproving" name="${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.Actions.field.isSendToApproving.name:На утверждение}">
+              <field attribute-ref="$isSendToApproving" name="${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.Actions.field.isSendToApproving.name:Направить руководителю}">
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="isSendToApproving"/>
@@ -245,7 +238,7 @@
                 </properties>
                 <appearance importance="normal"/>
               </field>
-              <button name="${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.Actions.button.Отозвать.name:Отозвать}">
+              <button name="${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.Actions.button.Отозвать.name:Отозвать с утверждения}">
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="canWithDrawToIDocsResolution"/>
@@ -286,6 +279,11 @@
                 <appearance importance="normal"/>
               </field>
               <field attribute-ref="$saveAsTemplate">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="hasLinkSaveAsTemplate"/>
+                  </hide>
+                </properties>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.Actions.field.saveAsTemplate.hintPopUp:Сохранить как шаблон}</hint-pop-up>
               </field>
               <field attribute-ref="$print">
@@ -294,13 +292,20 @@
               <field attribute-ref="$close">
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveReadForm.section.Attributes.section.Actions.field.close.hintPopUp:Закрыть}</hint-pop-up>
               </field>
+              <field attribute-ref="restoreFromTrash" name="${ui.form.ResolutionResourceReadForm.section.Attributes.section.Actions.field.restoreFromTrash.name:Восстановить}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="ResolutionStatusDeleted"/>
+                  </hide>
+                </properties>
+              </field>
             </component>
           </section>
         </component>
       </section>
       <section id="Links" name="${ui.form.ResolutionResourceWithApproveReadForm.section.Links.name:Связанные}" group="true">
         <component>
-          <section id="Documеnts"/>
+          <section id="Documents"/>
           <section id="Actions2" group="true">
             <appearance field-layout="horizontal">
               <dialog-mode width="1" unit="symbol"/>
@@ -372,6 +377,11 @@
                 <appearance importance="normal"/>
               </field>
               <field attribute-ref="$saveAsTemplate">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="hasLinkSaveAsTemplate"/>
+                  </hide>
+                </properties>
                 <appearance importance="normal"/>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveReadForm.section.Links.section.Actions2.field.saveAsTemplate.hintPopUp:Сохранить как шаблон}</hint-pop-up>
               </field>
@@ -413,20 +423,12 @@
                 <directories>
                   <directory-ref ref="periodType"/>
                 </directories>
-                <properties>
-                  <require>
-                    <condition>true</condition>
-                  </require>
-                </properties>
               </field>
               <field attribute-ref="periodicParameters.period" name="${ui.form.ResolutionResource.period:Период:}">
                 <properties>
                   <hide>
                     <condition-ref ref="ResolutionResource_isPeriodTypeDates"/>
                   </hide>
-                  <require>
-                    <condition-ref ref="ResolutionResource_isPeriodTypeNotDates"/>
-                  </require>
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.nextDueDate" name="${ui.form.ResolutionResource.nextDueDateResolution:Срок следующей резолюции:}" recalc="true">
@@ -447,9 +449,6 @@
                   <hide>
                     <negative-condition-ref ref="ResolutionResource_isPeriodTypeMonthly"/>
                   </hide>
-                  <require>
-                    <condition-ref ref="ResolutionResource_isPeriodTypeMonthly"/>
-                  </require>
                 </properties>
                 <directories>
                   <directory-ref ref="period.subtype"/>
@@ -460,9 +459,6 @@
                   <hide>
                     <condition-ref ref="ResolutionResource_isPeriodTypeDates"/>
                   </hide>
-                  <require>
-                    <condition-ref ref="ResolutionResource_isPeriodTypeNotDates"/>
-                  </require>
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.endDate" name="${ui.form.ResolutionResource.endDate:Окончание:}">
@@ -470,9 +466,6 @@
                   <hide>
                     <condition-ref ref="ResolutionResource_isPeriodTypeDates"/>
                   </hide>
-                  <require>
-                    <condition-ref ref="ResolutionResource_isPeriodTypeNotDates"/>
-                  </require>
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.dismissalNoticeLabel" name="${ui.form.ResolutionResource.dismissalNoticeLabel:При увольнении исполнителя уведомлять:}">
@@ -483,7 +476,7 @@
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.dismissalNoticeAuthor" name="${ui.form.ResolutionResource.dismissalNoticeAuthor:Автора:}"/>
-              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionResource.dismissalNoticeController:Контроллёра:}"/>
+              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionResource.dismissalNoticeController:Контролёра:}"/>
               <button recalc="true" attribute-ref="fillSchedule" name="${ui.form.DatesSchedule.compute:Вычислить график}">
                 <properties>
                   <hide condition-union="AND">

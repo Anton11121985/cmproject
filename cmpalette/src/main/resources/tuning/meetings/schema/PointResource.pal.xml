@@ -33,6 +33,17 @@
       </calc-values>
     </string>
     <string name="$included" system="true" temporal="true"/>
+    <boolean system="true" name="isStub"/>
+    <boolean name="isStubAndIncluded" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isStub!=true?false:number==null||number==""?false:meeting==null]]></script>
+      </calc-values>
+    </boolean>
+    <string name="stubLabelIncluded" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA['Включен в повестку']]></script>
+      </calc-values>
+    </string>
     <string name="labelDate" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Дата:']]></script>
@@ -97,7 +108,7 @@
     <boolean name="showSecurityStampField" createlog="true" temporal="true">
       <calc-values>
         <script lang="SPEL" event="open">
-          <![CDATA[(securityStamp != null && securityStamp != "") || supportSecurityStamp]]></script>
+          <![CDATA[(securityStamp != null && securityStamp != "") || (supportSecurityStamp?:false)]]></script>
       </calc-values>
     </boolean>
     <boolean name="canEditSecurityStamp" computed="true" temporal="true">
@@ -111,12 +122,13 @@
         <script lang="SPEL" event="open"><![CDATA[#this.canEditSecurityStamp==true?T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getPerson().getPersonStampGrifs():null]]></script>
       </calc-values>
     </string>
-
+    <string system="true" name="text"/>
     <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKF);
 importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
 importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
 importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
 importClass(Packages.java.util.Iterator);
+importClass(Packages.ru.intertrust.cmj.meetings.Point);
 
 function queryCreate(object){
   if(object.links!=undefined){
@@ -147,7 +159,7 @@ function querySave(object, document) {
 //проверка при:
 // - включении вопроса в повестку
 // - при изменении грифа во включенном в повестку вопросе
-  if (!Utils.isNullOrEmpty(object.getSecurityStamp()) && !Utils.isNullOrEmpty(object.getMeetingUNID()) &&
+  if (object instanceof Point && !Utils.isNullOrEmpty(object.getSecurityStamp()) && !Utils.isNullOrEmpty(object.getMeetingUNID()) &&
   (!object.getSecurityStamp().equals(document.getItemValueString("security_stamp_name")) || "".equals(document.getItemValueString("$ref")))) {
     var meeting = object.findMeeting();
     if (meeting != null && !Utils.isNullOrEmpty(meeting.getSecurityStamp()) && !object.getSecurityStamp().equals(meeting.getSecurityStamp())) {

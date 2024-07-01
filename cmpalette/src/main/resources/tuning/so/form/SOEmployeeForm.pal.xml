@@ -30,6 +30,16 @@
                   </field-style>
                 </appearance>
               </field>
+              <field autofill="true" attribute-ref="organizationUnit">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="25" field-unit="symbol"/>
+                </appearance>
+              </field>
               <field attribute-ref="deletedLabel">
                 <properties>
                   <hide condition-union="AND">
@@ -54,59 +64,27 @@
               <label-style width="10"/>
             </appearance>
             <component>
-              <field attribute-ref="empty_systname">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <condition>true</condition>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-              </field>
               <section id="row22" group="true">
                 <appearance field-layout="horizontal"/>
                 <component>
-                  <field autofill="true" clickable="true" attribute-ref="organizationUnit" name="${ui.form.SOEmployeeForm.section.Header.section.row2.section.row22.field.organizationUnit.name:Организация:}">
+                  <field autofill="true" attribute-ref="personUnit.fullName">
                     <properties>
                       <read-only condition-union="AND">
                         <condition>true</condition>
                       </read-only>
                     </properties>
-                    <appearance open-mode="dialog" align="left" importance="high" clickable="true">
-                      <label-style>
-                        <style id="tunBlue"/>
+                    <appearance align="left" importance="high">
+                      <label-style field-width="100" field-unit="symbol">
+                        <style id="tunFontSize12"/>
+                        <style id="tunBold"/>
                       </label-style>
                       <field-style>
                         <value-style>
-                          <style id="tunBlue"/>
+                          <style id="tunFontSize12"/>
+                          <style id="tunBold"/>
                         </value-style>
                       </field-style>
                     </appearance>
-                    <directories limit-livesearch="no-restrictions">
-                      <directory-ref ref="arm-admin-dialog-hierarchi"/>
-                    </directories>
-                  </field>
-                  <field autofill="true" clickable="true" attribute-ref="headOffice">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance open-mode="dialog" align="right" importance="high" clickable="true">
-                      <label-style field-width="30" field-unit="percent">
-                        <style id="tunBlue"/>
-                      </label-style>
-                      <field-style>
-                        <value-style>
-                          <style id="tunBlue"/>
-                        </value-style>
-                      </field-style>
-                    </appearance>
-                    <directories limit-livesearch="no-restrictions">
-                      <directory-ref ref="arm-admin-dialog-hierarchi"/>
-                    </directories>
                   </field>
                 </component>
               </section>
@@ -119,71 +97,21 @@
                         <condition>true</condition>
                       </read-only>
                     </properties>
-                    <appearance align="left" importance="high"/>
+                    <appearance align="left" importance="normal" multiline="false"/>
                   </field>
-                  <field autofill="true" clickable="true" attribute-ref="parentUnit">
+                  <field autofill="true" clickable="true" attribute-ref="parentUnit" name="${ui.form.SOEmployeeRVZForm.section.Header.section.row2.section.row23.field.parentUnit.name:Подразделение:}">
                     <properties>
                       <read-only condition-union="AND">
                         <condition>true</condition>
                       </read-only>
                     </properties>
-                    <appearance open-mode="dialog" align="right" importance="normal" clickable="true">
-                      <label-style field-width="30" field-unit="percent"/>
-                    </appearance>
+                    <appearance open-mode="dialog" align="right" importance="normal" clickable="true" multiline="false"/>
                     <directories limit-livesearch="no-restrictions">
                       <directory-ref ref="arm-admin-dialog-hierarchi"/>
                     </directories>
                   </field>
                 </component>
               </section>
-              <field clickable="true" attribute-ref="personUnit">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <condition-ref ref="SOEmployee_IsVacancy"/>
-                  </hide>
-                </properties>
-                <appearance open-mode="dialog" align="left" importance="normal" clickable="true">
-                  <label-style>
-                    <style id="tunBlue"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunBlue"/>
-                    </value-style>
-                  </field-style>
-                </appearance>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="person"/>
-                </directories>
-              </field>
-              <field autofill="true" attribute-ref="fioShow">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="SOEmployee_IsVacancy"/>
-                  </hide>
-                </properties>
-                <appearance align="left">
-                  <label-style field-unit="symbol"/>
-                </appearance>
-              </field>
-              <field attribute-ref="currentAbsenceInfo">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                  <hide condition-union="AND">
-                    <condition-ref ref="CurrentAbsenceInfo_IsEmpty"/>
-                    <negative-condition-ref ref="SOEmployee_IsAbsent"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal"/>
-              </field>
             </component>
           </section>
           <section id="row3" group="true">
@@ -269,35 +197,53 @@
                     <condition-ref ref="edit"/>
                     <condition>true</condition>
                   </require>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModuleEmp"/>
+                  </read-only>
                 </properties>
-                <appearance align="left" importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance align="left" importance="normal"/>
                 <hint-pop-up>${ui.form.SOEmployeeForm.section.CommonInfo.section.row4.field.Position.hintPopUp:Должность}</hint-pop-up>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.CommonInfo.section.row4.field.Position.hintInField:Должность}</hint-in-field>
-                <directories manual-input="true" limit-livesearch="no-restrictions">
+                <directories limit-livesearch="no-restrictions" manual-input="true">
                   <directory-ref ref="positionClassif"/>
                 </directories>
               </field>
             </component>
           </section>
+          <field attribute-ref="employeeGroup" name="${ui.form.SOEmployeeForm.section.CommonInfo.field.employeeGroup.name:Группа работников:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModuleEmp"/>
+              </read-only>
+            </properties>
+            <appearance align="left" importance="normal"/>
+            <directories manual-input="true" limit-livesearch="sys-current">
+              <directory-ref ref="so-employee-group"/>
+            </directories>
+          </field>
+          <field clickable="true" attribute-ref="boss" name="${ui.form.SOEmployeeForm.section.CommonInfo.field.boss.name:Руководитель:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance digest-mode="digest" importance="normal" clickable="true"/>
+          </field>
           <section id="row5" group="true">
             <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="mainPerson" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row5.field.mainPerson.name:Основная:}">
-                <appearance importance="normal">
-                  <label-style field-width="1" field-unit="symbol"/>
-                </appearance>
+                <appearance importance="normal"/>
               </field>
               <section id="row51" group="true">
-                <appearance>
-                  <label-style width="27" unit="symbol"/>
-                </appearance>
                 <component>
-                  <field attribute-ref="isleader" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row5.section.row51.field.isleader.name:Является руководителем:}">
-                    <appearance importance="normal">
-                      <label-style field-width="1" field-unit="symbol"/>
-                    </appearance>
+                  <field attribute-ref="isleader" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row5.section.row51.field.isleader.name:Является руководителем:}" recalc="true">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition-ref ref="isNotAnyAdminAndHasHRModuleEmp"/>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal"/>
                   </field>
                   <field attribute-ref="IsRVZ" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row5.section.row51.field.IsRVZ.name:Является РВЗ:}">
                     <properties>
@@ -309,8 +255,13 @@
                 </component>
               </section>
               <field attribute-ref="rang" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row5.field.rang.name:Ранг:}">
+                <properties>
+                  <hide>
+                    <condition-ref ref="SoEmployeeIsLeader"/>
+                  </hide>
+                </properties>
                 <appearance importance="normal">
-                  <label-style field-width="10" field-unit="symbol"/>
+                  <label-style field-width="7" field-unit="symbol"/>
                 </appearance>
                 <hint-pop-up>${ui.form.SOEmployeeForm.section.CommonInfo.section.row5.field.rang.hintPopUp:Ранг}</hint-pop-up>
               </field>
@@ -346,9 +297,7 @@
                     <negative-condition-ref ref="TObjectIsNew"/>
                   </hide>
                 </properties>
-                <appearance importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance importance="normal"/>
                 <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-rvz" digest="digestSOLiveSearch">
                   <show-select-value>
                     <descriptor-ref ref="arm-admin-livesearch-dep-rvz"/>
@@ -371,9 +320,7 @@
                     <condition-ref ref="TObjectIsNew"/>
                   </hide>
                 </properties>
-                <appearance digest-mode="digest" importance="normal" clickable="true" widget="clickableHierarchy">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance digest-mode="digest" importance="normal" clickable="true" widget="clickableHierarchy"/>
                 <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-rvz">
                   <show-select-value>
                     <descriptor-ref ref="arm-admin-livesearch-dep-rvz"/>
@@ -429,9 +376,7 @@
                     <condition>true</condition>
                   </require>
                 </properties>
-                <appearance align="left" multiline="true" importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance align="left" multiline="true" importance="normal"/>
                 <hint-pop-up>${ui.form.SOEmployeeForm.section.CommonInfo.section.row8.field.area.hintPopUp:Территория}</hint-pop-up>
                 <directories limit-livesearch="no-restrictions">
                   <directory-ref ref="admin-area-string-collection"/>
@@ -440,28 +385,22 @@
             </component>
           </section>
           <section id="Profiles" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.Profiles.name:Профили}" group="true">
-            <appearance field-layout="vertical">
-              <label-style unit="symbol"/>
-            </appearance>
+            <appearance field-layout="vertical"/>
             <component>
-              <field attribute-ref="profileHierarchyMain" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.Profiles.field.profileHierarchyMain.name:Иерархический профиль:}">
+              <field attribute-ref="profileHierarchyMain" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.Profiles.field.profileHierarchyMain.name:Иерархический профиль:}" recalc="true">
                 <properties>
                   <require condition-union="AND">
                     <condition-ref ref="edit"/>
                     <condition>true</condition>
                   </require>
                 </properties>
-                <appearance importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance importance="normal"/>
                 <directories livesearch="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="arm-admin-dialog-hierarchyprofile"/>
                 </directories>
               </field>
               <field attribute-ref="profilesHierarchyAdditional" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.Profiles.field.profilesHierarchyAdditional.name:Иерархические профили (доп.):}">
-                <appearance align="left" importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance align="left" importance="normal"/>
                 <directories livesearch="true" limit-livesearch="sys-current">
                   <show-select-value>
                     <cell-view-ref ref="(ierarchy_profile)"/>
@@ -470,17 +409,13 @@
                 </directories>
               </field>
               <field attribute-ref="profilesGroupMain" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.Profiles.field.profilesGroupMain.name:Групповые профили:}">
-                <appearance importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance importance="normal"/>
                 <directories livesearch="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="arm-admin-dialog-groupprofile"/>
                 </directories>
               </field>
               <field attribute-ref="WorkingProfile" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.Profiles.field.WorkingProfile.name:Профиль рабочего времени:}">
-                <appearance align="left" importance="normal">
-                  <label-style field-width="60" field-unit="symbol"/>
-                </appearance>
+                <appearance align="left" importance="normal"/>
                 <directories livesearch="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="admin-worktime-profiles-hierarchy"/>
                 </directories>
@@ -505,16 +440,13 @@
             </component>
           </section>
           <field attribute-ref="comment" name="${ui.form.SOEmployeeForm.section.CommonInfo.field.comment.name:Комментарий:}">
-            <appearance importance="normal" align="left">
-              <label-style field-width="60" field-unit="symbol"/>
-            </appearance>
+            <appearance importance="normal" align="left"/>
           </field>
           <section id="delegate" group="true">
             <appearance field-layout="horizontal"/>
             <component>
               <field clickable="true" attribute-ref="delegate_beard" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.delegate.field.delegate_beard.name:При удалении дела передаются:}">
                 <appearance open-mode="dialog" digest-mode="digest4" align="left" importance="normal" clickable="true">
-                  <label-style field-width="60" field-unit="symbol"/>
                   <limit max-size="1"/>
                 </appearance>
                 <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-empl" digest="digestSOLiveSearch">
@@ -528,14 +460,10 @@
             </component>
           </section>
           <section id="row9" group="true">
-            <appearance field-layout="horizontal">
-              <label-style width="25" unit="symbol"/>
-            </appearance>
+            <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="NotAuto" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row9.field.NotAuto.name:Не подлежит авт. обработке:}">
-                <appearance align="left" multiline="true" importance="normal">
-                  <label-style field-width="10"/>
-                </appearance>
+                <appearance align="left" multiline="true" importance="normal"/>
               </field>
               <field attribute-ref="hasBarcodeScaner" name="${ui.form.SOEmployeeForm.section.CommonInfo.section.row9.field.hasBarcodeScaner.name:Имеет сканер штрих-кодов}">
                 <properties>
@@ -543,7 +471,7 @@
                     <condition>true</condition>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance align="left" importance="normal"/>
               </field>
             </component>
           </section>
@@ -569,7 +497,7 @@
                   <label-style field-unit="symbol"/>
                 </appearance>
               </field>
-              <field attribute-ref="CanChangeAuditors" name="${ui.form.SOEmployeeForm.section.SystemNames.section.rowsystname1.field.CanChangeAuditors.name:Может менять замещающих и аудиторов:}">
+              <field attribute-ref="CanChangeAuditors" name="${ui.form.SOEmployeeForm.section.SystemNames.section.rowsystname1.field.CanChangeAuditors.name:Может менять замещающих и наблюдателей:}">
                 <appearance importance="normal"/>
               </field>
               <field attribute-ref="workGroup" name="${ui.form.SOEmployeeForm.section.SystemNames.section.rowsystname1.field.workGroup.name:Входит в рабочие группы:}">
@@ -588,7 +516,10 @@
               <label-style width="33"/>
             </appearance>
             <component>
-              <field attribute-ref="GDBaseName" name="${ui.form.SOEmployeeForm.section.SystemNames.section.rowsystname2.field.GDBaseName.name:Группа доступа в АК:}">
+              <field attribute-ref="reasonSubstitution" name="${ui.form.SOEmployeeForm.section.SystemNames.section.rowsystname2.field.reasonSubstitution.name:Основание замещения:}">
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="GDBaseName" name="${ui.form.SOEmployeeForm.section.SystemNames.section.rowsystname2.field.GDBaseName.name:Группы доступа:}">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
@@ -656,6 +587,25 @@
               </field>
             </component>
           </section>
+          <field attribute-ref="empty_systname">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="read"/>
+              </hide>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="asForTheUser.sysGroups">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance align="left"/>
+          </field>
           <field attribute-ref="asForTheUser.incoming">
             <properties>
               <read-only condition-union="AND">
@@ -677,22 +627,6 @@
                 </value-style>
               </field-style>
             </appearance>
-          </field>
-          <field attribute-ref="empty_systname">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="asForTheUser.sysGroups">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance align="left"/>
           </field>
           <section id="======ROW_INPUT======" group="true">
             <properties>
@@ -796,13 +730,14 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="asForTheUser.incCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.incCanChange.name:Можно менять МР}"/>
+          <field attribute-ref="asForTheUser.incCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.incCanChange.name:Можно менять МР:}"/>
           <section id="input_counter" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.input_counter.name:поиск счетчика}" group="true">
-            <appearance field-layout="horizontal">
-              <dialog-mode width="30" unit="percent"/>
-            </appearance>
+            <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="asForTheUser.incCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.input_counter.field.asForTheUser.incCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.input_counter.field.asForTheUser.incCounterJS.hintInField:Способ поиска счетчика}</hint-in-field>
                 <directories manual-input="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="so-counter-search-any"/>
@@ -912,7 +847,7 @@
               <directory-ref ref="arm-admin-dialog-dep-rvz"/>
             </directories>
           </field>
-          <field attribute-ref="asForTheUser.intCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.intCanChange.name:Можно менять МР}"/>
+          <field attribute-ref="asForTheUser.intCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.intCanChange.name:Можно менять МР:}"/>
           <section id="internal_MR_default" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.internal_MR_default.name:МР по умолчанию}" group="true">
             <appearance field-layout="horizontal"/>
             <component>
@@ -947,11 +882,12 @@
             </component>
           </section>
           <section id="internal_counter" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.internal_counter.name:поиск счетчика}" group="true">
-            <appearance field-layout="horizontal">
-              <label-style unit="percent"/>
-            </appearance>
+            <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="asForTheUser.intCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.internal_counter.field.asForTheUser.intCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.internal_counter.field.asForTheUser.intCounterJS.hintInField:Способ поиска счетчика}</hint-in-field>
                 <directories manual-input="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="so-counter-search-any"/>
@@ -1095,11 +1031,14 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="asForTheUser.outCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.outCanChange.name:Можно менять МР}"/>
+          <field attribute-ref="asForTheUser.outCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.outCanChange.name:Можно менять МР:}"/>
           <section id="output_counter" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.output_counter.name:поиск счетчика}" group="true">
             <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="asForTheUser.outCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.output_counter.field.asForTheUser.outCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.output_counter.field.asForTheUser.outCounterJS.hintInField:Способ поиска счетчика}</hint-in-field>
                 <directories manual-input="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="so-counter-search-any"/>
@@ -1240,11 +1179,14 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="asForTheUser.ordCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.ordCanChange.name:Можно менять МР}"/>
+          <field attribute-ref="asForTheUser.ordCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.ordCanChange.name:Можно менять МР:}"/>
           <section id="ord_counter" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.ord_counter.name:поиск счетчика}" group="true">
             <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="asForTheUser.ordCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.ord_counter.field.asForTheUser.ordCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.ord_counter.field.asForTheUser.ordCounterJS.hintInField:Способ поиска счетчика}</hint-in-field>
                 <directories manual-input="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="so-counter-search-any"/>
@@ -1396,7 +1338,7 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="asForTheUser.appCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.appCanChange.name:Можно менять МР}">
+          <field attribute-ref="asForTheUser.appCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.appCanChange.name:Можно менять МР:}">
             <properties>
               <hide condition-union="AND">
                 <negative-condition-ref ref="SOEmployee_useSystemGroups_Requests"/>
@@ -1412,6 +1354,9 @@
             <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="asForTheUser.appCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.req_counter.field.asForTheUser.appCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.req_counter.field.asForTheUser.appCounterJS.hintInField:Способ поиска счетчика}</hint-in-field>
                 <directories manual-input="true" limit-livesearch="sys-current">
                   <directory-ref ref="so-counter-search-any"/>
@@ -1563,7 +1508,7 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="asForTheUser.conCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.conCanChange.name:Можно менять МР}">
+          <field attribute-ref="asForTheUser.conCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.conCanChange.name:Можно менять МР:}">
             <properties>
               <hide condition-union="AND">
                 <negative-condition-ref ref="SOEmployee_useSystemGroups_Contracts"/>
@@ -1579,6 +1524,9 @@
             <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="asForTheUser.conCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.con_counter.field.asForTheUser.conCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
                 <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.con_counter.field.asForTheUser.conCounterJS.hintInField:Способ поиска счетчика}</hint-in-field>
                 <directories manual-input="true" limit-livesearch="no-restrictions">
                   <directory-ref ref="so-counter-search-any"/>
@@ -1600,26 +1548,308 @@
               </button>
             </component>
           </section>
-          <section id="AsForTheUser" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.AsForTheUser.name:Дополнительные модули}">
+          <field attribute-ref="asForTheUser.dtr">
             <properties>
-              <hide condition-union="AND">
+              <read-only condition-union="AND">
                 <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="read"/>
               </hide>
             </properties>
+            <appearance importance="high">
+              <label-style>
+                <style id="tunBgSky"/>
+                <style id="tunBold"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                  <style id="tunBold"/>
+                </value-style>
+              </field-style>
+            </appearance>
+          </field>
+          <section id="=======ROW_DTR======" group="true">
+            <appearance field-layout="horizontal"/>
             <component>
-              <section id="hardTable" group="true">
-                <appearance widget="hardTable">
-                  <table without-frame="true"/>
-                </appearance>
-              </section>
-              <field recalc="true" attribute-ref="employeeInfo" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.AsForTheUser.field.employeeInfo.name:employeeInfo}">
+              <field attribute-ref="asForTheUser.dtr">
                 <properties>
-                  <hide condition-union="AND">
+                  <read-only condition-union="AND">
                     <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance importance="high">
+                  <label-style field-width="96" field-unit="symbol">
+                    <style id="tunBgSky"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBgSky"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
+              <button name="${ui.form.SOEmployeeForm.section.SystemGroups.dtr.button.Copy.name:Копировать в}" alias="DTR">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style>
+                    <style id="tunBlue"/>
+                    <style id="tunUnderline"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">OperationSystemGroupCopy</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+          </section>
+          <field clickable="true" attribute-ref="dtrDepRvz" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.dtrDepRvz.name:Подразделение:}">
+            <appearance open-mode="dialog" align="left" clickable="true">
+              <label-style field-width="82" field-unit="symbol"/>
+              <field-style separator="newline"/>
+            </appearance>
+            <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.field.dtrDepRvz.hintInField:Выберите места регистрации}
+            </hint-in-field>
+            <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-rvz" digest="digestSOLiveSearch">
+              <show-select-value>
+                <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
+              </show-select-value>
+              <directory-ref ref="arm-admin-ierarchy-rvz"/>
+              <directory-ref ref="arm-admin-dialog-dep-rvz"/>
+            </directories>
+          </field>
+          <section id="dtr_MR_default" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.dtr_MR_default.name:МР по умолчанию}" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="asForTheUser.dtrDefMp"
+                     name="${ui.form.SOEmployeeForm.section.SystemGroups.section.dtr_MR_default.field.asForTheUser.dtrDefMp.name:МР по умолчанию:}">
+                <appearance open-mode="dialog" align="left">
+                  <label-style field-width="32" field-unit="symbol"/>
+                </appearance>
+                <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.dtr_MR_default.field.asForTheUser.dtrDefMp.hintInField:Место регистрации по умолчанию}
+                </hint-in-field>
+                <directories limit-livesearch="no-restrictions">
+                  <directory-ref ref="regPlaceByDefault"/>
+                </directories>
+              </field>
+              <field clickable="true" attribute-ref="asForTheUser.dtrDefMpUnit">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SOEmployee_RegPlaceSelectType_FromSO_DTR"/>
+                  </hide>
+                </properties>
+                <appearance open-mode="dialog" align="left" clickable="true">
+                  <label-style field-width="49" field-unit="symbol"/>
+                </appearance>
+                <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.dtr_MR_default.field.asForTheUser.dtrDefMpUnit.hintInField:Укажите место регистрации по умолчанию}
+                </hint-in-field>
+                <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-rvz" digest="digestSOLiveSearch">
+                  <show-select-value>
+                    <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
+                  </show-select-value>
+                  <directory-ref ref="arm-admin-so-regplaces-dtr"/>
+                  <directory-ref ref="arm-admin-ierarchy-rvz"/>
+                  <directory-ref ref="arm-admin-dialog-dep-rvz"/>
+                </directories>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="asForTheUser.dtrCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.dtrCanChange.name:Можно менять МР:}"/>
+          <section id="dtr_counter" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.dtr_counter.name:поиск счетчика}" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="asForTheUser.dtrCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.dtrCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
+                <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.dtrCounterJS.hintInField:Способ поиска счетчика}
+                </hint-in-field>
+                <directories manual-input="true" limit-livesearch="no-restrictions">
+                  <directory-ref ref="so-counter-search-any"/>
+                </directories>
+              </field>
+              <button recalc="true" attribute-ref="recalcCounterFormula_DTR"
+                      name="${ui.form.SOEmployeeForm.section.SystemGroups.section.recalcCounterFormula_DTR.name:По умолчанию}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style>
+                    <style id="tunBlue"/>
+                    <style id="tunUnderline"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+              </button>
+            </component>
+          </section>
+          <field attribute-ref="asForTheUser.expeditionorders">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="read"/>
+              </hide>
+            </properties>
+            <appearance importance="high">
+              <label-style>
+                <style id="tunBgSky"/>
+                <style id="tunBold"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                  <style id="tunBold"/>
+                </value-style>
+              </field-style>
+            </appearance>
+          </field>
+          <section id="=======ROW_ExpeditionOrders======" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="asForTheUser.expeditionorders">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance importance="high">
+                  <label-style field-width="96" field-unit="symbol">
+                    <style id="tunBgSky"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBgSky"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+              <button name="${ui.form.SOEmployeeForm.section.SystemGroups.expeditionorders.button.Copy.name:Копировать в}" alias="ExpeditionOrders">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style>
+                    <style id="tunBlue"/>
+                    <style id="tunUnderline"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">OperationSystemGroupCopy</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+          </section>
+          <field clickable="true" attribute-ref="expeditionordersDepRvz" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.expeditionordersDepRvz.name:Подразделение:}">
+            <appearance open-mode="dialog" align="left" clickable="true">
+              <label-style field-width="82" field-unit="symbol"/>
+              <field-style separator="newline"/>
+            </appearance>
+            <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.field.expeditionordersDepRvz.hintInField:Выберите места регистрации}
+            </hint-in-field>
+            <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-rvz" digest="digestSOLiveSearch">
+              <show-select-value>
+                <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
+              </show-select-value>
+              <directory-ref ref="arm-admin-ierarchy-rvz"/>
+              <directory-ref ref="arm-admin-dialog-dep-rvz"/>
+            </directories>
+          </field>
+          <section id="expeditionorders_MR_default" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionorders_MR_default.name:МР по умолчанию}" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="asForTheUser.expeditionordersDefMp"
+                     name="${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionorders_MR_default.field.asForTheUser.expeditionordersDefMp.name:МР по умолчанию:}">
+                <appearance open-mode="dialog" align="left">
+                  <label-style field-width="32" field-unit="symbol"/>
+                </appearance>
+                <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionorders_MR_default.field.asForTheUser.expeditionordersDefMp.hintInField:Место регистрации по умолчанию}
+                </hint-in-field>
+                <directories limit-livesearch="no-restrictions">
+                  <directory-ref ref="regPlaceByDefault"/>
+                </directories>
+              </field>
+              <field clickable="true" attribute-ref="asForTheUser.expeditionordersDefMpUnit">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SOEmployee_RegPlaceSelectType_FromSO_ExpeditionOrders"/>
+                  </hide>
+                </properties>
+                <appearance open-mode="dialog" align="left" clickable="true">
+                  <label-style field-width="49" field-unit="symbol"/>
+                </appearance>
+                <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionorders_MR_default.field.asForTheUser.expeditionordersDefMpUnit.hintInField:Укажите место регистрации по умолчанию}
+                </hint-in-field>
+                <directories livesearch="true" limit-livesearch="no-restrictions" relation="arm-admin-livesearch-dep-rvz" digest="digestSOLiveSearch">
+                  <show-select-value>
+                    <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
+                  </show-select-value>
+                  <directory-ref ref="arm-admin-so-regplaces-expeditionorders"/>
+                  <directory-ref ref="arm-admin-ierarchy-rvz"/>
+                  <directory-ref ref="arm-admin-dialog-dep-rvz"/>
+                </directories>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="asForTheUser.expeditionordersCanChange" name="${ui.form.SOEmployeeForm.section.SystemGroups.field.asForTheUser.expeditionordersCanChange.name:Можно менять МР:}"/>
+          <section id="expeditionorders_counter" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionorders_counter.name:поиск счетчика}" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="asForTheUser.expeditionordersCounterJS" name="${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionordersCounterJS.name:Способ поиска счетчика:}">
+                <appearance>
+                  <label-style field-width="82" field-unit="symbol"/>
+                </appearance>
+                <hint-in-field>${ui.form.SOEmployeeForm.section.SystemGroups.section.expeditionordersCounterJS.hintInField:Способ поиска счетчика}
+                </hint-in-field>
+                <directories manual-input="true" limit-livesearch="no-restrictions">
+                  <directory-ref ref="so-counter-search-any"/>
+                </directories>
+              </field>
+              <button recalc="true" attribute-ref="recalcCounterFormula_ExpeditionOrders"
+                      name="${ui.form.SOEmployeeForm.section.SystemGroups.section.recalcCounterFormula_ExpeditionOrders.name:По умолчанию}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style>
+                    <style id="tunBlue"/>
+                    <style id="tunUnderline"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+              </button>
             </component>
           </section>
           <section id="TrashCan">
@@ -1965,7 +2195,7 @@
                 <appearance digest-mode="digest6" align="left" importance="normal">
                   <field-style separator="newline"/>
                 </appearance>
-                <hint-pop-up>${ui.form.SOEmployeeForm.section.Notice.section.row_notice1.field.noticeReceived.hintPopUp:При направлении на сотрудника уведомления получают (без их замещающих)}</hint-pop-up>
+                <hint-pop-up>${ui.form.SOEmployeeForm.section.Notice.section.row_notice1.field.noticeReceived.hintPopUp:При направлении на работника уведомления получают (без их замещающих)}</hint-pop-up>
                 <directories livesearch="true" limit-livesearch="no-restrictions" relation-in-resource="notice.receivers.livesearch.collection" digest="digestSOLiveSearch">
                   <show-select-value>
                     <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
@@ -1998,11 +2228,11 @@
                   </label-style>
                 </appearance>
               </button>
-              <field attribute-ref="notWorkReciver" name="${ui.form.SOEmployeeForm.section.Notice.section.row_notice3.field.notWorkReciver.name:Если сотрудник не работает в системе - уведомления получают:}">
+              <field attribute-ref="notWorkReciver" name="${ui.form.SOEmployeeForm.section.Notice.section.row_notice3.field.notWorkReciver.name:Если работник не работает в системе - уведомления получают:}">
                 <appearance digest-mode="digest6" align="left" importance="normal">
                   <field-style separator="newline"/>
                 </appearance>
-                <hint-pop-up>${ui.form.SOEmployeeForm.section.Notice.section.row_notice3.field.notWorkReciver.hintPopUp:При направлении на сотрудника уведомления получают (без их замещающих)}</hint-pop-up>
+                <hint-pop-up>${ui.form.SOEmployeeForm.section.Notice.section.row_notice3.field.notWorkReciver.hintPopUp:При направлении на работника уведомления получают (без их замещающих)}</hint-pop-up>
                 <directories livesearch="true" limit-livesearch="no-restrictions" relation-in-resource="notice.receivers.livesearch.collection" digest="digestSOLiveSearch">
                   <show-select-value>
                     <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
@@ -2054,7 +2284,7 @@
               <directory-ref ref="arm-admin-dialog-modules-filter"/>
             </directories>
           </field>
-          <field attribute-ref="expCalc" name="${ui.form.SOEmployeeForm.section.Notice.field.expCalc.name:Выражение для вычисления ШЕ получателей уведомлений:}">
+          <field attribute-ref="expCalc" name="${ui.form.SOEmployeeForm.section.Notice.field.expCalc.name:Выражение для вычисления основных штатных единиц получателей уведомлений:}">
             <appearance multiline="true" importance="normal">
               <limit height="1"/>
             </appearance>
@@ -2135,13 +2365,13 @@
           <field attribute-ref="CreateNotice" name="${ui.form.SOEmployeeForm.section.Notice.field.CreateNotice.name:Создавать почтовое оповещение:}">
             <appearance importance="normal"/>
           </field>
-          <field attribute-ref="ExpCalcPerson" name="${ui.form.SOEmployeeForm.section.Notice.field.ExpCalcPerson.name:Выражение для вычисления получателей уведомлений:}">
+          <field attribute-ref="ExpCalcPerson" name="${ui.form.SOEmployeeForm.section.Notice.field.ExpCalcPerson.name:Выражение для вычисления персон получателей уведомлений:}">
             <appearance multiline="true" importance="normal">
               <limit height="1"/>
             </appearance>
             <hint-pop-up>${ui.form.SOEmployeeForm.section.Notice.field.ExpCalcPerson.hintPopUp:Выражение для вычисления персон - получателей почтовых уведомлений}</hint-pop-up>
           </field>
-          <field attribute-ref="ExpCalcUnemployed" name="${ui.form.SOEmployeeForm.section.Notice.field.ExpCalcUnemployed.name:Выражение для вычисления получателей уведомлений, если сотрудник не работает в системе:}">
+          <field attribute-ref="ExpCalcUnemployed" name="${ui.form.SOEmployeeForm.section.Notice.field.ExpCalcUnemployed.name:Выражение для вычисления персон получателей уведомлений, если работник не работает в системе:}">
             <appearance multiline="true" importance="normal">
               <limit height="1"/>
             </appearance>
@@ -2204,19 +2434,28 @@
             <appearance digest-mode="digest4" align="left" importance="normal">
               <field-style separator="newline"/>
             </appearance>
-            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileTransmitters.hintPopUp:Указанные сотрудники могут передавать на МРМ руководителя документы и проекты решений.}</hint-pop-up>
+			<directories>
+              <directory-select-value attribute-ref="mobileRolesList"/>
+            </directories>
+            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileTransmitters.hintPopUp:Указанные работники могут передавать на МРМ руководителя документы и проекты решений.}</hint-pop-up>
           </field>
           <field attribute-ref="mobileOperators" name="${ui.form.SOEmployeeForm.section.MWS.field.mobileOperators.name:Операторы:}">
             <appearance digest-mode="digest4" align="left" importance="normal">
               <field-style separator="newline"/>
             </appearance>
-            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileOperators.hintPopUp:Указанные сотрудники имеют доступ к РМ Оператора. Если не указаны, то документы и проекты решений передаются на МРМ сразу после их отправки сотрудником, имеющим право передачи.}</hint-pop-up>
+			<directories>
+              <directory-select-value attribute-ref="mobileRolesList"/>
+            </directories>
+            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileOperators.hintPopUp:Указанные работники имеют доступ к РМ Оператора. Если не указаны, то документы и проекты решений передаются на МРМ сразу после их отправки работником, имеющим право передачи.}</hint-pop-up>
           </field>
           <field attribute-ref="mobileAssistants" name="${ui.form.SOEmployeeForm.section.MWS.field.mobileAssistants.name:Руководитель аппарата (РА):}">
             <appearance digest-mode="digest4" align="left" importance="normal">
               <field-style separator="newline"/>
             </appearance>
-            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileAssistants.hintPopUp:Указанные сотрудники могут получать на МРМ документы руководителя и принимать решения самостоятельно или передавать руководителю.}</hint-pop-up>
+			<directories>
+              <directory-select-value attribute-ref="mobileRolesList"/>
+            </directories>
+            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileAssistants.hintPopUp:Указанные работники могут получать на МРМ документы руководителя и принимать решения самостоятельно или передавать руководителю.}</hint-pop-up>
           </field>
           <field attribute-ref="mobileSettingsLabel">
             <properties>
@@ -2271,7 +2510,10 @@
             <appearance digest-mode="digest4" align="left" importance="normal">
               <field-style separator="newline"/>
             </appearance>
-            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileRedirects.hintPopUp:При работе без помощника на МРМ руководителя будут передаваться дополнительно документы указанных замещаемых им сотрудников.}</hint-pop-up>
+			<directories>
+              <directory-select-value attribute-ref="mobileRedirectsList"/>
+            </directories>
+            <hint-pop-up>${ui.form.SOEmployeeForm.section.MWS.field.mobileRedirects.hintPopUp:При работе без помощника на МРМ руководителя будут передаваться дополнительно документы указанных замещаемых им работников.}</hint-pop-up>
           </field>
         </component>
       </section>
@@ -2285,6 +2527,74 @@
             </properties>
             <appearance importance="normal"/>
           </field>
+          <field attribute-ref="postCode" name="${ui.form.SOEmployeeForm.section.Additional.section.postCode.name:ID вакансии АСУП:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <condition-ref ref="SOEmployee_NotIsVacancy"/>
+              </hide>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <section id="actingAppointment" name="${ui.form.SOEmployeeForm.section.Additional.section.actingAppointment.name:Исполняет обязанности}">
+            <appearance>
+              <label-style width="35" unit="symbol"/>
+            </appearance>
+            <component>
+              <field attribute-ref="actingTabNum" name="${ui.form.SOEmployeeForm.section.Additional.section.actingAppointment.field.actingTabNum.name:Таб. номер работника:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModuleEmp"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="actingPostCode" name="${ui.form.SOEmployeeForm.section.Additional.section.actingAppointment.field.actingPostCode.name:Код штатной единицы:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModuleEmp"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="actingPost" name="${ui.form.SOEmployeeForm.section.Additional.section.actingAppointment.field.actingPost.name:Должность при исполнении обязанностей:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModuleEmp"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <section id="worksForSection" name="${ui.form.SOEmployeeForm.section.Additional.section.worksForSection.name:Дела принял}">
+            <appearance>
+              <label-style width="35" unit="symbol"/>
+            </appearance>
+            <component>
+              <field attribute-ref="worksfor" name="${ui.form.SOEmployeeForm.section.Additional.section.worksForSection.field.worksfor.name:Дела принял от:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="WorksForRegistration" name="${ui.form.SOEmployeeForm.section.Additional.section.worksForSection.field.WorksForRegistration.name:Дела принял по месту регистрации:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SOEmployee_isRVZ"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
           <section id="CaseSection" name="${ui.form.SOEmployeeForm.section.Additional.section.CaseSection.name:Склонение по падежам}">
             <component>
               <section id="rowcase1" group="true">
@@ -2488,25 +2798,6 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="worksfor" name="${ui.form.SOEmployeeForm.section.Additional.field.worksfor.name:Дела принял от:}">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="WorksForRegistration" name="${ui.form.SOEmployeeForm.section.Additional.field.WorksForRegistration.name:Дела принял по месту регистрации:}">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="SOEmployee_isRVZ"/>
-              </hide>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
         </component>
       </section>
       <section id="RootMenu" name="${ui.form.SOEmployeeForm.section.RootMenu.name:SOEmployeeMenu}">
@@ -2564,13 +2855,11 @@
 	        </appearance>
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="SOTNObject_canPerfomOperationInSO"/>
-                <negative-condition-ref ref="read"/>
-                <condition-ref ref="TNObject_isDeleted"/>
+                <condition-ref ref="hidePersonSaveButton"/>
               </hide>
             </properties>
             <component>
-              <button name="${ui.form.SOEmployeeForm.section.RootMenu.section.CREATE.button.Штатную единицу сотрудника.name:Штатную единицу сотрудника}">
+              <button name="${ui.form.SOEmployeeForm.section.RootMenu.section.CREATE.button.Штатную единицу работника.name:Штатную единицу работника}">
                 <action>
                   <custom>
                     <create-sibling schema-ref="SOEmployee"/>

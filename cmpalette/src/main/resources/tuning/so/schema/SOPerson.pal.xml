@@ -74,7 +74,7 @@
     <string name="inn">
       <storage-field name="inn"/>
       <validate>
-        <regex>^[0-9]{12}$</regex>
+        <regex>^(\d{12}|$)$</regex>
       </validate>
     </string>
     <file name="photo">
@@ -94,7 +94,7 @@
     <string name="snils">
       <storage-field name="snils"/>
       <validate>
-        <regex>^\d{3}-\d{3}-\d{3} \d{2}$</regex>
+        <regex>^(\d{3}-\d{3}-\d{3} \d{2})?$</regex>
       </validate>
     </string>
     <string name="fioShow" temporal="true">
@@ -241,52 +241,134 @@
         <script event="open" lang="SPEL"><![CDATA[(T(org.springframework.util.StringUtils).hasLength(building) && T(org.springframework.util.StringUtils).hasLength(room)) ? building + ", " + room : (T(org.springframework.util.StringUtils).hasLength(building) ? building : room)]]></script>
       </calc-values>
     </string>
-    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.rest.tuning);
-importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
-importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
-importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
-importClass(Packages.ru.intertrust.cmj.admin.declension.CaseDeclensionService.Case);
+    <date name="hireDate" createlog="true">
+      <storage-field name="hireDate"/>
+    </date>
+    <date name="appointDate" createlog="true">
+      <storage-field name="appointDate"/>
+    </date>
+    <date name="dismissalDate" createlog="true">
+      <storage-field name="dismissalDate"/>
+    </date>
+    <string name="hireOrderLabel" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Приказ о приеме на работу']]></script>
+      </calc-values>
+    </string>
+    <date name="hireOrderDate" createlog="true">
+      <storage-field name="hireOrderDate"/>
+    </date>
+    <string name="hireOrderNum" createlog="true">
+      <storage-field name="hireOrderNum"/>
+    </string>
+    <string name="locality" createlog="true">
+      <storage-field name="locality"/>
+    </string>
+    <string name="district" createlog="true">
+      <storage-field name="district"/>
+    </string>
+    <string name="homeAddress" createlog="true">
+      <storage-field name="homeAddress"/>
+    </string>
+    <string name="registrationAddress" createlog="true">
+      <storage-field name="registrationAddress"/>
+    </string>
+    <string name="homePhone" createlog="true">
+      <storage-field name="homePhone"/>
+    </string>
+    <string name="contactLabel5" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Рабочее место']]></script>
+      </calc-values>
+    </string>
+    <string name="country" createlog="true">
+      <storage-field name="country"/>
+    </string>
+    <string name="localityWork" createlog="true">
+      <storage-field name="localityWork"/>
+    </string>
+    <string name="office" createlog="true">
+      <storage-field name="office"/>
+    </string>
+    <string name="roomNumber" createlog="true">
+      <storage-field name="roomNumber"/>
+    </string>
+    <string name="floor" createlog="true">
+      <storage-field name="floor"/>
+    </string>
+    <string name="RMCode" createlog="true">
+      <storage-field name="RMCode"/>
+    </string>
+    <string name="passportData" createlog="true">
+      <storage-field name="passportData"/>
+    </string>
+    <boolean name="hasHrModule" createlog="true" temporal="true"/>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importPackage(Packages.java.util);
+
+function queryCreate(object){
+    object.tuning().put("isCheckDocChangedBetweenApprovAndSign", TuningHelper.createPropertyValue(true, object.tuning().getSchema().getProperty("isCheckDocChangedBetweenApprovAndSign")));
+    object.tuning().put("isRepeatNotificationWhenTaskExpired", TuningHelper.createPropertyValue(true, object.tuning().getSchema().getProperty("isRepeatNotificationWhenTaskExpired")));
+    object.tuning().put("isAutoVerifySignatureOnDocOpen", TuningHelper.createPropertyValue(true, object.tuning().getSchema().getProperty("isAutoVerifySignatureOnDocOpen")));
+    object.tuning().put("isHideSigningDataDialog", TuningHelper.createPropertyValue(true, object.tuning().getSchema().getProperty("isHideSigningDataDialog")));
+}
 
 function querySave(object, document) {
-
-    var values = object.tuning().getValues();
-    var cases = values.get("cases").getValues();
-    var tmpLastNameValue = values.get("lastName");
-    var tmpLirstNameValue = values.get("firstName");
-    var tmpLiddleNameValue = values.get("middleName");
-    var lastNameValue = "";
-    var firstNameValue = "";
-    var middleNameValue = "";
-
-    if(tmpLastNameValue != null )
-        lastNameValue = tmpLastNameValue.getValue();
-    if(tmpLirstNameValue != null )
-        firstNameValue = tmpLirstNameValue.getValue();
-    if(tmpLiddleNameValue != null )
-        middleNameValue = tmpLiddleNameValue.getValue();
-
-    if (!"".equals(lastNameValue) && document.getItemValue("EName").size() > 0 && !lastNameValue.equals(document.getItemValue("EName").get(0))) {
-        var notUseDeclensionForLastName = cases.get("notUseDeclensionForLastName").getValue();
-        if (notUseDeclensionForLastName) {
-            values.put("notUseDeclensionForLastName",TuningHelper.createPropertyValue(false, values.get("cases").getSchema().getProperty("notUseDeclensionForLastName")));
-        }
+	if (document.isNewNote()) {
+		if (object.tuning().getValues().get('autoCard') == null || object.tuning().getValues().get('autoCard').getValue() == null) {
+	         if (object.tuning().getValues().get('tabNum') != null) {
+	         	var tabNum = object.tuning().getValues().get('tabNum').getValue();
+	         	object.tuning().put("autoCard", TuningHelper.createPropertyValue(tabNum, object.tuning().getSchema().getProperty("autoCard")));
+	         }
+	    }
+    } else {
+		writeHistory(object, document);
     }
+}
 
-    if (!"".equals(firstNameValue) && document.getItemValue("ESName").size() > 0 && !firstNameValue.equals(document.getItemValue("ESName").get(0))) {
-        var notUseDeclensionForFirstName = cases.get("notUseDeclensionForFirstName").getValue();
-        if (notUseDeclensionForFirstName) {
-            values.put("notUseDeclensionForFirstName",TuningHelper.createPropertyValue(false, values.get("cases").getSchema().getProperty("notUseDeclensionForFirstName")));
-        }
-    }
+function writeHistory(object, document) {
 
-    if (!"".equals(middleNameValue) && document.getItemValue("ETName").size() > 0 && !middleNameValue.equals(document.getItemValue("ETName").get(0))) {
-        var notUseDeclensionForMiddleName = cases.get("notUseDeclensionForMiddleName").getValue();
-        if (notUseDeclensionForMiddleName) {
-            values.put("notUseDeclensionForMiddleName",TuningHelper.createPropertyValue(false, values.get("cases").getSchema().getProperty("notUseDeclensionForMiddleName")));
-        }
-    }
+	var hist = object.history();
 
-    return true;
+	writeTextHistory(object, document, hist, "country", "country", "person.workplace.country.changed");
+	writeTextHistory(object, document, hist, "localityWork", "localityWork", "person.workplace.locality.changed");
+	writeTextHistory(object, document, hist, "office", "office", "person.workplace.office.changed");
+	writeTextHistory(object, document, hist, "roomNumber", "roomNumber", "person.workplace.room.number.changed");
+	writeTextHistory(object, document, hist, "floor", "floor", "person.workplace.floor.changed");
+	writeTextHistory(object, document, hist, "RMCode", "RMCode", "person.workplace.code.changed");
+
+	object.history = hist;
+}
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName) {
+	var oldValue = getFieldValue(document, fieldName);
+	var newValue = getPropertyValue(object, propertyName);
+	if (!oldValue.equals(newValue)) {
+		TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+	}
+}
+
+function getFieldValue(document, fieldName) {
+	var value = null;
+	if (document != null) {
+	    value = document.getItemValueString(fieldName);
+	}
+	return value != null ? value : "";
+}
+
+function getPropertyValue(object, propertyName) {
+	var value = null;
+	if (object != null &&
+	    object.tuning().getValues().get(propertyName) != null &&
+	    object.tuning().getValues().get(propertyName).getValue() != null) {
+
+		value = object.tuning().getValues().get(propertyName).getValue();
+	}
+	return value != null ? value : "";
 }
 ]]></custom-event-handler>
   </schema>

@@ -11,6 +11,26 @@
       <section id="Inclusions" group="true">
         <appearance field-layout="vertical"/>
         <component>
+          <field attribute-ref="head.rejectComment" name="${ui.form.rejectComment:Причина отклонения:}">
+	        <properties>
+	          <read-only condition-union="AND">
+	            <condition>true</condition>
+	          </read-only>
+	          <hide condition-union="AND">
+	            <negative-condition-ref ref="isApprovingReplyReturnedByHead"/>
+	          </hide>
+	        </properties>
+	        <appearance importance="normal">
+	          <label-style label-unit="symbol">
+	            <style id="tunRed"/>
+	          </label-style>
+	          <field-style>
+	            <value-style>
+	              <style id="tunRed"/>
+	            </value-style>
+	          </field-style>
+	        </appearance>
+          </field>
           <field attribute-ref="comment" name="${ui.form.ApprovingReplyResourceReadForm.section.Inclusions.field.comment.name:Комментарий:}">
             <appearance multiline="true" importance="normal"/>
           </field>
@@ -26,6 +46,10 @@
           </section>
           <field attribute-ref="$digest">
             <appearance importance="normal" widget="digestList"/>
+          </field>
+          <field attribute-ref="$discussions">
+            <appearance importance="normal"/>
+            <hint-pop-up>${ui.form.ApprovingReplyResourceReadForm.section.Inclusions.field.discussions.hintPopUp:Обсуждение}</hint-pop-up>
           </field>
           <button name="${ui.form.ApprovingReplyResourceReadForm.section.Inclusions.button.Копировать решение в свою визу.name:Копировать решение в свою визу}">
             <properties>
@@ -43,14 +67,14 @@
               <system name="visaOnOrigin"/>
             </action>
           </button>
-          <button name="${ui.form.ApprovingReplyResourceReadForm.section.Inclusions.button.Отозвать.name:Отозвать}">
+          <button name="${withdraw.from.approval:Отозвать с утверждения}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="canCancelVisa"/>
+                <negative-condition-ref ref="canWithdrawFromIdocsApproving"/>
               </hide>
             </properties>
             <action>
-              <system name="cancel.visa"/>
+              <system name="withdraw.send.to.head"/>
             </action>
           </button>
         </component>

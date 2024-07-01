@@ -42,146 +42,389 @@
           <system name="delete"/>
         </action>
       </button>
-      <section id="Attributes" name="${ui.form.AgreementTemplateForm.section.Attributes.name:Реквизиты}">
+      <section id="Header">
         <component>
-          <section id="linksAccessSection" group="true">
-            <appearance>
-              <label-style width="30" unit="symbol"/>
-            </appearance>
+          <section id="row1" group="true">
+            <appearance field-layout="horizontal"/>
             <component>
-              <field attribute-ref="disableLinkAccess" name="${ui.form.AgreementTemplateForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям:}">
-                <appearance align="right" importance="normal">
-                  <label-style field-width="2" field-unit="symbol"/>
+              <field attribute-ref="showTemplate">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="23" field-unit="symbol"/>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
                 </appearance>
-                <hint-in-field>${ui.form.AgreementTemplateForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.hintInField:Не дается доступ к текущему документу читателям связанных документов}</hint-in-field>
+              </field>
+              <field attribute-ref="accessInfo">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_icon_lock"/>
+                      <enable condition-union="AND">
+                        <condition-ref ref="contractDocTemplateIsNotPublic"/>
+                      </enable>
+                    </alt-appearance>
+                    <alt-appearance>
+                      <appearance-ref ref="css_icon_unlock"/>
+                      <enable condition-union="AND">
+                        <condition-ref ref="contractDocTemplateIsPublic"/>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
               </field>
             </component>
           </section>
-          <section id="Main" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.name:Основные}">
+          <field attribute-ref="name">
+            <properties>
+              <require condition-union="AND">
+                <condition-ref ref="edit"/>
+              </require>
+            </properties>
+            <hint-in-field>${ui.form.AgreementTemplateForm.section.Header.field.name.hintInField:Введите название шаблона}</hint-in-field>
+          </field>
+        </component>
+      </section>
+      <section id="ContentSection" name="${ui.form.AgreementTemplateForm.section.ContentSection.name:Содержание}">
+        <component>
+          <field attribute-ref="labelContentEmpty">
+            <properties>
+              <read-only>
+                <condition>true</condition>
+              </read-only>
+              <hide>
+                <negative-condition-ref ref="contentSectionEmptyAgrTemplate"/>
+              </hide>
+            </properties>
+          </field>
+          <section id="NonEmptyContentSection">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="contentSectionEmptyAgrTemplate"/>
+              </hide>
+            </properties>
+            <appearance widget="leftMenu"/>
             <component>
-              <field attribute-ref="category" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.category.name:Тематика:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.category.hintPopUp:Тематика}</hint-pop-up>
-              </field>
-              <field attribute-ref="subject" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.subject.name:Заголовок:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.subject.hintPopUp:Заголовок}</hint-pop-up>
-              </field>
-              <field attribute-ref="signatureContracts.this.signer" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.signatureContracts.this.signer.name:Подпись (1-я сторона):}">
+              <field attribute-ref="$content" name="${ui.form.AgreementTemplateForm.section.ContentSection.section.contentMenu.field.content.name:Документ}">
                 <properties>
-                  <hide>
-                    <condition-ref ref="AgreementTemplate_hasMultipleSigners"/>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="contentEmptyAgrTemplate"/>
                   </hide>
                 </properties>
                 <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.signatureContracts.this.signer.hintPopUp:Подпись (1-я сторона)}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_All"/>
-                  <directory-ref ref="CURRENT_All_Hierarchy"/>
-                  <directory-ref ref="FV_CURR_HUMAN_HH"/>
-                </directories>
               </field>
-              <field attribute-ref="signatureContracts.this.signers" name="${ui.form.Contracts.signers:Подписи:}">
+              <field attribute-ref="$content" name="${ui.form.AgreementTemplateForm.section.ContentSection.section.contentMenu.field.content.name:Документ}">
                 <properties>
-                  <hide>
-                    <negative-condition-ref ref="AgreementTemplate_hasMultipleSigners"/>
+                  <hide condition-union="AND">
+                    <condition-ref ref="contentEmptyAgrTemplate"/>
                   </hide>
                 </properties>
                 <appearance importance="normal"/>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_SYS_HUMAN"/>
-                  <directory-ref ref="CURRENT_SYS_HUMAN_Hierarchy"/>
-                  <directory-ref ref="FV_CURR_HUMAN_HH"/>
-                </directories>
               </field>
-              <field attribute-ref="preparedBy" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.preparedBy.name:Подготовили:}">
+              <field attribute-ref="contentAdd" name="${ui.form.AgreementTemplateForm.section.ContentSection.section.contentMenu.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="contentAddEmptyAgrTemplate"/>
+                  </hide>
+                </properties>
                 <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.preparedBy.hintPopUp:Подготовили}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_All"/>
-                  <directory-ref ref="CURRENT_All_Hierarchy"/>
-                  <directory-ref ref="sys_roles"/>
-                  <directory-ref ref="FV_CURR_ALL"/>
-                </directories>
               </field>
-              <field attribute-ref="responsibles" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.responsibles.name:Ответственные за исполнение:}">
+              <field attribute-ref="contentAdd" name="${ui.form.AgreementTemplateForm.section.ContentSection.section.contentMenu.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="contentAddEmptyAgrTemplate"/>
+                  </hide>
+                </properties>
                 <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.responsibles.hintPopUp:Ответственные за исполнение}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_All"/>
-                  <directory-ref ref="CURRENT_All_Hierarchy"/>
-                  <directory-ref ref="sys_roles"/>
-                  <directory-ref ref="FV_CURR_ALL"/>
-                </directories>
-              </field>
-            </component>
-          </section>
-          <section id="Additional" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.name:Дополнительные}">
-            <component>
-              <field attribute-ref="sendlist" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.sendlist.name:Список рассылки:}">
-                <appearance importance="normal">
-                  <field-style group="true"/>
-                </appearance>
-                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.sendlist.hintPopUp:Список рассылки}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_ORG_DEP_HUMAN_HH"/>
-                  <directory-ref ref="CURRENT_ORG_DEP_HUMAN_HH_HIER"/>
-                  <directory-ref ref="AlienBeards"/>
-                  <directory-ref ref="sendlist"/>
-                  <directory-ref ref="sys_roles"/>
-                  <directory-ref ref="FV_CURR_ALL_FOREIGN_HUMAN_HH_DEP_ORG"/>
-                </directories>
-              </field>
-              <field attribute-ref="approvingTemplate" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.approvingTemplate.name:Шаблон согласования:}">
-                <appearance importance="normal"/>
-                <directories livesearch="true" limit-livesearch="sys-current">
-                  <directory-ref ref="Templates-Approving-List"/>
-                  <directory-ref ref="Favourites-Templates-Approving-List"/>
-                </directories>
               </field>
             </component>
           </section>
         </component>
       </section>
-      <section id="Content" name="${ui.form.AgreementTemplateForm.section.Content.name:Содержание}"/>
-      <section id="Header">
+      <section id="Attributes" name="${ui.form.AgreementTemplateForm.section.Attributes.name:Реквизиты}">
         <component>
-          <field attribute-ref="showTemplate">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="showTemplateName">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="edit"/>
-              </hide>
-            </properties>
-            <appearance importance="normal">
+          <section id="Main" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.name:Основные}" group="true">
+            <component>
+              <field attribute-ref="labelMain">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="mainTable" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="mainColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="49" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="responsibles" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.responsibles.name:Ответственные за исполнение:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.responsibles.hintPopUp:Ответственные за исполнение}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURR_HUMAN_HH"/>
+                          <directory-ref ref="CURR_HUMAN_HH_HIER"/>
+                          <directory-ref ref="FV_CURR_HUMAN_HH"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="mainColumn2" group="true">
+                    <component>
+                      <field attribute-ref="signatureContracts.this.signer" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.signatureContracts.this.signer.name:Подписант (1-я сторона):}">
+                        <properties>
+                          <hide>
+                            <condition-ref ref="Agreement_hasMultipleSigners"/>
+                          </hide>
+                        </properties>
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.signatureContracts.this.signer.hintPopUp:Подписант (1-я сторона)}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURR_HUMAN_HH"/>
+                          <directory-ref ref="CURR_HUMAN_HH_HIER"/>
+                          <directory-ref ref="FV_CURR_HUMAN_HH"/>
+                        </directories>
+                      </field>
+                      <field attribute-ref="signatureContracts.this.signers" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.signatureContracts.this.signer.name:Подписант (1-я сторона):}">
+                        <properties>
+                          <hide>
+                            <negative-condition-ref ref="Agreement_hasMultipleSigners"/>
+                          </hide>
+                        </properties>
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.signatureContracts.this.signer.hintPopUp:Подписант (1-я сторона)}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURR_HUMAN_HH"/>
+                          <directory-ref ref="CURR_HUMAN_HH_HIER"/>
+                          <directory-ref ref="FV_CURR_HUMAN_HH"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+              <field attribute-ref="subject" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.subject.name:Заголовок:}">
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Main.field.subject.hintPopUp:Заголовок}</hint-pop-up>
+              </field>
+            </component>
+          </section>
+          <section id="Initiator" group="true">
+            <component>
+              <field attribute-ref="labelExecutor">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="initiatorTable" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="initiatorColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="49" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="preparedBy" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Initiator.field.preparedBy.name:Исполнитель:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Initiator.field.preparedBy.hintPopUp:Исполнитель}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURRENT_SYS_HUMAN"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+            </component>
+          </section>
+          <section id="Additional" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.name:Дополнительные}" group="true">
+            <component>
+              <field attribute-ref="labelAdditional">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="additionalTable" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="additionalColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="49" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field recalc="true" attribute-ref="authorTemplate" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.authorTemplate.name:Автор шаблона:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                        </properties>
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.authorTemplate.hintPopUp:Автор шаблона}</hint-pop-up>
+                        <directories>
+                          <directory-ref ref="CURR_HUMAN_HH"/>
+                          <directory-ref ref="CURR_HUMAN_HH_HIER"/>
+                          <directory-ref ref="FV_CURR_HUMAN_HH"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="additionalColumn2" group="true">
+                    <component>
+                      <field attribute-ref="authorDepartment" name="${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.authorDepartment.name:Вышестоящее подразделение:}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                        <show-value schema-ref="VCardResource.EmployeeShortInfo"/>
+                        <hint-pop-up>${ui.form.AgreementTemplateForm.section.Attributes.section.Additional.field.authorDepartment.hintPopUp:Самостоятельное подразделение/РВЗ или вышестоящее подразделение}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section name="${ui.form.AgreementTemplateForm.section.Distribution.name:Рассылка}" id="Distribution">
+        <component>
+          <field attribute-ref="sendlist" name="${ui.form.AgreementTemplateForm.section.Distribution.field.sendlist.name:Список рассылки:}">
+            <appearance>
               <label-style>
-                <style id="tunBold"/>
+                <style id="tunBorderedFieldLight"/>
               </label-style>
               <field-style>
                 <value-style>
-                  <style id="tunBold"/>
+                  <style id="tunBorderedFieldLight"/>
                 </value-style>
               </field-style>
             </appearance>
-          </field>
-          <field attribute-ref="name">
-            <appearance importance="normal"/>
+            <hint-pop-up>${ui.form.AgreementTemplateForm.section.Distribution.field.sendlist.hintPopUp:Список рассылки}</hint-pop-up>
+            <directories>
+              <directory-ref ref="AlienBeards"/>
+              <directory-ref ref="CURRENT_ORG_DEP_HUMAN_HH_HIER"/>
+              <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
+              <directory-ref ref="sendlist"/>
+              <directory-ref ref="FV_CURR_ALL_FOREIGN_HUMAN_HH_DEP_ORG"/>
+              <directory-ref ref="sys_roles"/>
+            </directories>
           </field>
         </component>
       </section>
       <section id="AccessType" name="${ui.form.AgreementTemplateForm.section.AccessType.name:Доступ}">
         <component>
           <field recalc="true" attribute-ref="accessType">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="contractDocAccessAllIsAvailable"/>
+              </hide>
+            </properties>
             <appearance widget="radio">
               <label-style>
                 <style id="tunVertical"/>
@@ -194,6 +437,26 @@
             </appearance>
             <directories limit-livesearch="sys-current">
               <directory-ref ref="accessType"/>
+            </directories>
+          </field>
+          <field recalc="true" attribute-ref="accessType">
+            <properties>
+              <hide>
+                <condition-ref ref="contractDocAccessAllIsAvailable"/>
+              </hide>
+            </properties>
+            <appearance widget="radio">
+              <label-style>
+                <style id="tunVertical"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunVertical"/>
+                </value-style>
+              </field-style>
+            </appearance>
+            <directories limit-livesearch="sys-current">
+              <directory-ref ref="accessTypeNotPublic"/>
             </directories>
           </field>
           <field attribute-ref="acl" name="${ui.form.AgreementTemplateForm.section.AccessType.field.acl.name:Индивидуально:}">
@@ -210,7 +473,7 @@
               <directory-ref ref="FV_CURR_HUMAN_HH_ROLE"/>
             </directories>
           </field>
-          <field clickable="true" attribute-ref="departmentAccess">
+          <field clickable="true" attribute-ref="departmentAccess" recalc="true">
             <properties>
               <hide condition-union="AND">
                 <negative-condition-ref ref="contractDocTemplateIsFavourites"/>

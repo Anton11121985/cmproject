@@ -1,90 +1,265 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
   <schema name="ArchivesDepDealResource" extends="ArchivesCommonResource">
-    <string computed="true" temporal="true" name="showident">
+    <string name="showident" temporal="true">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Опись дел подразделения']]></script>
+        <script lang="SPEL" event="open">
+          <![CDATA['Опись дел подразделения']]>
+        </script>
       </calc-values>
     </string>
-    <actor default-value="Выбор из справочника" required="true" name="Organization">
-      <storage-field name="Organization" />
-    </actor>
-    <string name="Index1">
-      <storage-field name="Index1" />
-    </string>
-    <string name="Index2">
-      <storage-field name="Index2" />
-    </string>
-    <string name="Index3">
-      <storage-field name="Index3" />
-    </string>
-    <enum-ref ref="archivesDepDealStateEnum" name="MainState">
-      <storage-field name="MainState" />
-    </enum-ref>
-    <string name="AdditionalState">
-      <storage-field name="AdditionalState" />
-    </string>
-    <boolean name="ReadyIncludeToAnnInv">
-      <storage-field name="ReadyIncludeToAnnInv" />
-    </boolean>
-    <enum-ref ref="archivesTypeBooleanEnum" required="true" name="IsDepartment">
-      <storage-field name="IsDepartment" />
-    </enum-ref>
-    <actor default-value="Выбор из справочника" required="true" name="Department">
-      <storage-field name="Department" />
-    </actor>
-    <string name="DirectionWork">
-      <storage-field name="DirectionWork" />
-    </string>
-    <string name="LiteralNumbers">
-      <storage-field name="LiteralNumbers" />
-    </string>
-    <string name="MissedNumbers">
-      <storage-field name="MissedNumbers" />
-    </string>
-    <enum-ref ref="archivesKindDealEnum" required="true" name="KindDeal">
-      <storage-field name="KindDeal" />
-    </enum-ref>
-    <actor default-value="Текущий пользователь" required="true" name="InvFormer">
-      <storage-field name="InvFormer" />
-    </actor>
-    <string computed="true" temporal="true" name="InvInfo">
+    <string name="invInfo" temporal="true">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['В опись внесено']]></script>
+        <script lang="SPEL" event="open">
+          <![CDATA['В опись внесено']]>
+        </script>
       </calc-values>
     </string>
-    <string computed="true" temporal="true" name="IndexTitle">
+    <string name="indexTitle" temporal="true">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Номенклатурный индекс:']]></script>
+        <script lang="SPEL" event="open">
+          <![CDATA['Номенклатурный индекс:']]>
+        </script>
       </calc-values>
     </string>
-    <string name="AnnualModule">
-      <storage-field name="annual.Module" />
-    </string>
-    <string tunable="true" name="AnnualId">
-      <storage-field name="annual_unid" />
-    </string>
-    <hyperlink computed="true" temporal="true" name="AnnualInventory">
+    <string name="arcDealTableLabel" temporal="true">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA[AnnualId == null ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('Годовой раздел' + '~#' + T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + AnnualModule + '-TN:' + AnnualId + '~#newTab~#local')]]></script>
+        <script lang="SPEL" event="open">
+          <![CDATA['Архивные дела']]>
+        </script>
+      </calc-values>
+    </string>
+    <string name="boundaryDateLabel" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA['Крайние даты архивных дел:']]>
+        </script>
+      </calc-values>
+    </string>
+    <string name="$id" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[id]]>
+        </script>
+      </calc-values>
+    </string>
+
+    <schema-ref ref="ArcDealInfoTableResource" name="arcDeals" array="true" system="true"/>
+    <schema-ref ref="ContentResourceDocuments" name="contentDocuments" createlog="true"/>
+    <schema-ref ref="ContentResourceAddInformations" name="contentAddInformations" createlog="true"/>
+    <schema-ref ref="ArcObjectInfo" name="tmpArcDealInfoList" array="true" null-empty="true"/>
+
+    <enum-ref ref="archivesDepDealStateEnum" name="depDealStatus" system="true" createlog="true"/>
+    <enum-ref ref="archivesDepDealAdditionalStateEnum" name="additionalState" system="true"/>
+    <enum-ref ref="archivesPartitionTypeEnum" name="isDepartment" default-value="DEPARTMENT" system="true"/>
+    <enum-ref ref="archivesKindDealEnum" name="kindDeal" default-value="PAPER" system="true"/>
+    <enum-ref ref="archivesInventorisationType"  name="typeInv" system="true"/>
+
+    <boolean name="readyIncludeToAnnInv" system="true" />
+
+    <string name="parentInventoryUnid" system="true"/>
+    <string name="$approvStatusInfo" system="true"/>
+    <string name="directionWork" system="true"/>
+    <string name="literalNumbers" system="true"/>
+    <string name="missedNumbers" system="true"/>
+    <string name="depDealNumber" system="true"/>
+    <string name="index" system="true"/>
+
+    <actor name="organization" system="true"/>
+    <actor name="whoDevolvedDeals" system="true"/>
+    <actor name="whoGotDeals" system="true" />
+    <actor name="department" system="true"/>
+    <actor name="invFormer" system="true"/>
+
+    <date required="true" name="boundaryDateBeg" system="true" />
+    <date required="true" name="boundaryDateEnd" system="true" />
+
+    <integer name="parentYear" system="true"/>
+
+    <hyperlink name="annualInventory" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[
+                T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('Годовой раздел ' + #this.parentYear + ' год' +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + parentInventoryUnid + '~#newTab~#local')
+                ]]></script>
       </calc-values>
     </hyperlink>
-    <actor default-value="Текущий пользователь" name="WhoDevolvedDeals">
-      <storage-field name="WhoDevolvedDeals" />
-    </actor>
-    <actor default-value="Текущий пользователь" name="WhoGotDeals">
-      <storage-field name="WhoGotDeals" />
-    </actor>
-    <enum-ref ref="archivesInventorisationType" required="true" name="TypeInv">
-      <storage-field name="TypeInv" />
-    </enum-ref>
-    <schema-ref null-empty="true" ref="ArcDealInfoTableResource" array="true" name="ArcDealInfoTable" />
-    <string computed="true" temporal="true" name="arcDealTableLabel">
+    <string name="annualInventoryTitle" temporal="true">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Архивные дела']]></script>
+        <script lang="SPEL" event="open"><![CDATA['Годовой раздел ' + #this.parentYear + ' год']]></script>
       </calc-values>
     </string>
-    <schema-ref null-empty="true" ref="ArcObjectInfo" array="true" name="tmpArcDealInfoList" />
+
+    <boolean name="organizationIsEmpty" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[#this.organization == null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="parentInventoryUnidIsEmpty" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[#this.parentInventoryUnid == null || #this.parentInventoryUnid == '']]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentDocumentsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[contentDocuments != null && ((contentDocuments.richtext != null && !contentDocuments.richtext.isEmpty()) || (contentDocuments.content != null && !contentDocuments.content.isEmpty()))]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentAddInformationsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[contentAddInformations != null && ((contentAddInformations.richtext != null && !contentAddInformations.richtext.isEmpty()) || (contentAddInformations.content != null && !contentAddInformations.content.isEmpty()))]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="canCreatDepDeal" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#create-new-object'].size() > 0]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isProject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.depDealStatus != null && (T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealStatus).PROJECT).equals(#this.depDealStatus)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isReturned" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && (T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealAdditionalStatus).RETURNED).equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isReady" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && (T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealAdditionalStatus).READY).equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isInAnnualSection" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && (T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealAdditionalStatus).IN_ANNUAL_SECTION).equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[depDealStatus.equals(T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealStatus).DELETED)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isApproved" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[depDealStatus.equals(T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealStatus).APPROVED)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isRespsDelo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this?.department == null ? false : {
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+		#dep = T(com.google.common.collect.Lists).transform(#this.department, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard),
+        #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+        ((#dep == null || #FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getRespsDeloNdpSoDepRvzByUnid(#dep).contains(#CurUser)))
+    }[3]]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isNotDisabledReadyIncludeToAnnInv" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isProject && !$isSendToApproving && (additionalState == null || isReturned || isReady)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isPaper" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.kindDeal != null && (T(ru.intertrust.cmj.archives.common.DepartmentDeal.KindDeal).PAPER).equals(#this.kindDeal)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="arcDealsNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[arcDeals != null && arcDeals.size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isFullAccess" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isSuperAdmin || (!isDeleted && (isArchivist || isChiefArchive || isRespsDelo))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canRemoveArcDeal" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isProject && arcDealsNotEmpty && (additionalState == null || isReturned) && (isRespsDelo || isArchivist)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isStatusProjectAndReadyToArchive" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(isArchivist || isChiefArchive|| isSuperAdmin) && isProject && isReady ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isArcDepThroughApprove" temporal="true">
+      <calc-values>
+        <script event="open"> <![CDATA[
+          {#FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+          #setting = ((#this.organization == null) ? null : ((#FileRegisterApplication == null) ? null : #FileRegisterApplication.findFileSettingByOrgId(#this.organization.id))),
+          ((#setting == null) ? false : #setting.getArcDepThroughApprove())
+          }[2]]]> </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canVerify" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[isProject && (T(ru.intertrust.cmj.archives.common.DepartmentDeal.DepDealAdditionalStatus).READY).equals(#this.additionalState)
+        && (isSuperAdmin || isRespsDelo)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canTakeToArchive" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[isApproved && (isSuperAdmin || isArchivist)]]></script>
+      </calc-values>
+    </boolean>
+
+    <integer name="beginNumber" system="true"/>
+
+    <integer name="endNumber" system="true"/>
+
+    <integer name="dealNumber" system="true"/>
+
+    <string name="totalDealsString" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA['В опись внесено ' + (dealNumber != null ? T(java.lang.String).valueOf(dealNumber) : '...') + ' дел']]>
+        </script>
+      </calc-values>
+    </string>
+    <boolean default-value="false" name="startFinalRecord" temporal="true"/>
+
+    <boolean name="canComposeFinalNote" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(isRespsDelo || isSuperAdmin) && isProject && additionalState != null]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="$needRemoveEditAccessLink" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+        (link.?[rel=='edit'].size() > 0 && $isSendToApproving
+             ? link.remove(link.?[rel=='edit'][0])
+             : false)
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <string name="userId" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+        T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID().split(":")[1]
+        ]]></script>
+      </calc-values>
+    </string>
     <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
 importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
 importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
@@ -112,234 +287,104 @@ importPackage(Packages.java.util.Set);
 importPackage(Packages.java.util.Iterator);
 importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
 importClass(Packages.java.text.SimpleDateFormat);
+importClass(Packages.ru.intertrust.cmj.archives.common.DepartmentDeal);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitOrganization);
+importClass(Packages.ru.intertrust.cmj.af.fileregister.FileRegisterApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.arcdocs.common.ArchivesDocsApplication);
+importClass(Packages.ru.intertrust.cmj.arcdocs.dao.ArcDealImpl);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.record.BasicText);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
 
 //точки входа
-function querySave(object, document)
-{
+function querySave(object, document) {
+    var adpp = AFSession.get().getApplication(ArchivesDocsApplication.class);
+    var arcDeals = document.getItemValue("arcDealOrmUnid");
+    var newArcDeals = new ArrayList();
+
+    for (var i = 0; i < object.getArcDeals().size(); i++) {
+        newArcDeals.add(object.getArcDeals().get(i).getUnid());
+    }
+
+    for (var i = 0; i < arcDeals.size(); i++) {
+        if (!newArcDeals.contains(arcDeals.get(i))) {
+            var arcDeal = adpp.getEntityByUNID(arcDeals.get(i));
+            arcDeal.setAdditionalState("Исключено из описи");
+
+            setHistoryArcDeal(arcDeal, object);
+            setHistoryDepDeal(object, arcDeal);
+
+            arcDeal.save();
+        }
+    }
     return true;
 }
 
-function postSave(object, document)
-{
+function postSave(object, document) {
+}
+
+function queryCreate(object) {
+    var appFrapp = AFSession.get().getApplication(FileRegisterApplicationImpl.class);
+    var beard = AFSession.get().currentUser().getBeard();
+    var department = object.getDepartment().get();
+
+    var parent = appFrapp.getRespsDeloSoDepRvzByUnid(beard);
+    if (parent != null && parent.size() == 1) {
+        object.getDepartment().set(parent.get(0));
+        department = object.getDepartment().get();
+        object.setIndex(department.getCode());
+    }
+
+    object.setInvFormer(beard);
 }
 
 function recalc(object, changedField) {
 
-    var TableNameList = new ArrayList();
-	
-	TableNameList.add("ArcDealInfoTable");
-
-    if(changedField == "tmpArcDealInfoList")
-    {
-        ProcessListToTable(object);
+    if("isDepartment".equals(changedField)) {
+        object.setDepartment(null);
+        object.setDirectionWork("");
+        object.setIndex("");
     }
-    else
-    {
-        var apl = AFSession.get().getApplication(TuningApplication.class);
-        for (var j = 0; j < TableNameList.size(); j++){
 
-            if(changedField != TableNameList.get(j))
-                continue;
-
-            var Table = GetValue(object, TableNameList.get(j));
-            if (Table == null)
-                continue;
-
-            var newList = new ArrayList();
-
-            for (var i = 0; i < Table.size(); i++) {
-                var row = Table.get(i);
-                var number = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), (i + 1).intValue());
-                row.put("RowNumber", number);
-                newList.add(row);
-            }
-
-
-            object.tuning().put(TableNameList.get(j), new AFInstanceArrayImpl(object.tuning().getSchema().getProperty(TableNameList.get(j)).getSchema(), newList));
+    if("department".equals(changedField)) {
+        var index = "";
+        if (object.getDepartment().get() != null) {
+            index = object.getDepartment().get().getCode();
         }
+        object.setIndex(index);
     }
 }
 //-----------------
 
-function getValue(field)
-{
-    if(field instanceof AFInstanceSimple)
-    {
-        return getValueBySimple(field);
-    }
-    else if(field instanceof AFInstanceObject)
-    {
-        return getValueByObject(field);
-    }
-    else if(field instanceof AFInstanceArray)
-    {
-        return getValueByArray(field);
-    }
-    else return "";
-}
-
-function getValueBySimple(field)
-{
-    var tmp = field.getValue();
-    if(tmp instanceof SOBeard)
-    {
-        return tmp.toString(SOBeard.ToStringFormat.CMDOMINO_SHORT_NAME);
-    }
-    return tmp.toString();
-}
-
-function getValueByArray(field)
-{
-    var value = "";
-    var tmpAFInstanceList = field.getValues();
-    if(tmpAFInstanceList != null)
-    {
-        for(var j = 0; j < tmpAFInstanceList.size(); j++)
-        {
-            var tmp = "";
-            tmp = getValue(tmpAFInstanceList.get(j));
-            if(tmp == null || tmp.isEmpty()) continue;
-
-            if(value.length() != 0) value += ", ";
-            value += tmp;
-        }
-    }
-    return value.toString();
-}
-
-function getValueByObject(field)
-{
-    var tmpValue = field.getValues().get("Value");
-    if(tmpValue != null)
-        return getValue(tmpValue);
-    else return "";
-}
-
-function GetValue(doc, fileName)
-{
-    var tmp = doc.tuning().getValues().get(fileName);
-    if(tmp == null)
+function getOrganization(beard) {
+    var parent = beard.getParent();
+    if (parent == null) {
         return null;
-
-    return tmp.getValues();
-}
-
-function GetSimpleValue(doc, fileName)
-{
-    var tmp = doc.tuning().getValues().get(fileName);
-    if(tmp == null)
-        return null;
-
-    return tmp.getValue();
-}
-function GetBeardValue(doc, fileName)
-{
-    var tmp = doc.tuning().getValues().get(fileName);
-    if(tmp == null || tmp.getValue() == null)
-        return null;
-
-    return tmp.getValue().toString(SOBeard.ToStringFormat.CMDOMINO_SHORT_NAME);
-}
-
-function SetValue(doc, fileName, value)
-{
-    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
-}
-
-function SetNewArrayValue(doc, fileName, value)
-{
-    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
-}
-
-function ProcessListToTable(object)
-{
-    var apl = AFSession.get().getApplication(TuningApplication.class);
-    var oldProcesses = GetValue(object, "ArcDealInfoTable");
-    var newProcesses = GetValue(object, "tmpArcDealInfoList");
-    var dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-
-    if(newProcesses == null || newProcesses.size() == 0)
-        return;
-
-    var counter = 1;
-
-    var newList = new ArrayList();
-    var idList = new ArrayList();
-
-    for (var i = 0; i < oldProcesses.size(); i++) {
-        var process = oldProcesses.get(i);
-        var number = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
-        counter ++;
-        process.put("RowNumber", number);
-        newList.add(process);
-
-        idList.add(getUNID(process.getValues().get("id").getValue()))
     }
-    for(var t = 0; t < newProcesses.size(); t++)
-    {
-        var newProc = newProcesses.get(t).getValues();
-        var newID = getUNID(newProc.get("id").getValue());
-        var unid = newProc.get("id").getValue();
-        var module = unid.split(":")[0];
-        if(idList.contains(newID))
-            continue;
-
-        var newp = new AFInstanceObjectImpl(apl.getSchemaByName("ArcDealInfoTableResource"));
-        var number1 = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
-        var id1 = new AFInstanceSimpleImpl(apl.getSchemaByName("String"), newID);
-        counter ++;
-        newp.put("RowNumber", number1);
-        newp.put("id", id1);
-        //var doc = AFCMDomino.getDocByUNID(object.getUNID());
-        var doc = getDocByUNIDDoc(unid);
-        if(doc != null) {
-            newp.put("ArcDealModule", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), module));
-            newp.put("Subject", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), doc.getItemValueString("Subject")));
-            newp.put("Index", new AFInstanceSimpleImpl(apl.getSchemaByName("String"),
-                java.lang.String.join("-", doc.getItemValueString("Index1"), doc.getItemValueString("Index2"), doc.getItemValueString("Index3"))));
-
-            var valueDate1 = doc.getItemValueDateTimeArray("BoundaryDateBeg");
-            var valueDate2 = doc.getItemValueDateTimeArray("BoundaryDateEnd");
-            var value = java.lang.String.join("-",
-                valueDate1 != null && valueDate1.size() > 0 ? dateFormat.format(valueDate1.get(0).toJavaDate()) : "Нет",
-                valueDate2 != null && valueDate1.size() > 0 ? dateFormat.format(valueDate2.get(0).toJavaDate()) : "Нет");
-            newp.put("BoundaryDates", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), value));
-
-            newp.put("StorageTerm", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), doc.getItemValueString("StorageTerm")));
-            newp.put("SheetsPaper", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), doc.getItemValueString("SheetsPaper")));
-        }
-        newList.add(newp);
-        idList.add(newID);
+    var party = parent.originalData().getParty();
+    if (party instanceof SOUnitOrganization) {
+        return parent;
     }
-    object.tuning().put("ArcDealInfoTable", new AFInstanceArrayImpl(object.tuning().getSchema().getProperty("ArcDealInfoTable").getSchema(), newList));
-    SetValue(object, "tmpArcDealInfoList", null);
+    return getOrganization(parent);
 }
 
-function getDocByUNID(unid) {
-    var doc = AFSession.get().getApplication(ArchivesApplication.class).getEntityByUNID(unid);
-    if(doc == null) {
-        if (!unid.contains("-TN:")) {
-            var tmpID = unid.split(":");
-            unid = tmpID[0] + "-TN:" + tmpID[1];
-        }
-        doc = AFSession.get().getApplication(TunableObjectApplication.class).getEntityByUNID(unid);
+function setHistoryArcDeal (arcDeal, depDeal) {
+    if (arcDeal instanceof HasHistory) {
+        var hist = arcDeal.history();
+        var added = hist.getRecord(FieldBase.ARC_DEAL_REMOVE);
+        var textSub = depDeal.getTypeInv().name() + " " +
+                    (depDeal.getIsDepartment() ? depDeal.getDepartment().get().originalData().getShortName() : depDeal.getDirectionWork());
+        added.update(null, null, textSub);
     }
-    return doc;
 }
 
-function getDocByUNIDDoc(unid) {
-    var parts = AFCMDomino.ormUNIDToCMFullUNID(unid);
-    var db = AFCMDomino.getDbByReplicaID(parts[0]);
-    var doc = AFCMDomino.getDocByUNID(db, parts[1]);
-    return doc;
+function setHistoryDepDeal (depDeal, arcDeal) {
+    if (depDeal instanceof HasHistory) {
+        var hist = depDeal.history();
+        var added = hist.getRecord(FieldBase.DEP_DEAL_REMOVE_ARC_DEAL);
+        added.update(null, null, "Архивное дело №" + arcDeal.getIndexFull() + " " + arcDeal.getSubject());
+    }
 }
-
-function getUNID(unid){
-    if (unid == null || unid == "")
-        return "";
-    var tmpID = unid.split(":");
-
-    return tmpID.length > 1 ? tmpID[1] : unid;
-}]]></custom-event-handler>
+]]></custom-event-handler>
   </schema>
 </schemas>

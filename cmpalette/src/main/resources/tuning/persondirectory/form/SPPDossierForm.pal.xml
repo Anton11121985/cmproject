@@ -29,6 +29,14 @@
                   </field-style>
                 </appearance>
               </field>
+              <field attribute-ref="orgName">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left" importance="normal"/>
+              </field>
               <field attribute-ref="deletedLabel">
                 <properties>
                   <read-only condition-union="AND">
@@ -76,28 +84,12 @@
             </component>
           </section>
           <section id="row2" group="true">
-            <component>
-              <field attribute-ref="requestStatusTitle">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance align="right" importance="normal">
-                  <label-style field-width="15" field-unit="symbol">
-                    <style id="tunBold"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunBold"/>
-                    </value-style>
-                  </field-style>
-                </appearance>
-              </field>
-            </component>
-          </section>
-          <section id="row3" group="true">
             <appearance field-layout="horizontal"/>
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="hasFioShowOrRequestStatusLabel"/>
+              </hide>
+            </properties>
             <component>
               <field attribute-ref="fioShow">
                 <properties>
@@ -105,7 +97,18 @@
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance align="left" importance="high">
+                  <label-style field-width="100" field-unit="symbol">
+                    <style id="tunFontSize12"/>
+                    <style id="tunBold"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunFontSize12"/>
+                      <style id="tunBold"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
               <field attribute-ref="statusLabel">
                 <properties>
@@ -128,45 +131,26 @@
               </field>
             </component>
           </section>
+          <section id="row3" group="true">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
+                <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
+              </hide>
+            </properties>
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="orgPost">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" align="left"/>
+              </field>
+            </component>
+          </section>
           <section id="row4" group="true">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
-              </hide>
-            </properties>
-            <appearance field-layout="horizontal"/>
-            <component>
-              <field attribute-ref="orgPost" name="${ui.form.SPPDossierForm.section.Header.section.row4.field.orgPost.name:Должность:}">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal"/>
-              </field>
-            </component>
-          </section>
-          <section id="row5" group="true">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
-              </hide>
-            </properties>
-            <appearance field-layout="horizontal"/>
-            <component>
-              <field attribute-ref="orgName" name="${ui.form.SPPDossierForm.section.Header.section.row5.field.orgName.name:Организация:}">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal"/>
-              </field>
-            </component>
-          </section>
-          <section id="row6" group="true">
             <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="JoinOrOldInfo">
@@ -183,166 +167,596 @@
       </section>
       <section id="CommonInfo" name="${ui.form.SPPDossierForm.section.CommonInfo.name:Общая информация}">
         <component>
-          <field attribute-ref="lastName" name="${ui.form.SPPDossierForm.section.CommonInfo.field.lastName.name:Фамилия:}">
-            <properties>
-              <require condition-union="AND">
-                <condition-ref ref="edit"/>
-              </require>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="firstName" name="${ui.form.SPPDossierForm.section.CommonInfo.field.firstName.name:Имя:}">
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="middleName" name="${ui.form.SPPDossierForm.section.CommonInfo.field.middleName.name:Отчество:}">
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="comment" name="${ui.form.SPPDossierForm.section.CommonInfo.field.comment.name:Комментарий:}">
-            <appearance importance="normal"/>
-          </field>
           <section id="Organization" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.name:Организация}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <appearance field-layout="vertical"/>
             <component>
               <field clickable="true" attribute-ref="organization" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.organization.name:Организация:}">
                 <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
-                  </require>
                   <read-only condition-union="AND">
                     <condition-ref ref="AdminProhibitChangeOrg"/>
                   </read-only>
                 </properties>
-                <appearance importance="normal" clickable="true"/>
+                <appearance importance="normal" clickable="true" open-form="full">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
                 <directories limit-livesearch="no-restrictions">
                   <directory-ref ref="arm-admin-dialog-spo-nonsys-org"/>
                 </directories>
               </field>
               <field attribute-ref="orgPost" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgPost.name:Должность:}">
-                <appearance importance="normal"/>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
               </field>
               <field attribute-ref="orgPostType" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgPostType.name:Тип должности:}">
-                <appearance importance="normal"/>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
                 <directories limit-livesearch="no-restrictions">
                   <directory-ref ref="postTypes"/>
                 </directories>
               </field>
               <field attribute-ref="orgOffice" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgOffice.name:Подразделение:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="orgOfficeIntegrationId" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgOfficeIntegrationId.name:Идентификатор подразделения в МЭДО:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="NonsysDepartmentMedoIdIsNotEmpty"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="sppDossierCommonInfoSectionLabel">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance align="left" importance="normal">
+              <label-style field-unit="symbol">
+                <style id="tunBgGrayBlue"/>
+                <style id="tunCaption"/>
+              </label-style>
+            </appearance>
+          </field>
+          <section group="true" id="dossierPrivateCommonInfoSection">
+            <component>
+              <section id="dossierCommonInfo" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section group="true" id="dossierCommonInfo_left">
+                    <appearance field-layout="vertical">
+                      <dialog-mode width="49" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="lastName" name="${ui.form.SPPDossierForm.section.CommonInfo.field.lastName.name:Фамилия:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="firstName" name="${ui.form.SPPDossierForm.section.CommonInfo.field.firstName.name:Имя:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="middleName" name="${ui.form.SPPDossierForm.section.CommonInfo.field.middleName.name:Отчество:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <section group="true" id="gender">
+                        <component>
+                          <field attribute-ref="gender" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.gender.name:Пол:}">
+                            <appearance importance="normal">
+                              <label-style field-width="20" field-unit="percent">
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                            <directories limit-livesearch="no-restrictions">
+                              <directory-ref ref="genderspp"/>
+                            </directories>
+                          </field>
+                          <field attribute-ref="dateOfBirth" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.dateOfBirth.name:Дата рождения:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                        </component>
+                        <appearance field-layout="horizontal"/>
+                      </section>
+                    </component>
+                  </section>
+                  <section group="true" id="dossierCommonInfo_right">
+                    <appearance field-layout="vertical"/>
+                    <component>
+                      <field clickable="true" attribute-ref="organization" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.organization.name:Организация:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                          <read-only condition-union="AND">
+                            <condition-ref ref="AdminProhibitChangeOrg"/>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" clickable="true" open-form="full">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                        <directories limit-livesearch="no-restrictions">
+                          <directory-ref ref="arm-admin-dialog-spo-nonsys-org"/>
+                        </directories>
+                      </field>
+                      <field attribute-ref="orgPost" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgPost.name:Должность:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="orgPostType" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgPostType.name:Тип должности:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                        <directories limit-livesearch="no-restrictions">
+                          <directory-ref ref="postTypes"/>
+                        </directories>
+                      </field>
+                      <field attribute-ref="orgOffice" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgOffice.name:Подразделение:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="orgOfficeIntegrationId" name="${ui.form.SPPDossierForm.section.CommonInfo.section.Organization.field.orgOfficeIntegrationId.name:Идентификатор подразделения в МЭДО:}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="NonsysDepartmentMedoIdIsNotEmpty"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+              <field attribute-ref="comment" name="${ui.form.SPPDossierForm.section.CommonInfo.field.comment.name:Комментарий:}">
                 <appearance importance="normal"/>
               </field>
             </component>
           </section>
-        </component>
-      </section>
-      <section id="ContactAndPrivateData" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.name:Контактные и личные данные}">
-        <component>
-          <field attribute-ref="gender" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.gender.name:Пол:}">
-            <appearance importance="normal"/>
-            <directories limit-livesearch="no-restrictions">
-              <directory-ref ref="gender"/>
-            </directories>
+          <field attribute-ref="contactAndPrivateDataLabel">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance align="left" importance="normal">
+              <label-style field-unit="symbol">
+                <style id="tunBgGrayBlue"/>
+                <style id="tunCaption"/>
+              </label-style>
+            </appearance>
           </field>
-          <field attribute-ref="dateOfBirth" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.dateOfBirth.name:Дата рождения:}">
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="citizenship" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.citizenship.name:Гражданство:}">
-            <appearance importance="normal"/>
-            <directories manual-input="true" limit-livesearch="no-restrictions">
-              <directory-ref ref="spp-citizenship-any"/>
-            </directories>
-          </field>
-          <section id="AddressDataAtThePlaceOfRegistration" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.name:Адресные данные по месту регистрации}">
+          <section group="true" id="ContactAndPrivateData">
             <component>
-              <field attribute-ref="room" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.room.name:Квартира:}">
-                <appearance importance="normal"/>
+              <field attribute-ref="photo" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.photo.name:Фотография:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
+                    <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal">
+                </appearance>
               </field>
-              <field attribute-ref="housing" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.housing.name:Корпус:}">
-                <appearance importance="normal"/>
+              <field attribute-ref="facsimile" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.facsimile.name:Факсимиле подписи:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
+                    <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal">
+                </appearance>
               </field>
-              <field attribute-ref="structure" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.structure.name:Строение:}">
-                <appearance importance="normal"/>
+              <field attribute-ref="personEmail" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.personEmail.name:Личный e-mail:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunUnderline"/>
+                    <style id="tunGray"/>
+                    <style id="tunBold"/>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunUnderline"/>
+                      <style id="tunGray"/>
+                      <style id="tunBold"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
               </field>
-              <field attribute-ref="region" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.region.name:Регион:}">
-                <appearance importance="normal"/>
+              <field attribute-ref="emplFax" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.emplFax.name:Факс:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
               </field>
-              <field attribute-ref="house" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.house.name:Дом:}">
-                <appearance importance="normal"/>
+              <field attribute-ref="account" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.account.name:Аккаунт в службах мгновенного обмена сообщениями:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
               </field>
-              <section id="улица" group="true">
+              <section group="true" id="AddressData_bottom">
                 <appearance field-layout="horizontal"/>
                 <component>
-                  <field attribute-ref="typeStreet" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.section.улица.field.typeStreet.name:Улица:}">
-                    <appearance importance="normal"/>
-                    <directories limit-livesearch="sys-current">
-                      <directory-ref ref="StreetType"/>
-                    </directories>
+                  <field attribute-ref="phoneHouse" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.phoneHouse.name:Домашний телефон:}">
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                    </appearance>
                   </field>
-                  <field attribute-ref="nameStreet">
-                    <appearance importance="normal"/>
+                  <field attribute-ref="phoneMobil" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.phoneMobil.name:Мобильный телефон:}">
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="phoneWork" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.phoneWork.name:Рабочий телефон:}">
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                    </appearance>
                   </field>
                 </component>
               </section>
-              <field attribute-ref="city" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.city.name:Город/Населенный пункт:}">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="district" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.district.name:Район:}">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="country" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.country.name:Страна:}">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="sendIndex" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.sendIndex.name:Почтовый индекс:}">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="phoneHouse" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.phoneHouse.name:Домашний телефон:}">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="phoneMobil" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.phoneMobil.name:Мобильный телефон:}">
-                <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="phoneWork" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.phoneWork.name:Рабочий телефон:}">
-                <appearance importance="normal"/>
-              </field>
+              <section id="AddressDataAtThePlaceOfRegistration" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.name:Адресные данные по месту регистрации}">
+                <component>
+                  <section id="AddressData" group="true">
+                    <appearance field-layout="horizontal"/>
+                    <component>
+                      <section group="true" id="AddressData_left">
+                        <appearance field-layout="vertical">
+                          <dialog-mode width="49" unit="percent"/>
+                        </appearance>
+                        <component>
+                          <field attribute-ref="country" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.country.name:Страна:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <field attribute-ref="district" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.district.name:Район:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <field attribute-ref="sendIndex" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.sendIndex.name:Почтовый индекс:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <section id="улица" group="true">
+                            <appearance field-layout="horizontal"/>
+                            <component>
+                              <field attribute-ref="typeStreet" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.section.улица.field.typeStreet.name:Улица:}">
+                                <appearance importance="normal">
+                                  <label-style field-unit="symbol" field-width="20">
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                                <directories manual-input="true" limit-livesearch="sys-current">
+                                  <directory-ref ref="spp-type-street-any"/>
+                                </directories>
+                              </field>
+                              <field attribute-ref="nameStreet">
+                                <appearance importance="normal" multiline="true">
+                                  <label-style>
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                              </field>
+                            </component>
+                          </section>
+                        </component>
+                      </section>
+                      <section group="true" id="AddressData_right">
+                        <appearance field-layout="vertical"/>
+                        <component>
+                          <section id="regionSection" group="true">
+                            <appearance field-layout="horizontal"/>
+                            <component>
+                              <field attribute-ref="region" recalc="true" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.region.name:Регион:}">
+                                <appearance importance="normal">
+                                  <label-style>
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                                <directories manual-input="true">
+                                  <directory-complex ref="valueRegion"/>
+                                </directories>
+                              </field>
+                              <field attribute-ref="region_code" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.region_code.name:Код региона:}">
+                                <properties>
+                                  <read-only condition-union="AND">
+                                    <condition>true</condition>
+                                  </read-only>
+                                </properties>
+                                <appearance importance="normal" multiline="true">
+                                  <label-style field-width="8" field-unit="symbol">
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                              </field>
+                            </component>
+                          </section>
+                          <field attribute-ref="city" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.city.name:Город/Нас. пункт:}">
+                            <appearance importance="normal" multiline="true">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <field attribute-ref="room" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.room.name:Квартира:}">
+                            <appearance importance="normal" multiline="true">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <section id="addressDataHouse" group="true">
+                            <appearance field-layout="horizontal"/>
+                            <component>
+                              <field attribute-ref="house" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.house.name:Дом:}">
+                                <appearance importance="normal" multiline="true">
+                                  <label-style>
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                              </field>
+                              <section id="housing1" group="true">
+                                <appearance>
+                                  <label-style width="6" unit="symbol"/>
+                                </appearance>
+                                <component>
+                                  <field attribute-ref="housing" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.housing.name:Корпус:}">
+                                    <appearance importance="normal" multiline="true">
+                                      <label-style>
+                                        <style id="tunBorderedFieldLight"/>
+                                      </label-style>
+                                    </appearance>
+                                  </field>
+                                </component>
+                              </section>
+                              <section id="building1" group="true">
+                                <appearance>
+                                  <label-style unit="symbol" width="8"/>
+                                </appearance>
+                                <component>
+                                  <field attribute-ref="structure" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.structure.name:Строение:}">
+                                    <appearance importance="normal" multiline="true">
+                                      <label-style>
+                                        <style id="tunBorderedFieldLight"/>
+                                      </label-style>
+                                    </appearance>
+                                  </field>
+                                </component>
+                              </section>
+                            </component>
+                          </section>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                </component>
+              </section>
+              <section id="AddressDataAtThePlaceOfLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfLive.name:Адресные данные по месту проживания}">
+                <component>
+                  <section id="AddressDataLive" group="true">
+                    <appearance field-layout="horizontal"/>
+                    <component>
+                      <section group="true" id="AddressDataLive_left">
+                        <appearance field-layout="vertical">
+                          <dialog-mode width="49" unit="percent"/>
+                        </appearance>
+                        <component>
+                          <field attribute-ref="countryLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.country.name:Страна:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <field attribute-ref="districtLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.district.name:Район:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <field attribute-ref="sendIndexLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.sendIndex.name:Почтовый индекс:}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <section id="streetLive" group="true">
+                            <appearance field-layout="horizontal"/>
+                            <component>
+                              <field attribute-ref="typeStreetLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.section.улица.field.typeStreet.name:Улица:}">
+                                <appearance importance="normal">
+                                  <label-style field-unit="symbol" field-width="20">
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                                <directories manual-input="true" limit-livesearch="sys-current">
+                                  <directory-ref ref="spp-type-street-any"/>
+                                </directories>
+                              </field>
+                              <field attribute-ref="nameStreetLive">
+                                <appearance importance="normal" multiline="true">
+                                  <label-style>
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                              </field>
+                            </component>
+                          </section>
+                        </component>
+                      </section>
+                      <section group="true" id="AddressDataLive_right">
+                        <appearance field-layout="vertical"/>
+                        <component>
+                          <section id="regionLiveSection" group="true">
+                            <appearance field-layout="horizontal"/>
+                            <component>
+                              <field attribute-ref="regionLive" recalc="true" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.region.name:Регион:}">
+                                <appearance importance="normal">
+                                  <label-style>
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                                <directories manual-input="true">
+                                  <directory-complex ref="valueRegion"/>
+                                </directories>
+                              </field>
+                              <field attribute-ref="region_codeLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.region_code.name:Код региона:}">
+                                <properties>
+                                  <read-only condition-union="AND">
+                                    <condition>true</condition>
+                                  </read-only>
+                                </properties>
+                                <appearance importance="normal" multiline="true">
+                                  <label-style field-width="8" field-unit="symbol">
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                              </field>
+                            </component>
+                          </section>
+                          <field attribute-ref="cityLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.city.name:Город/Нас. пункт:}">
+                            <appearance importance="normal" multiline="true">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <field attribute-ref="roomLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.room.name:Квартира:}">
+                            <appearance importance="normal" multiline="true">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                            </appearance>
+                          </field>
+                          <section id="addressDataLiveHouse" group="true">
+                            <appearance field-layout="horizontal"/>
+                            <component>
+                              <field attribute-ref="houseLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.house.name:Дом:}">
+                                <appearance importance="normal" multiline="true">
+                                  <label-style>
+                                    <style id="tunBorderedFieldLight"/>
+                                  </label-style>
+                                </appearance>
+                              </field>
+                              <section id="housing2" group="true">
+                                <appearance>
+                                  <label-style unit="symbol" width="6"/>
+                                </appearance>
+                                <component>
+                                  <field attribute-ref="housingLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.housing.name:Корпус:}">
+                                    <appearance importance="normal" multiline="true">
+                                      <label-style>
+                                        <style id="tunBorderedFieldLight"/>
+                                      </label-style>
+                                    </appearance>
+                                  </field>
+                                </component>
+                              </section>
+                              <section id="building2" group="true">
+                                <appearance>
+                                  <label-style unit="symbol" width="8"/>
+                                </appearance>
+                                <component>
+                                  <field attribute-ref="structureLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.structure.name:Строение:}">
+                                    <appearance importance="normal" multiline="true">
+                                      <label-style>
+                                        <style id="tunBorderedFieldLight"/>
+                                      </label-style>
+                                    </appearance>
+                                  </field>
+                                </component>
+                              </section>
+                            </component>
+                          </section>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                </component>
+              </section>
             </component>
           </section>
-          <field attribute-ref="photo" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.photo.name:Фотография:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
-              </hide>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="facsimile" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.facsimile.name:Факсимиле подписи:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeDossier"/>
-                <negative-condition-ref ref="SPPDossier_isOrgEmployeeRequestToCreate"/>
-              </hide>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="personEmail" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.personEmail.name:Личный e-mail:}">
-            <appearance importance="normal">
-              <label-style>
-                <style id="tunUnderline"/>
-                <style id="tunGray"/>
-                <style id="tunBold"/>
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunUnderline"/>
-                  <style id="tunGray"/>
-                  <style id="tunBold"/>
-                </value-style>
-              </field-style>
-            </appearance>
-          </field>
-          <field attribute-ref="emplFax" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.emplFax.name:Факс:}">
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="account" name="${ui.form.SPPDossierForm.section.ContactAndPrivateData.field.account.name:Аккаунт в службах мгновенного обмена сообщениями:}">
-            <appearance importance="normal"/>
-          </field>
         </component>
       </section>
       <section id="History" name="${ui.form.SPPDossierForm.section.History.name:История}">
@@ -434,7 +848,12 @@
               </hide>
             </properties>
             <component>
-              <button name="${ui.form.SPPDossierForm.section.RootMenu.section.create.button.Досье сотрудника организации.name:Досье сотрудника организации}">
+              <button name="${ui.form.SPPEmployeesAndRequestsCollectionForm.section.RootMenu.section.create.button.Досье сотрудника.name:Работника организации}">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="TNObject_isDeleted"/>
+                  </hide>
+                </properties>
                 <action>
                   <custom>
                     <create-sibling schema-ref="SPPDossier"/>
@@ -444,7 +863,7 @@
               <button name="${ui.form.SPPDossierForm.section.RootMenu.section.create.button.Новый как копия.name:Новый как копия}">
                 <properties>
                   <hide condition-union="AND">
-                    <condition-ref ref="SPPDossier_canApprove"/>
+                    <condition>true</condition>
                   </hide>
                 </properties>
                 <action>
@@ -518,11 +937,16 @@
           <section id="deprecated" name="${ui.form.SPPDossierForm.section.RootMenu.section.deprecated.name:Устарело}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="canMakeSPPNotActual"/>
+                <condition>true</condition>
               </hide>
             </properties>
             <component>
               <button name="${ui.form.SPPDossierForm.section.RootMenu.section.deprecated.button.Выбрать досье.name:Выбрать досье}">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="TNObject_isDeleted"/>
+                  </hide>
+                </properties>
                 <action position="10.0">
                   <custom>
                     <operation>
@@ -534,6 +958,11 @@
                 </action>
               </button>
               <button name="${ui.form.SPPDossierForm.section.RootMenu.section.deprecated.button.Создать новое досье.name:Создать новое досье}" alias="MarkSPPDossierAsDeprecatedNewDossier">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="TNObject_isDeleted"/>
+                  </hide>
+                </properties>
                 <action>
                   <custom>
                     <create-sibling schema-ref="SPPDossier"/>
@@ -544,20 +973,10 @@
           </section>
           <section id="OTHER" name="${ui.form.SPPDossierForm.section.RootMenu.section.OTHER.name:Другое}">
             <component>
-              <button name="${ui.form.SPPDossierForm.section.RootMenu.section.OTHER.button.Скрыть системную кнопку 'Добавить в избранное'.name:Скрыть системную кнопку 'Добавить в избранное'}">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition>true</condition>
-                  </hide>
-                </properties>
-                <action>
-                  <system name="ADD_LINK_TO_FAVORITE_FOLDER"/>
-                </action>
-              </button>
               <button name="${ui.form.SPPDossierForm.section.RootMenu.section.OTHER.button.Удалить.name:Удалить}">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="TNObject_CanEdit_ReadMode"/>
+                    <condition-ref ref="TNObject_isDeleted"/>
                   </hide>
                 </properties>
                 <action>
@@ -572,6 +991,23 @@
               </button>
             </component>
           </section>
+          <button name="${ui.form.SPPDossierForm.section.RootMenu.button.Восстановить.name:Восстановить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="SPP_RestoreDossier"/>
+              </hide>
+            </properties>
+            <action position="10">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">RestoreSPPDossierOperation</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+            <icon code="213"/>
+          </button>
         </component>
       </section>
     </component>

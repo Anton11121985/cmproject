@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
-  <schema name="MovingCopiesTable">
+  <schema name="MovingCopiesTable" recalc="true">
     <string name="movingCopiesName" createlog="true">
       <storage-field name="movingCopiesName"/>
     </string>
@@ -13,9 +13,28 @@
     <string name="movingCopiesFolderName" createlog="true">
       <storage-field name="movingCopiesFolderName"/>
     </string>
-    <boolean name="movingCopiesIsReturned" createlog="true">
+    <boolean name="movingCopiesIsReturned">
       <storage-field name="movingCopiesIsReturned"/>
       <storage-string value="1"/>
     </boolean>
+    <string name="movingCopiesStatus">
+      <storage-field name="movingCopiesStatus"/>
+    </string>
+    <enum-ref ref="MovingCopiesStatusEnum" name="movingCopiesStatusEnum">
+      <storage-field name="movingCopiesStatusEmun"/>
+    </enum-ref>
+    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+function recalc(object, changedField) {
+  if (changedField == "movingCopiesStatusEnum") {
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "movingCopiesStatus", null);
+    var movingCopiesStatusEnum = object.tuning().getValues().get('movingCopiesStatusEnum');
+    if (movingCopiesStatusEnum != null) {
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "movingCopiesStatus", movingCopiesStatusEnum);
+    }
+  }
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

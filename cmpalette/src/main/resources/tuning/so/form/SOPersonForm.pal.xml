@@ -20,7 +20,7 @@
                   </read-only>
                 </properties>
                 <appearance align="left" importance="normal">
-                  <label-style field-width="12" field-unit="symbol">
+                  <label-style field-width="40" field-unit="symbol">
                     <style id="tunIconProgress"/>
                   </label-style>
                   <field-style>
@@ -28,6 +28,16 @@
                       <style id="tunIconProgress"/>
                     </value-style>
                   </field-style>
+                </appearance>
+              </field>
+              <field autofill="true" attribute-ref="organizationUnit">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="25" field-unit="symbol"/>
                 </appearance>
               </field>
               <field attribute-ref="deletedLabel">
@@ -48,58 +58,24 @@
               <label-style width="10"/>
             </appearance>
             <component>
-              <field attribute-ref="empty">
+               <field attribute-ref="fioShow">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance importance="normal"/>
-              </field>
-              <field autofill="true" clickable="true" attribute-ref="organizationUnit">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance open-mode="dialog" align="left" importance="high" clickable="true">
-                  <label-style field-width="15" field-unit="symbol">
-                    <style id="tunBlue"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunBlue"/>
-                    </value-style>
-                  </field-style>
-                </appearance>
-                <directories limit-livesearch="no-restrictions">
-                  <directory-ref ref="arm-admin-dialog-hierarchi"/>
-                </directories>
-              </field>
-              <field attribute-ref="fioShow">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance align="left" importance="high">
-                  <label-style>
-                    <style id="tunBlue"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunBlue"/>
-                    </value-style>
-                  </field-style>
-                </appearance>
-              </field>
-              <field attribute-ref="empty">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal"/>
+                 <appearance align="left" importance="high">
+                   <label-style field-width="100" field-unit="symbol">
+                     <style id="tunFontSize12"/>
+                     <style id="tunBold"/>
+                   </label-style>
+                   <field-style>
+                     <value-style>
+                       <style id="tunFontSize12"/>
+                       <style id="tunBold"/>
+                     </value-style>
+                   </field-style>
+                 </appearance>
               </field>
             </component>
           </section>
@@ -131,7 +107,7 @@
           <field attribute-ref="lastName" name="${ui.form.SOPersonForm.section.CommonInfo.field.lastName.name:Фамилия:}">
             <properties>
               <require condition-union="AND">
-                <condition>true</condition>
+                <condition-ref ref="edit"/>
               </require>
             </properties>
             <appearance importance="normal">
@@ -210,7 +186,7 @@
               <label-style field-width="40" field-unit="symbol"/>
             </appearance>
           </field>
-          <field attribute-ref="exchAccount" name="${ui.form.SOPersonForm.section.CommonInfo.field.exchAccount.name:Почтовый адрес MS Exchange:}">
+          <field attribute-ref="exchAccount" name="${ui.form.SOPersonForm.section.CommonInfo.field.exchAccount.name:Учетная запись в почтовой системе:}">
             <appearance importance="normal">
               <label-style field-width="40" field-unit="symbol"/>
             </appearance>
@@ -243,6 +219,7 @@
             <properties>
               <require condition-union="AND">
                 <condition-ref ref="notesNameNotEmpty"/>
+                <condition-ref ref="edit"/>
               </require>
               <hide condition-union="AND">
                 <negative-condition-ref ref="showPassword"/>
@@ -296,6 +273,68 @@
               </field-style>
             </appearance>
           </field>
+          <field attribute-ref="hireDate" name="${ui.form.SOPersonForm.section.CommonInfo.field.hireDate.name:Дата приема на работу:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModulePerson"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="appointDate" name="${ui.form.SOPersonForm.section.CommonInfo.field.appointDate.name:Дата назначение на должность:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModulePerson"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="dismissalDate" name="${ui.form.SOPersonForm.section.CommonInfo.field.dismissalDate.name:Дата увольнения:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModulePerson"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="hireOrderLabel">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance importance="high">
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
+            </appearance>
+          </field>
+          <section id="hireOrder" name="${ui.form.SOPersonForm.section.CommonInfo.section.hireOrder.name:Приказ о приеме на работу}" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="hireOrderDate" name="${ui.form.SOPersonForm.section.CommonInfo.section.hireOrder.field.hireOrderDate.name:Дата:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModulePerson"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="hireOrderNum" name="${ui.form.SOPersonForm.section.CommonInfo.section.hireOrder.field.hireOrderNum.name:Номер:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModulePerson"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
           <field attribute-ref="comment" name="${ui.form.SOPersonForm.section.CommonInfo.field.comment.name:Комментарий:}">
             <appearance importance="normal"/>
           </field>
@@ -312,7 +351,7 @@
           <label-style width="60" unit="symbol"/>
         </appearance>
         <component>
-          <field attribute-ref="securityStamp" name="${ui.form.SOPersonForm.section.Settings.field.securityStamp.name:Грифы доступа:}">
+          <field attribute-ref="securityStamp" name="${ui.form.SOPersonForm.section.Settings.field.securityStamp.name:Отметки о допуске к информации:}">
             <appearance importance="high" align="left"/>
             <hint-pop-up>${ui.form.SOPersonForm.section.Settings.field.securityStamp.hintPopUp:Доступ к документам с установленным грифом доступа}</hint-pop-up>
             <directories>
@@ -495,9 +534,83 @@
             </appearance>
           </field>
           <field attribute-ref="building" name="${ui.form.SOPersonForm.section.PersonalData.field.building.name:Здание (корпус, сектор):}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
             <appearance importance="normal"/>
           </field>
+          <field attribute-ref="locality" name="${ui.form.SOPersonForm.section.PersonalData.field.locality.name:Населенный пункт:}">
+            <appearance importance="normal"/>
+            <directories manual-input="true" limit-livesearch="sys-current">
+              <directory-ref ref="so-locality"/>
+            </directories>
+          </field>
           <field attribute-ref="room" name="${ui.form.SOPersonForm.section.PersonalData.field.room.name:Комната:}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="district" name="${ui.form.SOPersonForm.section.PersonalData.field.district.name:Район:}">
+            <appearance importance="normal"/>
+            <directories manual-input="true" limit-livesearch="sys-current">
+              <directory-ref ref="so-districts"/>
+            </directories>
+          </field>
+          <field attribute-ref="homeAddress" name="${ui.form.SOPersonForm.section.PersonalData.field.homeAddress.name:Адрес проживания:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="registrationAddress" name="${ui.form.SOPersonForm.section.PersonalData.field.registrationAddress.name:Адрес регистрации:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="homePhone" name="${ui.form.SOPersonForm.section.PersonalData.field.homePhone.name:Домашний телефон:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="empty">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="contactLabel5">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance importance="high">
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
+            </appearance>
+          </field>
+          <field attribute-ref="country" name="${ui.form.SOPersonForm.section.PersonalData.field.country.name:Страна:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="localityWork" name="${ui.form.SOPersonForm.section.PersonalData.field.localityWork.name:Населенный пункт:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="office" name="${ui.form.SOPersonForm.section.PersonalData.field.office.name:Офис:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="roomNumber" name="${ui.form.SOPersonForm.section.PersonalData.field.roomNumber.name:Номер кабинета:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="floor" name="${ui.form.SOPersonForm.section.PersonalData.field.floor.name:Этаж:}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="RMCode" name="${ui.form.SOPersonForm.section.PersonalData.field.RMCode.name:Код РМ:}">
             <appearance importance="normal"/>
           </field>
           <field attribute-ref="empty">
@@ -543,6 +656,11 @@
             <appearance importance="normal"/>
           </field>
           <field attribute-ref="skype" name="${ui.form.SOPersonForm.section.PersonalData.field.skype.name:Skype:}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
             <appearance importance="normal"/>
           </field>
           <field attribute-ref="empty">
@@ -583,6 +701,9 @@
             </appearance>
             <hint-pop-up>${ui.form.SOPersonForm.section.PersonalData.field.snils.hintPopUp:Укажите СНИЛС в формате NNN-NNN-NNN NN}</hint-pop-up>
             <hint-in-field>${ui.form.SOPersonForm.section.PersonalData.field.snils.hintInField:Укажите СНИЛС в формате NNN-NNN-NNN NN}</hint-in-field>
+          </field>
+          <field attribute-ref="passportData" name="${ui.form.SOPersonForm.section.PersonalData.field.passportData.name:Паспортные данные:}">
+            <appearance importance="normal"/>
           </field>
         </component>
       </section>
@@ -876,9 +997,7 @@
 	        </appearance>
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="SOTNObject_canPerfomOperationInSO"/>
-                <negative-condition-ref ref="read"/>
-                <condition-ref ref="TNObject_isDeleted"/>
+                <condition-ref ref="hidePersonSaveButton"/>
               </hide>
             </properties>
             <component>
@@ -942,8 +1061,7 @@
           <button name="${ui.form.SOPersonForm.section.RootMenu.button.Назначить.name:Назначить}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="read"/>
-                <condition-ref ref="TNObject_isDeleted"/>
+                <condition-ref ref="hidePersonSaveButton"/>
               </hide>
             </properties>
             <action position="9.0">

@@ -481,6 +481,123 @@
         </xs:attribute>
     </xs:complexType>
 
+    <xs:complexType name="customFieldsType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Настройки кастомных полей ПКД-документов]]></xs:documentation>
+        </xs:annotation>
+
+        <xs:all>
+            <xs:element name="fields" type="customFieldType"/>
+        </xs:all>
+
+        <xs:attribute name="module-type" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Тип модуля, для которого применяются настройки кастомных полей]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="doc-type" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Тип документа, для которого применяются настройки кастомных полей]]></xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="RKK">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[РКК (включая построенные на кастомных модулях), кроме объектов модуля Договоры]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="RESOLUTION">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Резолюции любых модулей]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="CONTRACT">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[РКК Договора]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="CONTRACT_DOCUMENT">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Документ к договору]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="CONTRACT_FINANCE">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Фин. документ к договору]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="CONTRACT_AGREEMENT">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[ДС к договору]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="EXECUTION">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Отчет об исполнении]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="REVIEW_LIST">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Лист ознакомления]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="APPROVING_LIST">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Лист согласования]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="MEETING">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Заседание]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="POINT">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Вопрос]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="DECISION_PROJECT">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Проект решения]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="DECISION">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Решение]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="id" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Идентификатор настройки]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="customFieldType">
+        <xs:sequence>
+            <xs:element name="field" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="id" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation><![CDATA[Имя кастомного поля (имя НР-свойства в схеме, например)]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="system-attribute-ref" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                <![CDATA[Переопределяемый системный атрибут]]></xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:element name="pkd">
         <xs:complexType>
             <xs:choice minOccurs="1" maxOccurs="unbounded">
@@ -488,6 +605,7 @@
                 <xs:element name="filter-value" type="pkdValueType" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="sort" type="pkdSortType" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="queue" type="queueType" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="custom-fields" type="customFieldsType" minOccurs="0" maxOccurs="unbounded"/>
             </xs:choice>
         </xs:complexType>
     </xs:element>

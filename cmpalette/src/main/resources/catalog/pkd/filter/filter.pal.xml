@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <pkd xmlns="http://www.intertrust.ru/schema/palette/pkd">
-  <filter name="Доп. фильтр (типы документов)" type="default" priority="0" edit="true" id="byDBType">
+  <filter name="Доп. фильтр (типы документов) для WD" type="default" priority="0" edit="true" id="byDBType">
     <collection-filter>
       <script lang="SQL"><![CDATA[exists (
 		select
@@ -65,7 +65,7 @@
       <filter-value-ref ref="byDocType"/>
     </filter-values>
   </filter>
-  <filter name="Доп. фильтр (типы документов)" type="default" priority="0" edit="true" id="byDocDBType">
+  <filter name="Доп. фильтр (типы документов) для WD" type="default" priority="0" edit="true" id="byDocDBType">
     <collection-filter>
       <script lang="SQL"><![CDATA[
 				d.type_db in (
@@ -105,6 +105,118 @@
     <filter-values>
       <filter-value-ref ref="byDocType"/>
     </filter-values>
+  </filter>
+  <filter name="Доп. фильтр (типы документов)" type="default" priority="0" edit="true" id="byDB">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[exists (
+		select
+			1
+		from
+			pkd_documents docs
+		where
+			docs.unid = event.document
+			and (
+				docs.type_db in (
+					'OutputDocs',
+					'OutputDocsPrev',
+					'Requests',
+					'RequestsPrev',
+					'InputDocs',
+					'InputDocsPrev',
+					'Missions',
+					'MissionsPrev',
+					'InternalDocs',
+					'InternalDocsPrev',
+                    'ContractsLite',
+                    'ContractsLiteArch',
+                    'Tasks',
+                    'TasksArch'
+				)
+				or docs.root_type_db in (
+					'OutputDocs',
+					'OutputDocsPrev',
+					'Requests',
+					'RequestsPrev',
+					'InputDocs',
+					'InputDocsPrev',
+					'Missions',
+					'MissionsPrev',
+					'InternalDocs',
+					'InternalDocsPrev',
+                    'ContractsLite',
+                    'ContractsLiteArch',
+                    'Tasks',
+                    'TasksArch'
+				)
+			)
+	) ]]></script>
+    </collection-filter>
+    <task-filter>
+      <script lang="SPEL"><![CDATA[(#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonEvent) || #this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument)) && T(com.google.common.collect.Sets).newHashSet("OutputDocs",
+					"OutputDocsPrev",
+					"Requests",
+					"RequestsPrev",
+					"InputDocs",
+					"InputDocsPrev",
+					"Missions",
+					"MissionsPrev",
+					"InternalDocs",
+					"InternalDocsPrev",
+                    "ContractsLite",
+                    "ContractsLiteArch",
+                    "Tasks",
+                    "TasksArch").contains(T(java.util.Optional).ofNullable(#this.getDocument().getRootTypeDatabase()).orElse(#this.getDocument().getTypeDatabase()))]]></script>
+    </task-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocType"/>
+    </filter-values>
+  </filter>
+  <filter name="Доп. фильтр (типы документов)" type="default" priority="0" edit="true" id="byDocDB">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[
+				d.type_db in (
+					'OutputDocs',
+					'OutputDocsPrev',
+					'Requests',
+					'RequestsPrev',
+					'InputDocs',
+					'InputDocsPrev',
+					'Missions',
+					'MissionsPrev',
+					'InternalDocs',
+					'InternalDocsPrev',
+                    'ContractsLite',
+                    'ContractsLiteArch'
+				)
+	]]></script>
+    </collection-filter>
+    <task-filter>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument) && T(com.google.common.collect.Sets).newHashSet("OutputDocs",
+					"OutputDocsPrev",
+					"Requests",
+					"RequestsPrev",
+					"InputDocs",
+					"InputDocsPrev",
+					"Missions",
+					"MissionsPrev",
+					"InternalDocs",
+					"InternalDocsPrev",
+                    "ContractsLite",
+                    "ContractsLiteArch").contains(#this.getDocument().getTypeDatabase())]]></script>
+    </task-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocType"/>
+    </filter-values>
+  </filter>
+  <filter name="Фильтр по рег.данным" type="default" priority="0" edit="true" id="byRegState">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[
+				not d.reg_number_counter is null and d.reg_status = 'REGISTERED'
+	]]></script>
+    </collection-filter>
+    <task-filter>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument) && #this.getDocument().getRegNumber() != null && 'REGISTERED'.equals(#this.getDocument().getRegStatus())]]></script>
+    </task-filter>
   </filter>
   <filter name="Кому" type="actor" global="true" priority="3" save-session="true" highlight="true" id="byAddressee">
     <web-filter>
@@ -172,6 +284,39 @@ else  event.task_date is null]]></script>
       <filter-value-ref ref="byDocType"/>
     </filter-values>
   </filter>
+  <filter name="По типу документа" type="constants" priority="2" edit="true" id="byDocTypeProjects">
+    <web-filter>
+      <script lang="JavaScript"><![CDATA[return object.docType === value;]]></script>
+    </web-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[EXISTS (SELECT 1 FROM PKD_DOCUMENTS doc where doc.unid = event.document and doc.type_db = :byDocType)]]></script>
+    </collection-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocTypeProjects"/>
+    </filter-values>
+  </filter>
+  <filter name="По типу документа" type="constants" priority="2" edit="true" id="byDoc">
+    <web-filter>
+      <script lang="JavaScript"><![CDATA[return object.docType === value;]]></script>
+    </web-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[EXISTS (SELECT 1 FROM PKD_DOCUMENTS doc where doc.unid = event.document and doc.type_db = :byDoc)]]></script>
+    </collection-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocType"/>
+    </filter-values>
+  </filter>
+  <filter name="По типу документа" type="constants" priority="2" edit="true" id="byDocProjects">
+    <web-filter>
+      <script lang="JavaScript"><![CDATA[return object.docType === value;]]></script>
+    </web-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[EXISTS (SELECT 1 FROM PKD_DOCUMENTS doc where doc.unid = event.document and doc.type_db = :byDoc)]]></script>
+    </collection-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocTypeProjects"/>
+    </filter-values>
+  </filter>
   <filter name="По статусу" type="constants" priority="1" edit="true" id="byDocumentStatus">
     <web-filter>
       <script lang="JavaScript"><![CDATA[return object.documentStatus === value;]]></script>
@@ -181,6 +326,28 @@ else  event.task_date is null]]></script>
     </collection-filter>
     <filter-values>
       <filter-value-ref ref="byDocumentStatus"/>
+    </filter-values>
+  </filter>
+  <filter name="По статусу" type="constants" priority="1" edit="true" id="byDocumentStatusProjects">
+    <web-filter>
+      <script lang="JavaScript"><![CDATA[return object.documentStatus === value;]]></script>
+    </web-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[event.doc_status = :byDocumentStatusProjects]]></script>
+    </collection-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocumentStatusProjects"/>
+    </filter-values>
+  </filter>
+  <filter name="По статусу" type="constants" priority="1" edit="true" id="byDocumentStatusRegistered">
+    <web-filter>
+      <script lang="JavaScript"><![CDATA[return object.documentStatus === value;]]></script>
+    </web-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[event.doc_status = :byDocumentStatusRegistered]]></script>
+    </collection-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocumentStatusRegistered"/>
     </filter-values>
   </filter>
   <filter name="По типу задачи" type="constants" priority="1" edit="true" id="byTask">
@@ -196,10 +363,10 @@ else  event.task_date is null]]></script>
   </filter>
   <filter name="Продолжительность хранения в архиве" type="date" priority="0" edit="true" id="durInArchive">
     <collection-filter>
-      <script lang="SQL"><![CDATA[event.process_dt >= :durInArchive_from]]></script>
+      <script lang="SQL"><![CDATA[(event.process_dt IS NULL AND event.process_status = 'NOT_DONE') OR event.process_dt >= :durInArchive_from]]></script>
     </collection-filter>
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonEvent)  && #this.getEventInfo().getProcessStatusDT(false) != null && !(T(ru.intertrust.cmj.pkd.tools.PkdTools).addDays(#this.getEventInfo().getProcessStatusDT(false), T(ru.intertrust.cmj.af.collections.impl.queue.QueueSettingCache).get().getGlobalSetting().getDurationInArchive()).before(T(ru.intertrust.cmj.pkd.tools.PkdTools).today()))]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonEvent)  && (#this.getEventInfo().getProcessStatusDT(false) == null || #this.getEventInfo().getProcessStatusDT(false) != null && !(T(ru.intertrust.cmj.pkd.tools.PkdTools).addDays(#this.getEventInfo().getProcessStatusDT(false), T(ru.intertrust.cmj.af.collections.impl.queue.QueueSettingCache).get().getGlobalSetting().getDurationInArchive()).before(T(ru.intertrust.cmj.pkd.tools.PkdTools).today())))]]></script>
     </task-filter>
   </filter>
   <filter name="Только новые" type="default" priority="3" edit="true" id="onlyNew">
@@ -222,6 +389,49 @@ else  event.task_date is null]]></script>
 OR EXISTS (select 1 from so_beards beard where event.event_to= beard.unid  and ( '%' || lower (:arbitFilter) || '%' like lower(beard.original_shortname))) 
 OR EXISTS( select 1 from pkd_documents doc  where event.document = doc.unid and ( '%' || lower (:arbitFilter) || '%' like lower(doc.subject) 
 OR ( lower (:arbitFilter) like to_char(doc.reg_date, 'DD.MM.YYYY'))))))]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Тематика документа" id="docTheme" type="string">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :theme <> '' AND NOT :theme IS NULL THEN EXISTS (SELECT 1 FROM PKD_RKK_THEMES t WHERE t.rkkdocument_unid = d.unid AND LOWER(t.themes) LIKE LOWER(:theme)) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Заголовок документа" id="docSubject" type="string">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :subject <> '' AND NOT :subject IS NULL THEN LOWER(d.subject) LIKE LOWER(:subject) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Вид документа" id="docReqType" type="string">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :reqtype <> '' AND NOT :reqtype IS NULL THEN LOWER(d.req_Type) LIKE LOWER(:reqtype) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="МР документа" id="docRegPlace" type="actor">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :regPlace <> '' AND NOT :regPlace IS NULL THEN LOWER(d.reg_place) LIKE LOWER(:regPlace) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Подписанты документа" id="docSigners" type="actor">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :signer <> '' AND NOT :signer IS NULL THEN EXISTS (SELECT 1 FROM SO_BEARDS s LEFT JOIN PKD_DOCUMENTS_SIGNERS doc_signers ON doc_signers.SIGNER_ID = s.unid
+                WHERE (s.unid = d.signer OR doc_signers.DOCUMENT_ID = d.unid) and LOWER(s.Original_ShortName) LIKE LOWER(:signer)) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Адресаты документа" id="docAddressees" type="actor">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :addressee <> '' AND NOT :addressee IS NULL THEN EXISTS (SELECT 1 FROM PKD_RKK_ADDRESSEE addr INNER JOIN SO_BEARDS a on a.unid = addr.addressee_id where addr.rkk_id = d.unid
+               AND LOWER(a.original_ShortName) LIKE LOWER(:addressee)) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Исполнители документа" id="docExecutors" type="actor">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :executors <> '' AND NOT :executors IS NULL THEN EXISTS (SELECT 1 FROM PKD_RKK_EXECUTORS exec INNER JOIN SO_BEARDS a on a.unid = exec.executors_id where exec.rkk_id = d.unid
+               AND LOWER(a.original_ShortName) LIKE LOWER(:executors)) ELSE 1=1 END]]></script>
+    </collection-filter>
+  </filter>
+  <filter name="Фильтр по идентификаторам документа" id="docIdsFilter" type="actor">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[CASE WHEN :filterByRkk = TRUE THEN d.unid IN (:rkkId) ELSE 1=1 END]]></script>
     </collection-filter>
   </filter>
 </pkd>

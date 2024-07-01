@@ -9,6 +9,23 @@
     </properties>
     <appearance widget="tabs"/>
     <component>
+      <button name="${ui.form.NdoRegisterForm.button.Удалить.name:Удалить}">
+        <hint-pop-up>${ui.form.NdoRegisterForm.button.Удалить.hintPopUp:Удалить}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.NdoRegisterForm.button.Связанный документ.name:Связанный документ}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.NdoRegisterForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+        </action>
+      </button>
       <section id="RootMenu">
         <component>
           <section name="${ui.form.NdoRegisterForm.section.RootMenu.section.CREATE.name:Создать}" id="CREATE">
@@ -18,7 +35,7 @@
                   <system name="http://intertrust.ru/cmj/relations#create-new-object"/>
                 </action>
               </button>
-              <button name="${ui.form.NdoRegisterForm.section.RootMenu.section.CREATE.button.CreateNdoChange.name:Создать изменения к НДО}" alias="create-ndochange">
+              <button name="${ui.form.NdoRegisterForm.section.RootMenu.section.CREATE.button.CreateNdoChange.name:Изменения к сводной НД}" alias="create-ndochange">
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="read"/>
@@ -46,6 +63,7 @@
             <properties>
               <hide condition-union="AND">
                 <negative-condition-ref ref="canAddOrCreateChapterNdo" />
+                <negative-condition-ref ref="read"/>
               </hide>
             </properties>
             <action position="20.0">
@@ -103,7 +121,7 @@
                 <style id="tunClickableRed" />
               </label-style>
             </appearance>
-            <action>
+            <action position="20.7">
               <custom>
                 <operation>
                   <handler>
@@ -125,7 +143,7 @@
                 <style id="tunClickableRed" />
               </label-style>
             </appearance>
-            <action>
+            <action position="19">
               <custom>
                 <operation>
                   <handler>
@@ -140,7 +158,7 @@
               <button attribute-ref="$canSendToApproving" name="${ui.form.NdoRegisterForm.button.canSendToApproving.name:На согласование}">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="CanSendToApproving"/>
+                    <negative-condition-ref ref="NdoRegisterCanSendToApproving"/>
                   </hide>
                 </properties>
                 <hint-pop-up>${ui.form.NdoRegisterForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
@@ -155,7 +173,7 @@
               <button name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.button.Readers.name:Читатели}" alias="ndo-readers" tid="ndo-readers">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="read"/>
+                    <condition-ref ref="NdoRegister_isDeleted"/>
                   </hide>
                 </properties>
                 <action>
@@ -179,6 +197,11 @@
                 </action>
               </button>
               <section name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.name:Печатная форма}" id="PRINT_REPORT">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="NdoRegister_isDeleted"/>
+                  </hide>
+                </properties>
                 <component>
                   <button alias="org-register-with-one-approval-mark" tid="ndoWith1ApprovalMark"
                           name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.button.ndoWith1ApprMark.name:Номенклатура дел организации с одной отметкой согласования (ЭК)}">
@@ -232,7 +255,7 @@
                     </action>
                   </button>
                   <button alias="final-record-to-ndo" tid="finalRecordToNdo"
-                          name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.button.finalRecordToNdo.name:Итоговая запись к сводной номенклатуре дел}">
+                          name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.button.finalRecordToNdo.name:Итоговая запись к Номенклатуре дел организации}">
                     <properties>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="read"/>
@@ -250,6 +273,34 @@
                   </button>
                 </component>
               </section>
+              <button name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.button.Удалить.name:Удалить}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="canDeleteIfAdminNdo"/>
+                  </hide>
+                </properties>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler-ref ref="ShowNdoDeleteMessage"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.NdoRegisterForm.section.RootMenu.section.OTHER.button.Удалить из корзины.name:Удалить из корзины}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="canDeleteNdoFromTrash"/>
+                  </hide>
+                </properties>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler-ref ref="DeleteOrgRegisterFromTrash"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
             </component>
             <appearance>
               <action position="25">
@@ -260,105 +311,98 @@
         </component>
       </section>
       <section id="Header">
-        <properties>
-          <read-only>
-            <condition-ref ref="exStatusIsEkApproved"/>
-          </read-only>
-        </properties>
         <component>
           <section id="Header_row1" group="true">
+            <properties>
+              <read-only>
+                <condition-ref ref="exStatusIsNotEkApproved"/>
+              </read-only>
+            </properties>
             <appearance field-layout="horizontal"/>
             <component>
-              <section group="true" id="objectShow">
-                <component>
-                  <field attribute-ref="objectShow">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance align="left">
-                      <label-style field-unit="symbol" field-width="18" />
-                      <alt-appearancies>
-                        <alt-appearance>
-                          <appearance-ref ref="css_headerElementWithIcon" />
-                          <enable condition-union="AND">
-                            <condition>true</condition>
-                          </enable>
-                        </alt-appearance>
-                      </alt-appearancies>
-                    </appearance>
-                  </field>
-                </component>
+              <field attribute-ref="objectShow">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
                 <appearance align="left">
-                  <dialog-mode unit="percent" width="12" />
-                </appearance>
-              </section>
-              <section group="true" id="organization">
-                <component>
-                  <field attribute-ref="organization">
-                    <properties>
-                      <require condition-union="AND">
-                        <negative-condition-ref ref="edit" />
+                  <label-style field-unit="symbol" field-width="18" />
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon" />
+                      <enable condition-union="AND">
                         <condition>true</condition>
-                      </require>
-                      <read-only condition-union="AND">
-                        <negative-condition-ref ref="TObjectIsNotNew" />
-                      </read-only>
-                    </properties>
-                    <appearance align="left">
-                      <label-style field-unit="symbol" field-width="18" />
-                      <alt-appearancies>
-                        <alt-appearance>
-                          <appearance-ref ref="css_headerElementWithIcon" />
-                          <enable condition-union="AND">
-                            <condition>true</condition>
-                          </enable>
-                        </alt-appearance>
-                      </alt-appearancies>
-                    </appearance>
-                    <directories>
-                      <directory-ref ref="CURRENT_ORG_ONLY" />
-                    </directories>
-                  </field>
-                </component>
-                <appearance align="left">
-                  <dialog-mode unit="percent" width="11" />
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
                 </appearance>
-              </section>
-              <section group="true" id="orgDepartment">
-                <component>
-                  <field attribute-ref="orgDepartment">
-                    <properties>
-                      <read-only condition-union="AND">
+              </field>
+              <field attribute-ref="organization">
+                <properties>
+                  <require condition-union="AND">
+                    <negative-condition-ref ref="edit" />
+                    <condition>true</condition>
+                  </require>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-unit="symbol" field-width="18" />
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon" />
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <directories>
+                  <directory-ref ref="CURRENT_ORG_ONLY" />
+                </directories>
+              </field>
+              <field attribute-ref="emptyField">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance>
+                  <label-style field-unit="symbol" field-width="4" />
+                </appearance>
+              </field>
+              <field attribute-ref="orgDepartment">
+                <properties>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="TObjectIsNotNew" />
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="hasDepartmentWithNdo" />
+                    <negative-condition-ref ref="orgDepIsNotEmpty" />
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style field-unit="symbol" field-width="30" />
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon" />
+                      <enable condition-union="AND">
                         <negative-condition-ref ref="TObjectIsNotNew" />
-                      </read-only>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="TObjectIsNew" />
-                        <negative-condition-ref ref="orgDepIsNotEmpty" />
-                      </hide>
-                    </properties>
-                    <appearance align="left">
-                      <label-style field-unit="symbol" field-width="18" />
-                      <alt-appearancies>
-                        <alt-appearance>
-                          <appearance-ref ref="css_headerElementWithIcon" />
-                          <enable condition-union="AND">
-                            <condition>true</condition>
-                          </enable>
-                        </alt-appearance>
-                      </alt-appearancies>
-                    </appearance>
-                    <directories relation="NdDepsHasNdo" limit-livesearch="sys-current" livesearch="true">
-                      <directory-ref ref="NdDepsHasNdo" />
-                    </directories>
-                  </field>
-                </component>
-              </section>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <show-value schema-ref="VCardResource.TitleOrShortName"/>
+                <directories relation="NdDepsHasNdo" limit-livesearch="sys-current" livesearch="true">
+                  <directory-ref ref="NdDepsHasNdo" />
+                </directories>
+              </field>
               <button name="${ui.form.NdoRegister.label.readyForEkConsiderationNdo.name:Готова к вынесению на ЭК}" tid="readyForEkConsiderationNdo">
                 <properties>
                   <hide>
-                    <negative-condition-ref ref="NdoIsReadyForEkConsideration"/>
+                    <negative-condition-ref ref="NdoShowReadyForEkConsideration"/>
                   </hide>
                   <disabled>
                     <negative-condition-ref ref="canTouchNotReadyEK"/>
@@ -383,7 +427,7 @@
               <button name="${ui.form.NdoRegister.label.unreadyForEkConsiderationNdo.name:Не готова к вынесению на ЭК}" tid="unreadyForEkConsiderationNdo">
                 <properties>
                   <hide>
-                    <condition-ref ref="NdoIsReadyForEkConsideration"/>
+                    <condition-ref ref="NdoHideUnreadyForEkConsideration"/>
                     <condition-ref ref="TObjectIsNew"/>
                   </hide>
                   <disabled>
@@ -412,7 +456,7 @@
                     <negative-condition-ref ref="NdoIsEkApproved" />
                   </hide>
                   <disabled condition-union="AND">
-                    <negative-condition-ref ref="edit" />
+                    <negative-condition-ref ref="TObjectIsNew"/>
                   </disabled>
                 </properties>
                 <appearance>
@@ -468,21 +512,40 @@
                   <directory-ref ref="ndoStatus"/>
                 </directories>
               </field>
+              <field attribute-ref="verifyCertifyLockerData">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="hasCheckCertifyLink" />
+                  </hide>
+                </properties>
+                <appearance importance="normal" widget="SignVerify">
+                  <label-style field-width="2" field-unit="symbol"/>
+                </appearance>
+              </field>
              </component>
           </section>
           <section id="Header_row2" group="true">
+            <properties>
+              <read-only>
+                <condition-ref ref="exStatusIsNotEkApproved"/>
+              </read-only>
+            </properties>
             <appearance field-layout="horizontal"/>
             <component>
-              <field attribute-ref="dateYearStr" name="${ui.form.NdoRegisterForm.label.dateYear.name:Год}">
+              <field attribute-ref="dateYearStr" name="${ui.form.NdoRegisterForm.section.Header.section.Header_row2.field.dateYearStr.name:Год}">
                 <properties>
-                  <read-only>
-                    <condition-ref ref="TObjectIsNotNew"/>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="TObjectIsNotNew" />
                   </read-only>
                 </properties>
-                <appearance importance="normal">
+                <appearance importance="normal" align="left">
+                  <label-style label-width="3" />
                 </appearance>
-                <directories limit-livesearch="no-restrictions">
-                  <directory-ref ref="NDOYears"/>
+                <directories>
+                  <directory-ref ref="NDOYears" />
                 </directories>
               </field>
               <field attribute-ref="protocol" name="${ui.form.NdoRegisterForm.label.protocol.name:Протокол ЦЭК (ЭК) от:}">
@@ -525,6 +588,9 @@
                   <read-only>
                     <condition>true</condition>
                   </read-only>
+                  <hide>
+                    <condition-ref ref="NdoStatusExtendedIsEmpty"/>
+                  </hide>
                 </properties>
                 <directories>
                   <directory-ref ref="ndoStatusExtended" />
@@ -538,6 +604,11 @@
             </component>
           </section>
           <section id="Header_row3" group="true">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="NdoShowApprByStateArchButtons"/>
+              </hide>
+            </properties>
             <appearance field-layout="horizontal"/>
             <component>
               <button name="${ui.form.NdoRegister.label.approvedByStateArch.name:Согласовано госархивом}" tid="approvedByStateArch">
@@ -615,16 +686,7 @@
           <field attribute-ref="contentFiles" name="${ui.form.NdoRegisterForm.content.section.contentFiles.name:Файлы}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="contentFilesNotEmpty"/>
-              </hide>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="contentFiles" name="${ui.form.NdoRegisterForm.content.section.contentFiles.name:Файлы}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="contentFilesEmpty"/>
-                <negative-condition-ref ref="edit"/>
+                <condition-ref ref="contentFilesEmpty"/>
               </hide>
             </properties>
             <appearance importance="normal"/>
@@ -635,29 +697,17 @@
                 <negative-condition-ref ref="canEditImage"/>
               </read-only>
               <hide condition-union="AND">
-                <negative-condition-ref ref="contentImageNotEmpty"/>
-              </hide>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="contentImage" name="${ui.form.NdoRegisterForm.content.section.Image.contentImage.name:Образ после подписания}">
-            <properties>
-              <read-only>
-                <negative-condition-ref ref="canEditImage"/>
-              </read-only>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="contentImageEmpty"/>
-                <negative-condition-ref ref="edit"/>
+                <condition-ref ref="contentImageEmpty"/>
               </hide>
             </properties>
             <appearance importance="normal"/>
           </field>
         </component>
       </section>
-      <section id="DealsSection" name="${ui.form.NdoRegisterForm.section.DealsSection.name:Дела}">
+      <section id="DealsSection" name="${ui.form.NdoRegisterForm.section.DealsSection.name:Разделы номенклатуры}">
         <properties>
           <read-only>
-            <condition-ref ref="exStatusIsEkApproved"/>
+            <condition-ref ref="exStatusIsNotEkApproved"/>
           </read-only>
         </properties>
         <component>
@@ -669,6 +719,7 @@
                     <properties>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="canAddOrCreateChapterNdo"/>
+                        <negative-condition-ref ref="read"/>
                       </hide>
                     </properties>
                     <appearance align="left">
@@ -691,6 +742,7 @@
                     <properties>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="canAddOrCreateChapterNdo"/>
+                        <negative-condition-ref ref="read"/>
                       </hide>
                     </properties>
                     <appearance align="left">
@@ -703,7 +755,7 @@
                       <custom>
                         <operation>
                           <handler>
-                            <script lang="JavaBean">NdoLoadFromXlsxOperation</script>
+                            <script lang="JavaBean">loadNdpToNdoFromXlsxOperation</script>
                           </handler>
                         </operation>
                       </custom>
@@ -712,7 +764,7 @@
                   <button name="${ui.form.NdoRegisterForm.section.DealsSection.section.PartiotionsRow.button.UnloadToXlsx.name:Выгрузить данные в .xlsx}">
                     <properties>
                       <hide condition-union="AND">
-                        <negative-condition-ref ref="canUnloadChapterNdo"/>
+                        <negative-condition-ref ref="read"/>
                       </hide>
                     </properties>
                     <appearance align="left">
@@ -725,7 +777,29 @@
                       <custom>
                         <operation>
                           <handler>
-                            <script lang="JavaBean">NdoUloadToXlsxOperation</script>
+                            <script lang="JavaBean">unloadNdpFromNdoToXlsxOperation</script>
+                          </handler>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.NdoRegisterForm.section.DealsSection.section.PartiotionsRow.button.UploadToXlsx.name:Загрузить ВСЕ дела из .xlsx}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="canLoadAllFile"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style width="20">
+                        <style id="tunUnderline" />
+                        <style id="tunClickableRed" />
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">loadAllFileToNdoFromXlsxOperation</script>
                           </handler>
                         </operation>
                       </custom>
@@ -760,7 +834,16 @@
                 <appearance field-layout="horizontal"/>
                 <component>
                   <field attribute-ref="sumTotalSpd" name="${ui.form.NdoRegisterForm.label.sumTotalSpd.name:Всего дел постоянного срока хранения}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -768,7 +851,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="movable" name="${ui.form.NdoRegisterForm.label.movable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -776,7 +868,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="beforeDrop" name="${ui.form.NdoRegisterForm.label.epkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -789,7 +890,16 @@
                 <appearance field-layout="horizontal"/>
                 <component>
                   <field attribute-ref="gt10SumTemporalOver" name="${ui.form.NdoRegisterForm.label.gt10SumTemporalOver.name:Всего дел временного (свыше 10 лет) срока хранения}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -797,7 +907,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="gt10Movable" name="${ui.form.NdoRegisterForm.label.gt10Movable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -805,7 +924,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="gt10EpkMark" name="${ui.form.NdoRegisterForm.label.gt10EpkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -818,7 +946,16 @@
                 <appearance field-layout="horizontal"/>
                 <component>
                   <field attribute-ref="lt10SumTemporalLess" name="${ui.form.NdoRegisterForm.label.lt10SumTemporalLess.name:Всего дел временного (до 10 лет) срока хранения}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -826,7 +963,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="lt10Movable" name="${ui.form.NdoRegisterForm.label.lt10Movable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -834,7 +980,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="lt10EpkMark" name="${ui.form.NdoRegisterForm.label.lt10EpkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -847,7 +1002,16 @@
                 <appearance field-layout="horizontal"/>
                 <component>
                   <field attribute-ref="sum" name="${ui.form.NdoRegisterForm.label.sum.name:Всего дел}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -855,7 +1019,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="sumMovable" name="${ui.form.NdoRegisterForm.label.sumMovable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -863,7 +1036,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="sumEpkMark" name="${ui.form.NdoRegisterForm.label.sumEpkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <read-only>
                         <condition>true</condition>
@@ -882,7 +1064,7 @@
             <negative-condition-ref ref="canSeeIncludeNdoChange"/>
           </hide>
           <read-only>
-            <condition-ref ref="exStatusIsEkApproved"/>
+            <condition-ref ref="exStatusIsNotEkApproved"/>
           </read-only>
         </properties>
         <component>
@@ -897,10 +1079,10 @@
       <section id="LifeCycle" name="${ui.form.NdoRegisterForm.section.LifeCycle.name:Жизненный цикл}">
         <properties>
           <hide>
-            <condition-ref ref="throughIternalOrg"/>
+            <condition-ref ref="throughInternalOrg"/>
           </hide>
           <read-only>
-            <condition-ref ref="exStatusIsEkApproved"/>
+            <condition-ref ref="exStatusIsNotEkApproved"/>
           </read-only>
         </properties>
         <appearance widget="leftMenu"/>
@@ -921,11 +1103,11 @@
         <appearance widget="leftMenu"/>
         <properties>
           <read-only>
-            <condition-ref ref="exStatusIsEkApproved"/>
+            <condition-ref ref="exStatusIsNotEkApproved"/>
           </read-only>
         </properties>
         <component>
-          <section id="Documеnts" name="${ui.form.NdoRegisterForm.section.Links.section.Documеnts.name:Документы}"/>
+          <section id="Documents" name="${ui.form.NdoRegisterForm.section.Links.section.Documеnts.name:Документы}"/>
           <section id="Visualization" name="${ui.form.NdoRegisterForm.section.Links.section.Visualization.name:Визуализация}"/>
         </component>
       </section>
@@ -935,7 +1117,7 @@
             <negative-condition-ref ref="NdoCanDiscuss"/>
           </hide>
           <read-only>
-            <condition-ref ref="exStatusIsEkApproved"/>
+            <condition-ref ref="exStatusIsNotEkApproved"/>
           </read-only>
         </properties>
       </section>

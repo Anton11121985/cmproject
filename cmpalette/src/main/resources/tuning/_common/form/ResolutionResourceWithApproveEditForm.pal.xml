@@ -9,7 +9,11 @@
     <appearance field-layout="vertical"/>
     <component>
       <section id="Attributes" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.name:Атрибуты}" group="true">
-        <appearance field-layout="vertical"/>
+        <appearance field-layout="vertical">
+          <label-style>
+            <style id="tunNowrapTitle"/>
+          </label-style>
+        </appearance>
         <component>
           <section id="main" group="true">
             <appearance style="resolutionHeader"/>
@@ -91,7 +95,7 @@
                   <limit height="2"/>
                 </appearance>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.field.text.hintPopUp:Текст}</hint-pop-up>
-                <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.field.text.hintInField:&lt;без текста>}</hint-in-field>
+                <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.field.text.hintInField:&lt;без текста&gt;}</hint-in-field>
               </field>
               <section id="control_section" group="true">
                 <appearance field-layout="horizontal" style="resolutionHeader"/>
@@ -119,14 +123,6 @@
                 <appearance field-layout="horizontal" style="resolutionHeader"/>
                 <component>
                   <field recalc="true" attribute-ref="medoPart.part" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.section.medoPart.field.medoPart.part.name:Пункт}">
-                    <properties>
-                      <require condition-union="AND">
-                        <condition>true</condition>
-                      </require>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="isMedoResolution"/>
-                      </hide>
-                    </properties>
                     <appearance align="left">
                       <label-style field-width="12" field-unit="symbol"/>
                     </appearance>
@@ -134,11 +130,6 @@
                     <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.section.medoPart.field.medoPart.part.hintInField:Пункт}</hint-in-field>
                   </field>
                   <field attribute-ref="medoPart.contents" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.section.medoPart.field.medoPart.contents.name:Содержание}">
-                    <properties>
-                      <hide condition-union="AND">
-                        <negative-condition-ref ref="isMedoResolution"/>
-                      </hide>
-                    </properties>
                     <appearance align="left"/>
                     <hint-pop-up>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.section.medoPart.field.medoPart.contents.hintPopUp:Содержание}</hint-pop-up>
                     <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.main.section.medoPart.field.medoPart.contents.hintInField:Содержание}</hint-in-field>
@@ -150,29 +141,36 @@
           <section id="Header" group="true">
             <appearance field-layout="horizontal" style="ResolutionBodyPart"/>
             <component>
-              <field recalc="true" attribute-ref="author" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.author.name:Автор}">
+              <field recalc="true" attribute-ref="author" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.author.name:Автор:}">
                 <properties>
                   <require condition-union="AND">
                     <condition>true</condition>
                   </require>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance importance="normal">
+                  <limit max-height-scroll="1" height="1" min-lenght="30"/>
+                </appearance>
                 <directories limit-livesearch="sys-current">
+                  <directory-ref ref="MY_SURRODING"/>
                   <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
                   <directory-ref ref="CURRENT_DEP_HUMAN_HH_HIER"/>
+                  <directory-ref ref="ourForeign"/>
                   <directory-ref ref="CURRENT_SYS_ROLE"/>
                   <directory-ref ref="FV_CURR_HUMAN_HH_DEP_ROLE"/>
                 </directories>
               </field>
-              <field attribute-ref="date" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.date.name:Дата}">
+              <field attribute-ref="date" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.date.name:Дата:}">
                 <properties>
                   <require condition-union="AND">
                     <condition>true</condition>
                   </require>
                 </properties>
+                <appearance>
+                  <label-style label-width="5" label-unit="symbol"/>
+                </appearance>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.date.hintPopUp:Дата}</hint-pop-up>
               </field>
-              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения}" alias="deadline">
+              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения:}" alias="deadline">
                 <properties>
                   <require condition-union="AND">
                     <condition-ref ref="resolutionIsControlled"/>
@@ -183,7 +181,7 @@
                 </properties>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.resdeadline.hintPopUp:Срок исполнения}</hint-pop-up>
               </field>
-              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения}" alias="deadline">
+              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения:}" alias="deadline">
                 <properties>
                   <require condition-union="AND">
                     <condition-ref ref="resolutionIsControlled"/>
@@ -220,13 +218,48 @@
               </section>
             </component>
           </section>
+          <field attribute-ref="comments" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.field.comments.name:Примечание:}">
+            <appearance importance="normal" multiline="true" align="left">
+              <limit max-lenght="256"/>
+              <label-style field-width="40" field-unit="percent"/>
+            </appearance>
+          </field>
           <field recalc="true" attribute-ref="$executorsList" alias="executorsList">
             <properties>
               <require condition-union="AND">
                 <condition>true</condition>
               </require>
               <hide condition-union="AND">
-                <condition-ref ref="resolutionIsNew"/>
+                <negative-condition-ref ref="isOutputDocResolution"/>
+              </hide>
+            </properties>
+            <appearance>
+              <label-style>
+                <style id="tunResolutionBodyPart"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunResolutionBodyPart"/>
+                </value-style>
+              </field-style>
+            </appearance>
+            <show-value schema-ref="VCardResource.OrgNonSysHuman"/>
+            <directories livesearch="true" limit-livesearch="sys">
+              <directory-ref ref="MY_SURRODING"/>
+              <directory-category-custom-coll ref="CURRENT_All2"/>
+              <directory-category-custom-coll ref="CURRENT_All_Hierarchy2"/>
+              <directory-ref ref="sys_roles"/>
+              <directory-category-custom-coll ref="sendlistSys"/>
+              <directory-category-custom-coll ref="FV_CURR_AND_FOREIGN_HUMAN_HH_DEP_ORG_SYS"/>
+            </directories>
+          </field>
+          <field recalc="true" attribute-ref="$executorsList" alias="executorsList">
+            <properties>
+              <require condition-union="AND">
+                <condition>true</condition>
+              </require>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="isNewNotOutputDocResolution"/>
               </hide>
             </properties>
             <appearance>
@@ -241,8 +274,10 @@
             </appearance>
             <show-value schema-ref="VCardResource.OrgNonSysHuman"/>
             <directories livesearch="true" limit-livesearch="no-restrictions">
+              <directory-ref ref="MY_SURRODING"/>
               <directory-category-custom-coll ref="CURRENT_All2"/>
               <directory-category-custom-coll ref="CURRENT_All_Hierarchy2"/>
+              <directory-ref ref="sys_roles"/>
               <directory-category-custom-coll ref="ALIEN_BEARDS_HUMANONLY"/>
               <directory-category-custom-coll ref="sendlist"/>
               <directory-category-custom-coll ref="FV_CURR_HUMAN_HH_DEP_FOREIGN_ALL"/>
@@ -254,7 +289,7 @@
                 <condition>true</condition>
               </require>
               <hide condition-union="AND">
-                <negative-condition-ref ref="resolutionIsNew"/>
+                <negative-condition-ref ref="isNotNewNotOutputDocResolution"/>
               </hide>
             </properties>
             <appearance>
@@ -269,9 +304,11 @@
             </appearance>
             <show-value schema-ref="VCardResource.OrgNonSysHuman"/>
             <directories livesearch="true" limit-livesearch="no-restrictions">
+              <directory-ref ref="MY_SURRODING"/>
               <directory-category-custom-coll ref="CURRENT_All2"/>
               <directory-category-custom-coll ref="CURRENT_All_Hierarchy"/>
               <directory-category-custom-coll ref="AlienBeards"/>
+              <directory-ref ref="sys_roles"/>
               <directory-category-custom-coll ref="sendlist"/>
               <directory-category-custom-coll ref="FV_CURR_HUMAN_HH_DEP_FOREIGN_ALL"/>
             </directories>
@@ -346,6 +383,11 @@
           </field>
           <section id="Notifications" group="true">
             <appearance style="ResolutionBodyPart"/>
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="resolutionIsControlled"/>
+              </hide>
+            </properties>
             <component>
               <field attribute-ref="execNotice"/>
             </component>
@@ -355,7 +397,7 @@
               <dialog-mode width="1" unit="symbol"/>
             </appearance>
             <component>
-              <field attribute-ref="$isSendToApproving" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.isSendToApproving.name:На утверждение}">
+              <field attribute-ref="$isSendToApproving" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.isSendToApproving.name:Направить руководителю}">
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="isSendToApproving"/>
@@ -408,6 +450,12 @@
                   <condition-ref ref="resolutionIsNew"/>
                   <condition-ref ref="ResolutionIsProject"/>
                 </rename>
+                <appearance importance="normal"/>
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="resolution_ProjectOnApproving"/>
+                  </hide>
+                </properties>
               </field>
               <field attribute-ref="$sendToIDocs" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.sendToIDocs.name:Передать}">
                 <properties>
@@ -428,7 +476,7 @@
               <field attribute-ref="$saveAsTemplate">
                 <properties>
                   <hide condition-union="AND">
-                    <condition-ref ref="resolutionIsNew"/>
+                    <negative-condition-ref ref="hasLinkSaveAsTemplate"/>
                   </hide>
                 </properties>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.saveAsTemplate.hintPopUp:Сохранить как шаблон}</hint-pop-up>
@@ -443,6 +491,7 @@
                 <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.delete.hintInField:Удалить}</hint-in-field>
               </field>
               <field attribute-ref="$saveAsProject">
+                <appearance importance="normal"/>
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="resolutionIsNew"/>
@@ -453,6 +502,7 @@
                 <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.saveAsProject.hintInField:Сохранить как проект}</hint-in-field>
               </field>
               <field attribute-ref="$cancel">
+                <appearance importance="normal"/>
                 <hint-pop-up>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.cancel.hintPopUp:Отмена}</hint-pop-up>
                 <hint-in-field>${ui.form.ResolutionResourceWithApproveEditForm.section.Attributes.section.Actions.field.cancel.hintInField:Отмена}</hint-in-field>
               </field>
@@ -462,7 +512,7 @@
       </section>
       <section id="Links" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Links.name:Связанные}" group="true">
         <component>
-          <section id="Documеnts"/>
+          <section id="Documents"/>
           <section id="Actions2" group="true">
             <appearance field-layout="horizontal">
               <dialog-mode width="1" unit="symbol"/>
@@ -524,6 +574,11 @@
                   <condition-ref ref="ResolutionIsProject"/>
                 </rename>
                 <appearance importance="normal"/>
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="resolution_ProjectOnApproving"/>
+                  </hide>
+                </properties>
               </field>
               <field attribute-ref="$sendToIDocs" name="${ui.form.ResolutionResourceWithApproveEditForm.section.Links.section.Actions2.field.sendToIDocs.name:Передать}">
                 <properties>
@@ -544,7 +599,7 @@
               <field attribute-ref="$saveAsTemplate">
                 <properties>
                   <hide condition-union="AND">
-                    <condition-ref ref="resolutionIsNew"/>
+                    <negative-condition-ref ref="hasLinkSaveAsTemplate"/>
                   </hide>
                 </properties>
                 <appearance importance="normal"/>
@@ -606,12 +661,20 @@
                 <directories>
                   <directory-ref ref="periodType"/>
                 </directories>
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                </properties>
               </field>
               <field attribute-ref="periodicParameters.period" name="${ui.form.ResolutionResource.period:Период:}" recalc="true">
                 <properties>
                   <hide>
                     <condition-ref ref="ResolutionResource_isPeriodTypeDates"/>
                   </hide>
+                  <require>
+                    <condition-ref ref="ResolutionResource_isPeriodTypeNotDates"/>
+                  </require>
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.nextDueDate" name="${ui.form.ResolutionResource.nextDueDateResolution:Срок следующей резолюции:}" recalc="true">
@@ -632,6 +695,9 @@
                   <hide>
                     <negative-condition-ref ref="ResolutionResource_isPeriodTypeMonthly"/>
                   </hide>
+                  <require>
+                    <condition-ref ref="ResolutionResource_isPeriodTypeMonthly"/>
+                  </require>
                 </properties>
                 <directories>
                   <directory-ref ref="period.subtype"/>
@@ -642,6 +708,9 @@
                   <hide>
                     <condition-ref ref="ResolutionResource_isPeriodTypeDates"/>
                   </hide>
+                  <require>
+                    <condition-ref ref="ResolutionResource_isPeriodTypeNotDates"/>
+                  </require>
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.endDate" name="${ui.form.ResolutionResource.endDate:Окончание:}">
@@ -649,6 +718,9 @@
                   <hide>
                     <condition-ref ref="ResolutionResource_isPeriodTypeDates"/>
                   </hide>
+                  <require>
+                    <condition-ref ref="ResolutionResource_isPeriodTypeNotDates"/>
+                  </require>
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.dismissalNoticeLabel" name="${ui.form.ResolutionResource.dismissalNoticeLabel:При увольнении исполнителя уведомлять:}">
@@ -659,7 +731,7 @@
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.dismissalNoticeAuthor" name="${ui.form.ResolutionResource.dismissalNoticeAuthor:Автора:}"/>
-              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionResource.dismissalNoticeController:Контроллёра:}"/>
+              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionResource.dismissalNoticeController:Контролёра:}"/>
               <button recalc="true" attribute-ref="fillSchedule" name="${ui.form.DatesSchedule.compute:Вычислить график}">
                 <properties>
                   <hide condition-union="AND">

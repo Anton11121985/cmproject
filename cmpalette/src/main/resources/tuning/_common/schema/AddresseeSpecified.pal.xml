@@ -1,14 +1,139 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
-  <schema name="AddresseeSpecified">
+  <schema name="AddresseeSpecified" recalc="true">
     <meta>
       <category name="Система\Делопроизводство"/>
     </meta>
-    <actor name="sender" system="true"/>
-    <string name="receiver" system="true"/>
-    <string name="received" system="true"/>
-    <string name="sent" system="true"/>
-    <actor name="addressee" system="true"/>
-    <schema-ref ref="AddressInfo" name="sendTo" system="true"/>
+    <actor name="sender" system="true"/> <!--Отправитель\Пользователь, выполнявший действия по отправке-->
+    <string name="receiver" system="true"/> <!--ФИО получателя-->
+    <datetime name="received" system="true"/> <!--Дата доставки-->
+    <string name="displayReceived" system="true"/>
+    <datetime name="sent" system="true"/> <!--Дата отправки-->
+    <string name="displaySent" system="true"/>
+    <actor name="addressee" system="true"/> <!--Корреспондент\Получатель-->
+    <string name="displayAddressee" system="true"/>
+    <schema-ref ref="AddressInfo" name="sendTo" system="true"/> <!--Адрес отправки, Способ отправки-->
+    <string name="sendStatus" system="true"/>
+    <string name="externalCode" system="true"/>
+    <string name="ruPostCategoryRPO" system="true"/>
+    <string name="ruPostTypeRPO" system="true"/>
+    <boolean name="ruPostDeliveryNotice" system="true"/>
+    <string name="index" system="true"/>
+    <string name="phone" system="true"/>
+    <string name="courier" system="true"/>
+    <string name="email" system="true"/>
+    <string name="senderNN" system="true"/>
+    <string name="fileName" system="true"/>
+    <string name="externalID" system="true"/>
+    <string name="sendStatusValues" array="true" system="true"/>
+    <boolean name="curUserIsClerk" system="true"/>
+    <boolean name="curUserIsClerkOrExpeditor" system="true"/>
+    <boolean name="statusOnSending" system="true"/>
+    <boolean name="canEditReceiver" system="true"/>
+    <boolean name="canEditSendToType" system="true"/>
+    <boolean name="canEditSendStatus" system="true"/>
+    <boolean name="canEditSentDate" system="true"/>
+    <boolean name="canSeeReceivedDate" system="true"/>
+    <boolean name="canEditExternalCode" system="true"/>
+    <boolean name="canSeeExternalCode" system="true"/>
+    <boolean name="sendTypeAutoUpdated" system="true"/>
+    <boolean name="canExpeditorEditRow" system="true"/>
+    <string name="label"/>
+    <hyperlink name="openLink"/>
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.lotus.domino.NotesException);
+importClass(Packages.java.lang.RuntimeException);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.java.util.Calendar);
+
+function recalc(object, changedField) {
+    if (changedField == "sendStatus") {
+        var sendStatus = GetValue(object, "sendStatus");
+        if (sendStatus != null && sendStatus.equals("На отправке")) {
+            SetValue(object, "statusOnSending", true);
+            SetValue(object, "canEditReceiver", getCanEditReceiver(object, true));
+            SetValue(object, "canEditSendToType", getCanEditSendToType(object));
+            SetValue(object, "canEditSentDate", getCanEditSentDate(object, true));
+        } else if (sendStatus != null && sendStatus.equals("Отправлено")) {
+            SetValue(object, "canEditExternalCode", getCanEditExternalCode(object, true));
+            SetValue(object, "canSeeExternalCode", getCanSeeExternalCode(object, true));
+
+            var curDate = Calendar.getInstance().getTime();
+            var dDate = AFDateTime.convertFromDate(curDate);
+	        SetValue(object, "sent", dDate);
+        } else if (sendStatus != null && sendStatus.equals("Доставлено")) {
+            SetValue(object, "canEditExternalCode", getCanEditExternalCode(object, true));
+            SetValue(object, "canSeeExternalCode", getCanSeeExternalCode(object, true));
+        } else {
+            SetValue(object, "statusOnSending", false);
+            SetValue(object, "canEditReceiver", getCanEditReceiver(object, false));
+            SetValue(object, "canEditSendToType", false);
+            SetValue(object, "canEditSentDate", getCanEditSentDate(object, false));
+            SetValue(object, "canEditExternalCode", getCanEditExternalCode(object, false));
+            SetValue(object, "canSeeExternalCode", false);
+        }
+    }
+}
+
+function querySave(object, document) {
+    return true;
+}
+
+function courierCompOrOrg(object) {
+    var typeName = object.tuning().getValues().get("sendTo") != null
+      ? object.tuning().getValues().get("sendTo").getValues().get("type").getValue() : "";
+    var courierCompOrOrg = typeName.equals("Курьерская компания") || typeName.equals("Курьер организации");
+    return courierCompOrOrg;
+}
+
+function getCanEditExternalCode(object, status) {
+    var curUserIsClerkOrExpeditor = GetValue(object, "curUserIsClerkOrExpeditor");
+    var canEditExternalCode = curUserIsClerkOrExpeditor && status;
+    return canEditExternalCode;
+}
+
+function getCanSeeExternalCode(object, status) {
+    var typeName = object.tuning().getValues().get("sendTo") != null
+      ? object.tuning().getValues().get("sendTo").getValues().get("type").getValue() : "";
+    var canSeeExternalCode = typeName.equals("Почта России") && status;
+    return canSeeExternalCode;
+}
+
+function getCanEditSentDate(object, statusOnSending) {
+    var curUserIsClerkOrExpeditor = GetValue(object, "curUserIsClerkOrExpeditor");
+    var typeName = object.tuning().getValues().get("sendTo") != null
+      ? object.tuning().getValues().get("sendTo").getValues().get("type").getValue() : "";
+    var canEditSendToType = courierCompOrOrg(object) && statusOnSending && curUserIsClerkOrExpeditor
+      || typeName.equals("Почта России");
+    return canEditSendToType;
+}
+
+function getCanEditSendToType(object) {
+    var curUserIsClerkOrExpeditor = GetValue(object, "curUserIsClerkOrExpeditor");
+    var canEditSendToType = courierCompOrOrg(object) && curUserIsClerkOrExpeditor;
+    return canEditSendToType;
+}
+
+function getCanEditReceiver(object, statusOnSending) {
+    var curUserIsClerk = GetValue(object, "curUserIsClerk");
+    var typeName = object.tuning().getValues().get("sendTo") != null
+      ? object.tuning().getValues().get("sendTo").getValues().get("type").getValue() : "";
+    var canEditReceiver = (courierCompOrOrg(object) && statusOnSending || typeName.equals("Нарочно")) && curUserIsClerk;
+    return canEditReceiver;
+}
+
+function GetValue(doc, fileName) {
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+    return tmp.getValue();
+}
+
+function SetValue(doc, fileName, value) {
+      return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

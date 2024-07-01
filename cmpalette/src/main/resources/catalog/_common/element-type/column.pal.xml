@@ -10,6 +10,8 @@
       <documentation>Тип</documentation>
     </meta>
   </column>
+  <column extends="string" subject="${catalog.column.arcDealIndex.subject:Структурное подразделение/Направление деятельности}" name="sUnitOrDirWork" />
+  <column extends="string" subject="${catalog.column.deadLineDates.subject:Крайние даты}" name="deadLineDates" />
   <cell-view name="addAgr-search-result">
     <meta>
       <documentation>Корневой: для отображения результатов поиска по доп. согл. БД Договоры</documentation>
@@ -26,6 +28,7 @@
       <documentation>Адресат</documentation>
     </meta>
   </column>
+  <column extends="string"   subject="${catalog.column.direction_work.catal:Подразделение}" name="catal" />
   <column name="addresseeOrganizaton" subject="${catalog.column.addresseeOrganizaton.subject:Организация}" extends="string"/>
   <complex-column name="addressees" subject="${catalog.complex-column.addressees.subject:Адресаты}" extends="vcard">
     <meta>
@@ -219,6 +222,11 @@
       <documentation>Автор корреспондента</documentation>
     </meta>
   </complex-column>
+  <column name="correspondentAuthorName" subject="${catalog.column.correspondentAuthorName.subject:Автор}" extends="string">
+    <meta>
+      <documentation>Автор корреспондента</documentation>
+    </meta>
+  </column>
   <complex-column name="correspondentContragent" subject="${catalog.complex-column.correspondentContragent.subject:Контрагент}" extends="vcard">
     <meta>
       <documentation>Контрагент</documentation>
@@ -324,7 +332,7 @@
       <documentation>Дата и время удаления</documentation>
     </meta>
   </column>
-  <column name="deletedPerson" subject="${catalog.column.deletedPerson.subject:Кто удалил}" extends="string"/>
+  <column name="deletedPerson" subject="${catalog.column.deletedPerson.subject:Кем удален}" extends="string"/>
   <column name="depName" subject="${catalog.column.depName.subject:Подразделение}" extends="string">
     <meta>
       <documentation>Подразделение</documentation>
@@ -339,7 +347,7 @@
   <column name="sochiunid" extends="string"/>
   <column name="docDate" subject="${catalog.column.docDate.subject:Дата документа}" extends="datetime">
     <meta>
-      <documentation>дата входящего документа</documentation>
+      <documentation>Дата документа</documentation>
     </meta>
   </column>
   <column name="docInfo" subject="${catalog.column.docInfo.subject:Докинфо}" extends="string"/>
@@ -504,7 +512,11 @@
       <documentation>Срок документа</documentation>
     </meta>
   </column>
-  <column name="documentStatus" extends="string"/>
+  <column name="documentStatus" subject="${catalog.column.status.subject:Статус документа}" extends="string">
+    <meta>
+      <documentation>Статус документа</documentation>
+    </meta>
+  </column>
   <complex-column name="preparedBy" extends="vcard">
     <meta>
       <documentation>От имени кого готовится документ</documentation>
@@ -733,7 +745,11 @@
   <column name="id" extends="string"/>
   <column name="Identifier" subject="${catalog.column.Identifier.subject:Идентификатор}" extends="string"/>
   <column name="idForSelfLink" extends="string"/>
-  <column name="internalPhone" extends="string"/>
+  <column name="internalPhone" subject="${catalog.column.internalPhone.subject:Внутренний телефон}" extends="string">
+    <meta>
+      <documentation>Внутренний телефон</documentation>
+    </meta>
+  </column>
   <column name="isDeferred" subject="${catalog.column.isDeferred.subject:Отложена}" extends="boolean"/>
   <column name="isEmployee" extends="boolean"/>
   <column display="icon" name="isLeader" extends="boolean">
@@ -752,7 +768,7 @@
       <documentation>Иконка Признак МЭДО</documentation>
     </meta>
   </complex-column>
-  <complex-column name="hasGriff" extends="icon">
+  <complex-column name="hasGriff" subject="${catalog.column.hasGriff.subject:Гриф}" hide-subject="true" extends="icon">
     <meta>
       <documentation>Иконка есть гриф</documentation>
     </meta>
@@ -822,6 +838,43 @@
     </meta>
     <column-ref ref="id"/>
   </complex-column>
+  <column name="regDateSrch" subject="${catalog.column.regDateSrch.subject:Дата}" extends="datetime">
+    <meta>
+      <documentation>Дата</documentation>
+    </meta>
+  </column>
+  <column name="regFullNumberMain" subject="${catalog.column.regFullNumberMain.subject:Рег. номер}" extends="string">
+    <meta>
+      <documentation>Полный рег. номер</documentation>
+    </meta>
+    <eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument()==null? null:#this.getEntity().getDocument().getFullNumber() == null? #this.getEntity().getDocument().getProjectNumber():#this.getEntity().getDocument().getFullNumber()]]></eval-expression>
+  </column>
+  <column name="regDatespismo" subject="${catalog.column.regDatespismo.subject:Дата письма}" extends="datetime">
+    <meta>
+      <documentation>Дата письма</documentation>
+    </meta>
+  </column>
+  <column name="Numberspismo" subject="${catalog.column.Numberspismo.subject:Номер письма}" extends="string"/>
+  <column name="regFullNumberStr" subject="${catalog.column.regFullNumberMiss.subject:Рег. номер}" extends="string">
+    <meta>
+      <documentation>Полный рег. номер</documentation>
+    </meta>
+  </column>
+  <column name="toStr" subject="${catalog.column.toStr.subject:Кому}" extends="string">
+    <meta>
+      <documentation>Кому</documentation>
+    </meta>
+  </column>
+  <column name="fromStr" subject="${catalog.column.fromStr.subject:От кого}" extends="string">
+    <meta>
+      <documentation>От кого</documentation>
+    </meta>
+  </column>
+  <column name="signerStr" subject="${catalog.column.signerStr.subject:Подписанты}" extends="string">
+    <meta>
+      <documentation>Подписанты</documentation>
+    </meta>
+  </column>
   <column name="localLink" extends="boolean"/>
   <column name="location" subject="${catalog.column.location.subject:Расположение}" extends="string"/>
   <cell-view name="mainDoc-contracts-search-result">
@@ -869,6 +922,7 @@
     <column-ref ref="self"/>
   </cell-view>
   <complex-column name="met_who" subject="${catalog.complex-column.met_who.subject:Кто удалил}" extends="vcard"/>
+  <column extends="string"   subject="${catalog.column.deletedPersonWho:Кто удалил}" name="deletedPersonWho" />
   <column name="middleName" extends="string"/>
   <column name="module" subject="${catalog.column.module.subject:Модуль}" extends="string"/>
   <column name="moduleAndComplect" extends="string"/>
@@ -923,6 +977,7 @@
     <column-ref ref="sochiunid"/>
   </complex-column>
   <complex-column name="objectNamed" extends="object">
+    <column-ref ref="id"/>
     <column-ref ref="name"/>
   </complex-column>
   <complex-column name="objectSOTn" extends="object">
@@ -943,7 +998,7 @@
   <column name="orgAndPlace" subject="${catalog.column.orgAndPlace.subject:Организация/Место жительства}" extends="string"/>
   <column name="origAddress" subject="${catalog.column.origAddress.subject:Адрес}" extends="string"/>
   <column name="origEmail" subject="${catalog.column.origEmail.subject:eMail}" extends="string"/>
-  <column name="origFullName" subject="${catalog.column.origFullName.subject:Название/ФИО}" extends="subject"/>
+  <column name="origFullName" subject="${catalog.column.origFullName.subject:Название / ФИО}" extends="subject"/>
   <column name="origHierOrder" extends="string"/>
   <column name="origLeaderShortName" subject="${catalog.column.origLeaderShortName.subject:ФИО руководителя}" extends="string"/>
   <column name="origMix1" subject="${catalog.column.origMix1.subject:Название / ФИО}" extends="subject"/>
@@ -965,7 +1020,7 @@
   </column>
   <column name="personType" extends="string">
     <meta>
-      <documentation>Признак частного лица или сотрудника организации – иконка</documentation>
+      <documentation>Признак физического лица или работника организации – иконка</documentation>
     </meta>
   </column>
   <column name="phoneMobile" subject="${catalog.column.phoneMobile.subject:Мобильный тел.}" extends="string">
@@ -1059,11 +1114,6 @@
       <documentation>Состояние</documentation>
     </meta>
   </column>
-  <column name="projectNumber" subject="${catalog.column.projectNumber.subject:Номер проекта}" extends="string">
-    <meta>
-      <documentation>Номер проекта</documentation>
-    </meta>
-  </column>
   <column display="icon" name="projectStatus" subject="${catalog.column.projectStatus.subject:Статус}" extends="string">
     <meta>
       <documentation>Текущее состояние документа</documentation>
@@ -1083,6 +1133,11 @@
     <column-ref ref="hint"/>
   </complex-column>
   <column name="regDate" subject="${catalog.column.regDate.subject:Дата}" extends="datetime">
+    <meta>
+      <documentation>Дата регистрации</documentation>
+    </meta>
+  </column>
+  <column name="documentDate" subject="${catalog.column.documentDate.subject:Дата}" extends="datetime">
     <meta>
       <documentation>Дата регистрации</documentation>
     </meta>
@@ -1107,7 +1162,7 @@
       <documentation>Рег. данные родительского документа</documentation>
     </meta>
   </column>
-  <complex-column name="regNumber" subject="${catalog.complex-column.regNumber.subject:Номер}">
+  <complex-column name="regNumber" subject="${catalog.complex-column.regNumber.subject:Рег. номер}">
     <meta>
       <documentation>Регистрационный номер</documentation>
     </meta>
@@ -1194,6 +1249,48 @@
     <column-ref ref="text"/>
     <column-ref ref="self"/>
   </cell-view>
+  <column name="Created_Date_By_User" subject="${catalog.column.Created_Date_By_User.subject:Дата создания}" extends="datetime">
+    <meta>
+      <documentation>Дата создания</documentation>
+    </meta>
+  </column>
+  <column name="Publish_Date" subject="${catalog.column.Publish_Date.subject:Дата публикации}" extends="datetime">
+    <meta>
+      <documentation>Дата публикации</documentation>
+    </meta>
+  </column>
+  <column name="portalName" subject="${catalog.column.Created_Date_By_User.subject:Портал}" extends="datetime">
+    <meta>
+      <documentation>Портал</documentation>
+    </meta>
+  </column>
+  <column name="npaPublicationType" subject="${catalog.column.npaPublicationType.subject:Тип}" extends="string">
+    <meta>
+      <documentation>Тип</documentation>
+    </meta>
+  </column>
+    <column name="npaPublicationAuthor" subject="${catalog.column.npaPublicationType.subject:Автор}" extends="string">
+    <meta>
+      <documentation>Автор</documentation>
+    </meta>
+  </column>
+  <column name="titleSelectedDocuments" subject="${catalog.column.titleSelectedDocuments.subject:Документы}" extends="string">
+    <meta>
+      <documentation>Документы</documentation>
+    </meta>
+  </column>
+  <cell-view name="npaPublication-search-result-missions">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по Публикации НПА</documentation>
+    </meta>
+    <column-ref ref="npaPublicationAuthor"/>
+    <column-ref ref="portalName"/>
+    <column-ref ref="Created_Date_By_User"/>
+    <column-ref ref="Publish_Date"/>
+    <column-ref ref="npaPublicationType"/>
+    <column-ref ref="titleSelectedDocuments"/>
+    <column-ref ref="self"/>
+  </cell-view>
   <column name="responsible" subject="${catalog.column.responsible.subject:Ответственные исполнители}" extends="boolean">
     <meta>
       <documentation>Ответственные исполнители</documentation>
@@ -1234,13 +1331,25 @@
       <documentation>Статус исполнения РКК</documentation>
     </meta>
   </column>
+
+  <column display="icon" name="taskExecutionStatus" extends="string" subject="${catalog.column.taskExecutionStatus.subject:Статус поручения}" hide-subject="true">
+    <meta>
+      <documentation>Статус поручения</documentation>
+    </meta>
+  </column>
+
+  <column display="icon" name="resOfTaskExecutionStatus" extends="string" subject="${catalog.column.resOfTaskExecutionStatus.subject:Статус нижестоящих поручений}"  hide-subject="true">
+    <meta>
+      <documentation>Статус нижестоящих поручений</documentation>
+    </meta>
+  </column>
   <cell-view name="rkk-search-result">
     <meta>
       <documentation>Корневой: для отображения результатов поиска по РКК</documentation>
     </meta>
     <column-ref ref="regDate"/>
-    <column-ref ref="regNumber"/>
-    <column-ref ref="from"/>
+    <column-ref ref="regFullNumberStr"/>
+    <column-ref ref="fromStr"/>
     <column-ref ref="to"/>
     <column-ref ref="subject"/>
     <column-ref ref="self"/>
@@ -1251,8 +1360,6 @@
     </meta>
     <column-ref ref="contentCount"/>
     <column-ref ref="regInfo"/>
-    <column-ref ref="from"/>
-    <column-ref ref="to"/>
     <column-ref ref="subject"/>
     <column-ref ref="self"/>
     <column-ref ref="reqType"/>
@@ -1263,19 +1370,27 @@
     <column-ref ref="isRegistered"/>
     <column-ref ref="module"/>
     <column-ref ref="objectType"/>
+    <column-ref ref="hideContentMode"/>
+    <column-ref ref="customFields"/>
   </cell-view>
   <column name="isRegistered" extends="boolean"/>
+  <column name="customFields"/>
   <column name="contentCount" extends="number">
     <meta>
       <documentation>Количество вложений документа</documentation>
     </meta>
   </column>
+  <column name="hideContentMode" extends="string">
+    <meta>
+      <documentation>Режим скрытия информации о контенте</documentation>
+    </meta>
+  </column>
   <column name="role" subject="${catalog.column.role.subject:Роль}" extends="string"/>
   <column name="roleChildren" extends="string"/>
   <column name="roleFullName" subject="${catalog.column.roleFullName.subject:Полное название}" extends="string"/>
-  <complex-column name="roleMembers" subject="${catalog.complex-column.roleMembers.subject:Сотрудники}" extends="vcard">
+  <complex-column name="roleMembers" subject="${catalog.complex-column.roleMembers.subject:Работники}" extends="vcard">
     <meta>
-      <documentation>Сотрудники, замещающие роль</documentation>
+      <documentation>Работники, замещающие роль</documentation>
     </meta>
   </complex-column>
   <column name="roleShortName" subject="${catalog.column.roleShortName.subject:Краткое имя}" extends="string">
@@ -1339,9 +1454,9 @@
     <column-ref ref="id"/>
     <column-ref ref="hint"/>
   </complex-column>
-  <column name="signerName" subject="${catalog.column.signerName.subject:Подпись}" extends="string">
+  <column name="signerName" subject="${catalog.column.signerName.subject:Подписант}" extends="string">
     <meta>
-      <documentation>Подпись</documentation>
+      <documentation>Подписант</documentation>
     </meta>
   </column>
   <cell-view system-type="Input" name="similarRkkResult-input">
@@ -1375,7 +1490,7 @@
   </complex-column>
   <column name="snippetHighlighting" extends="stringList"/>
   <column name="snippetName" extends="string"/>
-    <column name="snippetSize" extends="string"/>
+    <column name="snippetSize" extends="number"/>
   <column name="soAddress" subject="${catalog.column.soAddress.subject:Адрес}" extends="string"/>
   <column name="soDepOrOrgName" subject="${catalog.column.soDepOrOrgName.subject:Подразделение/Организация}" extends="string"/>
   <cell-view name="sodlg">
@@ -1387,10 +1502,14 @@
       <documentation>вывод в диалоге краткого названия огранизации, чтобы колонка называлась именно "Организация"</documentation>
     </meta>
   </column>
-  <cell-view name="sodlg-regplaces" extends="sodlg">
+  <column name="parentIndepDep" extends="string" subject="${catalog.column.parentIndepDep.subject:Вышест. подразделение}"/>
+  <column name="depShortNameIndep" extends="string" subject="${catalog.column.parentIndepDep.subject:Вышест. подразделение}"/>
+  <cell-view name="sodlg-regplaces">
     <column-ref ref="self"/>
-  </cell-view>
-  <column name="soEmail" subject="${catalog.column.soEmail.subject:eMail}" extends="string"/>
+    <column-ref ref="soShortName"/>
+    <column-ref ref="soCode"/>
+    <column-ref ref="depShortNameIndep"/>
+  </cell-view>  <column name="soEmail" subject="${catalog.column.soEmail.subject:eMail}" extends="string"/>
   <column name="soHierOrder" extends="string"/>
   <column name="soInternalPhone" subject="${catalog.column.soInternalPhone.subject:Внутренние телефоны}" extends="string">
     <meta>
@@ -1470,16 +1589,40 @@
   <column name="string"/>
   <column name="stringList"/>
   <column name="joinableStrings"/>
+  <column name="label"/>
   <column name="subject" subject="${catalog.column.subject.subject:Заголовок}" extends="string">
     <meta>
       <documentation>Заголовок</documentation>
-    </meta><eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument() != null && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getDocument().getSubject()) ? #this.getEntity().getDocument().getSubject() : T(ru.intertrust.cmj.pkd.tools.Messages).get('cmj-PKD.subject.empty')]]></eval-expression>
-  </column>
-  <column extends="string" subject="${catalog.column.subjectStamped.subject:Заголовок}" name="subjectStamped">
-    <meta>
-      <documentation>Заголовок</documentation>
     </meta>
-    <eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument() != null && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getDocument().getSecurityStamp()) ?    T(ru.intertrust.cmj.pkd.tools.Messages).get('cmj-PKD.subject.stamp') :     #this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonEvent) &&      T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getEventSubject()) ?  	  #this.getEntity().getEventSubject() :  	  #this.getEntity().getDocument() != null && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getDocument().getSubject()) ?  	    #this.getEntity().getDocument().getSubject() : T(ru.intertrust.cmj.pkd.tools.Messages).get('cmj-PKD.subject.empty')]]></eval-expression>
+    <eval-expression lang="SPEL">
+      <![CDATA[
+      #this.getEntity().getDocument() != null
+      && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getDocument().getSecurityStamp())
+      && !(#this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument)) ? T(ru.intertrust.cmj.pkd.tools.Messages).get('cmj-PKD.subject.stamp') :
+
+      #this.getEntity().getDocument() != null && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getDocument().getSecurityStamp()) && !(#this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument)) ?
+    T(ru.intertrust.cmj.pkd.tools.Messages).get('cmj-PKD.subject.stamp') :
+
+      #this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTaskEntity)
+      && 'ANIN1_13'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ?
+        (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.archives.common.ArchivesApplication)).getEntityByUNID(#this.getEntity().getDocument().getRootUnid()).getReturnNoticeText()) :
+
+      #this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTaskEntity)
+      && 'ARC01_01'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ?(
+      'Архивное дело '       + T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.arcdocs.common.ArchivesDocsApplication)).getEntityByUNID(#this.getEntity().getDocument().getRootUnid()).getSubject() +
+      ', ' +'Крайние даты: ' + T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.arcdocs.common.ArchivesDocsApplication)).getEntityByUNID(#this.getEntity().getDocument().getRootUnid()).getBoundaryDateBeg() +
+      ' - '                  + T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.arcdocs.common.ArchivesDocsApplication)).getEntityByUNID(#this.getEntity().getDocument().getRootUnid()).getBoundaryDateEnd()):
+
+      #this.getEntity() instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonEvent) && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getEventSubject()) ? #this.getEntity().getEventSubject() : #this.getEntity().getDocument() != null && T(org.springframework.util.StringUtils).hasLength(#this.getEntity().getDocument().getSubject()) ? #this.getEntity().getDocument().getSubject() : T(ru.intertrust.cmj.pkd.tools.Messages).get('cmj-PKD.subject.empty')
+
+]]></eval-expression>
+
+
+  </column>
+  <column name="subjectByDeal" subject="${catalog.column.subjectByDeal.subject:Заголовок дела}" extends="string">
+    <meta>
+      <documentation>Заголовок дела</documentation>
+    </meta>
   </column>
   <column name="subquestionCode" subject="${catalog.column.subquestionCode.subject:Код подвопроса}" extends="string"/>
   <column name="surnameAndInitials" subject="${catalog.column.surnameAndInitials.subject:Фамилия, инициалы}" extends="string"/>
@@ -1490,6 +1633,7 @@
     <column-ref ref="iconInfo"/>
     <column-ref ref="complect"/>
     <column-ref ref="storageTypeForHide"/>
+    <column-ref ref="hint"/>
   </cell-view>
   <complex-column name="targetDocument" subject="${catalog.complex-column.targetDocument.subject:Документ-источник}" extends="document">
     <meta>
@@ -1601,6 +1745,11 @@
       <documentation>Тип</documentation>
     </meta>
   </column>
+  <column name="type_for_view" subject="${catalog.column.type_for_view.subject:Тип классификатора}" extends="string">
+    <meta>
+      <documentation>Тип</documentation>
+    </meta>
+  </column>
   <column name="type_db" subject="${catalog.column.type_db.subject:Тип}" extends="string">
     <meta>
       <documentation>Тип</documentation>
@@ -1622,7 +1771,7 @@
       <documentation>Обобщенный признак для телефлнного справочника:&#xd;
 Признак РВЗ - иконка: руководитель организации или РВЗ&#xd;
 Признак Подразделения- иконка: подразделени или самостоятельное подразделение&#xd;
-Признак объекта - иконка: сотрудник</documentation>
+Признак объекта - иконка: работник</documentation>
     </meta>
   </column>
   <column name="val" subject="${catalog.column.val.subject:значение}" extends="string"/>
@@ -1647,6 +1796,7 @@
     <column-ref ref="groupIdx"/>
     <column-ref ref="orderInGroup"/>
     <column-ref ref="storageTypeForHide"/>
+    <column-ref ref="hint"/>
   </cell-view>
   <column name="voteResults" extends="string"/>
   <complex-column name="whoSent" extends="vcard">
@@ -1706,6 +1856,7 @@
     <column-ref ref="unid"/>
   </complex-column>
   <column extends="string" subject="${catalog.column.ownerId:Родитель}" name="ownerId" />
+  <column extends="string" subject="${catalog.column.unidOwner:Родитель}" name="unidOwner" />
   <cell-view name="input-rkk-search-result">
     <meta>
       <documentation>Корневой: для отображения результатов поиска по РКК ВхД</documentation>
@@ -1718,4 +1869,185 @@
     <column-ref ref="subject"/>
     <column-ref ref="self"/>
   </cell-view>
+  <column name="stageStatus" subject="${catalog.column.stageStatus.subject:Стадия ЖЦ}" extends="string">
+    <meta>
+      <documentation>Стадия ЖЦ</documentation>
+    </meta>
+  </column>
+  <column name="projectNumber" subject="${catalog.column.projectNumber.subject:Проектный номер}" extends="string">
+    <meta>
+      <documentation>Проектный номер</documentation>
+    </meta>
+  </column>
+  <column name="subSection" subject="${catalog.column.subSection.subject:Подраздел}" extends="string">
+    <meta>
+      <documentation>Подраздел</documentation>
+    </meta>
+  </column>
+  <column name="categoryCode" subject="${catalog.column.categoryCode.subject:Код темы}" extends="string"/>
+  <column name="subSectionCode" subject="${catalog.column.subSectionCode.subject:Код подраздела}" extends="string"/>
+  <complex-column name="category_object" extends="object">
+    <column-ref ref="id"/>
+    <column-ref ref="category"/>
+    <column-ref ref="categoryCode"/>
+    <column-ref ref="subSection"/>
+    <column-ref ref="subSectionCode"/>
+    <column-ref ref="isSimple"/>
+    <column-ref ref="allowed"/>
+  </complex-column>
+  <column name="authorTemplate" subject="${catalog.column.authorTemplate.subject:Автор шаблона}" extends="string">
+    <meta>
+      <documentation>Автор шаблона</documentation>
+    </meta>
+  </column>
+  <column name="accessTypeColl" subject="${catalog.column.accessTypeColl.subject:Доступ}" extends="string"/>
+  <column name="createdName" subject="${catalog.column.createdName.subject:Создатель}" extends="string"/>
+  <complex-column name="authorVCard" subject="${catalog.complex-column.authorVCard.subject:Автор резолюции}" extends="vcard">
+    <meta>
+      <documentation>Автор резолюции</documentation>
+    </meta>
+  </complex-column>
+  <column name="isControlled" subject="${catalog.column.isControlled.subject:Контроль}" extends="string">
+    <meta>
+      <documentation>Признак контроля</documentation>
+    </meta>
+  </column>
+  <column name="executeDuration" subject="${catalog.column.executeDuration.subject:Срок}" extends="string">
+    <meta>
+      <documentation>Срок исполнения</documentation>
+    </meta>
+  </column>
+  <column name="boundDate" subject="${catalog.column.boundDate.subject:Крайние даты архивных дел}" extends="string">
+    <meta>
+      <documentation>Крайние даты архивных дел</documentation>
+    </meta>
+  </column>
+  <column name="mainAndAddState" subject="${catalog.column.executeDuration.subject:Основной статус, дополнительный статус}" extends="string">
+    <meta>
+      <documentation>Основной статус, дополнительный статус</documentation>
+    </meta>
+  </column>
+  <column name="orgHide" subject="${catalog.column.executeDuration.subject:Наименование организации}" extends="string">
+    <meta>
+      <documentation>Основной статус, дополнительный статус</documentation>
+    </meta>
+  </column>
+  <column name="regNumAndDate" subject="${catalog.column.executeDuration.subject:Регистрационный номер и дата документа}" extends="string">
+    <meta>
+      <documentation>Регистрационный номер и дата документа</documentation>
+    </meta>
+  </column>
+  <column name="createPlace" subject="${catalog.column.executeDuration.subject:Место создания}" extends="string">
+    <meta>
+      <documentation>Место создания</documentation>
+    </meta>
+  </column>
+  <column name="ELECTRONIC_PAPER" subject="${catalog.column.executeDuration.subject:Электронный/Бумажный}" extends="string">
+    <meta>
+      <documentation>Электронный/Бумажный</documentation>
+    </meta>
+  </column>
+  <complex-column name="regNumberFull" subject="${catalog.complex-column.regNumberFull.subject:Регистрационный номер}">
+    <meta>
+      <documentation>Регистрационный номер</documentation>
+    </meta>
+    <column-ref ref="regNumberPrefix"/>
+    <column-ref ref="regNumberCounter"/>
+    <column-ref ref="regNumberSuffix"/>
+  </complex-column>
+
+  <column name="pubStatus" subject="${catalog.column.pubStatus.subject:Статус публикации}" extends="string">
+    <meta>
+      <documentation>Статус публикации</documentation>
+    </meta>
+  </column>
+  <column name="registrationDate" subject="${catalog.column.registrationDate.subject:Дата регистрации}" extends="datetime">
+    <meta>
+      <documentation>Дата регистрации</documentation>
+    </meta>
+  </column>
+
+  <cell-view name="depDeal-search-result">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по ОДП</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="arcInventoryType" />
+    <column-ref ref="depDivDealIndex" />
+    <column-ref ref="arcDepartment"/>
+    <column-ref ref="boundDate" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+  <cell-view name="depDeal-search-result-online">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по ОДП</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="arcInventoryType" />
+    <column-ref ref="fundDealNumber" />
+    <column-ref ref="depDivDealIndex" />
+    <column-ref ref="arcDepartment"/>
+    <column-ref ref="boundDate" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+  <cell-view name="annualInv-search-result">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по ОДП</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="arcInventoryType" />
+    <column-ref ref="arcYear" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+  <cell-view name="fundDeal-search-result">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по ОДП</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="orgHide" />
+    <column-ref ref="fundDealNum" />
+    <column-ref ref="fundname" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+
+  <cell-view name="arcDeal-search-result-online">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="activitytype"/>
+    <column-ref ref="subject" />
+    <column-ref ref="arcDepartment" />
+    <column-ref ref="arcDealBeginDate" />
+    <column-ref ref="arcDealEndDate" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+
+  <cell-view name="arcDeal-search-result">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по Арк делу</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="subject" />
+    <column-ref ref="arcDepartment" />
+    <column-ref ref="arcDealBeginDate" />
+    <column-ref ref="arcDealEndDate" />
+    <column-ref ref="arcKindDeal" />
+    <column-ref ref="storage_term" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+  <cell-view name="arcDoc-search-result">
+    <meta>
+      <documentation>Корневой: для отображения результатов поиска по Арк делу</documentation>
+    </meta>
+    <column-ref ref="self"/>
+    <column-ref ref="docType" />
+    <column-ref ref="reqType" />
+    <column-ref ref="subject" />
+    <column-ref ref="regNumAndDate" />
+    <column-ref ref="createPlace" />
+    <column-ref ref="ELECTRONIC_PAPER" />
+    <column-ref ref="mainAndAddState" />
+  </cell-view>
+
 </catalog>

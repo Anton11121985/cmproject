@@ -11,72 +11,156 @@
     <component>
       <section id="Attributes" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.name:Реквизиты}">
         <component>
-          <field attribute-ref="text" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.text.name:Текст резолюции:}">
-            <rename name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.text.rename.name:Текст поручения:}" condition-union="AND">
-              <condition-ref ref="isTaskTemplate"/>
-            </rename>
-            <appearance importance="normal"/>
-            <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.text.hintPopUp:Текст резолюции}</hint-pop-up>
-          </field>
-          <section id="deadlineGroup" group="true">
-            <appearance field-layout="horizontal"/>
+          <section id="Main" group="true">
             <component>
-              <field attribute-ref="templateDeadline" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.deadlineGroup.field.templateDeadline.name:Срок:}">
-                <appearance align="left" importance="normal">
-                  <label-style field-width="4" field-unit="symbol"/>
-                </appearance>
-                <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.deadlineGroup.field.templateDeadline.hintPopUp:Срок}</hint-pop-up>
-              </field>
-              <field attribute-ref="deadlineSig">
+              <field attribute-ref="labelMain">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance align="left">
-                  <label-style field-width="6" field-unit="symbol"/>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
                 </appearance>
+              </field>
+              <field attribute-ref="text" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.text.name:Текст резолюции:}">
+                <properties>
+                  <require>
+                    <condition-ref ref="edit"/>
+                  </require>
+                </properties>
+                <rename name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.text.rename.name:Текст поручения:}" condition-union="AND">
+                  <condition-ref ref="isTaskTemplate"/>
+                </rename>
+                <appearance importance="normal"/>
+                <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.text.hintPopUp:Текст резолюции}</hint-pop-up>
+              </field>
+              <section id="deadlineGroup" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="templateDeadline" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.deadlineGroup.field.templateDeadline.name:Срок:}">
+                    <appearance align="left" importance="normal">
+                      <label-style field-width="4" field-unit="symbol"/>
+                    </appearance>
+                    <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.deadlineGroup.field.templateDeadline.hintPopUp:Срок}</hint-pop-up>
+                  </field>
+                  <field attribute-ref="deadlineSig">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left">
+                      <label-style field-width="6" field-unit="symbol"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="author"  name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.author.name:Автор:}">
+                <appearance importance="normal"/>
+                <directories limit-livesearch="sys-current">
+                  <directory-ref ref="CURRENT_SYS_ROLE"/>
+                  <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
+                  <directory-ref ref="FV_CURR_HUMAN_HH_DEP_ROLE"/>
+                </directories>
+              </field>
+              <field attribute-ref="controlled" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controlled.name:Контроль:}">
+                <appearance importance="normal"/>
+                <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controlled.hintPopUp:Контроль}</hint-pop-up>
+              </field>
+              <field attribute-ref="controller" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controller.name:Контролёры:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="resTemplateControlled"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal"/>
+                <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controller.hintPopUp:Контролёры}</hint-pop-up>
+                <directories limit-livesearch="sys-current">
+                  <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
+                  <directory-ref ref="CURRENT_DEP_HUMAN_HH_HIER"/>
+                  <directory-ref ref="sys_roles"/>
+                </directories>
+              </field>
+              <field attribute-ref="executor" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.executor.name:Исполнители:}">
+                <appearance importance="normal"/>
+                <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.executor.hintPopUp:Исполнители}</hint-pop-up>
+                <hint-in-field>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.executor.hintInField:Выберите исполнителей}</hint-in-field>
+                <directories livesearch="true" limit-livesearch="no-restrictions">
+                  <directory-category-custom-coll ref="CURRENT_All2"/>
+                  <directory-category-custom-coll ref="CURRENT_All_Hierarchy2"/>
+                  <directory-category-custom-coll ref="AlienBeards"/>
+                  <directory-category-custom-coll ref="sendlist"/>
+                  <directory-category-custom-coll ref="FV_CURR_AND_FOREIGN_HUMAN_HH_DEP_ORG"/>
+                </directories>
               </field>
             </component>
           </section>
-          <field attribute-ref="author">
-            <appearance importance="normal"/>
-            <directories limit-livesearch="sys-current">
-              <directory-ref ref="CURRENT_SYS_ROLE"/>
-              <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
-              <directory-ref ref="FV_CURR_HUMAN_HH_DEP_ROLE"/>
-            </directories>
-          </field>
-          <field attribute-ref="controlled" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controlled.name:Контроль}">
-            <appearance importance="normal"/>
-            <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controlled.hintPopUp:Контроль}</hint-pop-up>
-          </field>
-          <field attribute-ref="controller" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controller.name:Контролёры:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="resTemplateControlled"/>
-              </hide>
-            </properties>
-            <appearance importance="normal"/>
-            <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.controller.hintPopUp:Контролёры}</hint-pop-up>
-            <directories limit-livesearch="sys-current">
-              <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
-              <directory-ref ref="CURRENT_DEP_HUMAN_HH_HIER"/>
-              <directory-ref ref="sys_roles"/>
-            </directories>
-          </field>
-          <field attribute-ref="executor" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.executor.name:Исполнители:}">
-            <appearance importance="normal"/>
-            <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.executor.hintPopUp:Исполнители}</hint-pop-up>
-            <hint-in-field>${ui.form.ResolutionTemplateResourceForm.section.Attributes.field.executor.hintInField:Выберите исполнителей}</hint-in-field>
-            <directories livesearch="true" limit-livesearch="no-restrictions">
-              <directory-category-custom-coll ref="CURRENT_All2"/>
-              <directory-category-custom-coll ref="CURRENT_All_Hierarchy2"/>
-              <directory-category-custom-coll ref="AlienBeards"/>
-              <directory-category-custom-coll ref="sendlist"/>
-              <directory-category-custom-coll ref="FV_CURR_AND_FOREIGN_HUMAN_HH_DEP_ORG"/>
-            </directories>
-          </field>
+          <section id="Additional" group="true">
+            <component>
+              <field attribute-ref="labelAdditional">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="tableAdditional" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="tableAdditionalColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field recalc="true" attribute-ref="authorTemplate" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.Main.field.authorTemplate.name:Автор шаблона:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.Main.field.authorTemplate.hintPopUp:Автор шаблона}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURRENT_SYS_HUMAN"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="tableAdditionalColumn2" group="true">
+                    <component>
+                      <field attribute-ref="authorDepartment" name="${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.Main.field.authorDepartment.name:Вышестоящее подразделение:}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.ResolutionTemplateResourceForm.section.Attributes.section.Main.field.authorDepartment.name:Самостоятельное подразделение/РВЗ или вышестоящее подразделение}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+            </component>
+          </section>
         </component>
       </section>
       <section id="Header">
@@ -157,6 +241,11 @@
       <section id="AccessType" name="${ui.form.ResolutionTemplateResourceForm.section.AccessType.name:Доступ}">
         <component>
           <field recalc="true" attribute-ref="accessType">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="isSupervisor"/>
+              </hide>
+            </properties>
             <appearance widget="radio">
               <label-style>
                 <style id="tunVertical"/>
@@ -169,6 +258,26 @@
             </appearance>
             <directories limit-livesearch="sys-current">
               <directory-ref ref="accessType"/>
+            </directories>
+          </field>
+          <field recalc="true" attribute-ref="accessType">
+            <properties>
+              <hide>
+                <condition-ref ref="isSupervisor"/>
+              </hide>
+            </properties>
+            <appearance widget="radio">
+              <label-style>
+                <style id="tunVertical"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunVertical"/>
+                </value-style>
+              </field-style>
+            </appearance>
+            <directories limit-livesearch="sys-current">
+              <directory-ref ref="accessTypeNotPublic"/>
             </directories>
           </field>
           <field attribute-ref="acl" name="${ui.form.ResolutionTemplateResourceForm.section.AccessType.field.acl.name:Индивидуально:}">
@@ -185,7 +294,7 @@
               <directory-ref ref="FV_CURR_HUMAN_HH_ROLE"/>
             </directories>
           </field>
-          <field clickable="true" attribute-ref="departmentAccess">
+          <field clickable="true" attribute-ref="departmentAccess" recalc="true">
             <properties>
               <hide condition-union="AND">
                 <negative-condition-ref ref="resTemplateIsFavourites"/>

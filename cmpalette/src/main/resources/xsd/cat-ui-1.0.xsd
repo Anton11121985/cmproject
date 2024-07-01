@@ -129,6 +129,11 @@
                 <xs:documentation><![CDATA[Ссылка на объект]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="add-folder" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Возможность включить документ в папки]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="general" type="xs:boolean" use="optional" default="false">
             <xs:annotation>
                 <xs:documentation><![CDATA[Основной документ]]></xs:documentation>
@@ -222,6 +227,11 @@
         <xs:attribute name="category" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation><![CDATA[Категория в кнопке "Создать"]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ignore" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Удаление корневых элементов]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
@@ -377,24 +387,25 @@
 
     <xs:complexType name="viewTransitType">
         <xs:annotation>
-            <xs:documentation><![CDATA[Коллекции для перехода]]></xs:documentation>
+            <xs:documentation><![CDATA[Открывает иерархическое представление и устанавливает курсор на субъект, по которому
+            было выполнено действие "Открыть в иерархии" в другом представлении]]></xs:documentation>
         </xs:annotation>
         <xs:attribute name="ref" type="xs:string" use="optional">
             <xs:annotation>
-                <xs:documentation><![CDATA[Cсылка на коллекцию]]></xs:documentation>
+                <xs:documentation><![CDATA[Ссылка на представление]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="result-search-ref" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    <![CDATA[Cсылка на коллекцию для перехода из результатов поискового запроса]]></xs:documentation>
+                    <![CDATA[Ссылка на представление для перехода из результатов поискового запроса]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="hierarchyType">
         <xs:annotation>
-            <xs:documentation><![CDATA[Колонки]]></xs:documentation>
+            <xs:documentation><![CDATA[Взаимодействие с иерархическими представлениями]]></xs:documentation>
         </xs:annotation>
 
         <xs:sequence maxOccurs="unbounded">
@@ -539,12 +550,14 @@
     <!--Произвольный дескриптор -->
     <xs:complexType name="descriptorCustomType">
         <xs:annotation>
-            <xs:documentation><![CDATA[Дескриптор. Произвольный]]></xs:documentation>
+            <xs:documentation><![CDATA[Дескриптор описывает данные, которые формируются,
+            путем создания кастомных коллекций (располагаются в Палитре XML)
+            или типовых коллекций (располагаются в CMJ-сервере)]]></xs:documentation>
         </xs:annotation>
         <xs:all>
             <xs:element name="meta" type="metaType" minOccurs="0"/>
             <xs:element name="help" type="helpType" minOccurs="0"/>
-            <xs:element name="builder" type="builderType" minOccurs="1"/>
+            <xs:element name="builder" type="builderAFType" minOccurs="1"/>
             <xs:element name="breadcrumbs-column" type="breadType" minOccurs="0"/>
             <xs:element name="table" type="tableType" minOccurs="1"/>
             <xs:element name="mixed-cells-view" type="mixCelType" minOccurs="0"/>
@@ -555,6 +568,7 @@
             <xs:element name="custom-actions" type="custActType" minOccurs="0"/>
             <xs:element name="cg-queue" type="cgQueueType" minOccurs="0"/>
             <xs:element name="collection-for-create-hierarchy" type="collectionForHierarchyType" minOccurs="0"/>
+            <xs:element name="ft-search-flat-descriptor" type="descriptorRefType" minOccurs="0"/>
         </xs:all>
         <xs:attributeGroup ref="attrGroupDescriptor"/>
         <xs:attribute name="ident" type="xs:string" use="required">
@@ -572,12 +586,13 @@
     <!--Системный дескриптор -->
     <xs:complexType name="descriptorSystemType">
         <xs:annotation>
-            <xs:documentation><![CDATA[Дескриптор. Системный]]></xs:documentation>
+            <xs:documentation><![CDATA[Дескриптор описывает данные, которые формируются,
+            путем создания hql-запроса (располагается в CMJ-сервере)]]></xs:documentation>
         </xs:annotation>
         <xs:all>
             <xs:element name="meta" type="metaType" minOccurs="0"/>
             <xs:element name="help" type="helpType" minOccurs="0"/>
-            <xs:element name="builder" type="builderType" minOccurs="1"/>
+            <xs:element name="builder" type="builderCMJType" minOccurs="1"/>
             <xs:element name="breadcrumbs-column" type="breadType" minOccurs="0"/>
             <xs:element name="table" type="tableType" minOccurs="1"/>
             <xs:element name="mixed-cells-view" type="mixCelType" minOccurs="0"/>
@@ -587,6 +602,7 @@
             <xs:element name="actions" type="actType" minOccurs="0"/>
             <xs:element name="custom-actions" type="custActType" minOccurs="0"/>
             <xs:element name="cg-queue" type="cgQueueType" minOccurs="0"/>
+            <xs:element name="ft-search-flat-descriptor" type="descriptorRefType" minOccurs="0"/>
         </xs:all>
         <xs:attributeGroup ref="attrGroupDescriptor"/>
         <xs:attribute name="id-sql" type="xs:string" use="required">

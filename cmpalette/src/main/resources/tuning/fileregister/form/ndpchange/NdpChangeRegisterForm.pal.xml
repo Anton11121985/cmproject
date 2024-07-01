@@ -8,6 +8,23 @@
       </hide>
     </properties>
     <component>
+      <button name="${ui.form.NdpChangeRegisterForm.button.Удалить.name:Удалить}">
+          <hint-pop-up>${ui.form.NdpChangeRegisterForm.button.Удалить.hintPopUp:Удалить}</hint-pop-up>
+          <action>
+              <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+          </action>
+      </button>
+      <button name="${ui.form.NdpChangeRegisterForm.button.Связанный документ.name:Связанный документ}">
+          <properties>
+              <hide condition-union="AND">
+                  <negative-condition-ref ref="read"/>
+              </hide>
+          </properties>
+          <hint-pop-up>${ui.form.NdpChangeRegisterForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+          <action>
+              <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+          </action>
+      </button>
       <section id="RootMenu">
         <component>
           <button name="${ui.form.NdpChangeRegisterForm.section.RootMenu.button.system.hide.name:Скрыть системную кнопку Сохранить}">
@@ -46,6 +63,27 @@
               </custom>
             </action>
           </button>
+          <section name="${ui.form.NdpChangeRegisterForm.section.RootMenu.section.CREATE.name:Создать}" id="CREATE">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="read"/>
+                    </hide>
+                </properties>
+                <component>
+                    <section id="CREATE_DOCUMENT_RELATED" name="${ui.form.NdpChangeRegisterForm.section.RootMenu.section.CREATE_DOCUMENT_RELATED.name:Связанный документ}">
+                        <appearance>
+                            <action>
+                                <system name="CREATE_DOCUMENT_RELATED"/>
+                            </action>
+                        </appearance>
+                    </section>
+                </component>
+                <appearance>
+                    <action position="8.0">
+                        <system name="CREATE"/>
+                    </action>
+                </appearance>
+            </section>
           <button name="${ui.form.NdpChangeRegisterForm.section.RootMenu.button.ReturnForRevisionNdpChange.name:Вернуть на доработку}" tid="ReturnForRevisionNdpChange">
               <properties>
                   <hide condition-union="AND">
@@ -67,7 +105,7 @@
                     <button attribute-ref="$canSendToApproving" name="${ui.form.NdpChangeRegisterForm.button.canSendToApproving.name:На согласование}">
                         <properties>
                             <hide condition-union="AND">
-                                <negative-condition-ref ref="CanSendToApproving"/>
+                                <negative-condition-ref ref="NdpChangeRegisterCanSendToApproving"/>
                             </hide>
                         </properties>
                         <hint-pop-up>${ui.form.NdpChangeRegisterForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
@@ -103,6 +141,20 @@
                       </properties>
                       <action>
                           <system name="PRINTED_FORM"/>
+                      </action>
+                  </button>
+                  <button name="${ui.form.NdpChangeRegisterForm.section.RootMenu.section.OTHER.button.Удалить из корзины.name:Удалить из корзины}">
+                      <properties>
+                          <hide condition-union="AND">
+                              <negative-condition-ref ref="canDeleteNdpChFromTrash"/>
+                          </hide>
+                      </properties>
+                      <action>
+                          <custom>
+                              <operation>
+                                  <handler-ref ref="DeleteFREntityFromTrash"/>
+                              </operation>
+                          </custom>
                       </action>
                   </button>
                   <section name="${ui.form.NdpChangeRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.name:Печатная форма}" id="PRINT_REPORT">
@@ -145,7 +197,7 @@
                         <negative-condition-ref ref="canEditRefRegister"/>
                     </hide>
                 </properties>
-                <action>
+                <action position="20.5">
                     <custom>
                         <operation>
                             <handler>
@@ -170,8 +222,8 @@
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance align="left" importance="normal">
-                  <label-style field-width="30" field-unit="symbol">
+                <appearance align="left" multiline="false" importance="normal">
+                  <label-style field-width="40" field-unit="symbol">
                     <style id="tunIconProgress"/>
                   </label-style>
                 </appearance>
@@ -185,8 +237,8 @@
                     <negative-condition-ref ref="simpleCntNotEmpty"/>
                   </hide>
                 </properties>
-                <appearance importance="normal">
-                  <label-style field-width="7" field-unit="symbol"/>
+                <appearance align="left" importance="normal">
+                  <label-style field-width="7" field-unit="symbol" label-width="2" label-unit="symbol"/>
                 </appearance>
               </field>
               <field attribute-ref="organization">
@@ -207,7 +259,7 @@
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance align="right" importance="normal">
+                <appearance align="left" multiline="false" importance="normal">
                   <label-style field-width="15" field-unit="symbol"/>
                 </appearance>
               </field>
@@ -255,6 +307,10 @@
                         <condition>true</condition>
                       </read-only>
                     </properties>
+                    <show-value schema-ref="VCardResource.TitleOrFullName"/>
+                    <appearance align="left" multiline="false">
+                      <label-style label-width="22" label-unit="symbol" field-width="15" field-unit="symbol"/>
+                    </appearance>
                   </field>
                   <field attribute-ref="statusExtended">
                     <properties>
@@ -283,8 +339,8 @@
                                           <condition>true</condition>
                                       </read-only>
                                   </properties>
-                                  <appearance>
-                                      <label-style field-unit="symbol" field-width="8" />
+                                  <appearance align="left">
+                                      <label-style field-unit="symbol" field-width="20" label-width="3" label-unit="symbol"/>
                                       <field-style date-format="yyyy" />
                                   </appearance>
                               </field>
@@ -486,7 +542,7 @@
                 </section>
             </component>
         </section>
-        <section id="Addition" name="${ui.form.NdpChangeRegisterForm.section.Addition.name:Документы}">
+        <section id="Addition" name="${ui.form.NdpChangeRegisterForm.section.Addition.name:Все изменения}">
             <properties>
                 <hide>
                     <negative-condition-ref ref="canSeePanelAddition"/>
@@ -494,7 +550,7 @@
             </properties>
             <component>
                 <field attribute-ref="additionToNdpChange">
-                    <appearance open-mode="grid" digest-mode="grid" importance="normal" widget="grid" clickable="true"/>
+                    <appearance open-mode="grid" open-form="full" digest-mode="grid" importance="normal" widget="grid" clickable="true" />
                     <directories limit-livesearch="no-restrictions" digest="grid">
                         <directory-ref ref="additionToNdpChange"/>
                     </directories>
@@ -505,23 +561,14 @@
           <appearance widget="leftMenu"/>
           <properties>
               <hide condition-union="AND">
-                  <condition-ref ref="ndoChangeContentEmpty"/>
+                  <condition-ref ref="ndpChangeContentEmpty"/>
               </hide>
           </properties>
           <component>
               <field attribute-ref="contentDocuments" name="${ui.form.NdpChangeRegisterForm.content.section.contentDocuments.name:Документ}">
                   <properties>
                       <hide condition-union="AND">
-                          <negative-condition-ref ref="contentDocumentsNotEmpty"/>
-                      </hide>
-                  </properties>
-                  <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="contentDocuments" name="${ui.form.NdpChangeRegisterForm.content.section.contentDocuments.name:Документ}">
-                  <properties>
-                      <hide condition-union="AND">
-                          <negative-condition-ref ref="contentDocumentsEmpty"/>
-                          <negative-condition-ref ref="edit"/>
+                          <condition-ref ref="contentDocumentsEmpty"/>
                       </hide>
                   </properties>
                   <appearance importance="normal"/>
@@ -529,16 +576,7 @@
               <field attribute-ref="contentAddInformations" name="${ui.form.NdpChangeRegisterForm.content.section.contentAddInformations.name:Доп. Информация}">
                   <properties>
                       <hide condition-union="AND">
-                          <negative-condition-ref ref="contentAddInformationsNotEmpty"/>
-                      </hide>
-                  </properties>
-                  <appearance importance="normal"/>
-              </field>
-              <field attribute-ref="contentAddInformations" name="${ui.form.NdpChangeRegisterForm.content.section.contentAddInformations.name:Доп. Информация}">
-                  <properties>
-                      <hide condition-union="AND">
-                          <negative-condition-ref ref="contentAddInformationsEmpty"/>
-                          <negative-condition-ref ref="edit"/>
+                          <condition-ref ref="contentAddInformationsEmpty"/>
                       </hide>
                   </properties>
                   <appearance importance="normal"/>
@@ -575,7 +613,7 @@
       <section id="Links" name="${ui.form.NdpChangeRegisterForm.section.Links.name:Связанные}">
         <appearance widget="leftMenu"/>
           <component>
-            <section id="Documеnts" name="${ui.form.NdpChangeRegisterForm.section.Links.section.Documеnts.name:Документы}"/>
+            <section id="Documents" name="${ui.form.NdpChangeRegisterForm.section.Links.section.Documеnts.name:Документы}"/>
             <section id="Visualization" name="${ui.form.NdpChangeRegisterForm.section.Links.section.Visualization.name:Визуализация}"/>
           </component>
       </section>

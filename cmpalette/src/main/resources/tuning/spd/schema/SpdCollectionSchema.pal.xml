@@ -5,5 +5,41 @@
             <category name="Настройки справочника сроков хранения"/>
         </meta>
         <boolean name="canEdit" temporal="true"/>
+        <boolean name="isArchivist" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[{
+                #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+                #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+                ((#FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getArchivistSOOrgByReplicaIdSO(#CurUser.getUNID().split(':')[0]).contains(#CurUser)))
+            }[2]]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isChiefArchive" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[{
+                #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+                #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+                ((#FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getArchiveManagerSOOrgByReplicaIdSO(#CurUser.getUNID().split(':')[0]).contains(#CurUser)))
+            }[2]]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isSupervisor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Supervisor')]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isSuperUser" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'SuperUser')]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canCreate" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    isSupervisor || isSuperUser || isArchivist || isChiefArchive
+                ]]>
+                </script>
+            </calc-values>
+        </boolean>
     </schema>
 </schemas>

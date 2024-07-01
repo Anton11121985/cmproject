@@ -2,7 +2,7 @@
 <pkd xmlns="http://www.intertrust.ru/schema/palette/pkd">
   <queue name="На исполнение" stacks="true" id="onExecWD">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() &&  (getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') || !getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && !((getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11") && !getEventInfo().getTaskStatus().name().equals('TRANSFERRED') && getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) && T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters()) && (getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') || !getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
@@ -22,7 +22,7 @@
   </queue>
   <queue name="На подпись" stacks="true" id="forSignWD">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && getEventInfo().getEventCode().getEventCodeId().equals("SIGN1_11") &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && !((getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && getEventInfo().getEventCode().getEventCodeId().equals("SIGN1_11") && !getEventInfo().getTaskStatus().name().equals('TRANSFERRED') && getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) && T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters()) && getEventInfo().getEventCode().getEventCodeId().equals("SIGN1_11") &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
@@ -41,7 +41,14 @@
   </queue>
   <queue name="На рассмотрение" stacks="true" id="forCondsidWD">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && (getEventInfo().getEventCode().getEventCodeId().equals("ADDR1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (!getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') && getEventInfo().getDocument().getParentUnid() != null && !getEventInfo().getDocument().getParentUnid().isEmpty() && getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask)
+      && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted()
+      && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus()
+      && !((getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED)
+      && getEventInfo().getEventCode().getEventCodeId().equals("ADDR1_11") && !getEventInfo().getTaskStatus().name().equals('TRANSFERRED')
+      && getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard())
+      && T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters())
+      && (getEventInfo().getEventCode().getEventCodeId().equals("ADDR1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (!getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') && getEventInfo().getDocument().getParentUnid() != null && !getEventInfo().getDocument().getParentUnid().isEmpty() && getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
@@ -61,7 +68,18 @@
   </queue>
   <queue name="На согласование" stacks="true" id="onApprovWD">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && getEventInfo().getEventCode().getEventCodeId().equals("VISA1_11") &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask)
+      && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted()
+      && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus()
+      && getEventInfo().getEventCode().getEventCodeId().equals("VISA1_11")
+      && (getEventInfo().getTaskStatus().name().equals('TRANSFERRED')
+      && getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard())
+      && T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters()
+      || !T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters()
+      || !getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()))
+      && (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE
+      || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED)
+      && !isDeferred()]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
@@ -101,7 +119,17 @@
   </queue>
   <queue name="Архив" id="Archive">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && (T(com.google.common.collect.Sets).newHashSet("EXEC1_11","ADDR1_11", "SIGN1_11", "VISA1_11", "SEND1_21", "FMLR1_11").contains(getEventInfo().getEventCode().getEventCodeId()) && (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).COMPLETED) || getEventInfo().getEventCode().getEventCodeId().equals("EXEC3_11") && (getEventInfo().getTaskStatus() == null || !getEventInfo().getTaskStatus().name().equals('REFUSED')) && T(ru.intertrust.cmj.pkd.tools.TaskInQueueInclusionUtils).isAllReportTasksCompleted(#this))]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection()
+      && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash()
+      && (T(com.google.common.collect.Sets).newHashSet("EXEC1_11","ADDR1_11", "SIGN1_11", "VISA1_11", "SEND1_21", "FMLR1_11").contains(getEventInfo().getEventCode().getEventCodeId())
+      && (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).COMPLETED)
+      || (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE
+      && (getEventInfo().getEventCode().getEventCodeId() == 'VISA1_11' || getEventInfo().getEventCode().getEventCodeId() == 'ADDR1_11'
+      || getEventInfo().getEventCode().getEventCodeId() == 'EXEC1_11' || getEventInfo().getEventCode().getEventCodeId() == 'SIGN1_11')
+      && getEventInfo().getTaskStatus() != null && getEventInfo().getTaskStatus().name().equals('REFUSED')
+      && getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) && T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters())
+      || getEventInfo().getEventCode().getEventCodeId().equals("EXEC3_11") && (getEventInfo().getTaskStatus() == null || !getEventInfo().getTaskStatus().name().equals('REFUSED'))
+      && T(ru.intertrust.cmj.pkd.tools.TaskInQueueInclusionUtils).isAllReportTasksCompleted(#this))]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
@@ -123,14 +151,14 @@
   <queue name="Мои проекты" id="MyProjectsWD">
     <task-filter>
       <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonProject)
-      && #this.getDocument() != null && (#this.getDocument().getTypeDocument().equals('RKK') || #this.getDocument().getTypeDocument().equals('CONTRACT') || #this.getDocument().getTypeDocument().equals('CONTRACT_') || #this.getDocument().getTypeDocument().equals('RESOLUTION') && (#this.getDocument().getParentUnid() == null || #this.getDocument().getParentUnid().isEmpty()))
+      && #this.getDocument() != null && (#this.getDocument().getTypeDocument().equals('RKK') || #this.getDocument().getTypeDocument().equals('CONTRACT') || #this.getDocument().getTypeDocument().startsWith('CONTRACT_') || #this.getDocument().getTypeDocument().equals('RESOLUTION') && (#this.getDocument().getParentUnid() == null || #this.getDocument().getParentUnid().isEmpty()))
       && !isDeleted() && !isInTrash() && !#this.getDocument().isDeleted() && isProject()
       && (#this.getDocument().getIsProject() == T(ru.intertrust.cmj.pkd.domain.documents.PkdDocument.ProjectStatus).PROJECT
       OR (#this.getDocument().getIsProject() == null && (#this.getDocument().getRegStatus() == null || !#this.getDocument().getRegStatus().equals('REGISTERED'))))]]></script>
     </task-filter>
     <filters>
-      <filter-ref ref="byDocumentStatus"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDocumentStatusProjects"/>
+      <filter-ref ref="byDocTypeProjects"/>
       <filter-ref ref="byPerson"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="onControl"/>
@@ -151,7 +179,7 @@
       OR (#this.getDocument().getIsProject() == null && #this.getDocument().getRegStatus().equals('REGISTERED')))]]></script>
     </task-filter>
     <filters>
-      <filter-ref ref="byDocumentStatus"/>
+      <filter-ref ref="byDocumentStatusRegistered"/>
       <filter-ref ref="byDocType"/>
       <filter-ref ref="byPerson"/>
       <filter-ref ref="byDate"/>
@@ -159,6 +187,7 @@
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref applicable="true" ref="byDocDBType"/>
+      <filter-ref applicable="true" ref="byRegState"/>
     </filters>
     <sorts>
       <sort-ref applicable="true" ref="byDocRegCounter"/>
@@ -233,13 +262,13 @@
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref ref="byLabel"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
     </filters>
     <sorts>
       <sort-ref applicable="true" ref="byDate"/>
@@ -251,13 +280,13 @@
     </task-filter>
     <filters>
       <filter-ref ref="arbitFilter"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byPerson"/>
       <filter-ref ref="byLabel"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byAddressee"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
     </filters>
     <sorts>
       <sort-ref applicable="true" ref="byDate"/>
@@ -274,17 +303,17 @@
   </queue>
   <queue name="На исполнение" id="onExec">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() &&  (getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') || !getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() &&  (getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11")) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref ref="byLabel"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
       <filter-ref ref="onlyNew"/>
     </filters>
     <sorts>
@@ -318,13 +347,13 @@
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref ref="byLabel"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
       <filter-ref ref="onlyNew"/>
     </filters>
     <sorts>
@@ -333,17 +362,17 @@
   </queue>
   <queue name="На рассмотрение" id="forCondsid">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && (getEventInfo().getEventCode().getEventCodeId().equals("ADDR1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (!getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') && !getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') && getEventInfo().getDocument().getParentUnid() != null && !getEventInfo().getDocument().getParentUnid().isEmpty() && getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && (getEventInfo().getEventCode().getEventCodeId().equals("ADDR1_11")) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref ref="byLabel"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
       <filter-ref ref="onlyNew"/>
     </filters>
     <sorts>
@@ -357,13 +386,13 @@
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref ref="byLabel"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
       <filter-ref ref="onlyNew"/>
     </filters>
     <sorts>
@@ -396,7 +425,8 @@
  && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() 
  && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() 
  && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus()
- && getEventInfo().getEventCode().getEventCodeId().equals("APDC1_11")
+ && (getEventInfo().getEventCode().getEventCodeId().equals("APDC1_11") || getEventInfo().getEventCode().getEventCodeId().equals("MEET1_11")
+ || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (!getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') && !getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') && getEventInfo().getDocument().getParentUnid() != null && !getEventInfo().getDocument().getParentUnid().isEmpty() && getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid())))
  &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
     </task-filter>
     <sorts>
@@ -417,18 +447,18 @@
   </queue>
   <queue name="Отложенные" stacks="true" id="deferred">
     <task-filter>
-      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && isDeferred() && ((getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).DONE) && isDeferred() && !getEventInfo().getEventCode().getEventCodeId().equals("EXEC3_11") || getEventInfo().getEventCode().getEventCodeId().equals("EXEC3_11") && (getEventInfo().getTaskStatus() == null || !getEventInfo().getTaskStatus().name().equals('REFUSED')) && T(ru.intertrust.cmj.pkd.tools.TaskInQueueInclusionUtils).isAllReportTasksDeferred(#this))]]></script>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() && isDeferred() && ((getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).DONE) && isDeferred() && !getEventInfo().getEventCode().getEventCodeId().equals("EXEC3_11") && !((getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && (getEventInfo().getEventCode().getEventCodeId().equals("ADDR1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SIGN1_11") || getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11") || getEventInfo().getEventCode().getEventCodeId().equals("VISA1_11")) && !getEventInfo().getTaskStatus().name().equals('TRANSFERRED') && getEventInfo().getEventToApp().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) && T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().hasTransmitters()) || getEventInfo().getEventCode().getEventCodeId().equals("EXEC3_11") && (getEventInfo().getTaskStatus() == null || !getEventInfo().getTaskStatus().name().equals('REFUSED')) && T(ru.intertrust.cmj.pkd.tools.TaskInQueueInclusionUtils).isAllReportTasksDeferred(#this))]]></script>
     </task-filter>
     <filters>
       <filter-ref ref="byPerson"/>
-      <filter-ref ref="byDocType"/>
+      <filter-ref ref="byDoc"/>
       <filter-ref ref="byTask"/>
       <filter-ref ref="onControl"/>
       <filter-ref ref="byDate"/>
       <filter-ref ref="byAddressee"/>
       <filter-ref ref="arbitFilter"/>
       <filter-ref ref="byLabel"/>
-      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref applicable="true" ref="byDB"/>
     </filters>
     <sorts>
       <sort-ref applicable="true" ref="byCreationDateAsc"/>
@@ -559,5 +589,15 @@
       <filter-ref ref="byDocumentStatus"/>
       <filter-ref ref="byDocType"/>
     </filters>
+  </queue>
+  <queue name="Мои Проекты" id="MyProjects">
+    <filters>
+      <filter-ref applicable="true" ref="docIdsFilter"/>
+      <filter-ref ref="byDoc"/>
+      <filter-ref applicable="true" ref="byDocDB"/>
+    </filters>
+    <sorts>
+      <sort-ref applicable="true" ref="pkdDocumentsSort"/>
+    </sorts>
   </queue>
 </pkd>

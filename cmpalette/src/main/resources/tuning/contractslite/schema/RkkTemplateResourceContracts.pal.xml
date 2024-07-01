@@ -10,7 +10,7 @@
     <string name="relationsType" system="true"/>
     <actor array="true" name="preparedBy" system="true"/>
     <actor name="departmentPrep" system="true"/>
-    <actor name="department" system="true"/>
+    <actor name="department" system="true" array="true"/>
     <actor array="true" name="responsibles" system="true"/>
     <actor array="true" name="sendlist" system="true"/>
     <schema-ref ref="ContractValue" name="value" system="true"/>
@@ -41,5 +41,61 @@
         </script>
       </calc-values>
     </boolean>
+    <boolean name="$QCprocessed" temporal="true"/>
+    <boolean default-value="false" temporal="true" name="cantEditFirstSigners">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[parties.ours == null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean default-value="false" temporal="true" name="cantEditOtherSigners">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[parties.other == null]]></script>
+      </calc-values>
+    </boolean>
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.java.util.ArrayList);
+importPackage(Packages.ru.intertrust.cmj.af.access.DepartmentAccess);
+importPackage(Packages.ru.intertrust.cmj.rest.access.DepartmentAccessResource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+
+function queryCreate(object) {
+    if(object.tuning().getValues().get("$QCprocessed") == null) {
+      var values = object.tuning().getValues();
+      var curUser = AFSession.get().currentUser().getBeard();
+      if (!object.preparedBy().getList().isEmpty()) {
+          object.preparedBy().getList().clear();
+      }
+
+      object.tuning().put("$QCprocessed", TuningHelper.createPropertyValue(true, object.tuning().getSchema().getProperty("$QCprocessed")));
+    }
+}
+
+function querySave(object, document) {
+}
+
+function recalc(object, changedField) {
+    if (changedField == 'parties.this') {
+        object.signing1().setSigner(null);
+        object.signing1().setSigners(null);
+        object.signing1().setSignersExt(null);
+        object.signing1().setOtherSignatures(null);
+	}
+    if (changedField === 'parties.other') {
+		object.signing2().setSigner(null);
+		object.signing2().setSigners(null);
+
+		if (object.getParty2() != null && "PRIVATE_HUMAN".equals(object.getParty2().originalData().getType().name())) {
+            object.signing2().setSigner(object.getParty2().originalData().getParty().getBeard());
+		}
+	}
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

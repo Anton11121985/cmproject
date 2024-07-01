@@ -6,14 +6,14 @@
         </meta>
         <string name="showIdent" temporal="true" computed="true">
             <calc-values>
-                <script event="open" lang="SPEL"><![CDATA['Изменения к Номенклатуре дел организаций']]></script>
+                <script event="open" lang="SPEL"><![CDATA['Изменения к сводной Номенклатуре дел']]></script>
             </calc-values>
         </string>
         <actor name="organization" system="true"/>
         <actor name="orgDepartment" system="true"/>
         <boolean name="orgDepartmentIsEmpty" temporal="true">
             <calc-values>
-                <script event="open" lang="SPEL"><![CDATA[orgDepartment!=null || orgDepartment!='']]></script>
+                <script event="open" lang="SPEL"><![CDATA[orgDepartment == null || orgDepartment.getId() == null]]></script>
             </calc-values>
         </boolean>
         <string name="printformname" temporal="true">
@@ -31,6 +31,25 @@
         <boolean name="contentImageNotEmpty" createlog="true" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[contentImage != null && ((contentImage.richtext != null && !contentImage.richtext.isEmpty()) || (contentImage.content != null && !contentImage.content.isEmpty()))]]></script>
+            </calc-values>
+        </boolean>
+        <file name="content" temporal="true"/>
+        <boolean name="fillTmpContent" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA[#this.contentFiles!=null && contentFiles.content != null && !contentFiles.content.isEmpty()?
+{
+#tmpFiles = new ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl(#this.tuning().getSchema().getProperty("content").getSchema(), null, null, id),
+#tmpFiles.files().addAll(contentFiles.content),
+T(ru.intertrust.cmj.tunable.object.common.TunableObjectHelper).putAFInstanceValue(#root.tuning(), "content", #tmpFiles),
+true
+}[3]
+:
+{
+#tmpFiles = new ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl(#this.tuning().getSchema().getProperty("content").getSchema(), null, null, id),
+T(ru.intertrust.cmj.tunable.object.common.TunableObjectHelper).putAFInstanceValue(#root.tuning(), "content", #tmpFiles),
+true
+}[2]
+]]></script>
             </calc-values>
         </boolean>
         <boolean name="isReadyForEkConsideration" system="true">
@@ -94,6 +113,21 @@
         <boolean default-value="false" temporal="true" name="partitionNotEmpty">
             <calc-values>
                 <script lang="SPEL" event="open"><![CDATA[#this.currentUserRoles.contains("Archivist") && "PROJECT".equals(statusGeneral.toString()) && (statusExtended == null || "".equals(statusExtended.toString()) || "ROLLBACK_TO_REWORK".equals(statusExtended.toString())) && partiotionInfoTable.size() != 0]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="canToggleButtonSubmissionToTheECToUnready">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[#this.currentUserRoles.contains("Archivist") && "PROJECT".equals(statusGeneral.toString()) && (statusExtended != null && "READY_TO_EK".equals(statusExtended.toString()))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="isArchivist">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[#this.currentUserRoles.contains("Archivist")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="isArchiveManager">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[#this.currentUserRoles.contains("ArchiveManager")]]></script>
             </calc-values>
         </boolean>
         <schema-ref ref="ClientContext" name="$clientContext" />
@@ -178,6 +212,39 @@
                 <script lang="SPEL" event="open"><![CDATA[
                     T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(ndo_changes)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() > 0]]>
                 </script>
+            </calc-values>
+        </boolean>
+        <boolean name="canToggle" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    #this.currentUserRoles.contains("ArchiveManager") && statusExtended != null && "READY_TO_EK".equals(statusExtended.toString())]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="$hasCheckCertifyLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='locker.check.certify'].size() > 0]]></script>
+            </calc-values>
+        </boolean>
+        <schema-ref ref="FRVerifyCertifyLockerData" name="verifyCertifyLockerData" temporal="true"/>
+        <boolean name="canDeleteIfAdminNdoChange" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                        #this.currUserIsAdmin() && partiotionInfoTable.size() != 0 && !"DELETED".equals(statusGeneral.toString())
+                    ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canDeleteFromTrash" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    statusGeneral != null && "DELETED".equals(statusGeneral.toString()) && #this.currentUserRoles.contains("[SuperUser]")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="statusIsDeleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                        "DELETED".equals(statusGeneral.toString())
+                    ]]></script>
             </calc-values>
         </boolean>
         <custom-event-handler lang="JavaScript"><![CDATA[

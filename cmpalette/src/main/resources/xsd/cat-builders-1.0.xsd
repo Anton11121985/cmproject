@@ -56,6 +56,39 @@
                 <xs:documentation><![CDATA[Не показывать чекбоксы для выбора документов]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="hide-preview-actions" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Не действия из превью]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="hierarchyLevelType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Иерархия]]></xs:documentation>
+        </xs:annotation>
+
+        <xs:sequence maxOccurs="unbounded">
+            <xs:element name="view-level" type="viewLevelType" maxOccurs="unbounded" minOccurs="1"/>
+        </xs:sequence>
+
+    </xs:complexType>
+
+    <xs:complexType name="viewLevelType">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Уровень иерархии]]></xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="ref" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Название, используемой коллекции для уровня]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="limit" type="xs:long" use="optional">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Ограничение по отображению документов на уровне]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="configType">
@@ -64,72 +97,244 @@
         </xs:annotation>
 
         <xs:sequence minOccurs="1" maxOccurs="unbounded">
-            <xs:element name="view-complex-classif" type="viewComplexClassifType"/>
+            <xs:choice>
+                <xs:element name="view-complex-classif" type="viewComplexClassifType" />
+                <xs:element name="hierarchy-levels" type="hierarchyLevelType"/>
+            </xs:choice>
         </xs:sequence>
     </xs:complexType>
 
-    <!--Builder-->
-    <xs:complexType name="builderType">
+    <!--Builder CMJ-->
+    <!-- BuilderSO -->
+    <xs:simpleType name="BuilderSO">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSO">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список всех организаций, подразделений, сотрудников и физических лиц]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODep">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список только подразделений]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODepSorting">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список сотрудников/РВЗ/подразделений, отсортированных по типу структурной единицы (РВЗ, сотрудник, подразделение) и по названию]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODismissed">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список уволенных сотрудников]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOExtended">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Иерархическое представление системной организации]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOSL">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Списки рассылки]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSORoles">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список ролей]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODlg">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список всех организаций, подразделений, сотрудников и физических лиц]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOSLDlg">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Списки рассылки для диалога]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSORegplacesDlg">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список мест регистрации для диалога]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOClerksDlg">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список делопроизводителей для диалога]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- BuilderFavourites -->
+    <xs:simpleType name="BuilderFavourites">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ru.intertrust.cmj.dp._stdimpl.dao.BuilderFavourites">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список избранных сотрудников]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- BuilderFavourites -->
+    <xs:simpleType name="BuilderPkd">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ru.intertrust.cmj.pkd.collection.BuilderPkd">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список задач/уведомлений]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.pkd.collection.BuilderPkdHeader">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список новых уведомлений]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- BuilderQueries -->
+    <xs:simpleType name="BuilderQueries">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ru.intertrust.cmj.af.search.collections.BuilderSavedQueries">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список документов, которые сохранялись в последний раз]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.search.collections.BuilderLastQueries">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[CMJ. Список документов, которые просматривались в последний раз]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Классы для AF5 -->
+    <xs:simpleType name="builderClassCMJType">
+        <xs:union memberTypes="BuilderSO BuilderFavourites BuilderPkd BuilderQueries xs:string"/>
+    </xs:simpleType>
+
+    <!--Builder CMJ-->
+    <xs:complexType name="builderCMJType">
         <xs:annotation>
-            <xs:documentation><![CDATA[Класс Builder]]></xs:documentation>
+            <xs:documentation><![CDATA[Класс Builder для работы с данными таблиц CMJ]]></xs:documentation>
         </xs:annotation>
         <xs:all>
             <xs:element name="config" type="configType" minOccurs="0"/>
         </xs:all>
-        <xs:attribute name="name" use="required">
+        <xs:attribute name="name" type="builderClassCMJType"  use="required">
             <xs:annotation>
-                <xs:documentation><![CDATA[Название]]></xs:documentation>
+                <xs:documentation><![CDATA[Описание часто используемых классов builder, отвечающих за обработку данных в БД CMJ.  Использование специфичных классов предполагает знание CMJ]]></xs:documentation>
             </xs:annotation>
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoView"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCatalogHeader"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCatalogLinks"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCatalogNavigator"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCatalogProgrammed"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCatalogResources"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewComplexClassif"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCQSearch"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlg"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlgAdmin"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlgAdminFtSearch"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlgLimit"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewEDMFoldersInfo"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewExactFTSearch"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewOneCategory"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewSubfolders"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewSubfoldersWithoutHierDsc"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewVCardCQSearch"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSO"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODep"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODepSorting"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODismissed"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSODlg"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOExtended"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOSL"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOSLDlg"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOHierarchy"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSOMyOrgsSorting"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSORoles"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.so.impl.BuilderSORegplacesDlg"/>
-                    <xs:enumeration value="ru.intertrust.cmj.dp._stdimpl.dao.BuilderFavourites"/>
-                    <xs:enumeration value="ru.intertrust.cmj.pkd.collection.BuilderPkd"/>
-                    <xs:enumeration value="ru.intertrust.cmj.pkd.collection.BuilderPkdHeader"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.dispatcher.BuilderReportsViewSD"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiBuilder"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiClassifBuilder"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiMeetingsBuilder"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiClassifBuilderDlg"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.reeproc.UiBuilderReeproc"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.produslugi.UiBuilderProduslugi"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.packages.UiBuilderPackages"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.attorneydocs.UiBuilderAttorneyDocs"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.askid.UiAllTasksBuilder"/>
-                    <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.BuilderDominoViewAF5OneCategory"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.search.collections.BuilderSavedQueries"/>
-                    <xs:enumeration value="ru.intertrust.cmj.af.search.collections.BuilderLastQueries"/>
-                </xs:restriction>
-            </xs:simpleType>
         </xs:attribute>
     </xs:complexType>
+
+    <!--Builder AF-->
+    <!-- UIBuilder -->
+    <xs:simpleType name="UIBuilder">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiBuilder">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[AF5. Используется для отображения объектов в представлениях и диалогах]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiBuilderCQSearch">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[AF5. Используется в диалогах, с возможностью поиска по представлению, через CQSEARCH]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiBuilderVCardCQSearch">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[AF5. Используется в представлениях и диалогах АРМ Администратора, с возможностью поиска по представлению]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.uilderDominoViewAF5OneCategory">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[AF5. Используется для категоризированных коллекций, если нужно показывать только одну категорию и запретить переход на категорию выше]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cm_sochi.srv.uicollections.UiBuilderFilteredByKeys">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[AF5. Используется только для фильтрации значений коллекции с применением одного или нескольких ключей]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- BuilderDominoView -->
+    <xs:simpleType name="BuilderDominoView">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoView">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется для отображения однотипных объектов в представлениях]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewComplexClassif">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется для иерархических классификаторов]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewCQSearch">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется в диалогах, с возможностью поиска по представлению]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderFolderView">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Построитель коллекции для папок]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewVCardCQSearch">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется в диалогах АРМ Администратора, с возможностью поиска по представлению]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlg">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется для диалогов выбора объектов]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlgAdmin">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется для диалогов выбора объектов в АРМ Администратора]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlgAdminFtSearch">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется для диалогов выбора объектов в АРМ Администратора, с возможностью полнотекстового поиска]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewDlgLimit">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Ограничения выдаваемых значений для увеличения быстродействия для массивных коллекций]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ru.intertrust.cmj.af.collections.impl.BuilderDominoViewOneCategory">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Domino. Используется для категоризированных коллекций, если нужно показывать только одну категорию и запретить переход на категорию выше]]></xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Классы для AF5 -->
+    <xs:simpleType name="builderClassAFType">
+        <xs:union memberTypes="UIBuilder BuilderDominoView xs:string"/>
+    </xs:simpleType>
+
+    <!--Builder AF-->
+    <xs:complexType name="builderAFType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Класс Builder для работы с данными таблиц AF5]]></xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="config" type="configType" minOccurs="0"/>
+        </xs:all>
+        <xs:attribute name="name" type="builderClassAFType"  use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Описание часто используемых классов builder, отвечающих за обработку данных в БД AF. Использование специфичных классов предполагает знание CMJ]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
 </xs:schema>

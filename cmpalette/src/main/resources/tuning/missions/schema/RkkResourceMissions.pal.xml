@@ -40,12 +40,7 @@
     <string name="tmpPrfx" createlog="true">
       <storage-field name="tmpPrfx"/>
     </string>
-    <string name="stampStatus" system="true" temporal="true"/>
-    <string name="stampState" system="true" temporal="true"/>
     <schema-ref ref="MovingCopiesTable" array="true" name="movingCopiesTable" createlog="true"/>
-    <string name="dialogueComment" createlog="true">
-      <storage-field name="dialogueComment"/>
-    </string>
     <string name="dialogueCommentReg" createlog="true">
       <storage-field name="dialogueCommentReg"/>
     </string>
@@ -63,14 +58,148 @@
         </script>
       </calc-values>
     </boolean>
-    <boolean name="tDeleted" temporal="true">
+    <string name="accessMode" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[T(java.lang.Boolean).TRUE.equals(status.deleted)]]></script>
+        <script event="open"><![CDATA[accessMode==null || accessMode.isEmpty() ? (isPublicAccess ? "Для всех" : CommonAccessList != null && CommonAccessList.size() > 0 ? "Для выбранных:" : "") : accessMode]]></script>
+      </calc-values>
+    </string>
+    <actor name="CommonAccessList" array="true" system="true"/>
+    <schema-ref ref="MissionsDepTypeObj" name="missionsDepTypeObj" null-empty="true" array="true"/>
+    <string name="сommonAccessListString" temporal="true" />
+    <string name="сommonAccessListHint" temporal="true" >
+      <calc-values>
+        <script event="open"><![CDATA[T(ru.intertrust.cmj.af.utils.BeansUtils).getBean('GetCommonAccessList').getCommonAccess(#this, T(com.google.common.collect.Lists).transform(CommonAccessList, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard))]]></script>
+      </calc-values>
+    </string>
+    <boolean name="accessModeIsNotNull" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isPublicAccess || (CommonAccessList != null && CommonAccessList.size() > 0)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isEnabledExecuteRkk" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA[T(ru.intertrust.cmj.rest.bf.ModuleID).MISSIONS.getModule().isEnabledExecuteRkkWithControlledResolutions(#this.getComplect(), #this.getDbIdent())
+|| T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(NotCompletedCtrldResForRkk)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() == 0]]></script>
+      </calc-values>
+    </boolean>
+    <string name="sendToDrawingStatus" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[sendToDrawing == null ? '': ('true'.equals(sendToDrawing.toString())) ? 'На оформлении':'']]></script>
+      </calc-values>
+    </string>
+    <boolean name="missionsContentIsReadOnly" temporal="true" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(("sent".equals(signature?.state?.status) || "signed".equals(signature?.state?.status)) && #this.isSignerWithEdit!=true)
+|| (#this.apre == T(ru.intertrust.cmj.rest.rkk.APREStatus).ON_APPROVING)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="curUserIsSigner" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(signature.signer != null || signature.signers != null) && (signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD ?
+        T(com.google.common.collect.Lists).transform(#this?.signature?.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) ||
+		T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getSubstituteOf().contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.signature.signer)) :
+        #this?.signature?.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard())].size() > 0 ||
+		#this.signature.signers.?[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getSubstituteOf().contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(signer))].size() > 0)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="curUserIsExecWithoutSub" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'executor') && #this.executor != null ? #this?.executor?.contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).beardToVCardThrow.apply(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard())) :  false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isAutoReg" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.bf.ModuleID).MISSIONS.getModule().isAutoRegister(#this.getComplect(), #this.getDbIdent())]]></script>
+      </calc-values>
+    </boolean>
+    <string name="$emailTitle" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.type != null ? #this.type : '')
++ ((#this.registration!=null && #this.registration.number!=null) ? (
+    (registration.date==null ? '' : (' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date)))
+    + (' № ' + #this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix)
+) : (
+    ' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.creationDate.toInstant()))
+    + (#this.projectNumber.numberCharacter == null ? ' проект' : ' проект № ' + (#this.projectNumber.projectNumber))
+))
++ ' «' + #this.title + '»']]></script>
+      </calc-values>
+    </string>
+    <string name="$emailDocinfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.type != null ? #this.type : '')
++((registration==null || registration.date==null)?'':' от '+T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(registration.date, false))
++((registration==null || registration.number==null)?'':(' № '+registration.number.prefix+registration.number.number+registration.number.suffix))]]></script>
+      </calc-values>
+    </string>
+    <boolean name="sendToDrawing" system="true"/>
+    <string name="docStatus" system="true"/>
+    <boolean temporal="true" name="isClerkMissions">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA[#this.registration == null ? false : #this.registration.place == null ? false : T(ru.intertrust.cmj.rest.bf.ModuleID).MISSIONS.getModule().getRegplaces("Missions").contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place))]]></script>
+      </calc-values>
+    </boolean>
+    <string name="missionsLabelAdditional" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Дополнительные"]]></script>
+      </calc-values>
+    </string>
+    <string name="missionsLabelExec" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Исполнитель"]]></script>
+      </calc-values>
+    </string>
+    <string name="regPlaceFullName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.registration == null || #this.registration.place == null) ? '' : {
+	#regplacefullname = T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place)?.originalData()?.getParty()?.getBeard()?.originalData()?.getFullName(),
+	#regplacefullname != null ? #regplacefullname.trim() : ''
+}[1]]]></script>
+      </calc-values>
+    </string>
+    <boolean name="movingCopiesEnable" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).movingCopies]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="approveIssueFixingIsNamed" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[
+        { #db = T(ru.intertrust.cmj.af.core.AFCMDomino).getAllDBInfoByCurrSORepNamed().toArray()?.?[ident.equals("ApproveIssueFixing")]?.![#this],
+          #db != null && #db.length > 0 && #db[0].isNamed
+        }[1]
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="notSeeButtonSignOnPaper" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[
+        !(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Supervisor'))
+          && !#hasRole(#this, 'AllDelo') && !curUserIsExecWithoutSub
+          && !({#session = T(ru.intertrust.cmj.af.core.AFSession).get(),
+            #curUser = #session.currentUser(),
+            #author = #session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)?.getAuthor()?.getUNID(),
+            #author != null && #author.equals(#curUser.getBeard()?.getUNID())
+            }[3])
+          && !sendToDrawing
+        || !(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Supervisor'))
+          && !#hasRole(#this, 'AllDelo') && !isClerkMissions && sendToDrawing
+        || #this.isNew() ? false : (
+        !(registration==null || registration.number==null)
+        || ("sent".equals(signature?.state?.status) || "signed".equals(signature?.state?.status))
+        || registration != null && registration.state != null && "sent".equals(registration.state.status)
+        || sendToSignOnPaper!=null && sendToSignOnPaper
+        || #root.isDeleted!=null && #root.isDeleted
+        || "ON_APPROVING".equals(#this?.apre))]]></script>
       </calc-values>
     </boolean>
     <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
-
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
 importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
 importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
 importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
 importClass(Packages.ru.intertrust.cmj.af.history.emb.HistoryEmb);
@@ -86,8 +215,12 @@ importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
 importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
 importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
 importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
 importClass(Packages.ru.intertrust.cmj.dp.DPException);
 importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
 importClass(Packages.ru.intertrust.cmj.dp.DPMPurchaseContracts);
 importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfo);
 importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfoComment);
@@ -102,34 +235,355 @@ importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
 importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity.TaskEntity.Status);
 importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
 importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
 
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
 importClass(Packages.java.util.List);
+importClass(Packages.java.util.Arrays);
 importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration);
 importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration.Operation.Recall);
 importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFSigningOnRework);
 
-function queryCreate(object){
-	if (object.getType() != null && object.getType().equals("Выписка из протокола") && object.getSubject() != null && object.getSubject().indexOf(" по вопросам № ") != -1 && object.getSubject().indexOf("Выписка № ") != -1 && object.getSubject().indexOf(" из протокола № ") != -1 ) {
-		var arr1 = object.getSubject().split(" по вопросам № ");
-		var arr2 = arr1[0].replace("Выписка № ","").split(" из протокола № ");
-		object.tuning().getValues().put("tmpPrfx", TuningHelper.createPropertyValue(arr2[1]+"/"+arr2[0]+"-", object.tuning().getSchema().getProperty("tmpPrfx")))
+importClass(Packages.java.lang.System);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.Beard);
+importClass(Packages.ru.intertrust.af.storage.AFStorage);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.dp.fdnd.FDSharedToolsD);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.Beard);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.PostUnit);
+importClass(Packages.ru.intertrust.af.storage.AFStorage);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitChild);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+
+function querySave(object, document) {
+
+    if (object.isDeleted()) {
+        return true;
+    }
+
+    var isProject = object.tuning().getValues().get("$isProject") != null
+        && object.tuning().getValues().get("$isProject").getValue();
+
+    if(object.signing.getSigners().size() < 1) {
+        throw ("Заполните таблицу подписанты");
+    }
+
+    var rkk = object;
+    if ((rkk.registration().getState() == DPM.RKK.Registration.State.SENT) && rkk.signing().wasUnSigned  ) {
+        rkk.registration().recall();
+    }
+
+
+    if (!document.getItemValue("RegProc").isEmpty()) {
+        document.replaceItemValue("wasSendToRegD",  "1");
+    }
+
+
+    if (!document.getItemValue("SendToSignD").isEmpty()) {
+        document.replaceItemValue("wasSendToSignD",  "1");
+    }
+
+    if (rkk.approving().isProcessRun != null && rkk.approving().isProcessRun && rkk.isOnRework()) {
+	    object.setOnRework(false);
+    }
+
+    return true;
+}
+
+function postSave(object, document) {
+    var rkk = object;
+    if (rkk.signing().wasUnSigned  ) {
+        var to = RKKFRegistrationRegistrate.getDPs(rkk);
+        if (!to.isEmpty()) {
+            new PkdSession().deleteEvent(to, EventCode.getByString("RGST1_11"), rkk);
+        }
+    }
+    var isRegistration = object.registration().isSaveWithRegistration;
+
+    if (isRegistration && (object.registration().getState() != DPM.RKK.Registration.State.SENT)) {
+        Event.bus().post(new CompleteEvent(object, "RGST1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+        Event.bus().post(new CompleteEvent(object, "SIGN1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+
+    }
+
+    if ((object.signing().getState() == DPM.RKK.HasSigning.Signing.State.SIGNED) && (object.signing().getState() != DPM.RKK.HasSigning.Signing.State.SENT)) {
+        Event.bus().post(new CompleteEvent(object, "SIGN1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+    }
+
+    if ((object.signing().getState() == DPM.RKK.HasSigning.Signing.State.SENT) && !document.getItemValue("wasSendToSignD").isEmpty()) {
+        Event.bus().post(new CompleteEvent(object, "SIGN1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+    }
+
+    if (object.registration().getState() == DPM.RKK.Registration.State.SENT) {
+        Event.bus().post(new CompleteEvent(object, "SIGN1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+    }
+
+    if (!document.getItemValue("SendToRegD").isEmpty() && !document.getItemValue("wasSendToRegD").isEmpty()) {
+        Event.bus().post(new CompleteEvent(object, "RGST1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+    }
+
+    if (!document.getItemValue("Met").isEmpty()) {
+        Event.bus().post(new CompleteEvent(object, "RGST1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+        Event.bus().post(new CompleteEvent(object, "SIGN1_21", Arrays.asList(AFSession.get().currentUser().getBeard())));
+    }
+
+	var needDrawComplete = (object.registration().getState() == DPM.RKK.Registration.State.SENT) || (object.registration().isSaveWithRegistration && (object.registration().getState() != DPM.RKK.Registration.State.SENT)) || ((object instanceof DPM.RKK.HasSigning) && (object.signing().getState() == DPM.RKK.HasSigning.Signing.State.SENT) )
+ 	if (needDrawComplete) {
+ 		new PkdSession().markEventsAsCompleted(object.getUNID(), EventCode.getByString("DRAW1_11"));
+ 	}
+
+	addMissionsInNormDoc(object);
+}
+
+function addMissionsInNormDoc(object) {
+	for (var i = 0, lenI = object.links().size(); i < lenI; i++) {
+        var linkI = object.links().get(i);
+        if ("PUTSINTOEFFECT_2".equals(linkI.getType())) {
+			var rkknd = linkI.getTarget();
+			if (!(rkknd!=null && rkknd.getDbIdent!=null && rkknd.getDbIdent()=="NormDocs")) {
+				return;
+			}
+			var showIdentNd = TunableObjectHelper.getAFInstanceValue(rkknd.tuning().getValues().get("showIdent"));
+			if (!showIdentNd.equals("Нормативный документ")) {
+				return;
+			}
+			var misUnid = object.getUNID();
+			var regNumber = object.registration().getRegisteredInfo().getNumber().toString();
+			var type = object.getType();
+			var date = AFDate.fromJavaDate(object.registration().getDate());
+			var action = "Введение в действие";
+			var nameUOB = GetSimpleValue(object, "nameUOB");
+			var missionsTable = TunableObjectHelper.getAFInstanceValue(rkknd.tuning().getValues().get("MissionsTable"));
+			if (missionsTable == null) {
+				missionsTable = new ArrayList();
+			}
+			var misobj = new HashMap();
+			misobj.put("missionsID", misUnid);
+			misobj.put("type", type);
+			misobj.put("regNumber", regNumber);
+			misobj.put("action", action);
+			misobj.put("date", date);
+			misobj.put("nameUOB", nameUOB);
+			missionsTable.add(misobj);
+			TunableObjectHelper.putAFInstanceValue(rkknd.tuning(), "MissionsTable", missionsTable);
+			rkknd.save();
+		}
 	}
 }
 
-function querySave(object, document) {
-    if ((object.registration().getState() == DPM.RKK.Registration.State.SENT) && object.signing().wasUnSigned  ) {
-        object.registration().recall(); 
-    } 
-   return true;
+function recalc(object, changedField) {
+    if (changedField == 'executor') {
+        var values = object.tuning().getValues();
+        values.put('execParentDepartment', null);
+        values.put('execDepartment', null);
+        values.put('execPost', null);
+        values.put('execPhone', null);
+        var user = values.get('executor');
+        if (user != null && user.getValues().size() > 0) {
+            setExecutor(user.getValues().get(0).getValue(), values, object);
+        }
+    }
+
+    if ("missionsDepTypeObj".equals(changedField)) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var values = object.tuning().getValues();
+        var value = values.get("missionsDepTypeObj").getValues();
+        var namesList = new ArrayList();
+
+        for (var i = 0; i < value.size(); i++) {
+            var beard = soApp.getBeard(value.get(i).getValues().get("depName").value);
+            namesList.add(beard);
+        }
+
+        object.setCommonAccessList(namesList);
+    }
+
+    if ("accessMode".equals(changedField)) {
+        var values = object.tuning().getValues();
+        var value  = object.tuning().getValues().get("accessMode");
+        object.setIsPublicAccess(value != null && "Для всех".equals(value.getValue()));
+        object.setCommonAccessList(null);
+
+        values.put("CommonAccessList", null);
+        values.put("missionsDepTypeObj", null);
+        values.put("сommonAccessListString", null);
+    }
 }
 
-function postSave(object, document) {    
-    if (object.signing().wasUnSigned  ) {
-        var to = RKKFRegistrationRegistrate.getDPs(object);
-        if (!to.isEmpty()) {
-            new PkdSession().deleteEvent(to, EventCode.getByString("RGST1_11"), object);
+function getParentSeparateUnit(beard) {
+    if(beard.originalData().getType().toString().equals("SYS_ROLE")) {
+        var branchFR = beard.originalData().getParty().getHeadOrBranchOffice();
+        if (branchFR != null) {
+            return branchFR.getBeard();
         }
-    } 
+    }
+    var parent = getParent(beard);
+
+    if(parent == null)
+        return null;
+
+    var party = parent.originalData().getParty();
+
+    if (party instanceof SOUnitStructure) {
+        if (party.isSeparate()) {
+            return parent;
+        }
+    }
+    if (party instanceof SOUnitOrganization){
+        return parent;
+    }
+    return getParentSeparateUnit(parent);
+}
+function getParent(beard) {
+    var parent = beard.getParent();
+    if (parent != null) {
+        return parent;
+    }
+    var parentDocId = null;
+	var unit = beard.getAccessUnit();
+	if (unit == null) {
+		throw("Ошибка при поиске accessUnit для бороды " + beard.getUNID());
+	}
+    var unidArr = unit.getUNID().split(":");
+    var tnUnid = unidArr[0] + "-TN:" + unidArr[1];
+    var tunApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tnObj = tunApp.getEntityByUNID(tnUnid);
+    if (tnObj != null) {
+        var parentUnit = tnObj.tuning().getValues().get("parentUnit");
+        if (parentUnit != null && parentUnit.getValues().get("basedocid") != null) {
+            parentDocId = parentUnit.getValues().get("basedocid").getValue();
+        }
+    }
+    if (parentDocId != null) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var soObj = soApp.getEntityByUNID(unidArr[0] + ":" + parentDocId);
+        if (soObj != null) {
+            if (soObj instanceof SOParty) {
+                return soObj.getBeard();
+            } else if (soObj instanceof SOUnitPost && soObj.appointments().getCurrent() != null) {
+                return soObj.appointments().getCurrent().getBeard();
+            } else if (soObj instanceof PostUnit) {
+                return AFStorage.getEntityManager().find(Beard.class, soObj.getUNID());
+            } else {
+                throw("Ошибка при поиске родительского элемента - soObj " + soObj.getClass().getName());
+            }
+        }
+    }
+    return null;
+}
+function getParentIndependentUnit(beard) {
+    var parent = getParent(beard);
+
+    if(parent == null)
+        return null;
+
+    var party = parent.originalData().getParty();
+
+    if (party instanceof SOUnitStructure) {
+        if (party.isIndependent() || party.isSeparate()) {
+            return parent;
+        }
+    }
+    if (party instanceof SOUnitOrganization){
+        return parent;
+    }
+    return getParentIndependentUnit(parent);
+}
+
+function setExecutor(user, values, object) {
+    var filial = getParentSeparateUnit(user);
+    if(filial != null)
+        values.put("execParentDepartment", TuningHelper.createPropertyValue(filial, object.tuning().getSchema().getProperty("execParentDepartment")));
+    var parentDep = getParentIndependentUnit(user);
+    if(parentDep != null)
+        values.put("execDepartment", TuningHelper.createPropertyValue(parentDep, object.tuning().getSchema().getProperty("execDepartment")));
+    var post = user.originalData().getPostName();
+    if(post != null)
+        values.put("execPost", TuningHelper.createPropertyValue(post, object.tuning().getSchema().getProperty("execPost")));
+    var app = user.originalData().getParty();
+    if (app != null) {
+        var phone = app.getPerson().contactsInfo().getPhoneInternal();
+        if (phone != null)
+            values.put("execPhone", TuningHelper.createPropertyValue(phone, object.tuning().getSchema().getProperty("execPhone")));
+    }
+
+}
+function queryCreate(object){
+    if (object.getType() != null && object.getType().equals("Выписка из протокола") && object.getSubject() != null && object.getSubject().indexOf(" по вопросам № ") != -1 && object.getSubject().indexOf("Выписка № ") != -1 && object.getSubject().indexOf(" из протокола № ") != -1 ) {
+        var arr1 = object.getSubject().split(" по вопросам № ");
+        var arr2 = arr1[0].replace("Выписка № ","").split(" из протокола № ");
+        object.tuning().getValues().put("tmpPrfx", TuningHelper.createPropertyValue(arr2[1]+"/"+arr2[0]+"-", object.tuning().getSchema().getProperty("tmpPrfx")))
+    }
+
+    var values = object.tuning().getValues();
+    if(values.get('executor') == null) {
+        var user = AFSession.get().currentUser().getBeard();
+        if(user != null) {
+            setExecutor(user, values, object);
+            var apl = AFSession.get().getApplication(TuningApplication.class);
+            var curUser = new AFInstanceSimpleImpl(apl.getSchemaByName("SOBeard"), user);
+            var namesList = new ArrayList();
+            namesList.add(curUser);
+            values.put("executor", TuningHelper.createPropertyValue(namesList, object.tuning().getSchema().getProperty("executor")));
+        }
+    }
+}
+
+function GetValue(doc, filedName) {
+    var values;
+    if (doc instanceof AFInstanceObject) {
+        values = doc.getValues();
+    } else if(doc instanceof HashMap) {
+        values = doc;
+    } else {
+        values = doc.tuning().getValues();
+    }
+
+    var tmp = values.get(filedName);
+    if (tmp == null) {
+        return null;
+    }
+
+    return tmp instanceof AFInstanceSimple ? tmp.getValue() : tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}
+
+function isExecutor(rkk) {
+    var executorList = rkk.tuning().getValues().get("executor");
+    if (executorList == null || executorList.getValues().size() == 0) {
+        return false;
+    }
+
+    var currentUser = AFSession.get().currentUser();
+    var executorBeardList = TunableObjectHelper.getAFInstanceValue(executorList);
+
+    if (executorBeardList.contains(currentUser.getBeard())) {
+        return true;
+    }
+
+    for (var i = 0; i < executorBeardList.size(); i++) {
+        if (currentUser.isSubstituteOf(executorBeardList.get(i))) {
+            return true;
+        }
+    }
+    return false;
 }]]></custom-event-handler>
   </schema>
 </schemas>

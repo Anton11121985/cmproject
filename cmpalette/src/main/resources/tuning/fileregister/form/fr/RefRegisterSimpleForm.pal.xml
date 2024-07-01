@@ -11,6 +11,20 @@
     <component>
       <section id="RootMenu">
         <component>
+          <button name="${ui.form.FileRegisterSimpleForm.section.RootMenu.button.Удалить из корзины.name:Удалить из корзины}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="canDeleteFrFileFromTrash"/>
+              </hide>
+            </properties>
+            <action>
+              <custom>
+                <operation>
+                  <handler-ref ref="DeleteFrFileFromTrash"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
         </component>
       </section>
       <section id="Header">
@@ -71,22 +85,60 @@
           </section>
           <section id="header_row2" group="true">
             <component>
-              <field attribute-ref="statusExtended">
-                <properties>
-                  <read-only>
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <directories>
-                  <directory-ref ref="fileStatusExtended" />
-                </directories>
-                <appearance align="right">
-                  <label-style field-width="16" field-unit="symbol">
-                    <style id="tunBold"/>
-                  </label-style>
+              <section id="branchDivision_And_Unit" group="true">
+                <component>
+                  <field attribute-ref="branchDivision" name="${ui.form.FileRegisterSimpleForm.section.Header.section.header_row2.section.branchDivision_And_Unit.field.branchDivision.name:Направление деятельности:}">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide>
+                        <condition-ref ref="soUnitIsNotNull"/>
+                      </hide>
+                    </properties>
+                  </field>
+                  <field attribute-ref="soUnit" clickable="true" name="${ui.form.FileRegisterSimpleForm.section.Header.section.header_row2.section.branchDivision_And_Unit.field.soUnit.name:Структурное подразделение:}">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide>
+                        <negative-condition-ref ref="soUnitIsNotNull"/>
+                      </hide>
+                    </properties>
+                    <appearance clickable="true" importance="normal" digest-mode="digest" />
+                  </field>
+                </component>
+                <appearance field-layout="horizontal" align="left">
+                  <dialog-mode unit="percent" width="25" />
                 </appearance>
-              </field>
+              </section>
+              <section id="statusExtended" group="true">
+                <component>
+                  <field attribute-ref="statusExtended">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="right">
+                      <label-style field-unit="symbol" field-width="16">
+                        <style id="tunBold" />
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBold" />
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="fileStatusExtended" />
+                    </directories>
+                  </field>
+                </component>
+              </section>
             </component>
+            <appearance field-layout="horizontal" turn="false"/>
           </section>
           <section id="header_row3" group="true">
             <component>

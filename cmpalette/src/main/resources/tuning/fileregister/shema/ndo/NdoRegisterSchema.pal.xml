@@ -22,6 +22,7 @@
         </string>
         <actor name="organization" system="true"/>
         <actor name="orgDepartment" system="true"/>
+        <boolean name="hasDepartmentWithNdo" temporal="true"/>
         <boolean name="orgDepIsNotEmpty" computed="true" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[orgDepartment != null]]></script>
@@ -40,7 +41,26 @@
                 <script event="open" lang="SPEL"><![CDATA[contentFiles != null && ((contentFiles.richtext != null && !contentFiles.richtext.isEmpty()) || (contentFiles.content != null && !contentFiles.content.isEmpty()))]]></script>
             </calc-values>
         </boolean>
-        <boolean name="exStatusIsEkApproved" temporal="true">
+        <file name="content" temporal="true"/>
+        <boolean name="fillTmpContent" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA[#this.contentFiles!=null && contentFiles.content != null && !contentFiles.content.isEmpty()?
+{
+#tmpFiles = new ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl(#this.tuning().getSchema().getProperty("content").getSchema(), null, null, id),
+#tmpFiles.files().addAll(contentFiles.content),
+T(ru.intertrust.cmj.tunable.object.common.TunableObjectHelper).putAFInstanceValue(#root.tuning(), "content", #tmpFiles),
+true
+}[3]
+:
+{
+#tmpFiles = new ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl(#this.tuning().getSchema().getProperty("content").getSchema(), null, null, id),
+T(ru.intertrust.cmj.tunable.object.common.TunableObjectHelper).putAFInstanceValue(#root.tuning(), "content", #tmpFiles),
+true
+}[2]
+]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="exStatusIsNotEkApproved" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[!"IS_EK_APPROVED".equals(statusExtended?.toString())]]></script>
             </calc-values>
@@ -116,7 +136,8 @@
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[#this.currentUserRoles.contains("Archivist")
                                                             && (#this.partiotionInfoTable != null && #this.partiotionInfoTable.size() > 0)
-                                                            && (contentFiles.content != null && !contentFiles.content.isEmpty())]]></script>
+                                                            && (contentFiles.content != null && !contentFiles.content.isEmpty())
+                                                            && apre == null]]></script>
             </calc-values>
         </boolean>
         <boolean name="canTouchNotReadyEK" temporal="true">
@@ -144,6 +165,7 @@
                         statusGeneral != null && "PROJECT".equals(statusGeneral.toString())
                         && statusExtended != null && "IS_EK_APPROVED".equals(statusExtended.toString())
                         && $currentUserRoles.contains("ArchiveManager")
+                        && (link.?[rel=='http://intertrust.ru/cmj/relations#ndo.verify.with.ecp'].size() == 0 || (contentImage != null && ((contentImage.richtext != null && !contentImage.richtext.isEmpty()) || (contentImage.content != null && !contentImage.content.isEmpty()))))
                     ]]>
                 </script>
             </calc-values>
@@ -183,13 +205,6 @@
                 ]]></script>
             </calc-values>
         </boolean>
-        <boolean default-value="false" temporal="true" name="canUnloadChapter">
-            <calc-values>
-                <script lang="SPEL" event="open"><![CDATA[
-                (#this.currentUserRoles.contains("Archivist") || #this.currentUserRoles.contains("ArchiveManager"))
-                ]]></script>
-            </calc-values>
-        </boolean>
         <boolean name="canSeeButtonReturnForRevisionNdo" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[#this.currentUserRoles.contains("ArchiveManager") && "PROJECT".equals(statusGeneral.toString()) && statusExtended != null && ("READY_TO_EK".equals(statusExtended.toString()) || "IS_EK_APPROVED".equals(statusExtended.toString()))]]></script>
@@ -197,7 +212,7 @@
         </boolean>
         <boolean name="canCreateNoChange" temporal="true">
             <calc-values>
-                <script event="open" lang="SPEL"><![CDATA[#this.currentUserRoles.contains("Archivist")]]></script>  <!--&& ("ACTIVE".equals(statusGeneral.toString()) || "NOT_ACTIVE".equals(statusGeneral.toString())) && (statusExtended == null || "".equals(statusExtended.toString()))-->
+                <script event="open" lang="SPEL"><![CDATA[statusGeneral != null && !"DELETED".equals(statusGeneral.toString()) && #this.currentUserRoles.contains("Archivist")]]></script>
             </calc-values>
         </boolean>
         <string name="includeNdoChange" temporal="true"/>
@@ -218,26 +233,19 @@
                 <script event="open" lang="SPEL"><![CDATA[statusExtended == null ? false : "APPROVED".equals(statusExtended.toString())]]></script>
             </calc-values>
         </boolean>
-        <!-- todo: в рамках DEVSEVEN-1464 заменить условие на:
-$currentUserRoles.contains("ArchiveManager") && statusExtended != null && "IS_EK_APPROVED".equals(statusExtended.toString()) && {
-    #setting = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))
-                    ?.findFileSettingByOrgId(organization.id),
-    #setting != null
-        && #setting.getComplectStateArchive()
-        && #setting.getApproveStateOrgYears().contains(dateYearStr)
-}[1]
-         -->
+        <boolean name="showApprByStateArchButtons" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+{#setting = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))
+                    ?.findFileSettingByOrgId(orgDepartment != null ? orgDepartment.id : organization.id),
+ #setting != null && #setting.getComplectStateArchive() && #setting.getApproveStateOrgYears().contains(dateYearStr)}[1]
+                ]]></script>
+            </calc-values>
+        </boolean>
         <boolean name="$canBeApprovedByStateArch" temporal="true" createlog="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
-$currentUserRoles.contains("ArchiveManager") && statusExtended != null && "IS_EK_APPROVED".equals(statusExtended.toString()) && {
-    #setting = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))
-                    ?.findFileSettingByOrgId(organization.id),
-    #setting != null
-        && #setting.getComplectStateArchive()
-        && T(ru.intertrust.cmj.rest.tuning.TuningHelper).getAFInstanceValue(#setting.tuning().getValues().get("ApproveStateOrgYears"))
-                    .contains(dateYearStr)
-}[1]
+$currentUserRoles.contains("ArchiveManager") && statusExtended != null && "IS_EK_APPROVED".equals(statusExtended.toString())
                 ]]></script>
             </calc-values>
         </boolean>
@@ -246,14 +254,66 @@ $currentUserRoles.contains("ArchiveManager") && statusExtended != null && "IS_EK
                 <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].size() > 0]]></script>
             </calc-values>
         </boolean>
+        <string computed="true" temporal="true" name="emptyField">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['']]></script>
+            </calc-values>
+        </string>
         <boolean name="isApprovingThroughInternalDocs" system="true"/>
         <string name="title" temporal="true">
             <calc-values>
-                <script event="open" lang="SPEL"><![CDATA['НДО ' + organization.fn]]></script>
+                <script event="open" lang="SPEL"><![CDATA[organization.fn]]></script>
+            </calc-values>
+        </string>
+        <string name="objectInfoType" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['НДО']]></script>
             </calc-values>
         </string>
         <enum-ref ref="APREStatus" name="apre" system="true"/>
-
+        <boolean name="isDeleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[statusGeneral != null && "DELETED".equals(statusGeneral.toString())]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="statusExtendedIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[statusExtended == null]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$hasCheckCertifyLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='locker.check.certify'].size() > 0]]></script>
+            </calc-values>
+        </boolean>
+        <schema-ref ref="FRVerifyCertifyLockerData" name="verifyCertifyLockerData" temporal="true"/>
+        <boolean name="canLoadAllFile" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                        (#this.currentUserRoles.contains("Archivist") || #this.currentUserRoles.contains("ArchiveManager")) &&
+                        "PROJECT".equals(statusGeneral.toString()) && statusExtended == null
+                    ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canDeleteIfAdminNdo" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                        #this.currUserIsAdmin()
+                        && !(
+                            partiotionInfoTable.isEmpty()
+                            ||
+                            !(partiotionInfoTable.!["DELETED".equals(#this.state)].contains(false))
+                            )
+                        && !"DELETED".equals(statusGeneral.toString())
+                    ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canDeleteFromTrash" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    statusGeneral != null && "DELETED".equals(statusGeneral.toString()) && #this.currentUserRoles.contains("[SuperUser]")]]></script>
+            </calc-values>
+        </boolean>
         <custom-event-handler lang="JavaScript"><![CDATA[
 importPackage(Packages.ru.intertrust.cmj.af.so);
 importPackage(Packages.ru.intertrust.cmj.dp);

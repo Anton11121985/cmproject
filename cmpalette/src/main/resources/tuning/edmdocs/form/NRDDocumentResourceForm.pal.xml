@@ -223,7 +223,7 @@
               <label-style width="30" unit="symbol"/>
             </appearance>
             <component>
-              <field attribute-ref="disableLinkAccess" name="${ui.form.NRDDocumentResourceForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям:}">
+              <field attribute-ref="disableLinkAccess" name="${ui.form.NRDDocumentResourceForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям}">
                 <appearance align="right" importance="normal">
                   <label-style field-width="2" field-unit="symbol"/>
                 </appearance>
@@ -317,9 +317,56 @@
       <section id="Links" name="${ui.form.NRDDocumentResourceForm.section.Links.name:Связанные}">
         <appearance widget="leftMenu"/>
         <component>
-          <section id="Documеnts" name="${ui.form.NRDDocumentResourceForm.section.Links.section.Documеnts.name:Документы}"/>
+          <section id="Documents" name="${ui.form.NRDDocumentResourceForm.section.Links.section.Documеnts.name:Документы}"/>
           <section id="Cases" name="${ui.form.NRDDocumentResourceForm.section.Links.section.Cases.name:Кейсы}"/>
-          <section id="FilesWithCopies" name="${ui.form.NRDDocumentResourceForm.section.Links.section.FilesWithCopies.name:Дела}"/>
+          <field attribute-ref="$fdndFilesWithCopies" name="${ui.form.NRDDocumentResourceForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="OR">
+                <condition-ref ref="isOldFrCompatibleNRD"/>
+                <condition-ref ref="IsProject_RKK"/>
+                <condition-ref ref="isNotRegPlaceClerk"/>
+              </hide>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="fdnd-by-regplace-with-originalInfo"/>
+              <directory-ref ref="inventory-all-cases-with-originalInfo"/>
+            </directories>
+          </field>
+          <field attribute-ref="$fdndFilesWithCopies" name="${ui.form.NRDDocumentResourceForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="OR">
+                <condition-ref ref="isOldFrCompatibleNRD"/>
+                <condition-ref ref="IsProject_RKK"/>
+                <condition-ref ref="isRegPlaceClerk"/>
+              </hide>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="inventory-all-cases-with-originalInfo"/>
+            </directories>
+          </field>
+          <field attribute-ref="$fdndFiles" name="${ui.form.NRDDocumentResourceForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="isOldFrNotCompatibleNRD"/>
+                <condition-ref ref="isNotRegPlaceClerk"/>
+              </hide>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="fdnd-by-regplace-old"/>
+              <directory-ref ref="inventory-all-cases"/>
+            </directories>
+          </field>
+          <field attribute-ref="$fdndFiles" name="${ui.form.NRDDocumentResourceForm.section.Links.section.FilesWithCopies.name:Дела}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="isOldFrNotCompatibleNRD"/>
+                <condition-ref ref="isRegPlaceClerk"/>
+              </hide>
+            </properties>
+            <directories dialog-title="Выберите дело">
+              <directory-ref ref="inventory-all-cases"/>
+            </directories>
+          </field>
           <section id="Versions" name="${ui.form.NRDDocumentResourceForm.section.Links.section.Versions.name:Версии}"/>
         </component>
       </section>

@@ -59,6 +59,12 @@
         </xs:annotation>
     </xs:include>
 
+    <xs:include schemaLocation="tn-search-1.0.xsd">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Настройки поиска]]></xs:documentation>
+        </xs:annotation>
+    </xs:include>
+
     <!-- Доп. информация -->
     <xs:complexType name="metaUIType">
         <xs:annotation>
@@ -331,6 +337,21 @@
         </xs:attribute>
     </xs:complexType>
 
+    <!-- Выделение значений поля цветом -->
+    <xs:complexType name="valuesHighlightingType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Настройки выделения значений цветом. Выделяются те элементы, индексы которых возвращаются в JS-формуле.]]></xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="value-indexes-expr" type="jsExpressionCodeType" minOccurs="0"/>
+        </xs:all>
+        <xs:attribute name="style" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Стиль для выделения значений]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
     <!-- Иконка -->
     <xs:complexType name="iconType">
         <xs:attribute name="code" type="xs:string" use="required">
@@ -477,6 +498,11 @@
                     <xs:documentation><![CDATA[Всплывающая подсказка при наведении курсора]]></xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="hint-in-field" type="com:placeholderType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Подсказка в поле]]></xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="icon" type="iconType" minOccurs="0"/>
             <xs:element name="properties" type="propertiesButtonType" minOccurs="0"/>
             <xs:element name="wf-refrence" type="wfRefrenceType" minOccurs="0"/>
@@ -539,6 +565,7 @@
                     <xs:enumeration value="secondary"/>
                     <xs:enumeration value="white"/>
                     <xs:enumeration value="icon"/>
+                    <xs:enumeration value="link"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
@@ -680,6 +707,12 @@
                     <![CDATA[Свойство схемы. Указывается свойство схемы из которого будут браться значения]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="cell-view-ref" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    <![CDATA[Представление объекта (список колонок), которое будет использоваться при отображении списка значений в диалоге справочника]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <!--  Выбор из организации -->
@@ -714,6 +747,11 @@
             <xs:annotation>
                 <xs:documentation><![CDATA[Свойство схемы. Указывается ссылка ресурс в текущем контексте, в котором хранится подразделение
                 Выбор сотрудников и подразделений происходит из этого подразделения]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>        
+        <xs:attribute name="isolated" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Выбирать из подразделений с признаком "Изолированные"]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
@@ -783,7 +821,7 @@
         <xs:attribute name="limit-livesearch" use="optional" default="no-restrictions">
             <xs:annotation>
                 <xs:documentation>
-                    <![CDATA[Ограничить живой поиск. Работае вместе с атрибутом livesearch]]></xs:documentation>
+                    <![CDATA[Ограничить живой поиск. Работает вместе с атрибутом livesearch]]></xs:documentation>
             </xs:annotation>
             <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -804,7 +842,7 @@
                     </xs:enumeration>
                     <xs:enumeration value="nonsys">
                         <xs:annotation>
-                            <xs:documentation><![CDATA[Только внешние организации и частные лица]]></xs:documentation>
+                            <xs:documentation><![CDATA[Только внешние организации и физические лица]]></xs:documentation>
                         </xs:annotation>
                     </xs:enumeration>
                 </xs:restriction>
@@ -924,6 +962,11 @@
                     <xs:documentation><![CDATA[Подсказка в поле]]></xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="additional-data-expression" type="jsExpressionCodeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[JS-выражение с доп. данными для поля. Только для клиента WebDocs.]]></xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="show-value" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation><![CDATA[Используется для отображения объектной переменной по другой схеме,
@@ -938,6 +981,11 @@
                 </xs:complexType>
             </xs:element>
             <xs:element name="directories" type="directoriesRefType" minOccurs="0"/>
+            <xs:element name="values-highlighting" type="valuesHighlightingType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation><![CDATA[Настройки выделения цветом значений поля. Используется только в клиенте WD.]]></xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:all>
         <xs:attribute name="name" type="com:placeholderType" use="optional">
             <xs:annotation>
@@ -1008,6 +1056,11 @@
                 <xs:documentation><![CDATA[Название свойство схемы]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="store-last-selected-value" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Сохранять ли клиенту значение свойства, выбранного в последний раз в объекте, для подстановки в поле в новом создаваемом объекте. Используется только в клиенте WD.]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="tid" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation><![CDATA[tid - идентификатор на форме, используемый WEB-клиентом и автотестами]]></xs:documentation>
@@ -1059,6 +1112,8 @@
             <xs:element name="alt-appearancies" type="altAppearanceSectionType" minOccurs="0"/>
             <xs:element name="padding" type="intendationType" minOccurs="0"/>
             <xs:element name="margin" type="intendationType" minOccurs="0"/>
+            <xs:element name="attachments-count-formula" type="jsExpressionCodeType" minOccurs="0"/>
+            <xs:element name="minimized-modal-section-description" type="jsExpressionCodeType" minOccurs="0"/>
         </xs:all>
         <xs:attributeGroup ref="attributeGroupSectionAppearance"/>
     </xs:complexType>
@@ -1081,6 +1136,7 @@
         <xs:all>
             <xs:element name="meta" type="metaUIType" minOccurs="0"/>
             <xs:element name="rename" type="renameConditionType" minOccurs="0"/>
+            <xs:element name="icon" type="iconType" minOccurs="0"/>
             <xs:element name="properties" type="propertiesSectionType" minOccurs="0"/>
             <xs:element name="appearance" type="appearanceSectionType" minOccurs="0"/>
             <xs:element name="component" type="componentType" minOccurs="0"/>
@@ -1099,6 +1155,11 @@
             <xs:annotation>
                 <xs:documentation>
                     <![CDATA[Признак "Группа". Означает, что секция используется для визуальной группировки полей]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="showtabs" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Признак "Секция с закладками"]]></xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="tid" type="xs:string" use="optional">
@@ -1199,6 +1260,7 @@
                 <xs:element name="directory-modifier" type="directoryModifierNameType" maxOccurs="unbounded"/>
                 <xs:element name="directories" type="directoriesType" maxOccurs="unbounded"/>
                 <xs:element name="dependent-field" type="dependentFieldObjectType" maxOccurs="unbounded"/>
+                <xs:element name="search-setting" type="searchSettingType" maxOccurs="unbounded"/>
             </xs:choice>
         </xs:complexType>
     </xs:element>

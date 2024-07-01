@@ -1,17 +1,23 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <catalog xmlns="http://www.intertrust.ru/schema/palette/cat-ui">
-  <descriptor id-sql="q.so-externalpeople" fulltext="true" id="so-externalpeople" name="СО - СотрудникиЧужихОрганизаций" style="default">
+  <custom-descriptor ident="PersonDirectory" view="(vw_cmj_employees_by_name)" id="so-externalpeople" name="СО - РаботникиЧужихОрганизаций" style="default">
     <help id="99778976"/>
-    <builder name="ru.intertrust.cmj.af.so.impl.BuilderSO"/>
+    <builder name="ru.intertrust.cmj.af.collections.impl.BuilderDominoView">
+      <config>
+        <view-complex-classif level-select="all"/>
+      </config>
+    </builder>
     <table>
       <columns>
         <column-ref ref="self"/>
-        <column-ref ref="soFullName" sort-desc="true"/>
-        <column-ref ref="soOrgShortName" sort-asc="true" sort-desc="true"/>
-        <column-ref ref="soMix2" sort-asc="true" sort-desc="true"/>
-        <column-ref ref="soAddress" sort-asc="true" sort-desc="true"/>
-        <column-ref ref="soPhone" sort-asc="true" sort-desc="true"/>
-        <column-ref ref="soEmail" sort-asc="true" sort-desc="true"/>
+        <column-ref ref="DossierRequest"/>
+        <column-ref ref="origShortName" sort-asc="true" filter="true"/>
+        <column-ref ref="shortNameOrganization" sort-asc="true" filter="true"/>
+        <column-ref ref="region" sort-asc="true" filter="true"/>
+        <column-ref ref="soPost" sort-asc="true" filter="true"/>
+        <column-ref ref="soAddress" sort-asc="true" filter="true"/>
+        <column-ref ref="origPhone" sort-asc="true" filter="true"/>
+        <column-ref ref="vcardEmail" sort-asc="true" filter="true"/>
       </columns>
     </table>
     <dialog-actions>
@@ -19,12 +25,13 @@
       <action-ref ref="SO-CreateNonSysPerson"/>
     </dialog-actions>
     <actions>
-      <action id="SO-CreatePrivatePersonDlg" name="${catalog.descriptor.so-externalpeople.actions.action.SO-CreatePrivatePersonDlg.name:Добавить частное лицо}">
+      <action id="SO-CreatePrivatePersonDlg" name="${catalog.descriptor.so-externalpeople.actions.action.SO-CreatePrivatePersonDlg.name:Добавить физическое лицо}">
         <create object-ref="PRIVATE_HUMAN"/>
       </action>
       <action id="SO-CreateNonSysPersonDlg" name="${catalog.descriptor.so-externalpeople.actions.action.SO-CreateNonSysPersonDlg.name:Добавить работника}">
         <create object-ref="NONSYS_HUMAN"/>
       </action>
     </actions>
-  </descriptor>
+    <custom-actions schema-ref="SPPAllCollection"/>
+  </custom-descriptor>
 </catalog>

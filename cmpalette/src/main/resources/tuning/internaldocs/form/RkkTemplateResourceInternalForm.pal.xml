@@ -44,56 +44,86 @@
       </button>
       <section id="Attributes" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.name:Реквизиты}">
         <component>
-          <section id="linksAccessSection" group="true">
-            <appearance>
-              <label-style width="30" unit="symbol"/>
-            </appearance>
+          <section id="Main" group="true">
             <component>
-              <field attribute-ref="disableLinkAccess" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.name:Ограничить доступ по связям:}">
-                <appearance align="right" importance="normal">
-                  <label-style field-width="2" field-unit="symbol"/>
+              <field attribute-ref="labelMain">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
                 </appearance>
-                <hint-in-field>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.linksAccessSection.field.disableLinkAccess.hintInField:Не дается доступ к текущему документу читателям связанных документов}</hint-in-field>
               </field>
-            </component>
-          </section>
-          <section id="Main" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.name:Основные}">
-            <component>
-              <field attribute-ref="category" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.category.name:Тематика:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.category.hintPopUp:Тематика}</hint-pop-up>
-              </field>
-              <field autofill="true" recalc="true" attribute-ref="type" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.type.name:Вид документа:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.type.hintPopUp:Вид документа}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="kvid_InternalDocs"/>
-                </directories>
-              </field>
-              <field attribute-ref="title" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.title.name:Заголовок:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.title.hintPopUp:Заголовок}</hint-pop-up>
-                <directories manual-input="true" limit-livesearch="sys-current">
-                  <directory-ref ref="subject"/>
-                </directories>
-              </field>
-              <field attribute-ref="addressee" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.addressee.name:Адресаты:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.addressee.hintPopUp:Адресаты}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_All"/>
-                  <directory-ref ref="CURRENT_All_Hierarchy2"/>
-                  <directory-ref ref="FV_CURR_ALL"/>
-                </directories>
-              </field>
+              <section id="mainRow1" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="mainRow1Column1" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field autofill="true" recalc="true" attribute-ref="type" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.type.name:Вид документа:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.type.hintPopUp:Вид документа}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="kvid_InternalDocs"/>
+                        </directories>
+                      </field>
+                      <field recalc="true" attribute-ref="registration.place" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.field.registration.place.name:Место регистрации:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.field.registration.place.hintPopUp:Место регистрации}</hint-pop-up>
+                        <directories livesearch="true" limit-livesearch="sys-current">
+                          <directory-ref ref="regplaces-collection"/>
+                          <directory-ref ref="CURRENT_SYS_DEP"/>
+                          <directory-ref ref="CURRENT_SYS_DEP_HIER"/>
+                          <directory-ref ref="FV_CURR_HH_DEP_ORG"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <field attribute-ref="category" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.category.name:Тематика:}">
+                    <appearance importance="normal" multiline="true">
+                      <label-style>
+                        <style id="tunBorderedField"/>
+                      </label-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.category.hintPopUp:Тематика}</hint-pop-up>
+                    <directories limit-livesearch="sys-current">
+                      <directory-ref ref="theme"/>
+                    </directories>
+                  </field>
+                </component>
+              </section>
               <field recalc="true" attribute-ref="signature.signer" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.signature.signer.name:Подпись:}">
                 <properties>
                   <hide>
-                    <condition-ref ref="RkkTemplate_hasMultipleSigners"/>
+                    <condition-ref ref="DocumentTemplate_hasMultipleSigners"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.signature.signer.hintPopUp:Подпись}</hint-pop-up>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedField"/>
+                  </label-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.signature.signer.hintPopUp:Подписант}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="MY_SURRODING"/>
                   <directory-ref ref="CURRENT_SYS_HUMAN"/>
@@ -101,74 +131,155 @@
                   <directory-ref ref="FV_CURR_HUMAN_HH"/>
                 </directories>
               </field>
-              <field attribute-ref="advSigner" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.advSigner.name:Другие подписи:}">
+              <field recalc="true" attribute-ref="signature.signers" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.signature.signer.name:Подпись:}">
                 <properties>
                   <hide>
-                    <condition-ref ref="RkkTemplate_hasMultipleSigners"/>
+                    <negative-condition-ref ref="DocumentTemplate_hasMultipleSigners"/>
                   </hide>
                 </properties>
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.advSigner.hintPopUp:Другие подписи}</hint-pop-up>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedField"/>
+                  </label-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.signature.signers.hintPopUp:Подписанты}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
+                  <directory-ref ref="MY_SURRODING"/>
                   <directory-ref ref="CURRENT_SYS_HUMAN"/>
                   <directory-ref ref="CURRENT_SYS_HUMAN_Hierarchy"/>
                   <directory-ref ref="FV_CURR_HUMAN_HH"/>
                 </directories>
               </field>
-              <field attribute-ref="signature.signers" name="${ui.form.Internal.signers:Подписи:}">
+              <field attribute-ref="addressee" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.addressee.name:Адресаты:}">
                 <properties>
-                  <hide>
-                    <negative-condition-ref ref="RkkTemplate_hasMultipleSigners"/>
-                  </hide>
+                  <require condition-union="AND">
+                    <condition-ref ref="edit"/>
+                  </require>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedField"/>
+                  </label-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.addressee.hintPopUp:Адресаты}</hint-pop-up>
                 <directories limit-livesearch="sys-current">
                   <directory-ref ref="CURRENT_SYS_HUMAN"/>
                   <directory-ref ref="CURRENT_SYS_HUMAN_Hierarchy"/>
-                  <directory-ref ref="FV_CURR_HUMAN_HH"/>
-                </directories>
-              </field>
-              <field attribute-ref="executor" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.executor.name:Исполнители:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.executor.hintPopUp:Исполнители}</hint-pop-up>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_SYS_HUMAN"/>
-                  <directory-ref ref="CURRENT_SYS_HUMAN_Hierarchy"/>
-                  <directory-ref ref="FV_CURR_HUMAN_HH"/>
                   <directory-ref ref="sys_roles"/>
                 </directories>
               </field>
+              <field attribute-ref="title" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.title.name:Заголовок:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedField"/>
+                  </label-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.title.hintPopUp:Заголовок}</hint-pop-up>
+              </field>
             </component>
           </section>
-          <section id="Additional" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.name:Дополнительные}">
+          <section id="Executor" group="true">
             <component>
-              <field recalc="true" attribute-ref="registration.place" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.field.registration.place.name:Место регистрации:}">
-                <appearance importance="normal"/>
-                <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.field.registration.place.hintPopUp:Место регистрации}</hint-pop-up>
-                <directories livesearch="true" limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_SYS_DEP"/>
-                  <directory-ref ref="CURRENT_SYS_DEP_HIER"/>
-                  <directory-ref ref="FV_CURR_HH_DEP_ORG"/>
-                </directories>
-              </field>
-              <field attribute-ref="idauthorRegT" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.field.idauthorRegT.name:Регистратор для WF:}">
+              <field attribute-ref="labelExecutor">
                 <properties>
-                  <hide condition-union="AND">
+                  <read-only condition-union="AND">
                     <condition>true</condition>
-                  </hide>
+                  </read-only>
                 </properties>
-                <appearance importance="normal"/>
-                <directories limit-livesearch="sys-current">
-                  <directory-ref ref="CURRENT_SYS_HUMAN"/>
-                </directories>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
               </field>
-              <field attribute-ref="approvingTemplate" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Additional.field.approvingTemplate.name:Шаблон согласования:}">
-                <appearance importance="normal"/>
-                <directories livesearch="true" limit-livesearch="sys-current">
-                  <directory-ref ref="Templates-Approving-List"/>
-                  <directory-ref ref="Favourites-Templates-Approving-List"/>
-                </directories>
+              <section id="tableExecutor" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="tableExecutorColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="executor" name="${ui.form.RkkTemplateInternalForm.section.Attributes.section.Executor.field.executor.name:Исполнитель:}">
+                        <appearance importance="normal" multiline="true">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkResourceInternalForm.section.Attributes.section.Executor.field.executor.hintPopUp:Исполнитель}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURRENT_SYS_HUMAN"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="tableExecutorColumn2" group="true"/>
+                </component>
+              </section>
+            </component>
+          </section>
+          <section id="Additional" group="true">
+            <component>
+              <field attribute-ref="labelAdditional">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
               </field>
+              <section id="tableAdditional" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="tableAdditionalColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field recalc="true" attribute-ref="authorTemplate" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.authorTemplate.name:Автор шаблона:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.authorTemplate.hintPopUp:Автор шаблона}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURRENT_SYS_HUMAN"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="tableAdditionalColumn2" group="true">
+                    <component>
+                      <field attribute-ref="authorDepartment" name="${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.authorDepartment.name:Вышестоящее подразделение:}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <show-value schema-ref="VCardResource.EmployeeShortInfo"/>
+                        <hint-pop-up>${ui.form.RkkTemplateResourceInternalForm.section.Attributes.section.Main.field.authorDepartment.name:Самостоятельное подразделение/РВЗ или вышестоящее подразделение}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
             </component>
           </section>
         </component>
@@ -196,6 +307,22 @@
                   </alt-appearancies>
                 </appearance>
               </field>
+              <field attribute-ref="securityStamp" recalc="true" name="${ui.form.RkkTemplateInternalForm.section.Header.section.row1.field.securityStamp.name:Гриф доступа:}">
+                <appearance importance="high" align="right">
+                  <label-style field-unit="symbol" field-width="30">
+                    <style id="tunBlack"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBlack"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <hint-pop-up>${ui.form.RkkTemplateInternalForm.section.Header.section.row1.field.securityStamp.hintPopUp:Гриф ограничения доступа к документу}</hint-pop-up>
+                <directories>
+                  <directory-select-value attribute-ref="personGrifs"/>
+                </directories>
+              </field>
               <field attribute-ref="accessInfo">
                 <properties>
                   <read-only condition-union="AND">
@@ -221,27 +348,78 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="showTemplateName">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-          </field>
           <field attribute-ref="$titleHeader">
             <properties>
               <require condition-union="AND">
-                <condition>true</condition>
+                <condition-ref ref="edit"/>
               </require>
             </properties>
             <hint-in-field>${ui.form.RkkTemplateResourceInternalForm.section.Header.field.titleHeader.hintInField:Введите название шаблона}</hint-in-field>
           </field>
         </component>
       </section>
-      <section id="Content" name="${ui.form.RkkTemplateResourceInternalForm.section.Content.name:Содержание}"/>
+      <section id="ContentSection" name="${ui.form.RkkTemplateResourceInternalForm.section.ContentSection.name:Содержание}">
+        <component>
+          <section id="contentMenu" group="true">
+            <appearance widget="leftMenu"/>
+            <component>
+              <field attribute-ref="$content" name="${ui.form.RkkResourceInternalForm.section.ContentSection.field.content.name:Документ}">
+                <appearance importance="normal"/>
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="tempContentEmpty"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="$content" name="${ui.form.RkkResourceInternalForm.section.ContentSection.field.content.name:Документ}">
+                <appearance importance="normal"/>
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="tempContentEmpty"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="contentAdd" name="${ui.form.RkkResourceInternalForm.section.ContentSection.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="edit"/>
+                    <negative-condition-ref ref="tempContentAddEmpty"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="contentAdd" name="${ui.form.RkkResourceInternalForm.section.ContentSection.field.contentAdd.name:Доп. информация}">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="tempContentAddEmpty"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="contentEmptyLabel">
+            <properties>
+              <read-only>
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="read"/>
+                <negative-condition-ref ref="tempContentSectionEmpty"/>
+              </hide>
+            </properties>
+          </field>
+        </component>
+      </section>
       <section id="AccessType" name="${ui.form.RkkTemplateResourceInternalForm.section.AccessType.name:Доступ}">
         <component>
           <field recalc="true" attribute-ref="accessType">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="isSupervisor"/>
+              </hide>
+            </properties>
             <appearance widget="radio">
               <label-style>
                 <style id="tunVertical"/>
@@ -256,13 +434,37 @@
               <directory-ref ref="accessType"/>
             </directories>
           </field>
-          <field attribute-ref="acl" name="${ui.form.RkkTemplateResourceInternalForm.section.AccessType.field.acl.name:Индивидуально:}">
+          <field recalc="true" attribute-ref="accessType">
+            <properties>
+              <hide>
+                <condition-ref ref="isSupervisor"/>
+              </hide>
+            </properties>
+            <appearance widget="radio">
+              <label-style>
+                <style id="tunVertical"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunVertical"/>
+                </value-style>
+              </field-style>
+            </appearance>
+            <directories limit-livesearch="sys-current">
+              <directory-ref ref="accessTypeNotPublic"/>
+            </directories>
+          </field>
+          <field attribute-ref="acl" recalc="true" name="${ui.form.RkkTemplateResourceInternalForm.section.AccessType.field.acl.name:Индивидуально:}">
             <properties>
               <hide condition-union="AND">
                 <negative-condition-ref ref="rkkTemplateIsFavourites"/>
               </hide>
             </properties>
-            <appearance importance="normal"/>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBorderedField"/>
+              </label-style>
+            </appearance>
             <directories limit-livesearch="sys-current">
               <directory-ref ref="CURRENT_HH_ROLE_HUMAN"/>
               <directory-ref ref="CURRENT_HH_ROLE_HUMAN_HIER"/>
@@ -270,14 +472,36 @@
               <directory-ref ref="FV_CURR_HUMAN_HH_ROLE"/>
             </directories>
           </field>
-          <field clickable="true" attribute-ref="departmentAccess">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="rkkTemplateIsFavourites"/>
-              </hide>
-            </properties>
-            <appearance location="table" importance="normal" clickable="true"/>
-          </field>
+          <section id="departmentAccessSection" group="true">
+            <component>
+              <field attribute-ref="labelDepartmentAccess">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="rkkTemplateIsFavourites"/>
+                  </hide>
+                </properties>
+                <appearance align="right">
+                  <label-style field-width="15" field-unit="symbol">
+                    <style id="tunGray"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field clickable="true" attribute-ref="departmentAccess" recalc="true">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="rkkTemplateIsFavourites"/>
+                  </hide>
+                </properties>
+                <appearance location="table" importance="normal" clickable="true">
+                  <field-style space-for-empty-name="true"/>
+                </appearance>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
         </component>
       </section>
     </component>

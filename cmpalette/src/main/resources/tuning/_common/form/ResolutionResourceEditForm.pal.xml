@@ -80,7 +80,7 @@
                   <limit height="2"/>
                 </appearance>
                 <hint-pop-up>${ui.form.ResolutionResourceEditForm.section.Attributes.section.main.field.text.hintPopUp:Текст}</hint-pop-up>
-                <hint-in-field>${ui.form.ResolutionResourceEditForm.section.Attributes.section.main.field.text.hintInField:&lt;без текста>}</hint-in-field>
+                <hint-in-field>${ui.form.ResolutionResourceEditForm.section.Attributes.section.main.field.text.hintInField:&lt;без текста&gt;}</hint-in-field>
               </field>
               <section id="control_section" group="true">
                 <appearance field-layout="horizontal" style="resolutionHeader"/>
@@ -109,9 +109,6 @@
                 <component>
                   <field recalc="true" attribute-ref="medoPart.part" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.main.section.medoPart.field.medoPart.part.name:Пункт}">
                     <properties>
-                      <require condition-union="AND">
-                        <condition>true</condition>
-                      </require>
                       <hide condition-union="AND">
                         <negative-condition-ref ref="isMedoResolution"/>
                       </hide>
@@ -139,22 +136,26 @@
           <section id="Header" group="true">
             <appearance field-layout="horizontal" style="ResolutionBodyPart"/>
             <component>
-              <field recalc="true" attribute-ref="author" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.author.name:Автор}">
+              <field recalc="true" attribute-ref="author" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.author.name:Автор:}">
                 <properties>
                   <require condition-union="AND">
                     <condition>true</condition>
                   </require>
                 </properties>
-                <appearance importance="normal"/>
+                <appearance importance="normal">
+                  <label-style field-width="30" field-unit="percent"/>
+                </appearance>
                 <directories limit-livesearch="sys-current">
                   <directory-select-value name="Целевая группа" attribute-ref="resolutionTargetGroup"/>
+                  <directory-ref ref="MY_SURRODING"/>
                   <directory-ref ref="CURRENT_DEP_HUMAN_HH"/>
                   <directory-ref ref="CURRENT_DEP_HUMAN_HH_HIER"/>
+                  <directory-ref ref="ourForeign"/>
                   <directory-ref ref="CURRENT_SYS_ROLE"/>
                   <directory-ref ref="FV_CURR_HUMAN_HH_DEP_ROLE"/>
                 </directories>
               </field>
-              <field attribute-ref="date" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.date.name:Дата}">
+              <field attribute-ref="date" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.date.name:Дата:}">
                 <properties>
                   <require condition-union="AND">
                     <condition>true</condition>
@@ -162,7 +163,7 @@
                 </properties>
                 <hint-pop-up>${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.date.hintPopUp:Дата}</hint-pop-up>
               </field>
-              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения}" alias="deadline">
+              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения:}" alias="deadline">
                 <properties>
                   <require condition-union="AND">
                     <condition-ref ref="resolutionIsControlled"/>
@@ -173,7 +174,7 @@
                 </properties>
                 <hint-pop-up>${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.resdeadline.hintPopUp:Срок исполнения}</hint-pop-up>
               </field>
-              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения}" alias="deadline">
+              <field recalc="true" attribute-ref="resdeadline" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Header.field.resdeadline.name:Срок исполнения:}" alias="deadline">
                 <properties>
                   <require condition-union="AND">
                     <condition-ref ref="resolutionIsControlled"/>
@@ -210,13 +211,47 @@
               </section>
             </component>
           </section>
+          <field attribute-ref="comments" name="${ui.form.ResolutionResourceEditForm.section.Attributes.field.comments.name:Примечание:}">
+            <appearance importance="normal" multiline="true">
+              <limit max-lenght="256"/>
+              <label-style field-width="30" field-unit="percent"/>
+            </appearance>
+          </field>
+          <field recalc="true" attribute-ref="$executorsList" alias="executorsList">
+            <properties>
+              <require condition-union="AND">
+                <condition>true</condition>
+              </require>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="isOutputDocResolution"/>
+              </hide>
+            </properties>
+            <appearance>
+              <label-style>
+                <style id="tunResolutionBodyPart"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunResolutionBodyPart"/>
+                </value-style>
+              </field-style>
+            </appearance>
+            <show-value schema-ref="VCardResource.OrgNonSysHuman"/>
+            <directories livesearch="true" limit-livesearch="sys">
+              <directory-ref ref="MY_SURRODING"/>
+              <directory-category-custom-coll ref="CURRENT_All2"/>
+              <directory-category-custom-coll ref="CURRENT_All_Hierarchy2"/>
+              <directory-category-custom-coll ref="sendlistSys"/>
+              <directory-category-custom-coll ref="FV_CURR_AND_FOREIGN_HUMAN_HH_DEP_ORG_SYS"/>
+            </directories>
+          </field>
           <field attribute-ref="$executorsList" alias="executorsList">
             <properties>
               <require condition-union="AND">
                 <condition>true</condition>
               </require>
               <hide condition-union="AND">
-                <negative-condition-ref ref="resolutionIsNew"/>
+                <negative-condition-ref ref="isNotNewNotOutputDocResolution"/>
               </hide>
             </properties>
             <appearance>
@@ -231,6 +266,7 @@
             </appearance>
             <show-value schema-ref="VCardResource.OrgNonSysHuman"/>
             <directories livesearch="true" limit-livesearch="no-restrictions">
+              <directory-ref ref="MY_SURRODING"/>
               <directory-category-custom-coll ref="CURRENT_All2"/>
               <directory-category-custom-coll ref="CURRENT_All_Hierarchy"/>
               <directory-category-custom-coll ref="AlienBeards"/>
@@ -244,11 +280,12 @@
                 <condition>true</condition>
               </require>
               <hide condition-union="AND">
-                <condition-ref ref="resolutionIsNew"/>
+                <negative-condition-ref ref="isNewNotOutputDocResolution"/>
               </hide>
             </properties>
             <show-value schema-ref="VCardResource.OrgNonSysHuman"/>
             <directories livesearch="true" limit-livesearch="no-restrictions">
+              <directory-ref ref="MY_SURRODING"/>
               <directory-category-custom-coll ref="CURRENT_All2"/>
               <directory-category-custom-coll ref="CURRENT_All_Hierarchy2"/>
               <directory-category-custom-coll ref="AlienBeards"/>
@@ -337,7 +374,7 @@
           </section>
           <section id="Actions" group="true">
             <appearance field-layout="horizontal">
-              <dialog-mode width="1" unit="symbol"/>
+              <label-style width="1" unit="symbol"/>
             </appearance>
             <component>
               <field attribute-ref="$save" name="${ui.form.ResolutionResourceEditForm.section.Attributes.section.Actions.field.save.name:Сохранить}">
@@ -380,7 +417,7 @@
               <field attribute-ref="$saveAsTemplate">
                 <properties>
                   <hide condition-union="AND">
-                    <condition-ref ref="resolutionIsNew"/>
+                    <negative-condition-ref ref="hasLinkSaveAsTemplate"/>
                   </hide>
                 </properties>
                 <hint-pop-up>${ui.form.ResolutionResourceEditForm.section.Attributes.section.Actions.field.saveAsTemplate.hintPopUp:Сохранить как шаблон}</hint-pop-up>
@@ -508,7 +545,7 @@
                 </properties>
               </field>
               <field attribute-ref="periodicParameters.dismissalNoticeAuthor" name="${ui.form.ResolutionResource.dismissalNoticeAuthor:Автора:}"/>
-              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionResource.dismissalNoticeController:Контроллёра:}"/>
+              <field attribute-ref="periodicParameters.dismissalNoticeController" name="${ui.form.ResolutionResource.dismissalNoticeController:Контролёра:}"/>
               <button recalc="true" attribute-ref="fillSchedule" name="${ui.form.DatesSchedule.compute:Вычислить график}">
                 <properties>
                   <hide condition-union="AND">

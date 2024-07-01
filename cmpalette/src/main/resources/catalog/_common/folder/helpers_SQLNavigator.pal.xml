@@ -5,13 +5,13 @@
       <folder id="so-myorg" name="${catalog.folder.helpers.folder.so_myorg.name:Моя организация}" position="20">
         <subfolders>
           <view id="so-myorg-alpha" name="${catalog.folder.helpers.folder.so_myorg.view.so_myorg_alpha.name:Телефонный справочник}" position="10">
-            <descriptor-ref ref="so-myorg-alpha"/>
+            <descriptor-ref ref="so-phone-directory"/>
           </view>
           <view id="so-myorg-deprvz" name="${catalog.folder.helpers.folder.so_myorg.view.so_myorg_deprvz.name:Подразделения и РВЗ}" position="20">
             <descriptor-ref ref="so-myorg-deprvz"/>
           </view>
           <view id="so-myorg-hier" name="${catalog.folder.helpers.folder.so_myorg.view.so_myorg_hier.name:Иерархия}" position="30">
-            <descriptor-ref ref="so-myorg-hier"/>
+            <descriptor-ref ref="so-myorg-hierarchy-tree"/>
           </view>
           <folder id="so-myorg-roles" name="${catalog.folder.helpers.folder.so_myorg.folder.so_myorg_roles.name:Функциональные роли}" position="40">
             <subfolders>
@@ -34,16 +34,19 @@
           <group id="0" position="0"/>
         </webdocs>
       </folder>
+      <view id="so-allorgs-sys-hier" name="${catalog.folder.helpers.folder.so_organizations.view.so_allorgs_sys_hier_without_current.name:Системные организации}" position="25">
+        <descriptor-ref ref="so-sysorg-hier-without-current"/>
+      </view>
       <folder id="so-allnonsyspeople" name="${catalog.folder.helpers.folder.so_allnonsyspeople.name:Внешние контакты}" position="30">
         <subfolders>
           <view id="so-allnonsyspeople-all" name="${catalog.folder.helpers.folder.so_allnonsyspeople.view.so_allnonsyspeople_all.name:Все}" position="20">
-            <descriptor-ref ref="so-externalpeople"/>
+            <descriptor-ref ref="so-externalpeople-vcard"/>
           </view>
           <view id="so-allnonsyspeople-byorg" name="${catalog.folder.helpers.folder.so_allnonsyspeople.view.so_allnonsyspeople_byorg.name:По организации}" position="30">
-            <descriptor-ref ref="so-externalorg-alpha"/>
+            <descriptor-ref ref="so-externalorg-vcard-alpha"/>
           </view>
-          <view id="so-private" name="${catalog.folder.helpers.folder.so_allnonsyspeople.view.so_private.name:Частные лица}" position="30">
-            <descriptor-ref ref="so-private"/>
+          <view id="so-private" name="${catalog.folder.helpers.folder.so_allnonsyspeople.view.so_private.name:Физические лица}" position="30">
+            <descriptor-ref ref="so-private-vcard"/>
           </view>
         </subfolders>
         <webdocs>
@@ -53,7 +56,8 @@
       <folder id="so-organizations" name="${catalog.folder.helpers.folder.so_organizations.name:Организации}" position="40">
         <subfolders>
           <view id="so-organizations-all" name="${catalog.folder.helpers.folder.so_organizations.view.so_organizations_all.name:Все}" position="20">
-            <descriptor-ref ref="so-anyorg-alpha"/>
+            <pagename name="Все организации"/>
+            <descriptor-ref ref="so-anyorg-alpha-helpers"/>
           </view>
           <view id="so-allorgs-sys-hier" name="${catalog.folder.helpers.folder.so_organizations.view.so_allorgs_sys_hier.name:Системные}" position="30">
             <descriptor-ref ref="so-sysorg-hier"/>
@@ -67,15 +71,48 @@
         </webdocs>
       </folder>
       <view id="so-myorg-sl-alpha" name="${catalog.folder.helpers.view.so_myorg_sl_alpha.name:Списки рассылки}" position="50">
+        <pagename name="Списки рассылки"/>
         <descriptor-ref ref="so-myorg-sl-alpha"/>
       </view>
       <folder id="templates" name="${catalog.folder.helpers.folder.templates.name:Шаблоны}" position="60">
         <subfolders>
           <folder id="templates-input" name="${catalog.folder.helpers.folder.templates.folder.templates_input.name:Входящих}" position="10">
             <subfolders>
-              <view id="input-Templates" name="${catalog.folder.helpers.folder.templates.folder.templates_input.view.input_Templates.name:документов}" position="20">
+              <view id="input-Templates" name="${catalog.folder.helpers.folder.templates.folder.templates_input.view.input_Templates.name:документов}" position="10">
+                <pagename name="Шаблоны Входящих документов"/>
                 <search-area name="input_InputDocs"/>
-                <descriptor-ref ref="dp-02-input-af5"/>
+                <descriptor-ref ref="InputDocs-Catalog-Template-Input-Doc"/>
+              </view>
+              <view id="input-ResTemplates" name="${catalog.view.input_ResTemplates.name:резолюций}" position="20">
+                <pagename name="Шаблоны Входящих резолюций"/>
+                <search-area name="input_InputDocs"/>
+                <descriptor-ref ref="dp-03-input-af5"/>
+                <source>
+                  <module ident="InputDocs"/>
+                </source>
+              </view>
+            </subfolders>
+            <webdocs>
+              <group id="0" position="0"/>
+            </webdocs>
+          </folder>
+          <folder id="templates-output" name="${catalog.folder.templates_output.name:Исходящих}" position="20">
+            <subfolders>
+              <view id="output-TemplatesFlat" name="${catalog.folder.templates_output.view.output_TemplatesFlat.name:документов}" position="10">
+                <pagename name="Шаблоны Исходящих документов"/>
+                <search-area name="output_OutputDocs"/>
+                <descriptor-ref ref="dp-02-output-af5"/>
+                <source>
+                  <module ident="OutputDocs"/>
+                </source>
+              </view>
+              <view id="output-ResTemplates" name="${catalog.folder.templates_output.view.output_ResTemplates.name:поручений}" position="20">
+                <pagename name="Шаблоны Исходящих поручений"/>
+                <search-area name="output_InternalDocs"/>
+                <descriptor-ref ref="dp-03-output-af5"/>
+                <source>
+                  <module ident="OutputDocs"/>
+                </source>
               </view>
             </subfolders>
             <webdocs>
@@ -84,9 +121,41 @@
           </folder>
           <folder id="templates-internal" name="${catalog.folder.helpers.folder.templates.folder.templates_internal.name:Внутренних}" position="30">
             <subfolders>
-              <view id="internal-ResTemplates" name="${catalog.folder.helpers.folder.templates.folder.templates_internal.view.internal_ResTemplates.name:резолюций}" position="30">
+              <view id="internal-Templates" name="${catalog.view.internal_Templates.name:документов}" position="10">
+                <pagename name="Шаблоны Внутренних - документов"/>
                 <search-area name="internal_InternalDocs"/>
-                <descriptor-ref ref="dp-03-internal-af5"/>
+                <descriptor-ref ref="dp-02-InternalDocs-af5"/>
+                <source>
+                  <module ident="InternalDocs"/>
+                </source>
+              </view>
+              <view id="internal-ResTemplates" name="${catalog.folder.helpers.folder.templates.folder.templates_internal.view.internal_ResTemplates.name:резолюций}" position="20">
+                <pagename name="Шаблоны Внутренних резолюций"/>
+                <search-area name="internal_InternalDocs"/>
+                <descriptor-ref ref="dp-03-InternalDocs-af5"/>
+              </view>
+            </subfolders>
+            <webdocs>
+              <group id="0" position="0"/>
+            </webdocs>
+          </folder>
+          <folder id="templates-missions" name="${catalog.folder.templates_missions.name:ОРД}" position="40">
+            <subfolders>
+              <view id="missions-TemplatesFlat" name="${catalog.folder.templates_missions.view.missions_TemplatesFlat.name:документов}" position="10">
+                <pagename name="Шаблоны ОРД - документов"/>
+                <search-area name="ord_Missions"/>
+                <descriptor-ref ref="dp-02-missions-af5"/>
+                <source>
+                  <module ident="Missions"/>
+                </source>
+              </view>
+              <view id="missions-ResTemplates" name="${catalog.folder.templates_missions.view.missions_ResTemplates.name:поручений}" position="19">
+                <pagename name="Шаблоны ОРД - поручений"/>
+                <search-area name="ord_Missions"/>
+                <descriptor-ref ref="dp-03-missions-af5"/>
+                <source>
+                  <module ident="Missions"/>
+                </source>
               </view>
             </subfolders>
             <webdocs>
@@ -95,13 +164,39 @@
           </folder>
           <folder id="templates-contractslite" name="${catalog.folder.helpers.folder.templates.folder.templates_contractslite.name:Договоров}" position="60">
             <subfolders>
-              <view id="directory-templates-contact-addagrs" name="${catalog.folder.helpers.folder.templates.folder.templates_contractslite.view.directory_templates_contact_addagrs.name:Доп. соглашений}" position="40">
+              <view id="directory-templates-contractslite-contracts" name="${catalog.view.templates_contractslite_contracts.name:Договоры}" position="10">
+                <pagename name="Шаблоны Договоров - Договоры"/>
+                <search-area name="_ContractsLite"/>
+                <descriptor-ref ref="dp-02-contracts-af5"/>
+                <source>
+                  <module ident="ContractsLite"/>
+                </source>
+              </view>
+              <view id="directory-templates-contractslite-documents" name="${catalog.view.directory_templates_contract_documents.name:Документов}" position="20">
+                <pagename name="Шаблоны Договоров - Документов"/>
+                <search-area name="_ContractsLite"/>
+                <descriptor-ref ref="dp-66-contracts-af5"/>
+                <source>
+                  <module ident="ContractsLite"/>
+                </source>
+              </view>
+              <view id="directory-templates-contractslite-addagrs" name="${catalog.folder.helpers.folder.templates.folder.templates_contractslite.view.directory_templates_contact_addagrs.name:Доп. соглашений}" position="30">
+                <pagename name="Шаблоны Договоров - Доп. соглашений"/>
                 <search-area name="_ContractsLite"/>
                 <descriptor-ref ref="dp-55-contracts-af5"/>
               </view>
-              <view id="directory-templates-contract-finances" name="${catalog.folder.helpers.folder.templates.folder.templates_contractslite.view.directory_templates_contract_finances.name:Фин. документов}" position="50">
+              <view id="directory-templates-contractslite-finances" name="${catalog.folder.helpers.folder.templates.folder.templates_contractslite.view.directory_templates_contract_finances.name:Фин. документов}" position="50">
+                <pagename name="Шаблоны Договоров - Фин. документов"/>
                 <search-area name="_ContractsLite"/>
                 <descriptor-ref ref="dp-80-contracts-af5"/>
+              </view>
+              <view id="directory-templates-CResolutions" name="${catalog.view.Templates_CResolutions.name:Поручений}" position="60">
+                <pagename name="Шаблоны Поручений"/>
+                <search-area name="_ContractsLite"/>
+                <descriptor-ref ref="dp-03-contracts-af5"/>
+                <source>
+                  <module ident="ContractsLite"/>
+                </source>
               </view>
             </subfolders>
             <webdocs>

@@ -7,7 +7,7 @@
     <boolean name="IsUseArchiveModule" temporal="true" computed="true">
       <calc-values>
         <script event="open" lang="SPEL">
-          <![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(T(ru.intertrust.cmj.af.core.AFCMDomino).getDbReplicaIdNamedAny("FileRegister"))?.useArchiveModule]]>
+          <![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByIdentNear("FileRegister", T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getCurrentSoReplica())?.useArchiveModule]]>
         </script>
       </calc-values>
     </boolean>
@@ -20,7 +20,7 @@
     <string array="true" name="afScanFiels" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[{"Met", "GDBaseName", "GroupZam_My_Beards", "EShortName", "AllIDs", "GroupZam", "ZamAudit", "OName", "EKNumber", "EPhone", "DocID",
-"RPA_Input_GDs", "RPA_Output_GDs", "RPA_Internal_GDs", "RPA_ORD_GDs", "RPA_Contracts_GDs", "RPA_Requests_GDs", "GroupInput","GroupOutput", "GroupInternal", "GroupORD", "GroupContracts", "GroupRequests", "InputSW", "OutputSW", "InternSW", "ORDSW", "ContractsSW", "RequestsSW", "EPost", "ParentShortName", "EFullName", "OName_L10n", "OName_1_L10n"}]]></script>
+"RPA_Input_GDs", "RPA_Output_GDs", "RPA_Internal_GDs", "RPA_ORD_GDs", "RPA_Contracts_GDs", "RPA_Requests_GDs", "GroupInput","GroupOutput", "GroupInternal", "GroupORD", "GroupContracts", "GroupRequests", "InputSW", "OutputSW", "InternSW", "ORDSW", "ContractsSW", "RequestsSW", "EPost", "ParentShortName", "EFullName", "OName_L10n", "OName_1_L10n", "OGRN"}]]></script>
       </calc-values>
     </string>
     <string name="nameInfo" temporal="true">
@@ -63,6 +63,10 @@
     <string name="fullname">
       <storage-field name="OName"/>
     </string>
+    <boolean name="IsGAS" createlog="true">
+      <storage-field name="IsGAS"/>
+      <storage-string value="1"/>
+    </boolean>
     <schema-ref ref="AddressSOUnit" array="true" name="addressList" createlog="true" temporal="true">
       <recalc-processing-class>ru.intertrust.cmj.rest.admin.so.RecalcAddressList</recalc-processing-class>
     </schema-ref>
@@ -193,6 +197,9 @@
     <string name="GDBaseName">
       <storage-field name="GDBaseName"/>
     </string>
+    <boolean name="isSharedAccessDep">
+      <storage-field name="isSharedAccessDep"/>
+    </boolean>
     <schema-ref ref="AddressUnit" array="true" name="address" temporal="true"/>
     <string name="$parentunid" temporal="true"/>
     <string name="structLevel">
@@ -201,10 +208,7 @@
     <string name="parentShortName" system="true">
       <storage-field name="ParentShortName"/>
     </string>
-    <schema-ref null-empty="true" ref="AdminSOUnit" name="parentUnit" temporal="true">
-      <recalc-processing-class>ru.intertrust.cmj.rest.admin.so.RecalcForChangeParentUnit</recalc-processing-class>
-    </schema-ref>
-    <string name="personalID">
+    <string name="personalID" system="true">
       <storage-field name="personalID"/>
     </string>
     <schema-ref null-empty="true" ref="AdminSOUnit" name="organizationUnit" system="true" temporal="true"/>
@@ -238,7 +242,7 @@
     </string>
     <schema-ref null-empty="true" ref="AdminSOUnit" name="isolatedDep" createlog="true" temporal="true"/>
     <string name="headInfoWithPost" createlog="true" temporal="true"/>
-    <string name="nomenclatureIndex" createlog="true" default-value="">
+    <string name="nomenclatureIndex" createlog="true">
       <storage-field name="nomenclatureIndex"/>
     </string>
     <string name="nomenclatureIndexPrefix">
@@ -249,18 +253,13 @@
       <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.filesetting.RecalcForInheritNomIndex</recalc-processing-class>
     </boolean>
     <string name="ndSeparate1">
-      <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[
-          !isNew() ? ndSeparate1 : ((receiving == null) ? '' :
-          T(ru.intertrust.cmj.af.core.AFSession)?.get()?.getApplication(T(ru.intertrust.cmj.admin.AdminApplicationImpl))
-          ?.getFileRegisterSettingByOrgId(receiving?.get('id')?.replace('-TN:', ':'))?.entity()?.getPrefixSplitterFr())
-        ]]></script>
-      </calc-values>
       <storage-field name="ndSeparate1"/>
     </string>
-    <string name="nomenclatureIndexReadMode" temporal="true" computed="true">
+    <string name="nomenclatureIndexReadMode" computed="true">
+      <storage-field name="nomenclatureIndexReadMode"/>
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[(inheritNomIndex == true && nomenclatureIndexPrefix != null && nomenclatureIndexPrefix != '' ? (nomenclatureIndexPrefix + ' ' + (ndSeparate1 == null ? '' : ndSeparate1) + ' ') : '') + (nomenclatureIndex != null ? nomenclatureIndex : '')]]></script>
+        <script event="save" lang="SPEL"><![CDATA[(inheritNomIndex == true && nomenclatureIndexPrefix != null && nomenclatureIndexPrefix != '' ? (nomenclatureIndexPrefix + ' ' + (ndSeparate1 == null ? '' : ndSeparate1) + ' ') : '') + (nomenclatureIndex != null ? nomenclatureIndex : '')]]></script>
       </calc-values>
     </string>
     <string name="comment" createlog="true">
@@ -272,44 +271,167 @@
     <boolean name="hasAnotherDepNd" default-value="false">
       <storage-field name="hasAnotherDepNd"/>
     </boolean>
-    <boolean name="isAnotherDepND" default-value="false">
-      <storage-field name="isAnotherDepND"/>
-    </boolean>
     <schema-ref null-empty="true" ref="AdminSOUnit" name="anotherDepNdUnit" createlog="true" temporal="true"/>
     <schema-ref ref="AdminSOUnit" array="true" name="formerNDPUnit" temporal="true"/>
     <schema-ref ref="AdminSOUnit" array="true" name="responsibleNdUnit" temporal="true"/>
     <string name="structBossAC" createlog="true">
       <storage-field name="struct_boss_ac"/>
     </string>
+    <string array="true" name="AddedTempSubsNoticeReceivers" system="true" temporal="true"/>
+    <string array="true" name="DeletedTempSubsNoticeReceivers" system="true" temporal="true"/>
     <schema-ref null-empty="true" ref="AdminSOUnit" name="delegatedTo" temporal="true"/>
-    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+    <boolean name="hasHrModule" createlog="true" temporal="true"/>
+    <schema-ref null-empty="true" ref="AdminSOUnit" name="curator" createlog="true" temporal="true"/>
+    <boolean name="isHeadOfficeOrRegionalBranch" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[depType != null && ('го: головной офис'.equalsIgnoreCase(depType) || 'рф: региональный филиал'.equalsIgnoreCase(depType))]]></script>
+      </calc-values>
+    </boolean>
+    <string name="reasonSubstitution" >
+      <storage-field name="reasonSubstitution"/>
+    </string>
+    <schema-ref name="russianPostTable" ref="PostTable" null-empty="true" array="true"/>
+    <schema-ref null-empty="true" ref="AdminSOUnit" name="parentUnit" temporal="true">
+      <recalc-processing-class>ru.intertrust.cmj.rest.admin.so.RecalcForChangeParentUnit</recalc-processing-class>
+    </schema-ref>
+    <string name="selfOrSeparLabel" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(separateunit!=null && separateunit) ? 'Обособленное ' : ((selfunit!=null && selfunit) ? 'Самостоятельное ' : '')]]></script>
+      </calc-values>
+    </string>
+    <string name="codeDepLabel" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[codedep!=null  ? ('Код: ' + codedep ) : '']]></script>
+      </calc-values>
+    </string>
+    <string name="ogrn" createlog="true">
+      <storage-field name="OGRN" />
+      <validate>
+        <regex>^([0-9]{13}|[0-9]{15})?$</regex>
+        <message locale="ru">Допустимый формат - 13 арабских цифр без разделителей</message>
+      </validate>
+    </string>
+    <string name="medoGuid">
+      <storage-field name="MedoGuid"/>
+    </string>
+    <boolean name="hasMedoGuid" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[medoGuid != null && !''.equals(medoGuid)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="operatorMedoGuid">
+      <storage-field name="OperatorMedoGuid"/>
+    </string>
+    <integer name="medoTransferStatus">
+      <storage-field name="TransferStatus"/>
+      <default-values>
+        <default-value>0</default-value>
+      </default-values>
+    </integer>
+    <string name="medoTransferResponse">
+      <storage-field name="TransferResponse"/>
+    </string>
+    <string name="medoTransferResponseWithStatus" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[medoTransferStatus == 3 ? 'Запрос принят' : medoTransferStatus == 2 ? 'Запрос отклонен: ' + medoTransferResponse : '']]></script>
+      </calc-values>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.java.lang.System);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
 importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.java.lang.String);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.admin.so.worktimeprofile.SOWorkTimeProfile);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.Date);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.java.lang.Integer);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
 importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
-importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
-importClass(Packages.ru.intertrust.cmj.admin.declension.CaseDeclensionService.Case);
 
 function querySave(object, document) {
+    writeHistory(object, document);
+}
 
-    var values = object.tuning().getValues();
-    var cases = values.get("case").getValues();
-    var fullname = values.get("fullname").getValue();
-    var shortname = values.get("shortname").getValue();
+function writeHistory(object, document) {
 
-    if (!fullname.equals(document.getItemValue("EFullName").get(0))) {
-        var notUseDeclensionForFullName = cases.get("notUseDeclensionForLastName").getValue();
-        if (notUseDeclensionForFullName) {
-            values.put("notUseDeclensionForFullName",TuningHelper.createPropertyValue(false, values.get("case").getSchema().getProperty("notUseDeclensionForFullName")));
+    var hist = object.history();
+    if (!object.isNew()) {
+        writeTextHistory(object, document, hist, "reasonSubstitution", "reasonSubstitution", "reasonsubstitution.created");
+    }
+    object.history = hist;
+}
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName) {
+    var oldValue = getFieldValue(document, fieldName);
+    var newValue = getPropertyValue(object, propertyName);
+
+    if (!oldValue.equals(newValue)) {
+        TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+    }
+}
+
+function getFieldValue(document, fieldName) {
+    var value = null;
+    if (document != null) {
+        value = document.getItemValueString(fieldName);
+    }
+    return value != null ? value : "";
+}
+
+function getPropertyValue(object, propertyName) {
+    var value = null;
+    if (object != null && object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+        value = object.tuning().getValues().get(propertyName).getValue();
+    }
+    return value != null ? value : "";
+}
+
+function recalc(object, changedField) {
+
+    if (changedField == "depType") {
+		 if (object.tuning().getValues().get('depType') != null && object.tuning().getValues().get('depType').getValue() != null) {
+          		var depType = object.tuning().getValues().get('depType').getValue();
+						if (!"го: головной офис".equalsIgnoreCase(depType) || !"рф: региональный филиал".equalsIgnoreCase(depType)){
+							object.tuning().getValues().put("systemEditors", null);
+						}
+
         }
     }
 
-    if (!shortname.equals(document.getItemValue("EShortName").get(0))) {
-        var notUseDeclensionForShortName = cases.get("notUseDeclensionForFirstName").getValue();
-        if (notUseDeclensionForShortName) {
-            values.put("notUseDeclensionForShortName",TuningHelper.createPropertyValue(false, values.get("case").getSchema().getProperty("notUseDeclensionForShortName")));
+    if ("separateunit".equals(changedField)) {
+        var separateunit = object.tuning().getValues().get("separateunit").value;
+        object.tuning().getValues().put("isSharedAccessDep", TuningHelper.createPropertyValue(separateunit, object.tuning().getSchema().getProperty("isSharedAccessDep")));
+        if (!separateunit) {
+           TunableObjectHelper.putAFInstanceValue(object.tuning(), "hasNDO", false);
         }
+
+
     }
 
-    return true;
+    if ("codedep".equals(changedField)) {
+		 if (object.tuning().getValues().get('codedep') != null && object.tuning().getValues().get('codedep').getValue() != null) {
+          		var codedep = object.tuning().getValues().get('codedep').getValue();
+						if ("".equalsIgnoreCase(codedep)){
+						    object.tuning().getValues().put("iscodeni", TuningHelper.createPropertyValue(false, object.tuning().getSchema().getProperty("iscodeni")));
+						}
+
+        }
+    }
 }
 ]]></custom-event-handler>
   </schema>

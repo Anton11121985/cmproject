@@ -19,7 +19,6 @@
       </calc-values>
     </actor>
     <schema-ref ref="Organization" array="true" name="correspondent" system="true"/>
-    <schema-ref ref="Sending" name="sending" system="true"/>
     <string name="showIdent" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Исходящий']]></script>
@@ -62,6 +61,12 @@
       </calc-values>
     </boolean>
     <string name="mainFileName" system="true"/>
+    <string name="medoGuid">
+      <storage-field name="MEDO_Doc_GUID"/>
+    </string>
+    <string name="medoAttachmentsInfo" array="true">
+      <storage-field name="medoAppendixSync"/>
+    </string>
     <boolean name="$isMainFileDefined" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[(mainFileName!=null && !mainFileName.isEmpty() &&
@@ -82,9 +87,6 @@ medoInfo.errorInfo]]></script>
     <schema-ref ref="MovingCopiesTable" array="true" name="movingCopiesTable" createlog="true"/>
     <string name="dialogueCommentReg" createlog="true">
       <storage-field name="dialogueCommentReg"/>
-    </string>
-    <string name="dialogueComment" createlog="true">
-      <storage-field name="dialogueComment"/>
     </string>
     <string temporal="true" name="DOPName">
       <calc-values>
@@ -117,53 +119,427 @@ link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#filesigning.locker.s
          : true]]></script>
       </calc-values>
     </boolean>
-    <boolean name="tDeleted" temporal="true">
+    <boolean name="isEnabledExecuteRkk" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[T(java.lang.Boolean).TRUE.equals(status.deleted)]]></script>
+        <script lang="SPEL" event="open">
+          <![CDATA[T(ru.intertrust.cmj.rest.bf.ModuleID).OUTPUT.getModule().isEnabledExecuteRkkWithControlledResolutions(#this.getComplect(), #this.getDbIdent())
+|| T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(NotCompletedCtrldResForRkk)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() == 0]]></script>
       </calc-values>
     </boolean>
-    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.af.so);
-importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
-importPackage(Packages.ru.intertrust.cmj.af.tuning);
-importPackage(Packages.ru.intertrust.cmj.rest.tuning);
-importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
-importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
-importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
-importClass(Packages.ru.intertrust.cmj.af.history.emb.HistoryEmb);
-importClass(Packages.ru.intertrust.cmj.af.history.record.BasicText);
-importClass(Packages.ru.intertrust.cmj.af.history.record.NameList);
-importClass(Packages.ru.intertrust.cmj.af.history.record.TextList);
-importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
-importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
-importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
-importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
-importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
-importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
-importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
-importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
-importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
-importClass(Packages.ru.intertrust.cmj.dp.DPException);
-importClass(Packages.ru.intertrust.cmj.dp.DPM);
-importClass(Packages.ru.intertrust.cmj.dp.DPMPurchaseContracts);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfo);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfoComment);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RKKSigning);
+    <boolean name="curUserIsClerk" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[#hasRole(#this, '$Clerk') || #hasRole(#this, 'AllDelo')]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="curUserIsSupervisor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Supervisor')]]></script>
+      </calc-values>
+    </boolean>
+    <string name="labelInstruction" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Отправка:"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstSendRusPost1" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Для отправки документа на бумажном носителе или электронным заказным письмом Почтой России"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstSendRusPost2" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["- нажмите на панели действий «Отправить» - «Почтой России»;"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelWarnSendRusPost1" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["ВНИМАНИЕ!"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelWarnSendRusPost2" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Для отправки электронным заказным письмом поле «Вид документа» карточки исходящего документа должно быть заполнено значением «Электронное заказное письмо»;"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstSendCourier1" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Для отправки документа курьером организации или курьерской компанией"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstSendCourier2" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["- нажмите на панели действий «Отправить» - «Курьером»;"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstSend1" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Для самостоятельной передачи документа"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstSend2" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["- нажмите на панели действий «Отправить» - «Нарочно»;"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstEmailSend1" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Для отправки документа по электронной почте"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelInstEmailSend2" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["- нажмите на панели действий «Отправить» - «По электронной почте»;"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelSendInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Информация об отправке:"]]></script>
+      </calc-values>
+    </string>
+    <boolean name="curUserIsExecWithoutSub" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && executor != null
+           && executor.contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).beardToVCardThrow.apply(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()))]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="curUserIsExec" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[
+{
+ #curUsr = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser(),
+ #curUsr != null && executor != null
+  && (executor.contains(#curUsr.getBeard()) || executor.?[T(com.google.common.collect.Lists).transform(#this, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSubstituteOf(#this)].size() > 0].size() > 0)
+}[1]
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="curUserOnlyIsAuthor" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[
+          {
+            #session = T(ru.intertrust.cmj.af.core.AFSession).get(),
+            #curUser = #session.currentUser(),
+            #author = #session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)?.getAuthor()?.getUNID(),
+            #author != null && #author.equals(#curUser.getBeard()?.getUNID())
+          }[3]]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isCurrUserClerk" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#isClerk(#this, null) || #hasRole(#this, 'AllDelo')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="curUserIsRegPlace" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[(#this.registration == null || T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() == null) ? false : (#this.registration.place == null ? false : (T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place).getAccessUnit()?.registrationSettingsRegplace()?.getAllDps()?.get("output") == null ? false : (T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place).getAccessUnit().registrationSettingsRegplace().getAllDps().get("output").contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()))))]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean temporal="true" name="isClerkOutput">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA[#this.registration == null ? false : #this.registration.place == null ? false : T(ru.intertrust.cmj.rest.bf.ModuleID).OUTPUT.getModule().getRegplaces("OutputDocs").contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place))]]></script>
+      </calc-values>
+    </boolean>
+    <string name="sendingStatus" system="true"/>
+    <boolean name="isDocumentSent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[digitalsending.isMedoSendingComplete != null && digitalsending.isMedoSendingComplete || sendingStatus != null && !sendingStatus.name().equals('ONSENDING') && !sendingStatus.name().equals('CANCEL_SENDING')]]></script>
+      </calc-values>
+    </boolean>
+    <string name="sendingStatusDisplay" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[sendingStatus!= null ?sendingStatus.getName():null]]></script>
+      </calc-values>
+    </string>
+    <boolean name="typeIsRE" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(type != null && type == "Электронное заказное письмо")]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="signStateNotRejected" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature')  &&  !"rejected".equals(#this?.signature?.state?.status)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canSendToSingOutput" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[signStateNotRejected && $canSendToSign && #root.apre!="ON_APPROVING"
+        && !typeIsRE && !sendToSignOnPaper]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="toPrepareRE" system="true">
+      <storage-field name="toPrepareRE"/>
+    </boolean>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(status == null || status['deleted'] == null) ? false : status['deleted']]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$isProject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[registration==null || registration.number==null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="showSendInOutButton" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[(($isProject != null) && ($isProject == false)) && (curUserIsExec || curUserIsClerk || curUserIsSupervisor)]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isNumberReserved" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(registration != null && registration.state != null && registration.state.status == 'registered') ? false :    ((registration == null || registration.reservedNumber == null ) ? false : true)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="showReserveNumber" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!isDeleted && $isProject && !isNumberReserved && (curUserIsClerk || curUserIsRegPlace || curUserIsSupervisor)
+        && (type == null || typeIsRE != null && !typeIsRE || (toPrepareRE != null && toPrepareRE) || curUserIsExec)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="SendSignStamp" createlog="true" default-value="false">
+      <storage-field name="SendSignStamp"/>
+    </boolean>
+    <boolean name="showSendToSignRE" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[signStateNotRejected && $canSendToSign && !OnAproving.equals("ON_APPROVING")
+        && typeIsRE && curUserIsClerk && isNumberReserved && toPrepareRE != null && toPrepareRE && (SendSignStamp == null || !SendSignStamp)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="showSendingStatus" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[sendingStatus != null && ("onsending".equals(sendingStatus.getAlias()) || "sent".equals(sendingStatus.getAlias()) || "delivered".equals(sendingStatus.getAlias()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isSignRejected" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.signature != null && #this.signature.state != null && #this.signature.state.status != null && (#this.signature.state.status == "rejected")]]></script>
+      </calc-values>
+    </boolean>
+    <string name="regPlaceFullName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.registration == null || #this.registration.place == null) ? '' : {
+	#regplacefullname = T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place)?.originalData()?.getParty()?.getBeard()?.originalData()?.getFullName(),
+	#regplacefullname != null ? #regplacefullname.trim() : ''
+}[1]]]></script>
+      </calc-values>
+    </string>
+    <boolean name="canRegisterManualOutput" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[$canRegisterManual && !isNumberReserved && !isSignRejected
+        && (toPrepareRE == null || !toPrepareRE || !typeIsRE)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canRegisterOutput" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[$canRegister && !isNumberReserved && !isSignRejected
+        && (toPrepareRE == null || !toPrepareRE || !typeIsRE)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="sendingCompletedStatusInfo"/>
+    <string name="toPrepareREStatus" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(toPrepareRE != null && toPrepareRE) ? 'На подготовке ЭЗП' : null]]></script>
+      </calc-values>
+    </string>
+    <string name="SendSignStampStatus" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(SendSignStamp != null && SendSignStamp) ? 'Идёт обработка документов..' : null]]></script>
+      </calc-values>
+    </string>
+    <boolean name="showSendToSignRepeat" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!signStateNotRejected && ($canSendToSign || curUserIsExec && isSignRejected)
+        && !OnAproving.equals("ON_APPROVING") && (!typeIsRE || (isClerk && isNumberReserved && toPrepareRE != null && toPrepareRE && (SendSignStamp == null || !SendSignStamp)))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isOnSign" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature')  &&  "sent".equals(#this?.signature?.state?.status)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="regStateStatusRejected" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'registration')  && "rejected".equals(#this?.registration?.state?.status)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="statusOnIssueFixing" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#approving.issue-fixing.lists'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="regStateStatusSent" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[registration != null && registration.state != null && "sent".equals(registration.state.status)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canSendToRegOutput" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!isOnSign && (link.?[rel=='http://intertrust.ru/cmj/relations#register.sent'].size() > 0 || (curUserIsExec && isSignRejected))
+        && !regStateStatusRejected && !statusOnIssueFixing && !regStateStatusSent
+        && (!typeIsRE || !curUserIsExec || "signed".equals(signature?.state?.status))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="showSendToPrepareRE" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[$isProject && typeIsRE && (curUserIsExec || curUserOnlyIsAuthor || curUserIsSupervisor)
+        && (toPrepareRE == null || !toPrepareRE) && !"sent".equals(signature?.state?.status) && !"signed".equals(signature?.state?.status)
+        && !regStateStatusRejected && !regStateStatusSent && !OnAproving.equals("ON_APPROVING")]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canRegisterWithReserve" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(registration==null || registration.state==null || isOnRework != null && isOnRework) ? false :  (link.?[rel=='http://intertrust.ru/cmj/relations#register'].size() > 0 && registration.reservedNumber != null)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canRegisterWithReserveOutput" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[canRegisterWithReserve && !isSignRejected && !typeIsRE]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canRegisterByReserveOutput" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[canRegisterWithReserve && (toPrepareRE == null || !toPrepareRE || !typeIsRE)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="labelContentTemp" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[""]]></script>
+      </calc-values>
+    </string>
+    <string name="$emailTitle" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.type != null ? #this.type : '')
+    + ((#this.registration!=null && #this.registration.number!=null) ? (
+        (registration.date==null ? '' : (' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date)))
+        + (' № ' + #this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix)
+    ) : (
+        ' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.creationDate.toInstant()))
+        + (#this.projectNumber.numberCharacter == null ? ' проект' : ' проект № ' + (#this.projectNumber.projectNumber))
+    ))
+    + ' «' + #this.title + '»']]></script>
+      </calc-values>
+    </string>
+    <boolean name="movingCopiesEnable" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).movingCopies]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="approveIssueFixingIsNamed" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[
+        { #db = T(ru.intertrust.cmj.af.core.AFCMDomino).getAllDBInfoByCurrSORepNamed().toArray()?.?[ident.equals("ApproveIssueFixing")]?.![#this],
+          #db != null && #db.length > 0 && #db[0].isNamed
+        }[1]
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <schema-ref ref="Sending" name="sending" system="true" null-empty="true"/>
+    <integer name="sendRussianPost" system="true" createlog="true"/>
+    <actor name="initSendRussianPost" system="true"/>
+    <actor name="initSendMEDO" system="true"/>
+    <actor array="true" name="expeditors" system="true"/>
+    <boolean name="isCurUserExpeditor" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[
+{
+ #curUsr = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser(),
+ #curUsr != null && expeditors != null
+  && (expeditors.contains(#curUsr.getBeard()) || expeditors.?[T(com.google.common.collect.Lists).transform(#this, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSubstituteOf(#this)].size() > 0].size() > 0)
+}[1]
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canSendByCour" system="true"/>
+    <boolean name="canChangeTrack" system="true"/>
+    <boolean name="canEditSendingTable" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[!(curUserIsClerk || curUserIsSupervisor || isCurUserExpeditor)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$needRemoveEditAccessLinkWD" temporal="true">
+      <meta>
+        <documentation>Управление видимостью кнопки "Редактировать"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Webdocs2.0'.equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().extendedAttributes().getOrDefault('ClientAlias', '')) && link.?[rel=='edit'].size()>0 && link.remove(link.?[rel=='edit'][0])]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canEditChangeTrack" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[curUserIsClerk || isCurUserExpeditor]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="notSeeButtonSignOnPaper" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[!curUserIsSupervisor && !#hasRole(#this, 'AllDelo') && !curUserIsExecWithoutSub
+          && !curUserOnlyIsAuthor && !isClerkOutput || !$isProject
+          || #this.isNew() ? false : (
+          ("sent".equals(signature?.state?.status) || "signed".equals(signature?.state?.status))
+          || registration != null && registration.state != null && "sent".equals(registration.state.status)
+          || sendToSignOnPaper!=null && sendToSignOnPaper
+          || #root.isDeleted!=null && #root.isDeleted
+          || "ON_APPROVING".equals(#this?.apre))]]></script>
+      </calc-values>
+    </boolean>
+
+    <actor name="SignerDigest" temporal="true" array="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[{
+           #list = new java.util.ArrayList(),
+           #signs = (#this?.signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD ?
+                (#this?.signature?.signer != null ? #list.add(#this.signature.signer) : false) :
+                (#this?.signature?.signers != null && #this.signature.signers.size() > 0) ?
+                    #list.addAll(#this.signature.signers.![signer]) : false ),
+            (#this?.advSigner != null && #this.advSigner.size() > 0 ?#list.addAll(#this.advSigner) :false),
+            (#signs) ? #list : null }[3]
+]]>
+         </script>
+      </calc-values>
+    </actor>
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
 importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
-importClass(Packages.ru.intertrust.cmj.af.prvz.AFHasHead);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.SaveListener);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFSigning);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.Helper);
-importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
-importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity.TaskEntity.Status);
 importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
 importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
-importClass(Packages.java.util.List);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration);
-importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration.Operation.Recall);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity);
 importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+importClass(Packages.java.util.HashSet);
+importClass(Packages.java.util.HashMap);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.core.AFEntityStorage);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.so.SOPartyAuthoritiesSenderRegplace);
 
-function querySave(object, document) {	
+function querySave(object, document) {
+    var log = LoggerFactory.getLogger("schema.RkkResourceOutput");
+    log.debug("querySave start");
 	if (object.isDeleted()) {
 		return true;
 	}
@@ -173,30 +549,492 @@ function querySave(object, document) {
 	if (document.getItemValueString("medostatus") == "2") {
 		throw "Идет восстановление основного файла документа. Редактирование запрещено.";
 	}
+
+    var hasExternalAddressee = false;
+    for (var i = 0; i < object.addressees().getList().size(); i++) {
+        hasExternalAddressee |= !object.addressees().getList().get(i).isCurrent();
+    }
+
+    if (!hasExternalAddressee && object.getDbIdent().startsWith("OutputDocs") && !object.isStub()) {
+        throw "Запрещено в качестве корреспондентов исходящего документа выбирать исключительно адресатов своей Организации. Исходящий документ предназначен для отправки внешним адресатам. Для того, чтобы разослать документ в рамках своей Организации, создайте Внутренний документ.";
+    }
+
 	var medoGateState = object.getMedoGateState();
 	if (medoGateState != null) {
 		TuningHelper.processProperty(object.tuning().getValues(), "MedoGateState", medoGateState, object.tuning().getSchema().getProperty("MedoGateState"));
-	}	
+	}
 	if ((object.registration().getState() == DPM.RKK.Registration.State.SENT) && object.signing().wasUnSigned) {
 		object.registration().recall();
 	}
 
-  if (object.MedoSending.needSend()) {
-    var dx = object.history().getRecord("doc.send.medo");
-    dx.update(null, null, null);
-    dx.setUpdated(true);
-  }
+	var sended = false;
+	var onsending = false;
+	var delivered = false;
+	var onCourSend = false;
+	var chngTrack = false;
+	var deliveredCount = 0;
+	for (var i = 0; i < object.sending().specified().size(); i++) {
+		 var status = object.sending().specified().get(i).getSendStatus();
+		 if (status !=null) {
+			if (status.equals("На отправке")) {
+			  onsending = true;
+			  var sendType = object.sending().specified().get(i).getType();
+			  if (sendType!=null) {
+				if (sendType.equals("Курьерская компания") || sendType.equals("Курьер организации")) {
+					onCourSend = true;
+					object.setCanSendByCour(true);
+				}
+			  }
+			  continue;
+			 }
+			 if (status.equals("Отправлено")) {
+			  var sendType = object.sending().specified().get(i).getType();
+			  if (sendType!=null) {
+				if (sendType.equals("Курьерская компания") || sendType.equals("Курьер организации")) {
+				    var track = object.sending().specified().get(i).getExternalCode();
+				    if (track != null && track.equals("")) {
+				      chngTrack = true;
+				      object.setCanChangeTrack(true);
+				    }
+				}
+			  }
+			  sended = true;
+			 }
+			 if (status.equals("Доставлено")) {
+			  deliveredCount++;
+			 }
+		 }
 
+	}
+
+	if(!onCourSend) {
+		object.setCanSendByCour(false);
+	}
+
+	if(!chngTrack) {
+		object.setCanChangeTrack(false);
+	}
+
+    log.debug("sended=" + sended);
+    log.debug("onsending=" + onsending);
+	if (onsending && needSetStatusOnSending(object)) {
+	  object.setSendingStatus("onsending");
+	} else if (sended && needSetStatusSent(object)) {
+	  object.setSendingStatus("sent");
+	} else if (object.sending().specified().size() != 0 && deliveredCount.equals(object.sending().specified().size())) {
+	  object.setSendingStatus("delivered");
+	} else {
+	  object.setSendingStatus("");
+	}
+	if (object.registration().isSaveWithRegistration) {
+		sendNoticeOUTD1_11(object, document);
+		writeHistoryOnSending(object);
+	}
+
+	if (object.getSendingStatus() != null && object.getSendingStatus().getAlias().equals("delivered")) {
+		//выполнение задачи
+		var execBeards = new ArrayList();
+		execBeards.add(AFSession.get().currentUser().getBeard());
+		completeTask(object, execBeards, "OUTD1_11");
+		//отправка уведомления
+		var receivers = object.executors.getList();
+		var sender = AFSession.get().currentUser().getBeard();
+		if (receivers != null && !receivers.isEmpty()) {
+			DPNotificationUtils.sendNotice(object, sender, receivers, "NOTICE", "OUTD1_12", "", "Документ отправлен", "");
+		}
+	}
+
+	completeTaskOUTD1_21(object);
+
+	validateHistSendTable(object, document);
 	return true;
 }
 
-function postSave(object, document) {		
+function needSetStatusOnSending(object) {
+    return needSetStatus(object, java.util.Arrays.asList("Отказано", "Отправка прекращена", "Отправка отменена"));
+}
+
+function needSetStatusSent(object) {
+    return needSetStatus(object, java.util.Arrays.asList("Отказано", "Отправка прекращена", "Отправка отменена", "На отправке"));
+}
+
+function needSetStatus(object, statusList) {
+    var log = LoggerFactory.getLogger("schema.RkkResourceOutput");
+    log.debug("needSetStatus start");
+    var sending = object.sending().specified();
+    if (sending.isEmpty()) { return false; }
+    for (var i = 0; i < sending.size(); i++) {
+        var sendingRow = sending.get(i);
+        var status = sendingRow.getSendStatus();
+        if (status == null || status.equals("") || statusList.contains(status)) {
+            log.debug("needSetStatus=false");
+            return false;
+        }
+    }
+    log.debug("needSetStatus=true");
+    return true;
+}
+
+function postSave(object, document) {
 	if (object.signing().wasUnSigned) {
 		var to = RKKFRegistrationRegistrate.getDPs(object);
 		if (!to.isEmpty()) {
 			new PkdSession().deleteEvent(to, EventCode.getByString("RGST1_11"), object);
 		}
 	}
-}]]></custom-event-handler>
+}
+
+function getRegplaceNames(rpu, app, ident) {
+    return AFCMDomino.convertSetToVector(app.internal().getRegplaceNamesAsSet(rpu.cmAccess().regplace(), ident));
+}
+
+function completeTaskOUTD1_21(object) {
+  if (object.sending().specified().size() == 0) return;
+  var sending = object.sending().specified();
+  var flag = true;
+  var courierCompOrOrg = false;
+  for (var i = 0; i < sending.size(); i++) {
+    var sendingRow = sending.get(i);
+    var type = sendingRow.getType();
+	if (type!=null) {
+		if (type.equals("Курьерская компания") || type.equals("Курьер организации")) {
+		  courierCompOrOrg = true;
+		  if (sendingRow.getSendStatus().equals("На отправке")) {
+			flag = false;
+			break;
+			}
+		}
+	}
+  }
+  if (courierCompOrOrg && flag) {
+    var expeditors = GetValues(object, "expeditors");
+    var expeditorsBeard = new ArrayList();
+	if (expeditors != null) {
+		for (var i = 0; i < expeditors.size(); i++) {
+		  expeditorsBeard.add(expeditors.get(i).getValue());
+		}
+		completeTask(object, expeditorsBeard, "OUTD1_21");
+	} else {
+        expeditors = object.getExpedtors();
+        completeTask(object, expeditors, "OUTD1_21");
+	}
+  }
+}
+
+function sendNoticeOUTD1_11(object, doc) {
+  var log = LoggerFactory.getLogger("schema.RkkResourceOutput");
+  log.debug("sendNoticeOUTD1_11 started");
+  var addrss = object.addressees.getList();
+  var currentUser = AFSession.get().currentUser().getBeard();
+  var flag = true;
+
+  for (var i = 0; i<addrss.size(); i++) {
+    if (addrss.get(i).orgAddressees().getList().size() == 0) {
+      var addressee = addrss.get(i).getOrganization();
+      var addresseeType = addressee.originalData().getType();
+      var medoId = addressee.getOrganization().getMedoProperties().getMedoId();
+      log.debug("addressee=" + addressee + ", addresseeType=" + addresseeType + ", addresseeOrg=" + addressee.getOrganization()
+        + ", medoProperties=" + addressee.getOrganization().getMedoProperties() + ", medoId=" + medoId + " " + !StringUtils.isEmpty(medoId));
+
+      if (addresseeType.equals(SOBeard.Type.SYS_ORGANIZATION) || !StringUtils.isEmpty(medoId)) {
+        flag = false;
+        break;
+      }
+    }
+    for(var j = 0; j<addrss.get(i).orgAddressees().getList().size(); j++) {
+      var addressee = addrss.get(i).orgAddressees().getList().get(j);
+      var addresseeOrg = addrss.get(i).orgAddressees().getList().get(j).getOrganization();
+      if (addresseeOrg == null) continue;
+      var addresseeType = addresseeOrg.getBeard().originalData().getType();
+      var medoId = addresseeOrg.getMedoProperties().getMedoId();
+      log.debug("list: addressee=" + addressee + ", addresseeType=" + addresseeType + ", addresseeOrg=" + addresseeOrg
+        + ", medoProperties=" + addresseeOrg.getMedoProperties() + ", medoId=" + medoId + " " + !StringUtils.isEmpty(medoId));
+
+      if (addresseeType.equals(SOBeard.Type.SYS_ORGANIZATION) || !StringUtils.isEmpty(medoId)) {
+        flag = false;
+        break;
+      }
+    }
+  }
+
+  log.debug("flag=" + flag);
+  if (flag) {
+    var addressees = object.executors.getList();
+    var sender = AFSession.get().currentUser().getBeard();
+    if (addressees != null && !addressees.isEmpty()) {
+        DPNotificationUtils.sendNotice(doc, "OUTD1_11", true, sender, "Система", new HashSet(addressees));
+	  }
+  }
+}
+
+function writeHistoryOnSending(object) {
+  var log = LoggerFactory.getLogger("schema.RkkResourceOutput");
+  log.debug("writeHistoryOnSending started");
+  var addrss = object.addressees.getList();
+  var currentUser = AFSession.get().currentUser().getBeard();
+
+  for (var i = 0; i<addrss.size(); i++) {
+    if (addrss.get(i).orgAddressees().getList().size() == 0) {
+      var addressee = addrss.get(i).getOrganization();
+      var addresseeType = addressee.originalData().getType();
+      log.debug("addressee=" + addressee + ", addresseeType=" + addresseeType + ", addresseeOrg=" + addressee.getOrganization());
+
+      if (addresseeType.equals(SOBeard.Type.SYS_ORGANIZATION)) {
+        var historyRecordSendCG = object.history().createNewRecord("onSending", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        var textSubSendCG = addressee.getUNID() + "%" + addressee.toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+        historyRecordSendCG.update("Корреспондент%" + "КШ", null, textSubSendCG);
+      }
+    }
+    for(var j = 0; j<addrss.get(i).orgAddressees().getList().size(); j++) {
+      var addressee = addrss.get(i).orgAddressees().getList().get(j);
+      var addresseeOrg = addrss.get(i).orgAddressees().getList().get(j).getOrganization();
+      if (addresseeOrg == null) continue;
+      var addresseeType = addresseeOrg.getBeard().originalData().getType();
+      log.debug("list: addressee=" + addressee + ", addresseeType=" + addresseeType + ", addresseeOrg=" + addresseeOrg);
+
+      if (addresseeType.equals(SOBeard.Type.SYS_ORGANIZATION)) {
+        var historyRecordSendCG = object.history().createNewRecord("onSending", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        var textSubSendCG = addressee.getUNID() + "%" + addressee.toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+        historyRecordSendCG.update("Корреспондент%" + "КШ", null, textSubSendCG);
+      }
+    }
+  }
+}
+
+function completeTask(object, execBeards, eventcode) {
+    if (execBeards == null || execBeards.isEmpty()) {
+        return;
+    }
+    var cmjEntity = AFEntityStorage.getEntityByUNID(object.getUNID());
+    var mainTaskInfo = new TaskChangeInfo(cmjEntity, execBeards, EventCode.getByString(eventcode),
+        PkdEntity.EventStatus.COMPLETED, EventEntity.TaskEntity.Status.NONE,
+        TaskChangeInfo.DEFAULT_FORMAT);
+    new PkdSession().changeProcessStatus(mainTaskInfo);
+}
+
+function GetValues(doc, fileName) {
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+    return tmp.getValues();
+}
+
+function validateHistSendTable(obj, doc) {
+    var log = LoggerFactory.getLogger("schema.RkkResourceOutput");
+    log.debug("validateHistSendTable started");
+	var currentUser = AFSession.get().currentUser().getBeard();
+	var historyRecordChng = null;
+	var historyRecordCanc = null;
+	var historyRecordDeliv = null;
+	var historyRecordChngDate = null;
+	var historyRecordChngDelInfo = null;
+	var historyRecordSendCG = null;
+	var historyRecordSentCour = null;
+	var textSubChng = "";
+	var textSubCanc = "";
+	var textSubDeliv = "";
+	var textSubChngDate = "";
+	var textSubChngDelInfo = "";
+	var textSubSendCG = "";
+	var textSubSentCour = "";
+    if (obj.sending() != null && obj.sending().specified()!= null) {
+        var oldIndexList = doc.getItemValue("PIndex");
+		var oldAddrList = doc.getItemValue("PAddresse");
+		var oldFIOList = doc.getItemValue("PWhoRecepient");
+		var oldPhoneList = doc.getItemValue("PPhone");
+		var oldTypeList = doc.getItemValue("PDispatchType");
+		var oldCourList = doc.getItemValue("PCourier");
+		var oldStatusSendList = doc.getItemValue("PSendStatus");
+		var oldRecDateList = doc.getItemValue("PDateReceipt");
+
+        var SendListInfo = obj.sending().specified();
+		for (var i = 0; i < SendListInfo.size(); i++) {
+			if ((SendListInfo.get(i).getType()!=null) && (SendListInfo.get(i).getType().equals("Курьерская компания") || SendListInfo.get(i).getType().equals("Курьер организации"))) {
+				if ((SendListInfo.get(i).getSendStatus()!=null) && (SendListInfo.get(i).getSendStatus().equals("На отправке"))) {
+					var newIndex = SendListInfo.get(i).getIndex();
+					var newAddr = SendListInfo.get(i).getEAddress().toString().substring(1, SendListInfo.get(i).getEAddress().toString().length() - 1);
+					newAddr = newAddr.replace("%","");
+					var newFIO = SendListInfo.get(i).getReceiver();
+					var newPhone = SendListInfo.get(i).getPhone();
+					var newType = SendListInfo.get(i).getType();
+					var newCour = SendListInfo.get(i).getCourier();
+
+					var oldIndex = null;
+					if (oldIndexList.size() > i)
+						oldIndex = oldIndexList.get(i);
+
+					var oldAddr = null;
+					if (oldAddrList.size() > i) {
+						oldAddr = oldAddrList.get(i);
+						oldAddr = oldAddr.substring(0, oldAddr.length() - 1);
+						oldAddr = oldAddr.replaceAll("%",", ");
+					}
+
+					var oldFIO = null;
+					if (oldFIOList.size() > i)
+						oldFIO = oldFIOList.get(i);
+
+					var oldPhone = null;
+					if (oldPhoneList.size() > i)
+						oldPhone = oldPhoneList.get(i);
+
+					var oldType = null;
+					if (oldTypeList.size() > i)
+						oldType = oldTypeList.get(i);
+
+					var oldCour = null;
+					if (oldCourList.size() > i)
+						oldCour = oldCourList.get(i);
+
+					if ((newIndex!=null && newAddr!=null && newFIO!=null && newPhone!=null && newType!=null && newCour!=null) && (oldIndex!=null && oldAddr!=null && oldFIO!=null && oldPhone!=null && oldType!=null && oldCour!=null) && (!newIndex.equals(oldIndex) || !newAddr.equals(oldAddr) || !newFIO.equals(oldFIO) || !newPhone.equals(oldPhone) || !newType.equals(oldType) || !newCour.equals(oldCour))) {
+						if (historyRecordChng == null) {
+							historyRecordChng = obj.history().createNewRecord("sendtable.data.changed", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+						}
+						if (!"".equals(textSubChng))
+							textSubChng = textSubChng + "\n";
+						textSubChng = textSubChng + "Корреспондент:" + SendListInfo.get(i).getDisplayAddressee() + ". Было: " + oldIndex + ", " + oldAddr + ", " + oldFIO + ", " + oldPhone + ", " + oldType + ", " + oldCour + ". Стало: " + newIndex + ", " + newAddr + ", " + newFIO + ", " + newPhone + ", " + newType + ", " + newCour + ".";
+					}
+				} else if ((SendListInfo.get(i).getSendStatus()!=null) && (SendListInfo.get(i).getSendStatus().equals("Отправка отменена"))) {
+					var newStatus = SendListInfo.get(i).getSendStatus();
+					var oldStatus = null;
+					if (oldStatusSendList.size() > i)
+						oldStatus = oldStatusSendList.get(i);
+					if (oldStatus!=null && newStatus!=null && !newStatus.equals(oldStatus)) {
+						textSubCanc = "";
+						historyRecordCanc = obj.history().createNewRecord("cancel.send.cour", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+						textSubCanc = textSubCanc + SendListInfo.get(i).getAddressee().getUNID() + "%" + SendListInfo.get(i).getAddressee().toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+						if (SendListInfo.get(i).getType().equals("Курьерская компания")) {
+							historyRecordCanc.update("Корреспондент%" + "Способ отправки: Курьерская компания - " + SendListInfo.get(i).getCourier(), null, textSubCanc);
+						} else if (SendListInfo.get(i).getType().equals("Курьер организации")) {
+							historyRecordCanc.update("Корреспондент%" + "Способ отправки: Курьер организации - " + SendListInfo.get(i).getCourier(), null, textSubCanc);
+						}
+					}
+				} else if ((SendListInfo.get(i).getSendStatus()!=null) && (SendListInfo.get(i).getSendStatus().equals("Отправлено"))) {
+					var newStatus = SendListInfo.get(i).getSendStatus();
+					var oldStatus = null;
+					if (oldStatusSendList.size() > i)
+						oldStatus = oldStatusSendList.get(i);
+					if (oldStatus!=null && newStatus!=null && !newStatus.equals(oldStatus)) {
+						textSubSentCour = "";
+						historyRecordSentCour = obj.history().createNewRecord("send.cour.sent.oper", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+						textSubSentCour = textSubSentCour + SendListInfo.get(i).getAddressee().getUNID() + "%" + SendListInfo.get(i).getAddressee().toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+						var deliveredDate = SendListInfo.get(i).getDisplaySent();
+						if (deliveredDate == null) {
+							deliveredDate = "";
+						}
+						if (SendListInfo.get(i).getType().equals("Курьерская компания")) {
+							historyRecordSentCour.update("Корреспондент%" + "Способ отправки: Курьерская компания - " + SendListInfo.get(i).getCourier() + ".\nДата отправки: " + deliveredDate.toString(), null, textSubSentCour);
+						} else if (SendListInfo.get(i).getType().equals("Курьер организации")) {
+							historyRecordSentCour.update("Корреспондент%" + "Способ отправки: Курьер организации - " + SendListInfo.get(i).getCourier() + ".\nДата отправки: " + deliveredDate.toString(), null, textSubSentCour);
+						}
+					}
+				} else if ((SendListInfo.get(i).getSendStatus()!=null) && (SendListInfo.get(i).getSendStatus().equals("Доставлено"))) {
+					var newStatus = SendListInfo.get(i).getSendStatus();
+					var newRecDate = SendListInfo.get(i).getDisplayReceived();
+					var russian = new java.util.Locale("ru");
+                    var format1 = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", russian);
+					var format2 = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm");
+					var oldStatus = null;
+					var oldRecDate = null;
+					if (oldStatusSendList.size() > i)
+						oldStatus = oldStatusSendList.get(i);
+					if (oldRecDateList.size() > i && !oldRecDateList.get(i).equals("-"))
+						oldRecDate = format2.format(format1.parse(oldRecDateList.get(i)));
+					if (oldStatus!=null && newStatus!=null && !newStatus.equals(oldStatus)) {
+						textSubDeliv = "";
+						historyRecordDeliv = obj.history().createNewRecord("deliver.send.cour", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+						textSubDeliv = textSubDeliv + SendListInfo.get(i).getAddressee().getUNID() + "%" + SendListInfo.get(i).getAddressee().toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+						if (SendListInfo.get(i).getType().equals("Курьерская компания")) {
+							historyRecordDeliv.update("Корреспондент%" + "Способ отправки: Курьерская компания - " + SendListInfo.get(i).getCourier() + ".\nДата доставки: " + SendListInfo.get(i).getDisplayReceived(), null, textSubDeliv);
+						} else if (SendListInfo.get(i).getType().equals("Курьер организации")) {
+							historyRecordDeliv.update("Корреспондент%" + "Способ отправки: Курьер организации - " + SendListInfo.get(i).getCourier() + ".\nДата доставки: " + SendListInfo.get(i).getDisplayReceived(), null, textSubDeliv);
+						}
+					} else if (oldRecDate!=null && newRecDate!=null && !oldRecDate.equals(newRecDate)) {
+						textSubChngDate = "";
+						historyRecordChngDate = obj.history().createNewRecord("sendtable.date.changed", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+						textSubChngDate = textSubChngDate + SendListInfo.get(i).getAddressee().getUNID() + "%" + SendListInfo.get(i).getAddressee().toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+						if (SendListInfo.get(i).getType().equals("Курьерская компания")) {
+							historyRecordChngDate.update("Корреспондент%" + "Способ отправки: Курьерская компания - " + SendListInfo.get(i).getCourier() + ".\nБыло: " + oldRecDate + ". Стало: " + newRecDate + ".", null, textSubChngDate);
+						} else if (SendListInfo.get(i).getType().equals("Курьер организации")) {
+							historyRecordChngDate.update("Корреспондент%" + "Способ отправки: Курьер организации - " + SendListInfo.get(i).getCourier() + ".\nБыло: " + oldRecDate + ". Стало: " + newRecDate + ".", null, textSubChngDate);
+						}
+					}
+				}
+			} else if ((SendListInfo.get(i).getType()!=null) && SendListInfo.get(i).getType().equals("Нарочно")) {
+				if ((SendListInfo.get(i).getSendStatus()!=null) && (SendListInfo.get(i).getSendStatus().equals("Доставлено"))) {
+					var newFIO = SendListInfo.get(i).getReceiver();
+					var newRecDate = SendListInfo.get(i).getDisplayReceived();
+					var russian = new java.util.Locale("ru");
+                    var format1 = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", russian);
+					var format2 = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm");
+					var oldRecDate = "-";
+					if (oldRecDateList.size() > i && !oldRecDateList.get(i).equals("-"))
+						oldRecDate = format2.format(format1.parse(oldRecDateList.get(i)));
+					var oldFIO = "-";
+					if (oldFIOList.size() > i)
+						oldFIO = oldFIOList.get(i);
+					if (newRecDate!=null && newFIO!=null) {
+						if (!oldFIO.equals(newFIO) || !oldRecDate.equals(newRecDate)) {
+							if (historyRecordChngDelInfo == null) {
+								historyRecordChngDelInfo = obj.history().createNewRecord("sendtable.data.changed.deliver", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+							}
+							if (!"".equals(textSubChngDelInfo))
+								textSubChngDelInfo = textSubChngDelInfo + "\n";
+							textSubChngDelInfo = textSubChngDelInfo + "Корреспондент:" + SendListInfo.get(i).getDisplayAddressee() + " Способ отправки: Нарочно. Было: " + oldFIO + " " + oldRecDate + ". Стало: " + newFIO + " " + newRecDate + ".";
+						}
+					}
+				}
+			} else if ((SendListInfo.get(i).getType()!=null) && SendListInfo.get(i).getType().equals("Внешняя электронная почта")) {
+				if ((SendListInfo.get(i).getSendStatus()!=null) && (SendListInfo.get(i).getSendStatus().equals("Отправлено"))) {
+					log.debug("Внешняя электронная почта");
+					var newRecDate = SendListInfo.get(i).getDisplayReceived();
+					var russian = new java.util.Locale("ru");
+                    var format1 = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", russian);
+					var format2 = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm");
+					var oldRecDate = "-";
+					if (oldRecDateList.size() > i && !oldRecDateList.get(i).equals("-"))
+						oldRecDate = format2.format(format1.parse(oldRecDateList.get(i)));
+					log.debug("oldRecDate=" + oldRecDate +	", newRecDate=" + newRecDate);
+					if (newRecDate!=null) {
+						if (!oldRecDate.equals(newRecDate)) {
+							if (historyRecordChngDelInfo == null) {
+								historyRecordChngDelInfo = obj.history().createNewRecord("sendtable.data.changed.deliver", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+							}
+							if (!"".equals(textSubChngDelInfo))
+								textSubChngDelInfo = textSubChngDelInfo + "\n";
+							textSubChngDelInfo = textSubChngDelInfo + "Корреспондент:" + SendListInfo.get(i).getDisplayAddressee() + " Способ отправки: Внешняя электронная почта. Было: " + oldRecDate + ". Стало: " + newRecDate + ".";
+						}
+					}
+				}
+			}
+        }
+
+		if (historyRecordChng != null) {
+			historyRecordChng.update("", null, textSubChng);
+		}
+		if (historyRecordChngDelInfo != null) {
+			historyRecordChngDelInfo.update("", null, textSubChngDelInfo);
+		}
+    }
+}
+
+function GetValue(doc, filedName) {
+    var values;
+    if (doc instanceof AFInstanceObject) {
+        values = doc.getValues();
+    } else if(doc instanceof HashMap) {
+        values = doc;
+    } else {
+        values = doc.tuning().getValues();
+    }
+
+    var tmp = values.get(filedName);
+    if (tmp == null) {
+        return null;
+    }
+
+    return tmp instanceof AFInstanceSimple ? tmp.getValue() : tmp.getValues();
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

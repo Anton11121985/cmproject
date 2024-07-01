@@ -1,28 +1,139 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
   <schema name="ArchivesFundDealResource" extends="ArchivesCommonResource">
-    <actor default-value="Выбор из справочника" required="true" name="Organization">
-      <storage-field name="Organization" />
-    </actor>
     <string computed="true" temporal="true" name="showident">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['Дело фонда']]></script>
       </calc-values>
     </string>
-    <enum-ref ref="archivesFundDealStateEnum" name="MainState">
-      <storage-field name="MainState" />
-    </enum-ref>
-    <string required="true" createlog="true" name="Fund">
-      <storage-field name="Fund" />
-    </string>
-    <string name="ArchiveOrg">
-      <storage-field name="ArchiveOrg" />
-    </string>
-    <schema-ref ref="ContentResource" temporal="true" name="$content" />
 
     <schema-ref null-empty="true" ref="AnnualInvInfoTableResource" array="true" name="AnnualInvInfoTable" />
     <schema-ref null-empty="true" ref="ActDestructInfoTableResource" array="true" name="ActDestructInfoTable" />
     <schema-ref null-empty="true" ref="ArcInternalRkkInfoTableResource" array="true" name="ArcInternalRkkInfoTable" />
     <schema-ref null-empty="true" ref="ArcInvInfoTableResource" array="true" name="ArcInvInfoTable" />
+    <schema-ref ref="ContentResourceDocuments" name="contentDocuments" createlog="true"/>
+    <schema-ref ref="ContentResourceAddInformations" name="contentAddInformations" createlog="true"/>
+
+    <enum-ref ref="archivesFundDealStateEnum" name="fundDealStatus" system="true" />
+
+    <string name="accessRestrictionMark" system="true" />
+    <string name="archiveOrg" system="true" />
+    <string name="fund" system="true" />
+    <string name="fundName" system="true" />
+
+    <actor name="organization" system="true" />
+
+    <boolean name="isOpen" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[fundDealStatus.equals(T(ru.intertrust.cmj.archives.common.FundDeal.FundDealStatus).OPEN)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isArchivist" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+        #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+        ((#this.organization == null || #FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getArchivistSOOrgByReplicaIdSO(#this.organization.id.split(':')[0]).contains(#CurUser)))
+    }[2]]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isChiefArchive" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+        #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+        ((#this.organization == null || #FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getArchiveManagerSOOrgByReplicaIdSO(#this.organization.id.split(':')[0]).contains(#CurUser)))
+    }[2]]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="contentDocumentsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentDocuments != null && ((contentDocuments.richtext != null && !contentDocuments.richtext.isEmpty()) || (contentDocuments.content != null && !contentDocuments.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentAddInformationsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentAddInformations != null && ((contentAddInformations.richtext != null && !contentAddInformations.richtext.isEmpty()) || (contentAddInformations.content != null && !contentAddInformations.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="actDestructInfoTableNotEmty" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[ActDestructInfoTable != null && !ActDestructInfoTable.isEmpty()]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="arcInvInfoTableNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[ArcInvInfoTable != null && !ArcInvInfoTable.isEmpty()]]></script>
+      </calc-values>
+    </boolean>
+    <string name="$id" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[id]]></script>
+      </calc-values>
+    </string>
+    <string name="arcAnnualInventoryTable" temporal="true" />
+
+    <boolean name="canCreateNewAnnualInventory" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(isArchivist || isChiefArchive) && isOpen]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.fundDealStatus.name == 'DELETED']]></script>
+      </calc-values>
+    </boolean>
+
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.Helper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.fileregister.FileRegisterApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.archives.common.FundDeal);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitOrganization);
+
+//точки входа
+function querySave(object, document) {
+    return true;
+}
+
+function postSave(object, document) {
+}
+
+function queryCreate(object) {
+    var appFrapp = AFSession.get().getApplication(FileRegisterApplicationImpl.class);
+    var beard = AFSession.get().currentUser().getBeard();
+
+    if (!(appFrapp.isSuperAdmin(AFSession.get().currentUser().getCurrentSoReplica())
+        || (beard != null && appFrapp.getArchivistSOOrgByReplicaIdSO(beard.getUNID().split(":")[0]).contains(beard))
+        || (beard != null && appFrapp.getArchiveManagerSOOrgByReplicaIdSO(beard.getUNID().split(":")[0]).contains(beard)))) {
+        throw "Не заданы настройки для создания документа данного типа!";
+    }
+
+    var organization = beard.getOrganization().getBeard();
+
+    if (organization != null) {
+        object.setOrganization(organization);
+        var settings = appFrapp.findFileSettingByOrgId(organization.getUNID());
+        if (settings != null) {
+            var stateOrg = settings.getStateOrg();
+            if (stateOrg != null) {
+                object.setArchiveOrg(stateOrg.getOrganizationName());
+            }
+        }
+    }
+
+}
+
+function recalc(object, changedField) {
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

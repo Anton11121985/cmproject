@@ -43,6 +43,14 @@
     <string name="statusDead">
       <storage-field name="Dead"/>
     </string>
+    <boolean name="versionalEnable" createlog="true" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'id')) && id != null ? T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16))?.versionalEnable :
+(T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'unid')) && unid != null ? T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(unid.substring(0,16))?.versionalEnable :
+(T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'replica')) && replica != null ? T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(replica)?.versionalEnable
+ : false]]></script>
+      </calc-values>
+    </boolean>
     <string name="party" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[guidMedo!=null ? 'Участник МЭДО' : idccty!=null ? 'Участник ССТУ' : (guidMedo!=null && idccty!=null )? 'Участник МЭДО и ССТУ':'']]></script>
@@ -51,7 +59,7 @@
     <string name="statusLable" temporal="true">
       <storage-field name="CFullNameJoin"/>
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['1'.equals(statusOld) ? 'Устаревшее' : '1'.equals(statusDead) ? 'Ликвидирована' : nameJoin!=null ? 'Объединена' : '']]></script>
+        <script lang="SPEL" event="open"><![CDATA['1'.equals(statusOld) ? 'Устаревшее' :'1'.equals(statusDead) && 'individualentrepreneur'.equals(counterparty) ? 'Прекращена деятельность в качестве ИП': '1'.equals(statusDead) ? 'Ликвидирована' : nameJoin!=null ? 'Объединена' : '']]></script>
       </calc-values>
     </string>
     <string name="statusOld">
@@ -76,7 +84,7 @@
     <schema-ref ref="AddressValueAdminLocation" name="adrLocation" createlog="true"/>
     <string name="objectType" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[(notesForm==null || ('h1'.equals(notesForm) && ('Not'.equals(spoZaj) || ''.equals(spoZaj)) )) ? 'Организация' :  ('New'.equals(spoZaj) ? 'Заявка на создание организации' :  'Заявка на корректировку организации ')]]></script>
+        <script event="open" lang="SPEL"><![CDATA[(notesForm==null || ('h1'.equals(notesForm) && ('Not'.equals(spoZaj) || ''.equals(spoZaj)) )) ? 'Внешняя организация' :  ('New'.equals(spoZaj) ? 'Заявка на создание организации' :  'Заявка на корректировку организации ')]]></script>
       </calc-values>
     </string>
     <string name="fn" system="true" temporal="true">
@@ -93,6 +101,9 @@
     </string>
     <string name="jSendIndex">
       <storage-field name="CAddr_ZipCode"/>
+    </string>
+    <string name="jcountryName">
+      <storage-field name="CCountry_ZipCode" />
     </string>
     <string name="jHouse">
       <storage-field name="CAddr_House"/>
@@ -114,6 +125,7 @@
     </string>
     <schema-ref ref="BossPostType" array="true" name="bossPostType" system="true" temporal="true"/>
     <schema-ref ref="AddressValueAdmin" name="adrPostal"/>
+    <string name="postal_region_code" temporal="true"/>
     <string name="alternativeName">
       <storage-field name="alternativeName"/>
     </string>
@@ -131,6 +143,101 @@
     <file name="documents">
       <storage-field name="Appendix"/>
     </file>
+    <file name="documents1">
+      <storage-field name="Appendix16" />
+      <meta>
+        <documentation>Выписка из ЕГРЮЛ / ЕГРИП</documentation>
+      </meta>
+    </file>
+    <file name="documents2">
+      <storage-field name="Appendix2" />
+      <meta>
+        <documentation>Свидетельство о постановке на налоговый учёт</documentation>
+      </meta>
+    </file>
+    <file name="documents3">
+      <storage-field name="Appendix3" />
+      <meta>
+        <documentation>Свидетельство о постановке на налоговый учет по месту нахождения обособленного структурного подразделения</documentation>
+      </meta>
+    </file>
+    <file name="documents4">
+      <storage-field name="Appendix4" />
+      <meta>
+        <documentation>Устав, положение со всеми изменениями (либо иной учредительный документ</documentation>
+      </meta>
+    </file>
+    <boolean name="needCreateVersion" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[true]]></script>
+      </calc-values>
+    </boolean>
+    <file name="documents5">
+      <storage-field name="Appendix5" />
+      <meta>
+        <documentation>Свидетельство ОГРН</documentation>
+      </meta>
+    </file>
+    <file name="documents6">
+      <storage-field name="Appendix6" />
+      <meta>
+        <documentation>Положение о представительстве, филиале</documentation>
+      </meta>
+    </file>
+    <file name="documents7">
+      <storage-field name="Appendix7" />
+      <meta>
+        <documentation>Протокол (Решение) об избрании единоличного исполнительного органа (Управляющей компании)</documentation>
+      </meta>
+    </file>
+    <file name="documents8">
+      <storage-field name="Appendix8" />
+      <meta>
+        <documentation>Доверенность на представление интересов контрагента</documentation>
+      </meta>
+    </file>
+    <file name="documents9">
+      <storage-field name="Appendix9" />
+      <meta>
+        <documentation>Договор на передачу полномочий ЕИО Управляющей компании, учредительные документы Управляющей компании, выписка из ЕГРЮЛ</documentation>
+      </meta>
+    </file>
+    <file name="documents10">
+      <storage-field name="Appendix10" />
+      <meta>
+        <documentation>Протокол о назначении руководителя</documentation>
+      </meta>
+    </file>
+    <file name="documents11">
+      <storage-field name="Appendix11" />
+      <meta>
+        <documentation>Протокол общего собрания участников / совета директоров</documentation>
+      </meta>
+    </file>
+    <file name="documents12">
+      <storage-field name="Appendix12" />
+      <meta>
+        <documentation>Бухгалтерский баланс</documentation>
+      </meta>
+    </file>
+    <file name="documents13">
+      <storage-field name="Appendix13" />
+      <meta>
+        <documentation>Выписка из торгового реестра страны регистрации</documentation>
+      </meta>
+    </file>
+    <file name="documents14">
+      <storage-field name="Appendix14" />
+      <meta>
+        <documentation>Правовые акты государственного органа, органа местного самоуправления (решение о назначении руководителя государственного органа, органа местного самоуправления)</documentation>
+      </meta>
+    </file>
+    <file name="documents15">
+      <storage-field name="Appendix15" />
+      <meta>
+        <documentation>Документ, подтверждающий право на осуществление соответствующей деятельности</documentation>
+      </meta>
+    </file>
     <string array="true" name="phone">
       <storage-field name="CPhone"/>
       <validate>
@@ -147,57 +254,85 @@
     <hyperlink name="url">
       <storage-field name="CTelex"/>
     </hyperlink>
-    <string name="jAddress" temporal="true">
+    <string temporal="true" name="jAddress">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[(openAtDirectory !=null && openAtDirectory ? "" :  ((T(org.springframework.util.StringUtils).hasLength(jSendIndex) ? jSendIndex+", ":"")+
- ((#this.tuning().getValues().get("adrPostal")!=null && #this.tuning().getValues().get("adrPostal").getValues().get("countryName")!=null) ? adrPostal.countryName : "")+
- ((#this.tuning().getValues().get("adrPostal")!=null && #this.tuning().getValues().get("adrPostal").getValues().get("region")!=null) ? adrPostal.region : "")+
+        <script lang="SPEL" event="open"><![CDATA[#this.tuning()==null?"":
+          ((T(org.springframework.util.StringUtils).hasLength(jSendIndex) ? jSendIndex+", ":"")+
+ ((#this.tuning().getValues().get("adrPostal")!=null && #this.tuning().getValues().get("adrPostal").getValues().get("countryName")!=null) ? #this.tuning().getValues().get("adrPostal").getValues().get("countryName").getValue()+" " : " ")+
+ ((#this.tuning().getValues().get("adrPostal")!=null && #this.tuning().getValues().get("adrPostal").getValues().get("region")!=null) ? #this.tuning().getValues().get("adrPostal").getValues().get("region").getValue()+" " : "")+
  (T(org.springframework.util.StringUtils).hasLength(jDistrict) ? jDistrict+", ": "")+
 ( T(org.springframework.util.StringUtils).hasLength(jCity) ? jCity+", ": "")+
 ( T(org.springframework.util.StringUtils).hasLength(jStreet) ? jStreet+", ": "")+
-( jHouse!=null ?   jHouse.toString() +", ": "")+ 
+( jHouse!=null ? (T(ru.intertrust.cmj.af.so.impl.Beard).checkAndAppendNoComma(jHouse.toString(), "д.") +", "): "")+
 (T(org.springframework.util.StringUtils).hasLength(jStructure) ? jStructure+", ": "")+
 ( T(org.springframework.util.StringUtils).hasLength(jHousing) ? jHousing+", ": "")+
-( T(org.springframework.util.StringUtils).hasLength(jOffice) ? jOffice+", ":"")))]]></script>
+( T(org.springframework.util.StringUtils).hasLength(jOffice) ? (T(ru.intertrust.cmj.af.so.impl.Beard).checkAndAppendNoComma(jOffice, "офис/кв.")+", "):""))]]></script>
+      </calc-values>
+    </string>
+    <string name="addressString" computed="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#isObjectContains(#this, 'hint')?#this.hint:null]]></script>
       </calc-values>
     </string>
     <string name="inn">
-      <storage-field name="INN"/>
+      <storage-field name="INN" />
       <validate>
-        <regex>^[0-9]*$</regex>
-        <message locale="ru">Допустимый формат - арабские цифры без разделителей</message>
+        <regex>^([0-9]{12}|[0-9]{10})?$</regex>
+        <message locale="ru">Допустимый формат - 10 или 12 арабских цифр без разделителей</message>
       </validate>
     </string>
     <string name="kpp">
-      <storage-field name="CKPP"/>
+      <storage-field name="CKPP" />
       <validate>
-        <regex>^[0-9A-Z]*$</regex>
+        <regex>^([0-9]{4}[0-9A-Z]{2}[0-9]{3})?$</regex>
+        <message locale="ru">Допустимый формат - девятизначный код: NNNNPPXXX, где
+          - NNNN – арабские цифры,
+          - PP – арабские цифры или заглавные латинские буквы (A-Z),
+          -	XXX – арабские цифры
+        </message>
       </validate>
     </string>
     <string name="okpo">
-      <storage-field name="COKPO"/>
+      <storage-field name="COKPO" />
       <validate>
-        <regex>^[0-9]*$</regex>
-        <message locale="ru">Допустимый формат - арабские цифры без разделителей</message>
+        <regex>^([0-9]{10}|[0-9]{8})?$</regex>
+        <message locale="ru">Допустимый формат - 8 или 10 арабских цифр без разделителей</message>
       </validate>
     </string>
     <string name="ogrn">
-      <storage-field name="OGRN"/>
+      <storage-field name="OGRN" />
       <validate>
-        <regex>^[0-9]*$</regex>
-        <message locale="ru">Допустимый формат - арабские цифры без разделителей</message>
+        <regex>^([0-9]{13}|[0-9]{15})?$</regex>
+        <message locale="ru">Допустимый формат - 13 арабских цифр без разделителей</message>
       </validate>
     </string>
     <string name="okved">
-      <storage-field name="COKONH"/>
+      <storage-field name="COKONH" />
       <validate>
-        <regex>^[0-9.]*$</regex>
+        <regex>^(\d{2}|\d{2}[.]\d{1}|\d{2}[.]\d{2}|\d{2}[.]\d{2}[.]\d{1}|\d{2}[.]\d{2}[.]\d{2})?$</regex>
+        <message locale="ru">Возможные варианты:
+          -	XX;
+          -	ХХ.Х;
+          -	ХХ.ХХ;
+          -	ХХ.ХХ.Х;
+          -	ХХ.ХХ.ХХ,
+          где Х – арабские цифры
+        </message>
       </validate>
     </string>
     <string name="okato">
-      <storage-field name="COKATO"/>
+      <storage-field name="COKATO" />
       <validate>
-        <regex>(^\d{2}\s\d{3}\s\d{3}\s(\d{1}|\d{3})\s\d{1}$)|(^\d{2}\s\d{3}\s\d{3}\s(\d{1}|\d{3})$)|(^\d{2}\s\d{3}\s\d{3}$)|(^\d{2}\s\d{3}$)|(^\d{2}$)|(^\d{12}$)</regex>
+        <regex>^((\d{2}\s\d{3}\s\d{3}\s(\d{1}|\d{3})\s\d{1})|(\d{2}\s\d{3}\s\d{3}\s(\d{1}|\d{3}))|(\d{2}\s\d{3}\s\d{3})|(\d{2}\s\d{3})|(\d{2}))?$</regex>
+        <message locale="ru">возможные варианты:
+          - XX;
+          - ХХ ХХХ;
+          - ХХ ХХХ ХХХ;
+          - ХХ ХХХ ХХХ Х;
+          - ХХ ХХХ ХХХ ХХХ;
+          - ХХ ХХХ ХХХ ХХХ Х;
+          где Х – арабские цифры
+        </message>
       </validate>
     </string>
     <schema-ref ref="DescriptionCases" name="case"/>
@@ -208,6 +343,7 @@
       <storage-field name="CCountR"/>
       <validate>
         <regex>^[0-9\s]*$</regex>
+        <message locale="ru">Допустимый формат - арабские цифры, возможен пробел как разделитель</message>
       </validate>
     </string>
     <string name="joinOrOldInfo" temporal="true">
@@ -224,8 +360,8 @@
     <string name="bikbank">
       <storage-field name="CBIK"/>
       <validate>
-        <regex>^[0-9]*$</regex>
-        <message locale="ru">Допустимый формат - арабские цифры без разделителей</message>
+        <regex>^([0-9]{9})?$</regex>
+        <message locale="ru">Допустимый формат - 9 арабских цифр без разделителей</message>
       </validate>
     </string>
     <string name="ccheck">
@@ -247,6 +383,47 @@
     <string name="guidMedo">
       <storage-field name="Medo_Org_Guid"/>
     </string>
+    <string name="medoStamps" array="true" createlog="true">
+      <storage-field name="MedoStamps"/>
+    </string>
+    <string name="operatorMedoGuid">
+      <storage-field name="OperatorMedoGuid"/>
+    </string>
+    <integer name="medoTransferStatus">
+      <storage-field name="TransferStatus"/>
+      <default-values>
+        <default-value>0</default-value>
+      </default-values>
+    </integer>
+    <string name="medoTransferResponse">
+      <storage-field name="TransferResponse"/>
+    </string>
+    <string name="medoTransferResponseTitle" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[medoTransferStatus == 2 || medoTransferStatus == 3 ? 'Ответ получен' : medoTransferStatus == 1 ? 'Передано' : 'Не передавалось']]></script>
+      </calc-values>
+    </string>
+    <string name="medoTransferResponseWithStatus" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[medoTransferStatus == 3 ? 'Запрос принят' : medoTransferStatus == 2 ? 'Запрос отклонен: ' + medoTransferResponse : '']]></script>
+      </calc-values>
+    </string>
+    <boolean name="medoResponseReceived" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[medoTransferStatus == 2 || medoTransferStatus == 3]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="trueCondition" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[true]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="hasMedoStamps" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[medoStamps!=null && medoStamps.size()>0 ? true:false]]></script>
+      </calc-values>
+    </boolean>
+    
     <boolean name="canJoin" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[canEdit && (statusLable==null || ''.equals(statusLable)) && (deleted!=null && !deleted)]]></script>
@@ -254,7 +431,7 @@
     </boolean>
     <boolean name="canMakeOld" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[canEdit && (statusLable==null || ''.equals(statusLable)) && (deleted!=null && !deleted) && 'Организация'.equals(objectType)]]></script>
+        <script event="open" lang="SPEL"><![CDATA[canEdit && (statusLable==null || ''.equals(statusLable)) && (deleted!=null && !deleted) && 'Внешняя организация'.equals(objectType)]]></script>
       </calc-values>
     </boolean>
     <string name="cashId" createlog="true" temporal="true">
@@ -315,15 +492,1065 @@
     <string name="sochiPUnid" createlog="true">
       <storage-field name="sochiPUnid"/>
     </string>
-<custom-event-handler lang="JavaScript"><![CDATA[	
-	importPackage(Packages.java.util); 
-	importPackage(Packages.java.lang); 
-	function querySave(object, document) { 
-		if (object.tuning().getValues().get("guidMedo") != null && object.tuning().getValues().get("guidMedo").getValue() != null && object.tuning().getValues().get("guidMedo").getValue().toString().length()>36){
-	 		throw ("Поле GUID в МЭДО не может быть длиннее 36 символов"); 
-	 	} return true; 
-	 } 
-	function postSave(object, document) {}]]>
-	</custom-event-handler>
+    <string name="integrationId" system="true" temporal="true"/>
+    <boolean default-value="false" createlog="true" name="isEnterpreneur">
+      <storage-field name="isEnterpreneur"/>
+    </boolean>
+    <boolean name="isDeleted_VCard" temporal="true" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.rest.vcards.VCardResource) ?
+        #this.new==true || id==null ||id==''||T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(id)==null?false:
+        T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(id).isDeleted()==true
+        :false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="hasHeaderName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[org!=null || fullnameAdmin!=null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="hasRequestStatusTitle" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Utv'.equals(del) || 'Yes'.equals(del)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="isSparkLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Не обновляется из СПАРК']]></script>
+      </calc-values>
+    </string>
+    <boolean name="isSpark" />
+    <boolean name="hasJoinOrOldInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[nameJoin!=null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isOrgEditor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#external-search'].size()>0?
+ link.?[rel=='http://intertrust.ru/cmj/relations#is.orgeditor'].size() > 0:
+ (#hasRole(#this, 'Supervisor')||#hasRole(#this, 'OrgEditor'))]]></script>
+      </calc-values>
+    </boolean>
+	<boolean name="isGASRole" temporal="true">
+		<calc-values>
+			<script event="open" lang="SPEL"><![CDATA[#hasRole(#this, 'Supervisor') || #hasRole(#this, 'MEDO')]]></script>
+		</calc-values>
+	</boolean>
+	<boolean name="isHasSparkRole" temporal="true">
+		<calc-values>
+			<script event="open" lang="SPEL"><![CDATA[#hasRole(#this, 'OrgCreatorSPARK')]]></script>
+		</calc-values>
+	</boolean>
+    <enum-ref ref="CounterpartyType" name="counterparty" >
+      <storage-field name="counterparty"/>
+    </enum-ref>
+    <boolean name="canRefreshFromSpark" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.sparkId!=null && #this.new!=true]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isJoined" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[nameJoin!=null && !'1'.equals(statusOld)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean system="true" name="useSpark" temporal="true"/>
+    <boolean name="sparkUpdated" computed="true" temporal="true"/>
+    <string name="sparkSearchSectionLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Поиск в СПАРК']]></script>
+      </calc-values>
+    </string>
+    <boolean default-value="false" name="useOrganizations" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.tuning().getValues().get('useOrganizations')==null?true:#this.tuning().getValues().get("useOrganizations").getValue()]]></script>
+      </calc-values>
+    </boolean>
+    <boolean default-value="false" name="useDepartments" temporal="true"/>
+    <boolean default-value="false" name="useEnterpreneurs" temporal="true"/>
+    <schema-ref ref="ClassifSimple" name="sparkCodeRegion" array="true" temporal="true"/>
+    <schema-ref name="orgSparkSearch" ref="OrgSparkSearch" temporal="true"/>
+    <string name="$btnSearchOrganization" system="true" temporal="true" />
+    <schema-ref null-empty="true" ref="SparkOrganization" temporal="true" name="sparkOrganizationField" />
+    <string name="counterpartyCommonInfoSectionLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Общая информация об организации']]></script>
+      </calc-values>
+    </string>
+    <string createlog="true" name="Surname">
+      <storage-field name="Surname" />
+    </string>
+    <string createlog="true" name="name">
+      <storage-field name="name" />
+    </string>
+    <string createlog="true" name="patronymic">
+      <storage-field name="patronymic" />
+    </string>
+    <string name="nationality">
+      <storage-field name="nationality" />
+    </string>
+    <schema-ref ref="VersionBase" name="versionInfo" system="true"/>
+    <string name="ContactsInfoSectionLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Контактная информация']]></script>
+      </calc-values>
+    </string>
+    <boolean name="isSysOrOrgCreatorSPARK" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[( (!#hasRole(#this, 'OrgEditor')) && #hasRole(#this, 'OrgCreatorSPARK') && useSpark ) || (#this.isReplicaidSO==true) ]]></script>
+      </calc-values>
+    </boolean>
+    <string name="jregion_code">
+      <storage-field name="CAddr_Region_code"/>
+    </string>
+    <string temporal="true" name="copyLegalAddress">
+      <recalc-processing-class>ru.intertrust.cmj.rest.admin.so.spo.RecalcSPOOrganizationCopyLegalAddress</recalc-processing-class>
+    </string>
+    <string name="mainindustry">
+      <storage-field name="mainindustry" />
+    </string>
+    <string name="OKOPFname">
+      <storage-field name="OKOPFname" />
+    </string>
+    <string name="OKOPF">
+      <storage-field name="OKOPF" />
+      <validate>
+        <regex>^([0-9]{5})?$</regex>
+        <message locale="ru">Допустимый формат - 5 арабских цифр без разделителей</message>
+      </validate>
+    </string>
+    <string name="OSHS">
+      <storage-field name="OSHS" />
+    </string>
+    <string name="codeNO">
+      <storage-field name="codeNO"/>
+      <validate>
+        <regex>^([0-9]{4})?$</regex>
+        <message locale="ru">Допустимый формат - 4 арабские цифры без разделителей</message>
+      </validate>
+    </string>
+    <string name="EGRULLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Выписка из ЕГРЮЛ / ЕГРИП']]></script>
+      </calc-values>
+    </string>
+    <string name="TaxaccountingLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Свидетельство о постановке на налоговый учёт']]></script>
+      </calc-values>
+    </string>
+    <string name="taxaccountingatthelocationLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Свидетельство о постановке на налоговый учет по месту нахождения обособленного структурного подразделения']]></script>
+      </calc-values>
+    </string>
+    <string name="charterLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Устав, положение со всеми изменениями (либо иной учредительный документ)']]></script>
+      </calc-values>
+    </string>
+    <string name="versionType" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['ORG_DESC']]></script>
+      </calc-values>
+    </string>
+    <string name="OGRNcertificateLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Свидетельство ОГРН']]></script>
+      </calc-values>
+    </string>
+    <string name="RepresentationRegulationsLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Положение о представительстве, филиале']]></script>
+      </calc-values>
+    </string>
+    <string name="ElectionsoleexecutivebodyLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Протокол (Решение) об избрании единоличного исполнительного органа (Управляющей компании)']]></script>
+      </calc-values>
+    </string>
+    <string name="PowerattorneyrepresentinterestscounterpartyLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Доверенность на представление интересов контрагента']]></script>
+      </calc-values>
+    </string>
+    <string name="AgreementtransferpowersCEOLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Договор на передачу полномочий ЕИО Управляющей компании, учредительные документы Управляющей компании, выписка из ЕГРЮЛ']]></script>
+      </calc-values>
+    </string>
+    <string name="HeadappointmentprotocolLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Протокол о назначении руководителя']]></script>
+      </calc-values>
+    </string>
+    <string name="MinutesGeneralMeetingMembersLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Протокол общего собрания участников / совета директоров']]></script>
+      </calc-values>
+    </string>
+    <string name="BalancesheetLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Бухгалтерский баланс']]></script>
+      </calc-values>
+    </string>
+    <string name="ExtractcommercialregisterregistrationLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Выписка из торгового реестра страны регистрации']]></script>
+      </calc-values>
+    </string>
+    <string name="LegalactsstatebodyLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Правовые акты государственного органа, органа местного самоуправления (решение о назначении руководителя государственного органа, органа местного самоуправления)']]></script>
+      </calc-values>
+    </string>
+    <string name="DocumentconfirmingcarryactivityLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Документ, подтверждающий право на осуществление соответствующей деятельности']]></script>
+      </calc-values>
+    </string>
+    <integer createlog="true" name="sparkId">
+      <storage-field name="sparkId" />
+    </integer>
+    <string name="medoRequisitesSectionLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['МЭДО, ССТУ']]></script>
+      </calc-values>
+    </string>
+    <string name="ContactsInfoDialogSectionLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Информация о контрагенте']]></script>
+      </calc-values>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.jmerinka.factory.AFCustomizationsRegistry);
+importClass(Packages.ru.intertrust.cmj.af.tuning.conn.TuningConnectorDomino);
+importClass(Packages.ru.intertrust.cmj.admin.storage.domino.spo.SPOOrganizationConnectorDomino);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.Beard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.admin.AdminSOUnit);
+importClass(Packages.ru.intertrust.cmj.admin.entity.ObjectMapFillingUtils);
+importClass(Packages.ru.intertrust.cm.core.business.api.CollectionsService);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.rest.vcards.VCardResource);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.CEHHttpStatusException);
+importClass(Packages.java.text.SimpleDateFormat);
+importClass(Packages.org.springframework.web.context.request.RequestContextHolder);
+importClass(Packages.org.springframework.web.context.request.ServletRequestAttributes);
+importClass(Packages.ru.intertrust.cmj.admin.spp.dossier.SPPDossier);
+importClass(Packages.ru.intertrust.cmj.admin.spp.dossier.SPPDossier.DossierState);
+importClass(Packages.java.util.ArrayList);
+
+function querySave(object, document) {
+  object.tuning().getValues().remove("sparkCodeRegion");
+  var counterparty = getPropertyValue(object, "counterparty");
+  var values = object.tuning().getValues();
+  var isDeleted = false;
+  var orgSparkId = TunableObjectHelper.getAFInstanceValue(values.get("sparkId"));
+  var isFromSpark = orgSparkId!=null && orgSparkId>0;
+  var isVcard = object.getClass().getCanonicalName()=="ru.intertrust.cmj.af.so.impl.DirectoryOrganization";
+
+  if (isVcard) {
+    if (object.isNew()){
+      if (isFromSpark) {
+        object.setStatus(SOOrganizationDescription.State.DESCRIPTION);
+      }
+    }
+    var region_code = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "postal_region_code");
+    if (region_code != null && region_code != "") {
+      TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.region_code", region_code);
+    }
+    var phone = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "phone");
+    if (phone!=null && phone.size()>0){
+    	object.contactsInfo().setPhone(Utils.newHashSet(phone));
+    }
+    var inn = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "inn");
+    if (inn != null && inn != "") {
+      object.bankProperties().setInn(inn);
+    }
+    var ogrn = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "ogrn");
+    if (ogrn != null && ogrn != "") {
+      object.bankProperties().setOgrn(ogrn);
+    }
+  } else {
+     isDeleted = object.entity()!=null && object.entity().isDeleted();
+  }
+  if (object.isNew() && !isFromSpark) {
+     TunableObjectHelper.putAFInstanceValue(object.tuning(), "isSpark", true);
+  }
+
+  var firmId = document==null ? object.getUNID().replace("-TN","").substring(17) : getFieldValue(document, "FirmId")[0].toString();
+  if (counterparty == "individualentrepreneur"){
+    var surname = getPropertyValue(object, "Surname").toString();
+    if (surname == null || surname == "null" || surname == "") {
+      throw "Не указаны ФИО контрагента";
+    }
+    var name = getPropertyValue(object, "name").toString();
+		var patronymic = getPropertyValue(object, "patronymic").toString();
+		var cFullName = surname + " " + name + " " +   patronymic;
+		var cShortName = surname;
+		if (name.substring(0, 1)!=""){
+			cShortName = cShortName + " " + name.substring(0, 1) + ".";
+		}
+		if (patronymic.substring(0, 1)!=""){
+			cShortName = cShortName + " " + patronymic.substring(0, 1) + ".";
+		}
+		if (document != null) {
+			document.replaceItemValue("CShortName",  cShortName.toString());
+			document.replaceItemValue("CFullName",  cFullName.toString());
+		} else if (object.getClass().getCanonicalName()=="ru.intertrust.cmj.af.so.impl.DirectoryOrganization") {
+		  object.setShortName(cShortName.toString());
+		  object.setFullName(cFullName.toString());
+		}
+		var inn = getPropertyValue(object, "inn").toString();
+		if (!isDeleted && inn != ""){
+		   var res = getOrgByKey("OrgDirectory", "", "(vw_cmj_admin_all_inn)", inn, firmId, "INN");
+			if (res != null) {
+				throw "Контрагент с указанным реквизитами уже существует!";
+			}
+		}
+
+		var requestAttrs = RequestContextHolder.getRequestAttributes();
+		if (requestAttrs != null) {
+	 	    if (!requestAttrs.getRequest().getParameterMap().containsKey('force')) {
+			    var res = isDeleted ? null: getOrgByName("OrgDirectory", "", "(vw_cmj_admin_all_name)", cFullName, cShortName, firmId, cFullName);
+				if (res != null) {
+				    var addres = res.getItemValueString("CAddr1_StreetType") + " " + res.getItemValueString("CAddr1_Street") +
+				    ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_House"), "д. ") +
+				    ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Build"), "стр.")  +
+				    ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Corp"), "корп.") +
+				    ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Office"), "офис или кв.") +
+				    ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_City"), "г.") +
+				    ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Locality"), "р-н ") +
+				    " " + res.getItemValueString("CRegion") + " " + res.getItemValueString("CCountry") + " " + res.getItemValueString("CAddr1_ZipCode")
+				    var fullname = res.getItemValueString("CFullName");
+				    var shortname = res.getItemValueString("CShortName");
+				    var str = "В справочнике уже есть организация/ИП с таким полным/кратким наименованием. Наименование: " + fullname +" (" + shortname+ "), Адрес: " + addres + ". Продолжить сохранение ?"
+				    throw new CEHHttpStatusException(406, str);
+				}
+			}
+	 	}
+
+	} else {
+	  var fname = null;
+	  var sname = null;
+	  if (!isVcard){
+		  fname = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "org.org-name");
+		  sname = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "fn");
+		} else {
+		  fname = object.getFullName();
+		  sname = object.getShortName();
+		}
+
+		if (fname == null || fname == "null" || fname == "") {
+		  throw "Не указано наименование контрагента";
+		}
+		if (sname==null || sname=="" || sname=="null"){
+		  sname=fname;
+		}
+
+        var ogrn = getPropertyValue(object, "ogrn").toString();
+		var inn = getPropertyValue(object, "inn").toString();
+		var kpp = getPropertyValue(object, "kpp").toString();
+
+		if (!isDeleted && inn != "" && kpp != ""){
+			var res = getInnKppByKey("OrgDirectory", "", "(vw_cmj_admin_all_inn)", inn, kpp, firmId);
+			if (res != null) {
+				var str = "В справочнике уже есть организация с таким ИНН " + inn + " и КПП "+ kpp +". Наименование:" +  res.getItemValueString("CFullName") + ". Сохранение невозможно!"
+				throw str;
+			}
+		}
+    //поиск по полному названию
+		var requestAttrs = RequestContextHolder.getRequestAttributes();
+		if (requestAttrs != null) {
+			if (!requestAttrs.getRequest().getParameterMap().containsKey('force')) {
+				var res = isDeleted ? null : getOrgByName("OrgDirectory", "", "(vw_cmj_admin_all_name)", fname, sname, firmId, fname);
+				if (res == null) {
+				//поиск по краткому названию
+					var res = isDeleted ? null : getOrgByName("OrgDirectory", "", "(vw_cmj_admin_all_name)", fname, sname, firmId, sname);
+				}
+				if (res != null) {
+				   var addres = res.getItemValueString("CAddr1_StreetType") + " " + res.getItemValueString("CAddr1_Street") +
+				   ", " + Beard.checkAndAppendNoComma( res.getItemValueString("CAddr1_House"), "д. ") +
+				   ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Build"), "стр.") +
+				   ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Corp"), "корп.") +
+				   ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Office"), "офис или кв.") +
+				   ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_City"), "г.") +
+				   ", " + Beard.checkAndAppendNoComma(res.getItemValueString("CAddr1_Locality"), "р-н ") +
+				   " " + res.getItemValueString("CRegion") + " " + res.getItemValueString("CCountry") + " " + res.getItemValueString("CAddr1_ZipCode")
+					var fullname = res.getItemValueString("CFullName");
+					var shortname = res.getItemValueString("CShortName");
+					var str = "В справочнике уже есть организация с таким полным/кратким наименованием. Наименование: " + fullname +" (" + shortname+ "), Адрес: " + addres + ". Продолжить сохранение ?"
+					throw new CEHHttpStatusException(406, str);
+				}
+			}
+		}
+	}
+
+  if (!object.isNew() && document == null && isVcard) {
+    var db = AFCMDomino.getDbByIdent("OrgDirectory", "");
+    document = db.getDocumentByUNID(firmId);
+  }
+  if (!isDeleted && isFromSpark && !object.isNew() && document != null) {
+    var sparkRefreshProhibit = TunableObjectHelper.getAFInstanceValue(values.get("isSpark"))==true;
+    var updatedFromSpark = TunableObjectHelper.getAFInstanceValue(values.get("sparkUpdated"))==true
+       || TunableObjectHelper.getAFInstanceValue(values.get("sparkIdChanged"))==true;
+	if (!sparkRefreshProhibit && !updatedFromSpark && !AFSession.get().isRunAsSystem()) {
+		var wasManuallyEdited = checkEditedFields(object, document, isVcard);
+		if (wasManuallyEdited) {
+          throw "Организация обновляется из СПАРК. Ручное обновление невозможно!";
+	    }
+    }
+  }
+
+	writeHistory(object, document);
+
+	return true;
+}
+
+function writeHistory(object, document) {
+    if (document == null || object.isNew()) {
+        return;
+    }
+
+    var hist = object.history();
+    writeSparkTextHistory(object, document, hist, "Tn$_isSpark", "isSpark");
+
+    if (object.getClass().getCanonicalName()=="ru.intertrust.cmj.af.so.impl.DirectoryOrganization") {
+       var tuningOld = AFCustomizationsRegistry.getCustomization(TuningConnectorDomino.class).getFromNotesDocument(document, object);
+       var addr = object.addressInfo().post();
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.countryName", addr.getCountry());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.region", addr.getRegion());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.extendedAddress.housing", addr.getHousing());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.extendedAddress.building", addr.getBuild());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.extendedAddress.house", addr.getHouse());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.streetTypeAddress", addr.getStreetType());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.streetAddress", addr.getStreet());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.locality", addr.getCity());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.district", addr.getLocality());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.postalCode", addr.getZipCode());
+       TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.postOfficeBox", addr.getOffice());
+       SPOOrganizationConnectorDomino.fillEvents(tuningOld, object.tuning(), hist);
+       TunableHistoryHelper.hist_addTextOne(hist, FieldBase.OBJECT_FULL_NAME_CHANGED, document.getItemValueString("CFullName"), object.getFullName());
+       TunableHistoryHelper.hist_addTextOne(hist, FieldBase.OBJECT_NAME_CHANGED, document.getItemValueString("CShortName"), object.getShortName());
+   }
+   object.history = hist;
+}
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName) {
+
+	var oldValue = getFieldValue(document, fieldName);
+	var newValue = getPropertyValue(object, propertyName);
+	if (!oldValue.equals(newValue)) {
+		writeSparkTextHistory.hist_addTextOne(hist, eventName, oldValue, newValue);
+	}
+
+}
+function writeSparkTextHistory(object, document, hist, fieldName, propertyName) {
+
+	var oldValue = getFieldValue(document, fieldName);
+	var newValue = getPropertyValue(object, propertyName);
+	if (oldValue != null && newValue != null && oldValue.size() > 0 && !(((oldValue[0].toString()=='1')&&(newValue)) ||((oldValue[0].toString()=='0')&&(!newValue))))  {
+	  if(newValue){
+	    TunableHistoryHelper.hist_addBasicText(hist, FieldBase.SPARK_TRUE, "-");
+	  }else{
+	   TunableHistoryHelper.hist_addBasicText(hist, FieldBase.SPARK_FALSE, "-");
+	  }
+	}
+
+}
+
+function getFieldValue(document, fieldName) {
+	var value = document.getItemValue(fieldName);
+	if (value == null) {
+		value = "";
+	}
+	return value;
+}
+
+function getOrgByKey(ident, complect, view, key, FirmId, fieldKey) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var coll = null;
+	var vw = db.getView(view);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(key);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+			  if (FirmId==doc.getItemValueString("FirmId") || FirmId==doc.getUniversalID() || doc.getItemValueString("Form")=="Zajav"){
+			    doc = coll.getNextDocument(doc);
+			    continue;
+			  }
+				if (key.equals(doc.getItemValueString(fieldKey)) ) {
+					break;
+				}
+				doc = coll.getNextDocument(doc);
+			}
+
+			return doc;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+	}
+}
+
+function getInnKppByKey(ident, complect, view, inn, KPP, FirmId) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var coll = null;
+	var vw = db.getView(view);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(inn);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+			  if (FirmId==doc.getItemValueString("FirmId") || FirmId==doc.getUniversalID() || doc.getItemValueString("Form")=="Zajav"){
+			    doc = coll.getNextDocument(doc);
+			    continue;
+			  }
+				if (inn.equals(doc.getItemValueString("INN"))&& (KPP.equals(doc.getItemValueString("CKPP")) )) {
+					break;
+				}
+				doc = coll.getNextDocument(doc);
+			}
+
+			return doc;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+
+	}
+
+}
+
+function getOrgByName(ident, complect, view, fname, sname, FirmId, key) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var coll = null;
+	var vw = db.getView(view);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(key);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+			  if (FirmId==doc.getItemValueString("FirmId") || FirmId==doc.getUniversalID() || doc.getItemValueString("Form")=="Zajav"){
+			    doc = coll.getNextDocument(doc);
+			    continue;
+			  }
+				if (fname.equals(doc.getItemValueString("CFullName")) || sname.equals(doc.getItemValueString("CShortName")) ) {
+					break;
+				}
+				doc = coll.getNextDocument(doc);
+			}
+			return doc;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+
+	}
+}
+
+function getPropertyValue(object, propertyName) {
+	var value = "";
+	if (object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+		value = object.tuning().getValues().get(propertyName).getValue();
+	}
+	return value;
+}
+
+function getPropertyValueRef(object, shemName, propertyName) {
+	var value = "";
+	if (object.tuning().getValues().get(shemName) != null && object.tuning().getValues().get(shemName).getValues().get(propertyName) != null && object.tuning().getValues().get(shemName).getValues().get(propertyName).getValue() != null) {
+		value = object.tuning().getValues().get(shemName).getValues().get(propertyName).getValue()
+	}
+	return value;
+}
+
+function recalc(object, changedField) {
+  var needRefreshFromSpark = changedField == '$btnSearchOrganization';
+  var values = object.tuning().getValues();
+  if (!needRefreshFromSpark && values.get("$changedField")!=null) {
+    needRefreshFromSpark = (values.get("$changedField").getValue().contains('$btnSearchOrganization'));
+  }
+
+	if(needRefreshFromSpark) {
+		var sparkURL = AFCMDomino.getDbInfoByIdentNamed(AFCMDomino.AFDB_SYSTEM_ID_ORGDIRECTORY, "").externalURL;
+		if(sparkURL == null) {
+			throw("В настройках СпО не указан spark url");
+		}
+		var searchSubform = object.tuning().getValues().get("orgSparkSearch");
+
+		var foundOrg = null;
+		var searchField = null;
+		var sparkIdOld = TunableObjectHelper.getAFInstanceValue(values.get("sparkId"));
+
+		if (searchSubform != null) {
+		  searchField = searchSubform.getValues().get("quickSearchSpark");
+		  if (searchField == null || searchField.getValues().isEmpty() ) {
+		    throw("Не выбран контрагент для сохранения в Системе!");
+		  } else {
+		    foundOrg = searchSubform.getValues().get("orgFromSpark");
+		  }
+		}
+
+		if(foundOrg != null) {
+
+			var app = AFSession.get().getApplication(TuningApplication.class);
+			var sparkOrgObj = foundOrg;
+
+			var parentShemaAddress = app.getSchemaByName("AddressValueAdmin");
+			var newParentAddress = new AFInstanceObjectImpl(parentShemaAddress);
+
+			var parentShemaOrg = app.getSchemaByName("OrgAdmin");
+			var newParentOrg = new AFInstanceObjectImpl(parentShemaOrg);
+
+			var parentShemaTel = app.getSchemaByName("TelValueAdmin");
+			var newParentTel = new AFInstanceObjectImpl(parentShemaTel);
+
+			newParentOrg.put("org-name", TuningHelper.createPropertyValue(TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("fullName")) != null ? TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("fullName")) : "", parentShemaOrg.getProperty("org-name")));
+
+			var sparkOrgBoss = sparkOrgObj.getValues().get("organizationDirector");
+			if(sparkOrgBoss != null) {
+				TunableObjectHelper.putAFInstanceValue(object, "organizationDirector", TunableObjectHelper.getAFInstanceValue(sparkOrgBoss));
+			} else {
+				values.remove("organizationDirector");
+			}
+
+			var sparkAdrPostal = sparkOrgObj.getValues().get("adrPostal");
+			if(sparkAdrPostal != null) {
+				TunableObjectHelper.putAFInstanceValue(object, "adrPostal", TunableObjectHelper.getAFInstanceValue(sparkAdrPostal));
+				TunableObjectHelper.putAFInstanceValue(object, "postal_region_code", sparkAdrPostal.getValues().get("region_code"));
+			} else {
+				values.remove("adrPostal");
+				values.remove("postal_region_code");
+			}
+
+			var sparkAdrLegal = TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("adrLegal"));
+			if(sparkAdrLegal != null) {
+				if (sparkAdrLegal.get("extendedAddress")!=null) {
+					TunableObjectHelper.putAFInstanceValue(object, "jHousing", sparkAdrLegal.get("extendedAddress").get("housing"));
+					TunableObjectHelper.putAFInstanceValue(object, "jStructure", sparkAdrLegal.get("extendedAddress").get("building"));
+					TunableObjectHelper.putAFInstanceValue(object, "jHouse", sparkAdrLegal.get("extendedAddress").get("house"));
+				}
+				TunableObjectHelper.putAFInstanceValue(object, "jTypeStreet", sparkAdrLegal.get("streetTypeAddress"));
+				TunableObjectHelper.putAFInstanceValue(object, "jNameStreet", sparkAdrLegal.get("streetAddress"));
+				var fullStreet = "";
+				if (sparkAdrLegal.get("streetTypeAddress")!=null && sparkAdrLegal.get("streetTypeAddress")!=""){
+				  fullStreet = sparkAdrLegal.get("streetTypeAddress");
+				}
+				if (sparkAdrLegal.get("streetTypeAddress")!=null) {
+				  fullStreet +=" " + sparkAdrLegal.get("streetTypeAddress");
+				}
+				TunableObjectHelper.putAFInstanceValue(object, "jStreet", fullStreet.trim());
+				TunableObjectHelper.putAFInstanceValue(object, "jSendIndex", sparkAdrLegal.get("postalCode"));
+				TunableObjectHelper.putAFInstanceValue(object, "jCity", sparkAdrLegal.get("locality"));
+				TunableObjectHelper.putAFInstanceValue(object, "jDistrict", sparkAdrLegal.get("district"));
+				TunableObjectHelper.putAFInstanceValue(object, "jregion", sparkAdrLegal.get("region"));
+				TunableObjectHelper.putAFInstanceValue(object, "jregion_code", sparkAdrLegal.get("region_code"));
+				TunableObjectHelper.putAFInstanceValue(object, "jcountryName", sparkAdrLegal.get("countryName"));
+				TunableObjectHelper.putAFInstanceValue(object, "jOffice", sparkAdrLegal.get("postOfficeBox"));
+				if (object.getClass().getCanonicalName()!="ru.intertrust.cmj.tunable.object.TunableObjectImpl"){
+				  var addrs = [object.addressInfo().legal(), object.addressInfo().post()];
+				  for (var i=0; i<2; i++){
+					  var addr = addrs[i];
+					  if (sparkAdrLegal.get("extendedAddress")!=null) {
+						  addr.setHousing(sparkAdrLegal.get("extendedAddress").get("housing"));
+						  addr.setBuild(sparkAdrLegal.get("extendedAddress").get("building"));
+						  addr.setHouse(sparkAdrLegal.get("extendedAddress").get("house"));
+					  }
+					  addr.setStreet(sparkAdrLegal.get("streetAddress"));
+					  addr.setStreetType(sparkAdrLegal.get("streetTypeAddress"));
+					  addr.setZipCode(sparkAdrLegal.get("postalCode"));
+					  addr.setCity(sparkAdrLegal.get("locality"));
+					  addr.setLocality(sparkAdrLegal.get("district"));
+					  addr.setRegion(sparkAdrLegal.get("region"));
+					  addr.setCountry(sparkAdrLegal.get("countryName"));
+					}
+				}
+			}
+
+			if(sparkOrgObj.getValues().get("tel") != null) {
+				newParentTel.put("work", TuningHelper.createPropertyValue(TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("tel").getValues().get("work")), parentShemaTel.getProperty("work")));
+			  TunableObjectHelper.putAFInstanceValue(object.tuning(), "phone", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("tel").getValues().get("work")));
+			}
+
+      var isOrg = TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("counterparty"))=="individualentrepreneur";
+      TunableObjectHelper.putAFInstanceValue(object, "counterparty", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("counterparty")));
+      TunableObjectHelper.putAFInstanceValue(object, "isEnterpreneur", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("isEnterpreneur")));
+
+			var sparkBank = TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("bank"));
+
+			if(sparkBank != null) {
+				values.put("inn", sparkBank.get("inn") != null ? TuningHelper.createPropertyValue(sparkBank.get("inn"), object.tuning().getSchema().getProperty("inn")) : null);
+				values.put("kpp", sparkBank.get("kpp") != null ? TuningHelper.createPropertyValue(sparkBank.get("kpp"), object.tuning().getSchema().getProperty("kpp")) : null);
+				values.put("okpo", sparkBank.get("okpo") != null ? TuningHelper.createPropertyValue(sparkBank.get("okpo"), object.tuning().getSchema().getProperty("okpo")) : null);
+				values.put("ogrn", sparkBank.get("ogrn") != null ? TuningHelper.createPropertyValue(sparkBank.get("ogrn"), object.tuning().getSchema().getProperty("ogrn")) : null);
+				values.put("okved", sparkBank.get("okonh") != null ? TuningHelper.createPropertyValue(sparkBank.get("okonh"), object.tuning().getSchema().getProperty("okved")) : null);
+			}
+      if (object.getClass().getCanonicalName()=="ru.intertrust.cmj.tunable.object.TunableObjectImpl"){
+			  values.put("org", newParentOrg);
+			}
+			values.put("tel", newParentTel);
+
+			var orgSparkId = TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("sparkId"));
+			TunableObjectHelper.putAFInstanceValue(object, "sparkIdPrev", sparkIdOld);
+			TunableObjectHelper.putAFInstanceValue(object, "sparkIdChanged",
+			    orgSparkId!=null && (TunableObjectHelper.getAFInstanceValue(values.get("sparkIdChanged"))==true || sparkIdOld!=orgSparkId))
+			values.put("sparkId", TuningHelper.createPropertyValue(orgSparkId, object.tuning().getSchema().getProperty("sparkId")));
+
+			if (TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("shortName")) != null) {
+				if (object.getClass().getCanonicalName()=="ru.intertrust.cmj.tunable.object.TunableObjectImpl"){
+					TunableObjectHelper.putAFInstanceValue(object, "fn", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("shortName")));
+				} else {
+				  object.setShortName(TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("shortName")), isOrg);
+				}
+			}
+			if (TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("fullName")) != null) {
+				if (object.getClass().getCanonicalName()=="ru.intertrust.cmj.tunable.object.TunableObjectImpl"){
+					TunableObjectHelper.putAFInstanceValue(object, "org.org-name", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("fullName")));
+				} else {
+				  object.setFullName(TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("fullName")), isOrg);
+				}
+			}
+			TunableObjectHelper.putAFInstanceValue(object, "Surname", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("Surname")));
+			TunableObjectHelper.putAFInstanceValue(object, "name", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("name")));
+			TunableObjectHelper.putAFInstanceValue(object, "patronymic", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("patronymic")));
+			TunableObjectHelper.putAFInstanceValue(object, "okato", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("okato")));
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "nationality", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("nationality")));
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "mainindustry", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("mainindustry")));
+			TunableObjectHelper.putAFInstanceValue(object, "OKOPF", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("OKOPF")));
+			TunableObjectHelper.putAFInstanceValue(object, "OKOPFname", TunableObjectHelper.getAFInstanceValue(sparkOrgObj.getValues().get("OKOPFname")));
+		}
+
+	}
+
+	if (changedField == 'jRegion') {
+		if (values.get('jRegion') == null) {
+			values.put("jregion_code", TuningHelper.createPropertyValue(null, object.tuning().getSchema().getProperty("jregion_code")));
+		} else {
+			var code = getCodeByKey("CustomDirectory", "", "(vw_cmj_directory_10)", getPropertyValue(object, 'jRegion'));
+			if (code!=null) {
+                values.put("jregion_code", TuningHelper.createPropertyValue(code, object.tuning().getSchema().getProperty("jregion_code")));
+			}
+		}
+	}
+
+  if(changedField == 'adrPostal.region'){
+    var code = null;
+    if (object.getClass().getCanonicalName()!="ru.intertrust.cmj.tunable.object.TunableObjectImpl"){
+      var addr = object.addressInfo().post();
+      if (addr != null ) {
+        code = addr.getRegion()!=null && !addr.getRegion().equals("")? getCodeByKey("CustomDirectory", "", "(vw_cmj_directory_10)", addr.getRegion()) : null;
+        // несистемные поля затираются у VCardResource, поэтому приходится заполнять их вручную
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.region", addr.getRegion());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.postalCode", addr.getZipCode());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.countryName", addr.getCountry());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.locality", addr.getCity());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.district", addr.getLocality());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.streetTypeAddress", addr.getStreetType());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.streetAddress", addr.getStreet());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.extendedAddress.building", addr.getBuild());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.extendedAddress.housing", addr.getHousing());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.extendedAddress.house", addr.getHouse());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.postOfficeBox", addr.getOffice());
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "tel.work", object.contactsInfo()==null?null:object.contactsInfo().getPhone());
+     }
+    } else {
+      if(getPropertyValueRef(object, 'adrPostal','region') != "") {
+       code = getCodeByKey("CustomDirectory", "", "(vw_cmj_directory_10)", getPropertyValueRef(object, 'adrPostal','region'));
+     }
+    }
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "adrPostal.region_code", code);
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "postal_region_code", code);
+  }
+
+  if(changedField == 'Surname'){
+    if (object.getClass().getCanonicalName()=="ru.intertrust.cmj.af.so.impl.DirectoryOrganization") {
+      var counterparty = getPropertyValue(object, "counterparty");
+      if (counterparty == "individualentrepreneur"){
+         var surname = getPropertyValue(object, "Surname").toString();
+         var name = getPropertyValue(object, "name").toString();
+         var patronymic = getPropertyValue(object, "patronymic").toString();
+         var cFullName = surname + " " + name + " " +   patronymic;
+         var cShortName = surname;
+         if (name.substring(0, 1)!=""){
+         	cShortName = cShortName + " " + name.substring(0, 1) + ".";
+         }
+         if (patronymic.substring(0, 1)!=""){
+         	cShortName = cShortName + " " + patronymic.substring(0, 1) + ".";
+         }
+         object.setShortName(cShortName.toString());
+         object.setFullName(cFullName.toString());
+      }
+    }
+  }
+}
+
+function getCodeByKey(ident, complect, view, key) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var coll = null;
+	var vw = db.getView(view);
+	var regionCode = "";
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(key);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+			    if (key.equals(doc.getItemValueString("Tn$_valueRegion"))) {
+			        regionCode = doc.getItemValueString("Tn$_codeRegion");
+					break;
+			    }
+				doc = coll.getNextDocument(doc);
+			}
+
+            return regionCode;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+	}
+}
+
+function postSave(object, document) {
+ if (object.getClass().getCanonicalName()!="ru.intertrust.cmj.tunable.object.TunableObjectImpl"){
+   return true;
+ }
+
+ var orgBoss = object.tuning().getValues().get("organizationDirector");
+ if (orgBoss == null || orgBoss.getValues().get("fio")==null) {
+   return true;
+ }
+
+ var parts_Space = TunableObjectHelper.getAFInstanceValue(orgBoss.getValues().get("fio")).trim().split(" ");
+ var lastName = parts_Space[0];
+ var firstName = "";
+ var middleName = "";
+ if (parts_Space.length > 2) {
+   firstName = parts_Space[1].replace("\\.", "");
+   middleName = parts_Space[2].replace("\\.", "");
+ } else if (parts_Space.length > 1) {
+   var firstAndMiddle = parts_Space[1].split("\\.");
+   firstName = firstAndMiddle[0];
+   if (firstAndMiddle.length > 1) {
+      middleName = firstAndMiddle[1];
+   }
+ }
+
+ var appTnObjectApp = AFSession.get().getApplication(TunableObjectApplication.class);
+ var newDossierTunable = null;
+ var bosses = new ArrayList();
+ var oldDossier = null;
+
+ // найти старого начальника, если не нашелся, то создать заготовку
+ // обновить фио, должность, сохранить
+ if (object.tuning().getValues().get("bossPostType")!=null) {
+   var bossArr = object.tuning().getValues().get("bossPostType");
+   if (bossArr.getValues().size() > 0) {
+     for (var i=0; i<bossArr.getValues().size(); i++) {
+       var boss = bossArr.getValues().get(i);
+       var idTn = boss.getValues().get("bossFIO").getValues().get("id").getValue();
+       newDossierTunable = appTnObjectApp.getEntityByUNID(idTn);
+       if (TunableObjectHelper.getAFInstanceValue(newDossierTunable.tuning().getValues().get("isDead"))!=true){
+         bosses.add(newDossierTunable);
+       }
+       newDossierTunable = null;
+     }
+   }
+ }
+
+ if (!bosses.isEmpty()){
+ for(var i=0;i<bosses.size();i++){
+   newDossierTunable = bosses.get(i);
+   var oldFirstName = TunableObjectHelper.getAFInstanceValue(newDossierTunable.tuning().getValues().get("firstName"));
+   var oldLastName = TunableObjectHelper.getAFInstanceValue(newDossierTunable.tuning().getValues().get("lastName"));
+   var oldMiddleName = TunableObjectHelper.getAFInstanceValue(newDossierTunable.tuning().getValues().get("middleName"));
+   if (lastName!=oldLastName || firstName!=oldFirstName || middleName!= oldMiddleName) {
+     newDossierTunable = null;
+   } else {
+     bosses.remove(i);
+     break;
+   }
+ }
+ }
+
+ if (newDossierTunable == null) {
+   var appTuningApplication = AFSession.get().getApplication(TuningApplication.class);
+   var objectSchema = appTuningApplication.getSchemaByName("SPPDossier");
+   var adminApp = AFSession.get().getApplication(AdminApplicationImpl.class);
+   newDossierTunable = appTnObjectApp.composeApplicationTunableObject(objectSchema, AFCMDomino.AFDB_SYSTEM_ID_PERSONDIRECTORY, "", "");
+   var sppDossier = adminApp.composeSPPDossier(newDossierTunable);
+   newDossierTunable.setEntity(sppDossier);
+
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "state", "DOSSIER");
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "isEmployee", "1");
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "type", "EMPLOYEE_OF_ORGANIZATION");
+
+   var org = new AdminSOUnit(AdminSOUnit.Type.ORGANIZATION_SPO, document.getItemValueString("CShortName"), object.getUNID(), document.getItemValueString("basedocid"))
+   var propertyOrg = objectSchema.getProperty("organization");
+   var afinstance = TunableObjectHelper.convertToAFInstance(propertyOrg, propertyOrg.isArray(), AdminSOUnit.convertToMap(org));
+   newDossierTunable.tuning().put("organization", afinstance);
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "firstName", firstName);
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "lastName", lastName);
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "middleName", middleName);
+
+   ObjectMapFillingUtils.addSystemFields(newDossierTunable.tuning(), objectSchema, sppDossier);
+ }
+
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "orgPost", TunableObjectHelper.getAFInstanceValue(orgBoss.getValues().get("post")));
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "orgPostType", "1");
+   TunableObjectHelper.putAFInstanceValue(newDossierTunable, "createdFromSpark", true);
+
+   newDossierTunable.save();
+
+   if (!bosses.isEmpty()){
+     for(var i=0;i<bosses.size();i++){
+      oldDossier = bosses.get(i);
+      var adminApp = AFSession.get().getApplication(AdminApplicationImpl.class);
+      state = oldDossier.entity().getState();
+      TunableObjectHelper.putAFInstanceValue(oldDossier, "createdFromSpark", true);
+      if (state == SPPDossier.DossierState.DOSSIER) {
+        adminApp.makeDossierNotActual(oldDossier);
+      } else {
+        adminApp.deleteSPPDossier(oldDossier.getUNID());
+      }
+     }
+   }
+}
+
+   function checkEditedFields(object, doc, isVcard) {
+	   //сравнение реквизитов до и после для проверки, что объект не редактировался вручную
+	   var fname, sname;
+	   if (!isVcard){
+		   fname = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "org.org-name");
+		   sname = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "fn");
+	   } else {
+		   fname = object.getFullName();
+		   sname = object.getShortName();
+	   }
+	   if (checkAttrEdited(sname, doc, "CShortName") || checkAttrEdited(fname, doc, "CFullName")) return true;
+	   if (checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "phone"), doc, "CPhone")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "counterparty"), doc, "counterparty")) return true;
+	   if (checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jcountryName"), doc, "CCountry_ZipCode")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jDistrict"), doc, "CAddr_Locality")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jSendIndex"), doc, "CAddr_ZipCode")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jTypeStreet"), doc, "CAddr_StreetType")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jNameStreet"), doc, "CAddr_Street")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jregion"), doc, "CAddr_Region")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jCity"), doc, "CAddr_City")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jOffice"), doc, "CAddr_Office")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jHouse"), doc, "CAddr_House")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jHousing"), doc, "CAddr_Corp")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "jStructure"), doc, "CAddr_Build")) return true;
+
+	   if (!isVcard && (checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.countryName"), doc, "CCountry")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.district"), doc, "CAddr1_Locality")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.postalCode"), doc, "CAddr1_ZipCode")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.streetTypeAddress"), doc, "CAddr1_StreetType")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.streetAddress"), doc, "CAddr1_Street")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.region"), doc, "CRegion")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.locality"), doc, "CAddr1_City")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.postOfficeBox"), doc, "CAddr1_Office")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.extendedAddress.house"), doc, "CAddr1_House")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.extendedAddress.housing"), doc, "CAddr1_Corp")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "adrPostal.extendedAddress.building"), doc, "CAddr1_Build"))) return true;
+
+	   if (isVcard && (checkAttrEdited(object.addressInfo().post().getCountry(), doc, "CCountry")||
+			   checkAttrEdited(object.addressInfo().post().getLocality(), doc, "CAddr1_Locality")||
+			   checkAttrEdited(object.addressInfo().post().getZipCode(), doc, "CAddr1_ZipCode")||
+			   checkAttrEdited(object.addressInfo().post().getStreetType(), doc, "CAddr1_StreetType")||
+			   checkAttrEdited(object.addressInfo().post().getStreet(), doc, "CAddr1_Street")||
+			   checkAttrEdited(object.addressInfo().post().getRegion(), doc, "CRegion")||
+			   checkAttrEdited(object.addressInfo().post().getCity(), doc, "CAddr1_City")||
+			   checkAttrEdited(object.addressInfo().post().getOffice(), doc, "CAddr1_Office")||
+			   checkAttrEdited(object.addressInfo().post().getHouse(), doc, "CAddr1_House")||
+			   checkAttrEdited(object.addressInfo().post().getHousing(), doc, "CAddr1_Corp")||
+			   checkAttrEdited(object.addressInfo().post().getBuild(), doc, "CAddr1_Build"))) return true;
+
+	   if (checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "inn"), doc, "INN")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "kpp"), doc, "CKPP")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "ogrn"), doc, "OGRN")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "okpo"), doc, "COKPO")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "okved"), doc, "COKONH")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "okato"), doc, "COKATO")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "check"), doc, "CCountR")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "bankname"), doc, "CBank")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "bikbank"), doc, "CBIK")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "ccheck"), doc, "CCountCor")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "mainindustry"), doc, "mainindustry")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "OKOPFname"), doc, "OKOPFname")||
+			   checkAttrEdited(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "OKOPF"), doc, "OKOPF")) return true;
+	   return false;
+   }
+
+function checkAttrEdited(objValue, doc, fieldName){
+     if (!doc.hasItem(fieldName)){
+    	 return objValue!=null && objValue!="" && (objValue.isEmpty!=null?!objValue.isEmpty():true);
+     }
+     var docValues = AFCMDomino.getItemValueVectorString(doc, fieldName);
+     if (docValues.size()==0 || docValues.get(0)=="") {
+    	 return objValue!=null && objValue!="" && (objValue.isEmpty!=null?!objValue.isEmpty():true);
+     }
+     if (docValues.size()==1 && objValue.size==null) {
+    	 return objValue!=docValues.get(0);
+     }
+     if (objValue.size==null) {
+    	 return true;
+     }
+     if (objValue.size()!=docValues.size()){
+    	 return true;
+     }
+     var itr = objValue.iterator();
+     var idx=0;
+     while (itr.hasNext()) {
+    	 var val = itr.next();
+    	 if(val!=docValues.get(idx)){
+    		 return true;
+    	 }
+    	 idx++;
+     }
+}]]></custom-event-handler>
   </schema>
 </schemas>

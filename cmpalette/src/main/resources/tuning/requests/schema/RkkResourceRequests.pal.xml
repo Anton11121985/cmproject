@@ -37,6 +37,14 @@
     </string>
     <string name="$correspondentInfo" system="true"/>
     <schema-ref ref="ShowSignInfo" name="showSignInfo" temporal="true"/>
+    <string name="regPlaceFullName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.registration == null || #this.registration.place == null) ? '' : {
+	#regplacefullname = T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place)?.originalData()?.getParty()?.getBeard()?.originalData()?.getFullName(),
+	#regplacefullname != null ? #regplacefullname.trim() : ''
+}[1]]]></script>
+      </calc-values>
+    </string>
     <boolean name="$canVerify" system="true" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#verify'].size() > 0]]></script>
@@ -60,7 +68,7 @@
     </boolean>
     <string name="correspondentFnInfo" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[correspondent != null && correspondent.authorPersonal != null ? correspondent.authorPersonal.fn : (correspondent != null && correspondent.authorGroup != null ? correspondent.authorGroup :  'не задан')]]></script>
+        <script event="open" lang="SPEL"><![CDATA[correspondent != null && correspondent.authorPersonal != null ? correspondent.authorPersonal.fn : (correspondent != null && correspondent.authorGroup != null ? correspondent.authorGroup :  'Не указан')]]></script>
       </calc-values>
     </string>
     <boolean name="isOral" temporal="true">
@@ -120,7 +128,27 @@
     </string>
     <string name="legalFnInfo" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[legal != null && legal.legalOrganization != null ? legal.legalOrganization.fnInfo : 'не задан']]></script>
+        <script event="open" lang="SPEL"><![CDATA[legal != null && legal.legalOrganization != null ? legal.legalOrganization.fnInfo : 'Не указан']]></script>
+      </calc-values>
+    </string>
+    <string name="LabelMain" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Основные']]></script>
+      </calc-values>
+    </string>
+    <string name="LabelExecution" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Исполнение']]></script>
+      </calc-values>
+    </string>
+    <string name="LabelRedirection" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Направление']]></script>
+      </calc-values>
+    </string>
+    <string name="LabelAdditional" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Дополнительные']]></script>
       </calc-values>
     </string>
     <boolean name="isEnableTypeRequestLegal" system="true"/>
@@ -206,14 +234,60 @@
     <string name="medoAttachmentsInfo" array="true">
       <storage-field name="medoAppendixSync"/>
     </string>
-    <boolean name="tDeleted" temporal="true">
-      <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[T(java.lang.Boolean).TRUE.equals(status.deleted)]]></script>
-      </calc-values>
-    </boolean>
     <string array="true" name="received">
       <storage-field name="received"/>
     </string>
+    <string name="showState" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[status.deleted == true ? 'Удален' : (registration==null || registration.number==null)? 'Проект' : 'Зарегистрирован']]></script>
+      </calc-values>
+    </string>
+    <string name="nameFrequent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Неоднократное "]]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="emptyField">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['']]></script>
+      </calc-values>
+    </string>
+    <string name="statusForSite">
+      <storage-field name="statusForSite"/>
+    </string>
+    <date default-value="empty" name="statusForSiteUpdateDate">
+      <storage-field name="statusForSiteUpdateDate"/>
+    </date>
+    <string temporal="true" name="resolutionsState">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(id ?: "")?.getItemValueString("Stat")) ?: ""]]></script>
+      </calc-values>
+    </string>
+    <string name="externalAuthorId">
+      <storage-field name="externalAuthorId"/>
+    </string>
+    <string name="receiveEndTimeHour">
+      <storage-field name="receiveEndTimeHour" />
+    </string>
+    <string name="receiveEndTimeMin">
+      <storage-field name="receiveEndTimeMin" />
+    </string>
+    <string name="receiveBeginTimeHour">
+      <storage-field name="receiveBeginTimeHour" />
+    </string>
+    <string name="receiveBeginTimeMin">
+      <storage-field name="receiveBeginTimeMin" />
+    </string>
+    <string computed="true" name="delim">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[":"]]></script>
+      </calc-values>
+    </string>
+    <boolean temporal="true" name="$person_reception">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(appealWay=="Личный приём"||appealWay=="Личный прием")?true:false]]></script>
+      </calc-values>
+    </boolean>
     <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.dp);
 importPackage(Packages.ru.intertrust.cmj.af.so);
 importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);

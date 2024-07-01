@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
-  <schema extends="Actions" name="DocumentResource">
+  <schema extends="ResponseContractResource" name="DocumentResource">
     <meta>
       <category name="Система\Договоры"/>
     </meta>
@@ -25,9 +25,23 @@
         <script event="save" lang="SPEL"><![CDATA[#joinCols(#toCol(signature?.signer), signature?.signers?.?[#this != null]?.![signer], responsibles)]]></script>
       </calc-values>
     </actor>
+    <string name="objectType" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Документ к договору']]></script>
+      </calc-values>
+    </string>
+    <string name="emptyFieldLabel" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA['Не заполнено']]></script>
+      </calc-values>
+    </string>
     <string name="appendicesPages" system="true"/>
     <string name="$contract" system="true"/>
     <string name="$titleHeader" system="true"/>
+    <richtext name="richtext" system="true"/>
+    <schema-ref ref="ContentResource" name="contentContainer" system="true"/>
+    <file name="content" system="true"/>
+    <schema-ref ref="DocumentStatus" name="documentStatus" system="true"/>
     <string name="showIdent" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Документ']]></script>
@@ -43,10 +57,15 @@
     <string name="$approvStatusInfo" system="true"/>
     <string name="showRegInfo" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[(regInfo==null || regInfo.date==null)?'Проект':('№ '+regInfo.number+' от '+regInfo.date)]]></script>
+        <script event="open" lang="SPEL"><![CDATA[(regInfo==null || regInfo.number==null || regInfo.date==null)?'Проект':('№ '+regInfo.number+' от '+regInfo.date)]]></script>
       </calc-values>
     </string>
     <string name="$signStatusInfo" system="true"/>
+    <string name="signatureTextReject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[signature?.lastRefuseInfo?.comment]]></script>
+      </calc-values>
+    </string>
     <string name="showType" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[type]]></script>
@@ -69,6 +88,25 @@
         <script event="open" lang="SPEL"><![CDATA[(signature.state == null || !'sent'.equals(signature.state.status) && !'signed'.equals(signature.state.status)) && apre == null && link.?[rel=='http://intertrust.ru/cmj/relations#save.and.fill.files'].size() > 0]]></script>
       </calc-values>
     </boolean>
+    <file name="image" system="true">
+      <storage-field name="image"/>
+    </file>
+    <integer name="contentCount" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(richtext != null ? 1 : 0) + (content != null ? content.size() : 0)]]></script>
+      </calc-values>
+    </integer>
+    <string name="contentFields" temporal="true" array="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(java.util.Arrays).asList('/contentContainer/richtext', '/contentContainer/content')]]></script>
+      </calc-values>
+    </string>
+    <integer name="imagesCount" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[image != null ? image.size() : 0]]></script>
+      </calc-values>
+    </integer>
+    <schema-ref ref="CmjLinkResource" name="relations" system="true" array="true"/>
     <string name="$preparationStatusInfo" system="true"/>
     <string array="true" name="tags" system="true"/>
     <boolean name="disableLinkAccess" system="true" />
@@ -80,9 +118,6 @@
     </string>
     <string name="dialogueCommentReg" createlog="true">
       <storage-field name="dialogueCommentReg"/>
-    </string>
-    <string name="dialogueComment" createlog="true">
-      <storage-field name="dialogueComment"/>
     </string>
     <boolean default-value="false" temporal="true" system="true" name="hasParentGriff">
       <calc-values>
@@ -147,7 +182,6 @@
         <script lang="SPEL" event="open"><![CDATA['F_DP_ContractRkk']]></script>
       </calc-values>
     </string>
-    <string name="$signersTitle" system="true" temporal="true"/>
     <boolean name="hasMultipleSigners" system="true" temporal="true">
       <calc-values>
         <script event="open">
@@ -169,7 +203,146 @@
         </script>
       </calc-values>
     </boolean>
-
+    <actor name="contractResourceFirstSide" array="true" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[#top == null ? null : #top.parties?.ours]]></script>
+      </calc-values>
+    </actor>
+    <actor name="contractResourceSecondSide" array="true" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top == null ? null : #top.parties?.other]]></script>
+      </calc-values>
+    </actor>
+    <string name="docContractTitle" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top == null ? null : #top.title]]></script>
+      </calc-values>
+    </string>
+    <string name="withoutDeadlineLabel" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA["Без срока"]]></script>
+      </calc-values>
+    </string>
+    <string name="DocumentRegInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+#this.status == 'project' ?
+    (#this.regInfo?.number != null ?
+        ('Проект ' + 'от ' + #this.regInfo?.number + (#this.regInfo?.date == null ? 'б/д' : #this.regInfo?.date)):
+        ('Проект ' + 'от ' +(#this.regInfo?.date != null ? ( #this.regInfo?.date) : 'б/д'))):
+    ((#this.regInfo?.number != null ?
+        (#this.regInfo?.number):('б/н'))
+        + ' от ' + ((#this.regInfo.date != null ? #this.regInfo?.date : 'б/д')))]]>
+        </script>
+      </calc-values>
+    </string>
+    <string name="DocumentRegInfoInTask" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+#this.status == 'project' ?
+    (#this.regInfo?.number != null ?
+        ('Проект ' + 'от ' + #this.regInfo?.number + (#this.regInfo?.date == null ? ' б/д' :  #this.regInfo?.date)):
+        ('Проект')):
+    ((#this.regInfo?.number != null ?
+        (#this.regInfo?.number):('б/н'))
+        + ' от ' +((#this.regInfo.date != null ? #this.regInfo?.date : 'б/д')))]]>
+        </script>
+      </calc-values>
+    </string>
+    <string temporal="true" name="showState">
+      <storage-field name="showState" />
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[isNew() ? 'Проект' : (#root.status.equals('deleted') ? 'Удален' : (regInfo==null || regInfo.number==null || regInfo.number=='') ? 'Проект' : 'Зарегистрирован')]]></script>
+      </calc-values>
+    </string>
+    <string name="resourceType" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['DOCUMENT']]></script>
+      </calc-values>
+    </string>
+    <string name="docContractNumAndDate" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(#top.registration==null || #top.registration.date==null)?'':' от '+T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(#top.registration.date, false)]]>
+        </script>
+      </calc-values>
+    </string>
+    <string name="docContractType" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top == null ? null : #top.type]]></script>
+      </calc-values>
+    </string>
+    <actor name="docContractFirstSide" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top == null ? null : #top.parties.ours]]></script>
+      </calc-values>
+    </actor>
+    <actor name="docContractSecondSide" temporal="true" >
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top == null ? null : #top.parties.other]]></script>
+      </calc-values>
+    </actor>
+    <boolean name="curUserIsSigner" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+{
+ #curUsr = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser(),
+ signature != null && (signature.signer != null || signature.signers != null)
+  && (hasMultipleSigners ?
+    signature.signers != null
+     && (signature.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(#curUsr.getBeard())].size() > 0 ||
+      signature.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSigningSubstituteOf(#this)].size() > 0].size() > 0)
+    : signature.signer != null
+     && (T(com.google.common.collect.Lists).transform(signature.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(#curUsr.getBeard()) ||
+      T(com.google.common.collect.Lists).transform(signature.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSigningSubstituteOf(#this)].size() > 0))
+}[1]]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="$enableUnsign" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+                (getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.document.Document.Resource))
+                &&(link.?[rel=='http://intertrust.ru/cmj/relations#unsign'].size() > 0))
+       ]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$showUnsignWithVersionButton" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+                ($enableUnsign==true && $enableUnsignForOnlyFirstOne==true && versionalEnable!=null && versionalEnable==true)
+       ]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$showUnsignButton" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+                ($enableUnsign==true  && $enableUnsignForOnlyFirstOne==true && (versionalEnable==null || versionalEnable==false))
+       ]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$showUnsignWithWorkButton" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+                ($enableUnsign==true && $enableUnsignForOnlyFirstOne==false)
+       ]]></script>
+      </calc-values>
+    </boolean>
+    <string name="$emailHeader" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[('Документ по договору') + ' ' + showRegInfo +
+' (от '+ T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().toString( T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME ) +')']]></script>
+      </calc-values>
+    </string>
+    <string name="$emailDocinfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[showRegInfo]]></script>
+      </calc-values>
+    </string>
+    <string name="comment" system="true"/>
     <custom-event-handler lang="JavaScript"><![CDATA[
     importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
     importPackage(Packages.ru.intertrust.cmj.af.tuning);
@@ -185,6 +358,9 @@
     importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
 
     function querySave(object, document) {
+    if (object.isDeleted()) {
+        return true;
+    }
 
     if (object.tuning() != null && object.tuning().getValues() != null){
         var securityStamp = object.getSecurityStamp();
@@ -197,11 +373,27 @@
 
 function postSave(object, document) {
     if (object.signing().wasUnSigned  ) {
-        var to = RKKFRegistrationRegistrate.getDPs(rkk);
+        var to = RKKFRegistrationRegistrate.getDPs(object);
         if (!to.isEmpty()) {
             new PkdSession().deleteEvent(to, EventCode.getByString("RGST1_11"), object);
         }
     }
 }]]></custom-event-handler>
+    <string name="signStatusInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+            "rejected".equals(signature?.state?.status) ? 'Отказано в подписании' :
+            "sent".equals(signature?.state?.status) ? 'На подписании' :
+            "signed".equals(signature?.state?.status) ? 'Подписано' : ''
+          ]]>
+        </script>
+      </calc-values>
+    </string>
+    <boolean name="signStatusInfoIsNull" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[signature == null || signature.state == null]]></script>
+      </calc-values>
+    </boolean>
   </schema>
 </schemas>

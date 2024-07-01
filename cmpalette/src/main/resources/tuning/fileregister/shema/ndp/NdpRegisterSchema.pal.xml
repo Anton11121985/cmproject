@@ -14,59 +14,49 @@
                 <script event="open" lang="SPEL"><![CDATA['unitregisterchangeprintform']]></script>
             </calc-values>
         </string>
+        <string name="currentUserID" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID().split(":")[1]]]></script>
+            </calc-values>
+        </string>
         <string name="$currentUserRoles" array="true" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[#this.currentUserRoles]]></script>
             </calc-values>
         </string>
-        <actor name="organization" system="true"/>
-<!--        <schema-ref name="ndpTableRegister" array="true" ref="NdpTableSchema" temporal="true" null-empty="true"/>-->
-        <!--<schema-ref name="ndtable" ref="EmbeddedView" system="true"/>-->
-        <string name="index" system="true" />
+        <actor name="organization" system="true">
+            <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.unitregister.NdpOrganizationRecalcHandler</recalc-processing-class>
+        </actor>
+        <actor name="orgDepartment" system="true">
+            <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.unitregister.NdpOrganizationRecalcHandler</recalc-processing-class>
+        </actor>
+        <boolean name="hasSelectableOrgDepartment" temporal="true"/>
+        <boolean name="showOrgDepartment" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.isNew() && hasSelectableOrgDepartment || !#this.isNew() && orgDepartment != null && !"dummy".equals(orgDepartment?.id)]]></script>
+            </calc-values>
+        </boolean>
+        <string name="index" system="true" createlog="true"/>
 
         <string name="dateYear" system="true" />
-        <enum-ref ref="NdpStatusGeneralEnum" name="statusGeneral" system="true">
+        <enum-ref ref="NdpStatusGeneralEnum" name="statusGeneral" system="true" createlog="true">
             <storage-field name="statusGeneral" />
         </enum-ref>
         <enum-ref ref="NdpStatusExtendedEnum" name="statusExtended" system="true">
             <storage-field name="statusExtended" />
         </enum-ref>
-        <integer name="sumTotalSpd">
-            <storage-field name="sumTotalSpd"/>
-        </integer>
-        <integer name="movable">
-            <storage-field name="movable"/>
-        </integer>
-        <integer name="epkMark">
-            <storage-field name="epkMark"/>
-        </integer>
-        <integer name="gt10SumTemporalOver">
-            <storage-field name="gt10SumTemporalOver"/>
-        </integer>
-        <integer name="gt10Movable">
-            <storage-field name="gt10Movable"/>
-        </integer>
-        <integer name="gt10EpkMark">
-            <storage-field name="gt10EpkMark"/>
-        </integer>
-        <integer name="lt10SumTemporalLess">
-            <storage-field name="lt10SumTemporalLess"/>
-        </integer>
-        <integer name="lt10Movable">
-            <storage-field name="lt10Movable"/>
-        </integer>
-        <integer name="lt10EpkMark">
-            <storage-field name="lt10EpkMark"/>
-        </integer>
-        <integer name="sum">
-            <storage-field name="sum"/>
-        </integer>
-        <integer name="sumMovable">
-            <storage-field name="sumMovable"/>
-        </integer>
-        <integer name="sumEpkMark">
-            <storage-field name="sumEpkMark"/>
-        </integer>
+        <integer name="sumTotalSpd" system="true" />
+        <integer name="movable" system="true" />
+        <integer name="epkMark" system="true" />
+        <integer name="gt10_SumTemporalOver" system="true" />
+        <integer name="gt10_Movable" system="true" />
+        <integer name="gt10_EpkMark" system="true" />
+        <integer name="lt10_SumTemporalLess" system="true" />
+        <integer name="lt10_Movable" system="true" />
+        <integer name="lt10_EpkMark" system="true" />
+        <integer name="sum" system="true" />
+        <integer name="sum_Movable" system="true" />
+        <integer name="sum_EpkMark" system="true" />
         <boolean name="readyToAdd" system="true">
             <storage-field name="readyToAdd"/>
         </boolean>
@@ -86,15 +76,20 @@
         <boolean name="hideSection_changeStates" temporal="true" createlog="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
-                (statusGeneral != null && !"PROJECT".equals(statusGeneral.toString()))
+                (statusGeneral == null || !"PROJECT".equals(statusGeneral.toString()))
                 ||
-                statusExtended == null || !("INCLUDE_INTO_NDO".equals(statusExtended.toString()) || "APPROVED".equals(statusExtended.toString()))
+                statusExtended != null && ("INCLUDE_INTO_NDO".equals(statusExtended.toString()) || "CHANGES_APPROVED".equals(statusExtended.toString()))
                 ]]></script>
             </calc-values>
         </boolean>
         <boolean name="$isNewOrProject" temporal="true" createlog="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[#this.isNew() || (statusGeneral != null && "PROJECT".equals(statusGeneral.toString()))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$organizationIsNotEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[organization != null]]></script>
             </calc-values>
         </boolean>
         <boolean name="$isNewOrStatusExtIsNull" temporal="true" createlog="true">
@@ -110,16 +105,19 @@
         <enum-ref name="divisionType" ref="DivisionType" system="true" default-value="DEPARTMENT">
             <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.unitregister.NdpDepartmentRecalcHandler_ForChangeDivisionType</recalc-processing-class>
         </enum-ref>
-        <string name="branchDivision" system="true">
+        <string name="branchDivision" system="true" createlog="true">
             <validate>
                 <message>Превышена максимальная длина поля. Допустимый размер: 512 символов.</message>
                 <regex>^.{0,512}$</regex>
             </validate>
             <storage-field name="branchDivision"/>
         </string>
-        <actor name="sounit" system="true">
+        <actor name="sounit" system="true" createlog="true">
             <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.unitregister.NdpIndexRecalcHandler</recalc-processing-class>
         </actor>
+        <string name="soUnitFullName" default-value="">
+            <storage-field name="soUnitFullName"/>
+        </string>
         <schema-ref ref="ContentResourceDocuments" name="contentDocuments" createlog="true"/>
         <schema-ref ref="ContentResourceAddInformations" name="contentAddInformations" createlog="true"/>
         <boolean name="contentDocumentsNotEmpty" createlog="true" temporal="true">
@@ -137,6 +135,25 @@
                 <default-value>contentWidget</default-value>
             </default-values>
         </string>
+        <file name="content" temporal="true"/>
+        <boolean name="fillTmpContent" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA[#this.contentDocuments!=null && contentDocuments.content != null && !contentDocuments.content.isEmpty()?
+{
+#tmpFiles = new ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl(#this.tuning().getSchema().getProperty("content").getSchema(), null, null, id),
+#tmpFiles.files().addAll(contentDocuments.content),
+T(ru.intertrust.cmj.tunable.object.common.TunableObjectHelper).putAFInstanceValue(#root.tuning(), "content", #tmpFiles),
+true
+}[3]
+:
+{
+#tmpFiles = new ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl(#this.tuning().getSchema().getProperty("content").getSchema(), null, null, id),
+T(ru.intertrust.cmj.tunable.object.common.TunableObjectHelper).putAFInstanceValue(#root.tuning(), "content", #tmpFiles),
+true
+}[2]
+]]></script>
+            </calc-values>
+        </boolean>
         <string name="$approvStatusInfo" system="true"/>
         <string name="$id" temporal="true">
             <calc-values>
@@ -176,6 +193,7 @@
                 <script event="open" lang="SPEL"><![CDATA[#this.currentUserRoles.contains("Archivist") && readyToAdd && "PROJECT".equals(statusGeneral.toString()) && statusExtended != null && "RADY_INCLUDE_TO_NDO".equals(statusExtended.toString())]]></script>
             </calc-values>
         </boolean>
+        <boolean name="canCreateChangedNdp" system="true" temporal="true"/>
         <boolean name="$canSetReadyToAdd" temporal="true" createlog="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
@@ -211,9 +229,23 @@ $currentUserRoles.contains("FormerNDPUnit")
         <boolean name="$canAddFileRegisters" temporal="true" createlog="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
-$canReceiveAnotherDepFileRegistersToNDP || $currentUserRoles.contains("Archivist")
-	&& statusGeneral != null && "PROJECT".equals(statusGeneral.toString())
-	&& statusExtended != null && "INCLUDE_INTO_NDO".equals(statusExtended.toString())
+                    statusGeneral != null
+                    && "PROJECT".equals(statusGeneral.toString())
+                    && (
+                           (
+                               $currentUserRoles.contains("Archivist")
+                               && statusExtended != null
+	                           && "INCLUDE_INTO_NDO".equals(statusExtended.toString())
+	                       )
+	                       || (
+	                              $currentUserRoles.contains("FormerNDPUnit")
+  	                              && (
+  	                                     statusExtended == null
+  	                                     || "INCLUDE_INTO_NDO".equals(statusExtended.toString())
+	                                     || "ROLLBACK_TO_REWORK".equals(statusExtended.toString())
+	                                 )
+	                          )
+                       )
                 ]]></script>
             </calc-values>
         </boolean>
@@ -249,7 +281,7 @@ $canReceiveAnotherDepFileRegistersToNDP || $currentUserRoles.contains("Archivist
         </boolean>
         <boolean name="exStatusIsApproved" temporal="true">
             <calc-values>
-                <script event="open" lang="SPEL"><![CDATA[!"APPROVED".equals(statusExtended?.toString())]]></script>
+                <script event="open" lang="SPEL"><![CDATA[!"CHANGES_APPROVED".equals(statusExtended?.toString())]]></script>
             </calc-values>
         </boolean>
 <!--        <schema-ref name="StoragePeriod" ref="StoragePeriod"></schema-ref>-->
@@ -268,7 +300,7 @@ $canReceiveAnotherDepFileRegistersToNDP || $currentUserRoles.contains("Archivist
         <hyperlink computed="true" name="linkNDO" temporal="true">
             <calc-values>
                 <script lang="SPEL" event="open"><![CDATA[
-                (parentOrgRegisterUnid == null || parentOrgRegisterUnid == '') ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('Сводная НД на ' + #this.dateYear +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + parentOrgRegisterUnid + '~#newTab~#local')
+                (parentOrgRegisterUnid == null || parentOrgRegisterUnid == '') ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('Сводная номенклатура дел на ' + #this.dateYear + ' год' +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + parentOrgRegisterUnid + '~#newTab~#local')
                 ]]></script>
             </calc-values>
         </hyperlink>
@@ -278,7 +310,7 @@ $canReceiveAnotherDepFileRegistersToNDP || $currentUserRoles.contains("Archivist
                 <script lang="SPEL" event="open"><![CDATA[
                 ("PROJECT".equals(statusGeneral.toString()) && statusExtended != null && "INCLUDE_INTO_NDO".equals(statusExtended.toString()))
                 ||
-                ("PROJECT".equals(statusGeneral.toString()) && statusExtended != null && "APPROVED".equals(statusExtended.toString()))
+                ("PROJECT".equals(statusGeneral.toString()) && statusExtended != null && "CHANGES_APPROVED".equals(statusExtended.toString()))
                 ||
                 ("ACTIVE".equals(statusGeneral.toString()))
                 ||
@@ -292,19 +324,10 @@ $canReceiveAnotherDepFileRegistersToNDP || $currentUserRoles.contains("Archivist
                 <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].size() > 0]]></script>
             </calc-values>
         </boolean>
-        <boolean name="$throughIternalUnit" createlog="true" temporal="true">
-            <calc-values>
-                <script event="open" lang="SPEL">
-                    <![CDATA[#this.organization != null && { #throughIternalUnit = T(ru.intertrust.cmj.af.core.AFSession).get()
-                                          .getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))
-                                          ?.findFileSettingByOrgId(#this.organization.id)?.getThroughIternalUnit(),
-                                          #throughIternalUnit != null && #throughIternalUnit }[1]]]>
-                </script>
-            </calc-values>
-        </boolean>
+        <boolean name="isApprovingThroughInternalDocs" system="true"/>
         <string name="title" temporal="true">
             <calc-values>
-                <script event="open" lang="SPEL"><![CDATA['НДП ' + (sounit != null ? sounit.fn : branchDivision)]]></script>
+                <script event="open" lang="SPEL"><![CDATA['НДП ' + (branchDivision == null || "".equals(branchDivision) ? (sounit != null ? sounit.fn : '') : branchDivision)]]></script>
             </calc-values>
         </string>
         <actor array="true" name="individually">
@@ -322,6 +345,51 @@ $canReceiveAnotherDepFileRegistersToNDP || $currentUserRoles.contains("Archivist
                 </script>
             </calc-values>
         </boolean>
+        <boolean name="isDeleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[statusGeneral != null && "DELETED".equals(statusGeneral.toString())]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isNotActive" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[statusGeneral != null && "NOT_ACTIVE".equals(statusGeneral.toString())]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="IsUseArchiveModule" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(T(ru.intertrust.cmj.af.core.AFCMDomino).getDbReplicaIdNamedAny("FileRegister"))?.useArchiveModule]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="isActive" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[statusGeneral != null && "ACTIVE".equals(statusGeneral.toString())]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canCreateArcDeal" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[IsUseArchiveModule && (isActive || isNotActive) && statusExtended == null && #this.currentUserRoles.contains("Resps_Delo")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canDeleteIfAdminNdp" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                        #this.currUserIsAdmin() && !fileInfo.isEmpty() && !"DELETED".equals(statusGeneral.toString())
+                    ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="organizationIsRoot" temporal="true" >
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[orgDepartment == null]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canDeleteFromTrash" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    statusGeneral != null && "DELETED".equals(statusGeneral.toString()) && #this.currentUserRoles.contains("[SuperUser]")]]></script>
+            </calc-values>
+        </boolean>
         <custom-event-handler lang="JavaScript"><![CDATA[
 importPackage(Packages.java.util);
 importPackage(Packages.java.lang);
@@ -334,11 +402,14 @@ importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
 importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
 importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
 importClass(Packages.ru.intertrust.cmj.af.fileregister.FileRegisterApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.org.springframework.util.StringUtils);
+
+var soApp = AFSession.get().getApplication(SOApplication.class);
 
 function querySave(object, document) {
-    object.checkIfFilesWereReplaced(true);
     object.checkIfFilesWereExcluded(true, true);
-    if (object.getParentOrgRegisterUnid() != null) {
+    if (object.getParentOrgRegisterUnid() != null && (object.isNew() || soUnitChanged(object, document))) {
         var app = AFSession.get().getApplication(FileRegisterApplication.class);
         var orgRegister = app.getEntityByUNID(object.getParentOrgRegisterUnid());
         if (orgRegister != null){
@@ -354,6 +425,15 @@ function querySave(object, document) {
     return true;
 }
 
+function soUnitChanged(object, doc) {
+    var soUnit = doc.getItemValueString("SoUnit");
+    if (!StringUtils.isEmpty(soUnit)) {
+        var beardSoUnit = soApp.getBeard(soUnit);
+        return beardSoUnit.equals(object.getSoUnit());
+    }
+    return false;
+}
+
 function postSave(object) {}
 
 function recalc(object, changedField) {
@@ -365,9 +445,59 @@ function recalc(object, changedField) {
     }
 }
 
-function queryCreate(object){
-    object.tuning().put("organization",
-           TuningHelper.createPropertyValue(AFSession.get().getCurrentOrganization().getBeard(), object.tuning().getSchema().getProperty("organization")));
+function queryCreate(object) {
+    setSounitDefaultValue(object);
+}
+
+//Функция выполняет установку дефолтного значения в поле "Подразделение" НДП при условии, что кол-во допустимых значений=1
+function setSounitDefaultValue(object) {
+    if (object.getOrganization()!=null) {
+        var orgIsDep = object.getOrganization().originalData().getType()==SOBeard.Type.SYS_DEPARTMENT;
+        if (!orgIsDep) { //НДП создается для Организации (не для обособленного подразделения)
+            // в этом случае с справочнике будет выбор всех необособленных подразделений СО. Допускаем, что таких подразделений больше 1. Т.е. дефолтное значнеие не устанавливаем
+
+        } else {
+            //НДП создается для обособл. подразделения
+            // В этом случае с справочнике будет выбор всех подразделений СО под данным обосбленным подразделением,
+            //исключая те, что перекрываются другим обособленным подразделеним, находящимся ниже
+            var viewName = "(vw_cmj_ndp_deps_byIsolatedDep)"; // название вида справочника для выбора в поле "Подразделение"
+            var viewKey=object.getOrganization().getUNID().split(":")[1];
+            var soDB = AFCMDomino.getDbByReplicaID(AFCMDomino.getSODbReplicaID());
+            var values = getBeardsValuesFromView(soDB, viewName, viewKey);
+            if (values.size()==1) {
+                object.setSoUnit(values.get(0));
+            }
+        }
+    }
+}
+
+function getBeardsValuesFromView(soDB, viewName, key) {
+    var coll = null;
+	var vw = soDB.getView(viewName);
+	var result = new ArrayList();
+	var soApp = AFSession.get().getApplication(SOApplication.class);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(key);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+			  var unid = AFCMDomino.cmUNIDToORMUNID(doc.getItemValueString("DocId"), doc.getParentDatabase());
+              var sb = soApp.getBeard(unid);
+              if (sb != null) {
+                   result.add(sb);
+              }
+              if (result.size() >= 2) {
+                  break;
+              }
+			  doc = coll.getNextDocument(doc);
+			}
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+	}
+	return result;
 }
 ]]></custom-event-handler>
     </schema>

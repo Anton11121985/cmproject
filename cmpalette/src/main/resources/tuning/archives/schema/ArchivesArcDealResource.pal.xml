@@ -6,77 +6,602 @@
         <script lang="SPEL" event="open"><![CDATA['Архивное дело']]></script>
       </calc-values>
     </string>
-    <actor default-value="Выбор из справочника" required="true" name="Organization">
-      <storage-field name="Organization" />
-    </actor>
-    <string name="Index1">
-      <storage-field name="Index1" />
-    </string>
-    <string name="Index2">
-      <storage-field name="Index2" />
-    </string>
-    <string name="Index3">
-      <storage-field name="Index3" />
-    </string>
-    <enum-ref ref="archivesArcDealStateEnum" name="MainState">
-      <storage-field name="MainState" />
-    </enum-ref>
-    <string name="AdditionalState">
-      <storage-field name="AdditionalState" />
-    </string>
-    <string name="AccessRestrictionMark">
-      <storage-field name="AccessRestrictionMark" />
-    </string>
-    <actor default-value="Выбор из справочника" required="true" name="Department">
-      <storage-field name="Department" />
-    </actor>
-    <enum-ref ref="archivesKindDealEnum" required="true" name="KindDeal">
-      <storage-field name="KindDeal" />
-    </enum-ref>
-    <string name="ArchiveOrg">
-      <storage-field name="ArchiveOrg" />
-    </string>
-    <string required="true" name="Subject">
-      <storage-field name="Subject" />
-    </string>
-    <string name="ArcCipherF">
-      <storage-field name="ArcCipherF" />
-    </string>
-    <string name="ArcCipherOp">
-      <storage-field name="ArcCipherOp" />
-    </string>
-    <string name="ArcCipherD">
-      <storage-field name="ArcCipherD" />
-    </string>
-    <string name="NumPart">
-      <storage-field name="NumPart" />
-    </string>
-    <string required="true" name="StorageTerm">
-      <storage-field name="StorageTerm" />
-    </string>
-    <date required="true" name="BoundaryDateBeg">
-      <storage-field name="BoundaryDateBeg" />
-    </date>
-    <date required="true" name="BoundaryDateEnd">
-      <storage-field name="BoundaryDateEnd" />
-    </date>
-    <integer name="SheetsPaper">
-      <storage-field name="SheetsPaper" />
-    </integer>
-    <integer name="SizeDocs">
-      <storage-field name="SizeDocs" />
-    </integer>
-    <string name="StorageDevice">
-      <storage-field name="StorageDevice" />
-    </string>
-    <string name="AddInformations">
-      <storage-field name="AddInformations" />
-    </string>
+    <actor default-value="Выбор из справочника" required="true" name="organization" system="true" />
+    <string name="indexFull" system="true" />
+    <enum-ref ref="archivesArcDealStateEnum" name="mainState" system="true" createlog="true"/>
+    <string name="additionalState" system="true" />
+    <string name="accessRestrictionMark" system="true" />
+    <enum-ref ref="archivesPartitionTypeEnum" name="isDepartment" system="true" default-value="DEPARTMENT" />
+    <actor default-value="Выбор из справочника" name="department" system="true" />
+    <string name="directionWork" system="true" />
+    <enum-ref ref="archivesKindDealEnum" required="true" name="kindDeal" system="true" />
+    <string name="archiveOrg" system="true" />
+    <string required="true" name="subject" system="true" />
+    <string name="arcCipherF" system="true" />
+    <string name="arcCipherOp" system="true" />
+    <string name="arcCipherD" system="true" />
+    <string name="numPart" system="true" />
+    <schema-ref name="FrFile" ref="FrFileObj" null-empty="true" system="true" />
+    <string name="storageTerm" system="true" />
+    <schema-ref ref="StoragePeriodInfo" name="spdPeriodInfo" system="true"/>
+    <string name="existDeal" system="true" />
+    <boolean name="hasCopies" system="true" />
+    <boolean name="hasDocs" system="true" />
+    <boolean name="hasArcDocs" system="true" />
+    <string name="fileWithOrigIndex" system="true" />
+    <date required="true" name="boundaryDateBeg" system="true" />
+    <date required="true" name="boundaryDateEnd" system="true" />
+    <integer name="sheetsPaper" system="true" />
+    <double name="sizeDocs" system="true" />
+    <string name="storageDevice" system="true" />
+    <string name="storagePlace" system="true" />
+    <string name="addInformations" system="true" />
     <schema-ref null-empty="true" ref="ArcDealExtractTable" array="true" name="ArcDealExtractTable" />
+    <boolean name="updateArcDealTableFlag" createlog="true" system="true"/>
+    <string computed="true" temporal="true" name="indexFullLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Индекс дела:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="ArchiveCodeLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Архивный шифр:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="arcCipherFLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Ф. №']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="arcCipherOpLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Оп. №']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="arcCipherDLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Д. №']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="existDealLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Наличие дела:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="hasCopiesLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['В деле содержатся копии:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="fileWithOrigIndexLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Индекс дела, содержащего подлинники:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="numPartLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Номер тома(части):']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="storageTermLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Срок хранения:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="boundaryDateLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Крайние даты:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="sheetsPaperLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Кол-во листов:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="sizeDocsLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Объём, Мб:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="storagePlaceLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Место хранения:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="addInformationsLabel">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Дополнительная информация']]></script>
+      </calc-values>
+    </string>
     <string computed="true" temporal="true" name="ArcDealExtractTableLabel">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['Выдача архивного дела']]></script>
       </calc-values>
     </string>
+    <boolean name="isProject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).PROJECT).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isVerified" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).VERIFIED).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isArchived" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).ARCHIVED).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isPaper" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.kindDeal != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.KindDeal).PAPER).equals(#this.kindDeal)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isReadyToArchive" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).READY_TO_ARCHIVE).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isAbsent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).ABSENT).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isWithdraw" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).WITHDRAW).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isTransferedToStateArchive" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).TRANSFERRED_TO_STATE_ARCHIVE).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isDestroyed" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).DESTROYED).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).DELETED).equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isOrganizationEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.organization == null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isCuentUserReader">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+#this.readersByDeadline != null && #this.readersByDeadline.length() > 0 &&
+#this.readersByDeadline.![reader].contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).beardToVCard.apply(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()))
+]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isRespsDelo" temporal="true"> <!-- ответственный за делопроизводство -->
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this?.department == null ? false : {
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+		#dep = T(com.google.common.collect.Lists).transform(#this.department, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard),
+        #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+        ((#dep == null || #FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getRespsDeloNdpSoDepRvzByUnid(#dep).contains(#CurUser)))
+    }[3]]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canFullRead" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[
+            ((isRespsDelo || isArchivist|| isChiefArchive || isSupervisor || isBusinessAdmin) && (isProject || isVerified || isReadyToArchive || isAbsent))
+            ||
+            ((isArchivist|| isChiefArchive || isSupervisor || isBusinessAdmin) &&  (isArchived || isWithdraw || isTransferedToStateArchive || isDestroyed || isDeleted))
+            ||(isSuperAdmin)
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isNotTruncatedMapping" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[
+             !(isWithdraw || isDestroyed || isDeleted || (isProject && isCuentUserReader != null &&!isCuentUserReader))
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="showDocs" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[
+           (canFullRead) || (!canFullRead && isNotTruncatedMapping)
+            ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canEdit" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[
+         ((isRespsDelo || isArchivist || isSuperAdmin) &&  (isProject))
+         || ((isArchivist|| isChiefArchive || isSuperAdmin) &&  (isReadyToArchive || isVerified))
+         || ((isArchived || isWithdraw || isWithdraw || isTransferedToStateArchive || isDestroyed || isDeleted) && isSuperAdmin)
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <hyperlink computed="true" name="linkFrFile" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[
+                (FrFile?.frFileUrl == null || FrFile?.frFileUrl == '') ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink(FrFile.frFileTitle +'~#' + FrFile.frFileUrl + '~#newTab')
+                ]]></script>
+      </calc-values>
+    </hyperlink>
+
+    <boolean name="basedFrFile" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(FrFile?.frFileOrmUnid == null || FrFile?.frFileOrmUnid == '') ? false : true]]></script>
+      </calc-values>
+    </boolean>
+
+    <string name="arcDocsTable" temporal="true" />
+    <string name="$id" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[id]]>
+        </script>
+      </calc-values>
+    </string>
+
+    <boolean name="accessMarkNotIsEmpty" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ accessRestrictionMark != null && !"".equals(accessRestrictionMark) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="canEditAccessMark" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ isProject && !"Просмотрено".equals(additionalState) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canReadDocs" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[
+{
+    #me = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard(),
+    #result = false,
+    #appFrapp = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplicationImpl)),
+    #result = #this.isSuperAdmin,
+    #result = #result || #appFrapp.getArchivistSOOrgByReplicaIdSO(T(ru.intertrust.cmj.af.core.AFCMDomino).getSODbReplicaID()).contains(#me),
+    #result = #result || #appFrapp.getArchiveManagerSOOrgByReplicaIdSO(T(ru.intertrust.cmj.af.core.AFCMDomino).getSODbReplicaID()).contains(#me),
+    #result = #result || (#this.department != null && #appFrapp.getRespsDeloNdpSoDepRvzByUnid(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.department)).contains(#me)),
+    #result
+}[7]
+]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="canMoveDocs" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ isProject && ("Ошибка при формировании".equals(additionalState) || "Формируется".equals(additionalState) || "Файлы испорчены".equals(additionalState) ) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="canCreateDocs" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ isProject && ("Ошибка при формировании".equals(additionalState) || "Формируется".equals(additionalState)) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <integer name="viewedFlag" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ viewedFlag != null ? viewedFlag : -1]]>
+        </script>
+      </calc-values>
+    </integer>
+
+    <string name="viewedLink" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ viewedFlag == -1 ? additionalState : viewedFlag == 1 ? "Просмотрено" : "Не просмотрено" ]]>
+        </script>
+      </calc-values>
+    </string>
+
+    <boolean name="canSeeViewedLink" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ !basedFrFile && isProject && (((isSuperAdmin || isArchivist) && "Сформировано".equals(additionalState)) || (isSuperAdmin && "Просмотрено".equals(additionalState))) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <schema-ref name="readersByDeadline" ref="ReaderAccessDataRestTable" system="true" array="true" null-empty="true"/>
+    <schema-ref name="currentReadersByDeadline" ref="ReaderDataRestTable" system="true" array="true" null-empty="true"/>
+
+    <integer name="formedFlag" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ formedFlag != null ? formedFlag : -1]]>
+        </script>
+      </calc-values>
+    </integer>
+
+    <string name="formedLink" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ formedFlag == -1 ? additionalState : formedFlag == 1 ? "Сформировано" : "Формируется" ]]>
+        </script>
+      </calc-values>
+    </string>
+
+    <boolean name="canSeeFormedLink" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[ !basedFrFile && isProject && (isSuperAdmin && "Сформировано".equals(additionalState)) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canVerify" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[(hasArcDocs != null && hasArcDocs) && isProject && 'Просмотрено'.equals(additionalState) && (isArchivist || isChiefArchive || isSuperAdmin)]]></script>
+      </calc-values>
+    </boolean>
+
+    <actor name="addReader" temporal="true"/>
+    <date name="addStartDate" temporal="true"/>
+    <date name="addEndDate" temporal="true"/>
+    <string name="addJustification" temporal="true"/>
+    <boolean name="addSendNotice" temporal="true"/>
+
+    <boolean name="$needRemoveEditAccessLink" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+        (link.?[rel=='edit'].size() > 0 && !canEdit
+             ? link.remove(link.?[rel=='edit'][0])
+             : false)
+        ]]></script>
+      </calc-values>
+    </boolean>
+
+    <string name="empty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[""]]></script>
+      </calc-values>
+    </string>
+
+    <schema-ref ref="ContentResourceDocuments" name="contentDocuments" createlog="true"/>
+    <boolean name="contentDocumentsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentDocuments != null && ((contentDocuments.richtext != null && !contentDocuments.richtext.isEmpty()) || (contentDocuments.content != null && !contentDocuments.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="showStorageTerm" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+          ((spdUsedFile == null || !spdUsedFile) && !"NotFoundPeriodException".equals(storageTerm)) || (basedFrFile != null && basedFrFile)
+          ]]></script>
+      </calc-values>
+    </boolean>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.arcdocs.common.ArcDeal);
+importClass(Packages.ru.intertrust.cmj.arcdocs.dao.ArcDealImpl);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.fileregister.FileRegisterApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitOrganization);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.NotificationUtils);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importPackage(Packages.java.util.HashMap);
+importPackage(Packages.java.util);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.arcdocs.dao.ReaderAccessByDeadline);
+
+function queryCreate(object) {
+    var appFrapp = AFSession.get().getApplication(FileRegisterApplicationImpl.class);
+    var me = AFSession.get().currentUser().getBeard();
+    var organization = getOrganization(me);
+    var department = object.getDepartment().get();
+
+    if(!(appFrapp.isSuperAdmin(AFSession.get().currentUser().getCurrentSoReplica()) || (department != null && appFrapp.isRespsDelo(department.getUNID().split(":")[0])) || (organization != null && appFrapp.getArchivistSOOrgByReplicaIdSO(organization.getUNID().split(":")[0]).contains(me)))) {
+        throw "Не заданы настройки для создания документа данного типа!";
+    }
+
+    if(organization != null) {
+        object.getOrganization().set(organization);
+
+        var setting = null;
+        var stateOrg = null;
+
+        if (appFrapp != null) {
+            setting = appFrapp.findFileSettingByOrgId(organization.getUNID());
+        }
+        if (setting != null && setting.getComplectStateArchive()) {
+            stateOrg = setting.getStateOrg();
+        }
+        if (stateOrg != null) {
+            object.setArchiveOrg(stateOrg.toString(SOBeard.ToStringFormat.CMDOMINO_SHORT_NAME));
+        }
+    }
+
+    object.setMainState(ArcDeal.ArcDealStatus.PROJECT);
+    object.setAdditionalState("Формируется");
+}
+
+function getOrganization(beard) {
+    var parent = beard.getParent();
+    if(parent == null) {
+        return null;
+    }
+    var party = parent.originalData().getParty();
+    if(party instanceof SOUnitOrganization) {
+        return parent;
+    }
+    return getOrganization(parent);
+}
+
+function querySave(object, document) {
+    formed(object, document);
+    viewed(object, document);
+    chekExistDeal(object, document);
+
+    return true;
+}
+
+function postSave(object, document) {
+  formedNotice(object, document);
+}
+
+function chekExistDeal(object, document) {
+   var value = object.getExistDeal();
+
+   if(value != null && value.equals("Отсутствует")){
+        object.setMainState(ArcDeal.ArcDealStatus.ABSENT);
+        object.setAdditionalState(null);
+   }
+}
+
+function recalc(object, changedField) {
+    if ("formedLink".equals(changedField)){
+        TunableObjectHelper.putAFInstanceValue(object, "formedFlag", "Формируется".equals(object.getAdditionalState()) ? 1 : 0);
+    } else if ("viewedLink".equals(changedField)){
+        TunableObjectHelper.putAFInstanceValue(object, "viewedFlag", "Сформировано".equals(object.getAdditionalState()) ? 1 : 0);
+    } else if ("addReader".equals(changedField)){
+        var newReader = GetValue(object, "addReader");
+        var newStartDate = GetValue(object, "addStartDate");
+        var newEndDate = GetValue(object, "addEndDate");
+        var newJustification = GetValue(object, "addJustification");
+        var newSendNotice = GetValue(object, "addSendNotice");
+
+        if(newReader == null){
+            return;
+        }
+
+        var readerList = object.getReaderAccessByDeadline();
+        if (readerList == null){
+            readerList = new ArrayList();
+        }
+
+        var row = new ReaderAccessByDeadline();
+
+        row.setReader(newReader);
+        row.setStartDate(newStartDate);
+        row.setEndDate(newEndDate);
+        row.setJustification(newJustification);
+        row.setSendNotice(newSendNotice);
+
+        readerList.add(row);
+        object.setReaderAccessByDeadline(readerList);
+        SetValue(object, "addReader", null);
+        SetValue(object, "addStartDate", null);
+        SetValue(object, "addEndDate", null);
+        SetValue(object, "addJustification", null);
+        SetValue(object, "addSendNotice", null);
+    }
+}
+
+function formed(object, document) {
+    var formed = GetValue(object, "formedFlag");
+
+    if(formed == null || formed == -1) {
+        return;
+    }
+
+    if(formed == 1) {
+        object.setAdditionalState("Сформировано");
+        var historyRecord = object.history().createNewRecord("arc.deal.formed", AFSession.get().currentUser().getBeard().toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        historyRecord.update("", null, "");
+    } else {
+        object.setAdditionalState("Формируется");
+    }
+}
+
+function formedNotice(object, document) {
+    var formed = GetValue(object, "formedFlag");
+
+    if(formed == null || formed == -1) {
+        return;
+    }
+
+    var receivers = new ArrayList();
+
+    var appFrapp = AFSession.get().getApplication(FileRegisterApplicationImpl.class);
+    var organization = object.getOrganization().get();
+    if(organization != null){
+        receivers = appFrapp.getArchivistSOOrgByReplicaIdSO(organization.getUNID().split(":")[0]);
+    }
+
+    if(formed == 1) {
+        if(receivers != null && receivers.size() > 0){
+            var notice = DPNotificationUtils.createNotice(document, "DEFO1_11", true, AFSession.get().currentUser().getBeard(), "Система", new HashSet(receivers));
+            DPNotificationUtils.sendNotice(notice);
+        }
+    } else {
+        if(receivers != null && receivers.size() > 0){
+            new PkdSession().deleteEvent(receivers, EventCode.getByString("DEFO1_11"), object);
+        }
+    }
+}
+
+function viewed(object, document) {
+    var viewed = GetValue(object, "viewedFlag");
+
+    if(viewed == null || viewed == -1) {
+        return;
+    }
+
+    if(viewed == 1) {
+        object.setAdditionalState("Просмотрено");
+        var historyRecord = object.history().createNewRecord("arc.deal.viewed", AFSession.get().currentUser().getBeard().toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        historyRecord.updateOne("Сформировано", "Просмотрено");
+
+        new PkdSession().markEventsAsCompleted(object.getUNID(), EventCode.getByString("DEFO1_11"));
+    } else {
+        object.setAdditionalState("Сформировано");
+    }
+}
+function SetValue(doc, fileName, value) {
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function GetValue(object, filedName) {
+    var values;
+    if(object instanceof AFInstanceObject) {
+        values = object.getValues();
+    }
+    else if(object instanceof HashMap) {
+        values = object;
+    }
+    else {
+        values = object.tuning().getValues();
+    }
+
+    var tmp = values.get(filedName);
+    if(tmp == null) {
+        return null;
+    }
+
+    return tmp instanceof AFInstanceSimple ? tmp.getValue() : tmp.getValues();
+}]]></custom-event-handler>
   </schema>
 </schemas>
+
+

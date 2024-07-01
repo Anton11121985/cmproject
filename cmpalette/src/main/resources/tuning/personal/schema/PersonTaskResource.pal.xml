@@ -24,6 +24,12 @@
         <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument() != null && (#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.rkk.RkkResource) || 'application/vnd.intertrust.cm.contracts.addagrement+json'.equals(#this.getRelatedDocument().getContentType()) || 'application/vnd.intertrust.cm.contracts.document+json'.equals(#this.getRelatedDocument().getContentType()) || 'application/vnd.intertrust.cm.contracts.finance+json'.equals(#this.getRelatedDocument().getContentType())) ? T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(#this.getRelatedDocument().getResource().id.split(':')[0]).rkkNoteReportText : (#this.getRelatedDocument() != null && #this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource)) ? T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(#this.getRelatedDocument().getResource().id.split(':')[0]).resolutionNoteReportText : null]]></script>
       </calc-values>
     </string>
+    <string name="labels" system="true" array="true"/>
+    <boolean name="accessible" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[('EXEC1_11'.equals(#this.eventCode) || 'VISA1_11'.equals(#this.eventCode) || 'FMLR1_11'.equals(#this.eventCode)) ? #this.getRootDocument() != null : #this.getRelatedDocument() != null]]></script>
+      </calc-values>
+    </boolean>
     <string name="regInfo" createlog="true" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument() != null && #this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceContracts) ?
@@ -33,7 +39,7 @@
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.getRelatedDocument().getResource().creationDate.toInstant())) :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().getResource().registration.date)) + (#this.getRelatedDocument().getResource().additionalnumber == null || #this.getRelatedDocument().getResource().additionalnumber.isEmpty() ? '' : (' (доп.номер ' + #this.getRelatedDocument().getResource().additionalnumber + ')'))) :
 ((#this.getRelatedDocument().getResource().registration != null && (#this.getRelatedDocument().getResource().registration.number != null || #this.getRelatedDocument().getResource().projectNumber.projectNumber != null && !#this.getRelatedDocument().getResource().projectNumber.projectNumber.isEmpty())
-? ('Проект №' + (#this.getRelatedDocument().getResource().registration.number == null ? #this.getRelatedDocument().getResource().projectNumber.projectNumber : (#this.getRelatedDocument().getResource().registration.number.prefix + #this.getRelatedDocument().getResource().registration.number.number + #this.getRelatedDocument().getResource().registration.number.suffix))
+? ('Проект № ' + (#this.getRelatedDocument().getResource().registration.number == null ? #this.getRelatedDocument().getResource().projectNumber.projectNumber : (#this.getRelatedDocument().getResource().registration.number.prefix + #this.getRelatedDocument().getResource().registration.number.number + #this.getRelatedDocument().getResource().registration.number.suffix))
 + ' от ' + (#this.getRelatedDocument().getResource().registration.number == null || #this.getRelatedDocument().getResource().registration.date == null ?
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.getRelatedDocument().getResource().creationDate.toInstant())) :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().getResource().registration.date)) + (#this.getRelatedDocument().getResource().additionalnumber == null || #this.getRelatedDocument().getResource().additionalnumber.isEmpty() ? '' : (' (доп.номер ' + #this.getRelatedDocument().getResource().additionalnumber + ')'))) :
@@ -48,7 +54,7 @@ T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().ge
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.getRootDocument().getResource().creationDate.toInstant())) :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getResource().registration.date)) + (#this.getRootDocument().getResource().additionalnumber == null || #this.getRootDocument().getResource().additionalnumber.isEmpty() ? '' : (' (доп.номер ' + #this.getRootDocument().getResource().additionalnumber + ')'))) :
 ((#this.getRootDocument().getResource().registration != null && (#this.getRootDocument().getResource().registration.number != null || #this.getRootDocument().getResource().projectNumber.projectNumber != null && !#this.getRootDocument().getResource().projectNumber.projectNumber.isEmpty())
-? ('Проект №' + (#this.getRootDocument().getResource().registration.number == null ? #this.getRootDocument().getResource().projectNumber.projectNumber : (#this.getRootDocument().getResource().registration.number.prefix + #this.getRootDocument().getResource().registration.number.number + #this.getRootDocument().getResource().registration.number.suffix))
+? ('Проект № ' + (#this.getRootDocument().getResource().registration.number == null ? #this.getRootDocument().getResource().projectNumber.projectNumber : (#this.getRootDocument().getResource().registration.number.prefix + #this.getRootDocument().getResource().registration.number.number + #this.getRootDocument().getResource().registration.number.suffix))
 + ' от ' + (#this.getRootDocument().getResource().registration.number == null || #this.getRootDocument().getResource().registration.date == null ?
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.getRootDocument().getResource().creationDate.toInstant())) :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getResource().registration.date)) + (#this.getRootDocument().getResource().additionalnumber == null || #this.getRootDocument().getResource().additionalnumber.isEmpty() ? '' : (' (доп.номер ' + #this.getRootDocument().getResource().additionalnumber + ')'))) :
@@ -60,7 +66,7 @@ T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getRe
 (#this.getRelatedDocument().getResource().regInfo.number
 + ' от ' + (#this.getRelatedDocument().getResource().regInfo.date == null ? '' :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().getResource().regInfo.date.toJavaDate()))) :
-((#this.getRelatedDocument().getResource().regInfo != null && #this.getRelatedDocument().getResource().regInfo.number != null && !#this.getRelatedDocument().getResource().regInfo.number.isEmpty() ? ('Проект №' + #this.getRelatedDocument().getResource().regInfo.number
+((#this.getRelatedDocument().getResource().regInfo != null && #this.getRelatedDocument().getResource().regInfo.number != null && !#this.getRelatedDocument().getResource().regInfo.number.isEmpty() ? ('Проект № ' + #this.getRelatedDocument().getResource().regInfo.number
 + ' от ' + (#this.getRelatedDocument().getResource().regInfo.date == null ? '' :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().getResource().regInfo.date.toJavaDate()))) :
 ('Проект от ' + (#this.getRelatedDocument().getResource().regInfo == null || #this.getRelatedDocument().getResource().regInfo.date == null ? '' :
@@ -71,7 +77,7 @@ T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().ge
 (#this.getRootDocument().getResource().regInfo.number
 + ' от ' + (#this.getRootDocument().getResource().regInfo.date == null ? '' :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getResource().regInfo.date.toJavaDate()))) :
-((#this.getRootDocument().getResource().regInfo != null && #this.getRootDocument().getResource().regInfo.number != null && !#this.getRootDocument().getResource().regInfo.number.isEmpty() ? ('Проект №' + #this.getRootDocument().getResource().regInfo.number
+((#this.getRootDocument().getResource().regInfo != null && #this.getRootDocument().getResource().regInfo.number != null && !#this.getRootDocument().getResource().regInfo.number.isEmpty() ? ('Проект № ' + #this.getRootDocument().getResource().regInfo.number
 + ' от ' + (#this.getRootDocument().getResource().regInfo.date == null ? '' :
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getResource().regInfo.date.toJavaDate()))) :
 ('Проект от ' + (#this.getRootDocument().getResource().regInfo == null || #this.getRootDocument().getResource().regInfo.date == null ? '' :
@@ -85,7 +91,7 @@ T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getRe
 (#this.getRelatedDocument().getResource().registration.number.prefix + #this.getRelatedDocument().getResource().registration.number.number + #this.getRelatedDocument().getResource().registration.number.suffix)) + ' от ' +
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().getResource().date)) :
 (#this.getRootDocument() != null ? ((#this.getRootDocument().getResource().registration.number == null ?
-(#this.getRootDocument().getResource().projectNumber.numberCharacter == null ? 'Проект' : 'Проект №' + (#this.getRootDocument().getResource().projectNumber.projectNumber)) :
+(#this.getRootDocument().getResource().projectNumber.numberCharacter == null ? 'Проект' : 'Проект № ' + (#this.getRootDocument().getResource().projectNumber.projectNumber)) :
 (#this.getRootDocument().getResource().registration.number.prefix + #this.getRootDocument().getResource().registration.number.number + #this.getRootDocument().getResource().registration.number.suffix))
 + ' от ' + (#this.getRootDocument().getResource().registration.number == null ?
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.getRootDocument().getResource().creationDate.toInstant())) :
@@ -93,9 +99,9 @@ T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getRe
 + (#this.getRootDocument().getContentType().equals('application/vnd.intertrust.cm.rkk+json;type=input') ? (' (вх.' + (#this.getRootDocument().getResource().correspondent.withoutNumber == true ? 'б/н' :
 #this.getRootDocument().getResource().correspondent.regNumber) + (#this.getRootDocument().getResource().correspondent.withoutDate == true ? ', б/д' :
 ' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRootDocument().getResource().correspondent.regDate)) + ')') : '')) :
-#this.getRelatedDocument() != null ?
+#this.getRelatedDocument() != null && #this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.rkk.RkkResource) ?
 ((#this.getRelatedDocument().getResource().registration.number == null ?
-(#this.getRelatedDocument().getResource().projectNumber.numberCharacter == null ? 'Проект' : 'Проект №' + (#this.getRelatedDocument().getResource().projectNumber.projectNumber)) :
+(#this.getRelatedDocument().getResource().projectNumber.numberCharacter == null ? 'Проект' : 'Проект № ' + (#this.getRelatedDocument().getResource().projectNumber.projectNumber)) :
 (#this.getRelatedDocument().getResource().registration.number.prefix + #this.getRelatedDocument().getResource().registration.number.number + #this.getRelatedDocument().getResource().registration.number.suffix))
 + ' от ' + (#this.getRelatedDocument().getResource().registration.number == null || #this.getRelatedDocument().getResource().registration.date == null ?
 T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.getRelatedDocument().getResource().creationDate.toInstant())) :
@@ -148,9 +154,38 @@ T(ru.intertrust.cmj.rest.tuning.TuningHelper).removeLinks(#this.getRelatedDocume
     </boolean>
     <string name="contextType" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[(#this.getRootDocument() != null ? (#this.getRootDocument().getResource().tuning().getSchema().getName() + '_') : '')
-        + (#this.getRelatedDocument() != null ? (#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.tuning.HasSchema) ? #this.getRelatedDocument().getResource().tuning().getSchema().getName() : #this.getRelatedDocument().getResource().getClass().getSimpleName()) : 'empty')]]></script>
+        <script event="open" lang="SPEL"><![CDATA[(#this.getRelatedDocument() != null &&
+(#this.getRelatedDocument().getResource().getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.addagr.Agreement.Resource))
+|| #this.getRelatedDocument().getResource().getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.document.Document.Resource))
+|| #this.getRelatedDocument().getResource().getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.finances.Finance.Resource)))) ?
+    (#this.getRelatedDocument().getResource().tuning().getSchema().getName())
+: ((#this.getRootDocument() != null ? (#this.getRootDocument().getResource().tuning().getSchema().getName() + '_') : '')
+    + (#this.getRelatedDocument() != null ? (#this.getRootDocument() != null ? (#this.getRelatedDocument().getResource().getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.report.ReportResource)) && !T(org.springframework.web.context.request.RequestContextHolder).getRequestAttributes()?.getRequest().getParameterMap().containsKey("rootView") ? 'AsReportRoot' : 'AsRoot') : #this.getRelatedDocument().getResource().tuning().getSchema().getName()) : 'empty'))]]></script>
       </calc-values>
     </string>
+    <boolean name="addResolutionProjectLink" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#root.task != null && #this.task.getEventInfo().getTaskStatus() != null
+        && (#root.task.getEventInfo().getTaskStatus().name().equals('TRANSFERRED') || #root.task.getEventInfo().getTaskStatus().name().equals('REFUSED'))
+        && ('ADDR1_11'.equals(#root.eventCode) || 'EXEC1_11'.equals(#root.eventCode))
+        && #root.task.getEventInfo().getAdditionalData() != null && !#root.task.getEventInfo().getAdditionalData().isEmpty()
+        && #root.link.?[rel=='http://intertrust.ru/cmj/relations#linked.resolution.project'].size() == 0
+        && #root.link.add(
+              T(ru.intertrust.cmj.rest.core.ResourceLink).getResourceLink(
+                'http://intertrust.ru/cmj/relations#linked.resolution.project',
+                new ru.intertrust.cmj.rest.resolution.ResolutionReference(#root.task.getEventInfo().getAdditionalData()),
+                ''))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="resolutionCreationLinksRemoved" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#root.task != null && #this.task.getEventInfo().getTaskStatus() != null
+        && (#root.task.getEventInfo().getTaskStatus().name().equals('TRANSFERRED') || #root.task.getEventInfo().getTaskStatus().name().equals('REFUSED'))
+        && ('ADDR1_11'.equals(#root.eventCode) || 'EXEC1_11'.equals(#root.eventCode))
+        && #root.task.getEventInfo().getAdditionalData() != null && !#root.task.getEventInfo().getAdditionalData().isEmpty()
+        && T(ru.intertrust.cmj.rest.tuning.TuningHelper).removeLinks(#this.getRelatedDocument().getResource().link,
+        'http://intertrust.ru/cmj/relations#create-resolution', 'http://intertrust.ru/cmj/relations#create-resolution.group')]]></script>
+      </calc-values>
+    </boolean>
   </schema>
 </schemas>

@@ -1,9 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
-  <schema name="ResolutionTasksResource">
+  <schema name="ResolutionTasksResource" recalc="true">
     <meta>
       <category name="Система\Поручения"/>
     </meta>
+    <string name="showIdent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Самостоятельное поручение']]></script>
+      </calc-values>
+    </string>
     <string name="pagename" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[#isObjectContains(#this, 'registration') ? (registration.number==null ? 'Поручение проект' : ('Поручение № '+registration.number.prefix+registration.number.number+registration.number.suffix)) : 'Поручение проект']]></script>
@@ -15,6 +20,16 @@
     <date name="resdeadline" system="true"/>
     <string name="$controlAction" system="true" temporal="true"/>
     <string name="$executionAction" system="true" temporal="true"/>
+    <string name="$id" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[id]]></script>
+      </calc-values>
+    </string>
+    <string name="contentFields" temporal="true" array="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(java.util.Arrays).asList('/richtext', '/content', '/contentAdd/richtext', '/contentAdd/content')]]></script>
+      </calc-values>
+    </string>
     <boolean name="isAccessFromLink" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='self'].size() > 0 && T(org.springframework.web.util.UriComponentsBuilder).fromUriString(link.?[rel=='self'].get(0).getHref()).build().getQueryParams().get( 'access') != null]]></script>
@@ -31,13 +46,36 @@
         <script event="open" lang="SPEL"><![CDATA['Проект']]></script>
       </calc-values>
     </string>
+    <string name="emptyfield" temporal="true"/>
     <schema-ref ref="RegistrationInfo" name="registration" system="true"/>
     <schema-ref ref="ShowRegInfoTask" name="showRegInfo" temporal="true"/>
     <schema-ref ref="ShowAuthorInfoTask" name="showAuthor" temporal="true"/>
-    <schema-ref ref="ControlCardResource" name="control" system="true"/>
+    <schema-ref ref="ControlCardResourceRes" name="control" system="true">
+      <recalc-processing-class>ru.intertrust.cmj.rest.tuning.RecalcForChangeResolutionSaveButtonName</recalc-processing-class>
+    </schema-ref>
     <string name="$OrderExecution" system="true" temporal="true"/>
     <date name="date" system="true"/>
     <actor name="author" system="true"/>
+      <boolean name="curUserIsAuthor" temporal="true">
+          <calc-values>
+              <script event="open" lang="SPEL"><![CDATA[
+	#this.author != null && (#this.author.id.equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID()) || T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(#this.author.id))
+]]>
+              </script>
+          </calc-values>
+      </boolean>
+    <boolean name="$canPublish" temporal="true" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#publish'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <schema-ref ref="ContentResourceAdditional" name="contentAdd"/>
+    <schema-ref ref="ContentResource" name="$content" system="true" createlog="true"/>
+    <boolean name="$canModifyContent" system="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[control==null || control.executed!=true || control.isControlled!=true]]></script>
+      </calc-values>
+    </boolean>
     <string name="authorLabel" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Автор:']]></script>
@@ -57,8 +95,45 @@
       </calc-values>
     </string>
     <schema-ref ref="ResTaskStatus" name="status" system="true"/>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(status == null || status['deleted'] == null) ? false : status['deleted']]]></script>
+      </calc-values>
+    </boolean>
     <boolean name="disableLinkAccess" system="true"/>
     <schema-ref ref="CompletionResourceResolution" name="complete" system="true" createlog="true" temporal="true"/>
+    <boolean name="isCompleted" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[complete != null && complete.date != null && T(java.lang.Boolean).TRUE.equals(control.executed)]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isCanceled" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[complete != null && complete.date != null && !(T(java.lang.Boolean).TRUE.equals(control.executed))]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <string name="showState" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+           (isDeleted ?  'Удалено' :
+           (isCompleted ? 'Исполнено' :
+           (isCanceled ? 'Отменено' :
+           (#isObjectContains(#this, 'registration') && (registration.number!=null) ? 'В работе' :
+           (($isSendToApproving!=null && $isSendToApproving) ? 'На утверждении' : 'Проект')
+           ))))
+          ]]></script>
+      </calc-values>
+    </string>
+    <string name="previousText" system="true"/>
+    <string name="labelContentTemp" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[""]]></script>
+      </calc-values>
+    </string>
     <boolean name="$canDiscuss" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#discussion'].size() > 0]]></script>
@@ -92,6 +167,11 @@
             <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getPerson().getPersonStampGrifs()]]></script>
         </calc-values>
     </string>
+    <boolean name="$canFillFilesTasks" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#save.and.fill.files'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
     <string computed="true" createlog="true" name="editSecurityStampField">
       <storage-field name="editSecurityStampField"/>
       <calc-values>
@@ -157,6 +237,11 @@
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].size() > 0]]></script>
       </calc-values>
     </boolean>
+    <boolean name="doesDocResultMustOpen" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#condition-save-to-apply'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
     <boolean name="$IsNewResolution" system="true" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[#this.new!=null && #this.new]]></script>
@@ -168,6 +253,125 @@
         <script event="open" lang="SPEL"><![CDATA[T(java.lang.Boolean).TRUE.equals(status.deleted)]]></script>
       </calc-values>
     </boolean>
+    <boolean name="isEnabledExecuteRkk" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA[T(ru.intertrust.cmj.rest.bf.ModuleID).TASKS.getModule().isEnabledExecuteRkkWithControlledResolutions(#this.getComplect(), #this.getDbIdent())
+|| T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(NotCompletedCtrldResForRkk)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() == 0]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$isSendToApproving" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#send.to.approving'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <string name="onApproving">
+      <storage-field name="OnApproving"/>
+    </string>
+    <actor name="onApprovingSentBy">
+      <storage-field name="OnApproving_SentBy"/>
+    </actor>
+    <date name="onApprovingSentDate">
+      <storage-field name="OnApproving_SentDate"/>
+    </date>
+    <!-- WebDocs (begin) -->
+    <boolean name="hasExecutionChilds" system="true"/>
+    <integer name="executorDigestBoldIndexes" temporal="true" array="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[{
+              #all = #this.executor,
+              #resp = #all.?[responsible == true],
+              #resp.![#all.indexOf(#this)]
+            }[2]]]>
+        </script>
+      </calc-values>
+    </integer>
+    <schema-ref ref="CmjLinkResource" name="relations" system="true" array="true"/>
+    <integer name="contentCount" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(richtext != null ? 1 : 0) + (content != null ? content.size() : 0)]]></script>
+      </calc-values>
+    </integer>
+    <integer name="contentAddCount" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentAdd != null ? (contentAdd.richtext != null && !contentAdd.richtext.isEmpty() ? 1 : 0) + (contentAdd.content != null ? contentAdd.content.size() : 0) : 0]]></script>
+      </calc-values>
+    </integer>
+    <boolean name="$contentTaskNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+            contentCount > 0
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="$contentAddTaskNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+            contentAddCount > 0
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="$contentTaskSectionEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+            $contentTaskNotEmpty || $contentAddTaskNotEmpty
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <string name="contentTaskEmptyLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[""]]></script>
+      </calc-values>
+    </string>
+    <schema-ref ref="ContentResource" name="contentContainer" system="true"/>
+    <file name="content" system="true"/>
+    <richtext name="richtext" system="true"/>
+    <string name="text" system="true"/>
+    <string name="regInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[registration == null || registration.number==null ? 'Проект' : ('№ ' + registration.number.prefix+registration.number.number+registration.number.suffix)]]></script>
+      </calc-values>
+    </string>
+    <string name="withoutDeadlineLabel" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA['Без срока']]></script>
+      </calc-values>
+    </string>
+    <string name="emptyFieldLabel" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA['Не заполнено']]></script>
+      </calc-values>
+    </string>
+    <string name="wdHelpLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['* обязательно для заполнения']]></script>
+      </calc-values>
+    </string>
+    <string name="comment">
+      <storage-field name="commentTasks"/>
+    </string>
+    <string name="regInfoWD">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.registration == null || #this.registration.number == null  ? 'Проект' :(
+#this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix + ' от ' + T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(#this.date, false))]]></script>
+      </calc-values>
+    </string>
+    <integer name="contentCountCommon">
+      <storage-field name="contentCountCommon"/>
+      <calc-values>
+        <script event="save" lang="SPEL"><![CDATA[
+(richtext != null ? 1 : 0) + (content != null ? content.size() : 0) + (contentAdd != null ? (contentAdd.richtext != null ? 1 : 0) + (contentAdd.content != null ? contentAdd.content.size() : 0) : 0)
+]]></script>
+      </calc-values>
+    </integer>
+    <!-- WebDocs (end) -->
     <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
         importPackage(Packages.ru.intertrust.cmj.af.tuning);
         importPackage(Packages.ru.intertrust.cmj.rest.tuning);
@@ -178,59 +382,58 @@
         importClass(Packages.org.springframework.util.StringUtils);
         importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
         importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+        importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.resolution.full.ResolutionFExecutor);
+        importPackage(Packages.java.util);
+        importPackage(Packages.java.lang);
 
-        function querySave(object, document) {
-	      if(object.tuning()!= null && object.tuning().getValues()!= null){
-              var securityStamp = object.getSecurityStamp();
-              var editSecurityStampField = securityStamp != null && securityStamp != "" ? "No" : "Yes";
-              object.tuning().getValues().put("editSecurityStampField",TuningHelper.createPropertyValue(editSecurityStampField, object.tuning().getSchema().getProperty("editSecurityStampField")));
-          }
-
-          if (StringUtils.isEmpty(object.getSecurityStamp()) && !StringUtils.isEmpty(document.getItemValueString("security_stamp_name"))) {
-            var needGrifWarning = !object.isProject();
-            if (needGrifWarning) {
-              var reasonWithdraw = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.description");
-              needGrifWarning = reasonWithdraw==null || reasonWithdraw=="" || reasonWithdraw=="null";
+          function querySave(object, document) {
+            if(object.tuning()!= null && object.tuning().getValues()!= null){
+                var securityStamp = object.getSecurityStamp();
+                var editSecurityStampField = securityStamp != null && securityStamp != "" ? "No" : "Yes";
+                object.tuning().getValues().put("editSecurityStampField",TuningHelper.createPropertyValue(editSecurityStampField, object.tuning().getSchema().getProperty("editSecurityStampField")));
             }
-            if (needGrifWarning) {
-              throw "Для удаления грифа доступа воспользуйтесь кнопкой \"Снять гриф доступа\".";
-            }
-          }
 
-          // отслеживаем изменение причины снятия грифа либо снятие грифа
-          var reasonWithdraw = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.description");
-          if (!StringUtils.isEmpty(reasonWithdraw)) {
-            var oldTextReason = document.getItemValueString("withdrawStampReason");
-            var oldDocType = document.getItemValueString("reasonDocType");
-            var oldDocNum = document.getItemValueString("reasonDocDocNumber");
-            var oldRegDate = document.getItemValueString("reasonDocRegDateText");
-            var oldDocInfo = (oldDocType+" "+(StringUtils.isEmpty(oldDocNum) ? "" : '№ '+oldDocNum) + " "
-                        + (StringUtils.isEmpty(oldRegDate)?"":("от "+oldRegDate))).trim();
-            if (reasonWithdraw!=oldTextReason && reasonWithdraw!=oldDocInfo) {
-              var event = StringUtils.isEmpty(oldTextReason) && StringUtils.isEmpty(oldDocInfo) ? FieldBase.RKK_GRIF_WITHDRAW :
-              !StringUtils.isEmpty(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText")) ?
-              FieldBase.RKK_GRIF_WITHDRAW_REASON : FieldBase.RKK_GRIF_WITHDRAW_DOC;
-              if (event == FieldBase.RKK_GRIF_WITHDRAW) {
-                TunableHistoryHelper.hist_addBasicText(object.history(), event,
-      (StringUtils.isEmpty(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText"))?
-      "Основание - ":"Причина: ")+reasonWithdraw);
-              } else {
-                TunableHistoryHelper.hist_addTextOne(object.history(), event, StringUtils.isEmpty(oldTextReason)?oldDocInfo:oldTextReason, reasonWithdraw);
+            if (StringUtils.isEmpty(object.getSecurityStamp()) && !StringUtils.isEmpty(document.getItemValueString("security_stamp_name"))) {
+              var needGrifWarning = !object.isProject();
+              if (needGrifWarning) {
+                var reasonWithdraw = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.description");
+                needGrifWarning = reasonWithdraw==null || reasonWithdraw=="" || reasonWithdraw=="null";
+              }
+              if (needGrifWarning) {
+                throw "Для удаления грифа доступа воспользуйтесь кнопкой \"Снять гриф доступа\".";
               }
             }
-          }
 
-          return true;
-        }
+            // отслеживаем изменение причины снятия грифа либо снятие грифа
+            var reasonWithdraw = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.description");
+            if (!StringUtils.isEmpty(reasonWithdraw)) {
+              var oldTextReason = document.getItemValueString("withdrawStampReason");
+              var oldDocType = document.getItemValueString("reasonDocType");
+              var oldDocNum = document.getItemValueString("reasonDocDocNumber");
+              var oldRegDate = document.getItemValueString("reasonDocRegDateText");
+              var oldDocInfo = (oldDocType+" "+(StringUtils.isEmpty(oldDocNum) ? "" : '№ '+oldDocNum) + " "
+                          + (StringUtils.isEmpty(oldRegDate)?"":("от "+oldRegDate))).trim();
+              if (reasonWithdraw!=oldTextReason && reasonWithdraw!=oldDocInfo) {
+                var event = StringUtils.isEmpty(oldTextReason) && StringUtils.isEmpty(oldDocInfo) ? FieldBase.RKK_GRIF_WITHDRAW :
+                !StringUtils.isEmpty(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText")) ?
+                FieldBase.RKK_GRIF_WITHDRAW_REASON : FieldBase.RKK_GRIF_WITHDRAW_DOC;
+                if (event == FieldBase.RKK_GRIF_WITHDRAW) {
+                  TunableHistoryHelper.hist_addBasicText(object.history(), event,
+        (StringUtils.isEmpty(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText"))?
+        "Основание - ":"Причина: ")+reasonWithdraw);
+                } else {
+                  TunableHistoryHelper.hist_addTextOne(object.history(), event, StringUtils.isEmpty(oldTextReason)?oldDocInfo:oldTextReason, reasonWithdraw);
+                }
+              }
+            }
+
+            return true;
+          }
 
         function postSave(object, document) {
 	    }
 
     function recalc(object, changedField) {
-      if ("author".equals(changedField)) {
-        var author = object.getAuthor();
-        TunableObjectHelper.putAFInstanceValue(object.control().tuning(), "current_author", author);
-      }
       if (changedField == 'addLinkedDocGrif') {
         var values = object.tuning().getValues();
         var addLinkedDoc = values.get('addLinkedDocGrif');
@@ -273,6 +476,7 @@
         TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.regDate", null);
         object.setSecurityStamp("");
       }
+
     }
 
     function getIdFromHref(href) {

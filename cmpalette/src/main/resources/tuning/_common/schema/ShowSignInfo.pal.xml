@@ -9,19 +9,35 @@
         <script event="open" lang="SPEL"><![CDATA['Подпись:']]></script>
       </calc-values>
     </string>
+    <boolean name="hasMultipleSigners" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[#parentnode.signature != null && !(#parentnode.signature.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD)]]>
+        </script>
+      </calc-values>
+    </boolean>
     <actor name="showSigner" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[#parentnode.signature!=null && #parentnode.signature.signer!=null ? #parentnode.signature.signer :null]]></script>
+        <script event="open" lang="SPEL">
+          <![CDATA[hasMultipleSigners ? #parentnode.signature!=null && #parentnode.signature.signers != null && #parentnode.signature.signers.size() > 0 && #parentnode.signature.signers.get(#parentnode.signature.signers.size() - 1) != null ? #parentnode.signature.signers.get(#parentnode.signature.signers.size() - 1).signer : null
+                                      : #parentnode.signature!=null && #parentnode.signature.signer!=null ? #parentnode.signature.signer : null]]>
+        </script>
       </calc-values>
     </actor>
     <string name="showNoSigner" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[#parentnode.signature!=null && #parentnode.signature.signer!=null && #parentnode.signature.signer.id!=null ? "" : 'Не указан подписывающий']]></script>
+        <script event="open" lang="SPEL">
+          <![CDATA[hasMultipleSigners ? #parentnode.signature!=null && #parentnode.signature.signers != null && #parentnode.signature.signers.size() > 0 && #parentnode.signature.signers.get(#parentnode.signature.signers.size() - 1) != null && #parentnode.signature.signers.get(#parentnode.signature.signers.size() - 1).signer.id != null ? "" : 'Не указан подписывающий'
+                                      : #parentnode.signature!=null && #parentnode.signature.signer!=null && #parentnode.signature.signer.id!=null ? "" : 'Не указан подписывающий']]>
+        </script>
       </calc-values>
     </string>
     <boolean name="signerIsDefined" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[#parentnode.signature!=null && #parentnode.signature.signer!=null && #parentnode.signature.signer.id!=null ? true : false]]></script>
+        <script event="open" lang="SPEL">
+          <![CDATA[hasMultipleSigners ? #parentnode.signature!=null && #parentnode.signature.signers != null && #parentnode.signature.signers.size() > 0 && #parentnode.signature.signers.get(#parentnode.signature.signers.size() - 1)!=null && #parentnode.signature.signers.get(#parentnode.signature.signers.size() - 1).signer.id!=null ? true : false
+                                      : #parentnode.signature!=null && #parentnode.signature.signer!=null && #parentnode.signature.signer.id!=null ? true : false]]>
+        </script>
       </calc-values>
     </boolean>
   </schema>

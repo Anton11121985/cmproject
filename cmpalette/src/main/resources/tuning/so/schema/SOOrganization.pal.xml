@@ -7,7 +7,7 @@
     <boolean name="isChangedSetting" temporal="true"/>
     <string name="description" createlog="true" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['Организация: '+fullname + ' ('+shortname+') '+' (Код:'+code+')']]></script>
+        <script event="open" lang="SPEL"><![CDATA['Организация']]></script>
       </calc-values>
     </string>
     <boolean name="resexecutor">
@@ -52,7 +52,7 @@
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[{"Met", "GDBaseName", "GroupZam_My_Beards", "EShortName", "AllIDs", "GroupZam", "ZamAudit", "OName", "EKNumber", "EPhone", "DocID",
 "RPA_Input_GDs", "RPA_Output_GDs", "RPA_Internal_GDs", "RPA_ORD_GDs", "RPA_Contracts_GDs", "RPA_Requests_GDs", "GroupInput","GroupOutput", "GroupInternal", "GroupORD", "GroupContracts", "GroupRequests", "InputSW", "OutputSW", "InternSW", "ORDSW", "ContractsSW", "RequestsSW",
-"EFullName", "OName_L10n", "OName_1_L10n"}]]></script>
+"EFullName", "OName_L10n", "OName_1_L10n", "MedoStamps", "OGRN", "CEmail", "CTelex", "CAddr_ZipCode", "CAddr_Street"}]]></script>
       </calc-values>
     </string>
     <boolean name="contracts" system="true" temporal="true">
@@ -253,6 +253,46 @@
     <string name="guidmedo">
       <storage-field name="guidmedo"/>
     </string>
+    <boolean name="hasMedoGuid" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[guidmedo != null && !''.equals(guidmedo)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="operatorMedoGuid">
+      <storage-field name="OperatorMedoGuid"/>
+    </string>
+    <integer name="medoTransferStatus">
+      <storage-field name="TransferStatus"/>
+      <default-values>
+        <default-value>0</default-value>
+      </default-values>
+    </integer>
+    <string name="medoTransferResponse">
+      <storage-field name="TransferResponse"/>
+    </string>
+    <string name="medoTransferResponseTitle" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[medoTransferStatus == 2 || medoTransferStatus == 3 ? 'Ответ получен' : medoTransferStatus == 1 ? 'Передано' : 'Не передавалось']]></script>
+      </calc-values>
+    </string>
+    <string name="medoTransferResponseWithStatus" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[medoTransferStatus == 3 ? 'Запрос принят' : medoTransferStatus == 2 ? 'Запрос отклонен: ' + medoTransferResponse : '']]></script>
+      </calc-values>
+    </string>
+    <boolean name="medoResponseReceived" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[medoTransferStatus == 2 || medoTransferStatus == 3]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="trueCondition" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[true]]></script>
+      </calc-values>
+    </boolean>
+    <string name="medoStamps" array="true" createlog="true">
+      <storage-field name="MedoStamps"/>
+    </string>
     <string name="inn">
       <storage-field name="INN"/>
     </string>
@@ -264,6 +304,10 @@
     </string>
     <string name="ogrn">
       <storage-field name="OGRN"/>
+      <validate>
+        <regex>^([0-9]{13}|[0-9]{15})?$</regex>
+        <message locale="ru">Допустимый формат - 13 арабских цифр без разделителей</message>
+      </validate>
     </string>
     <schema-ref ref="DescriptionCases" name="case"/>
     <string name="GDBaseName">
@@ -279,6 +323,10 @@
       <storage-field name="IsProhibitOldUid"/>
       <storage-string value="1"/>
     </boolean>
+    <boolean name="isTransitiveSubsDisabled">
+      <storage-field name="isTransitiveSubsDisabled" />
+      <storage-string value="1" />
+    </boolean>
     <schema-ref ref="AdminSOUnit" array="true" name="chiefArchiveUnit" temporal="true"/>
     <schema-ref ref="AdminSOUnit" array="true" name="archivistUnit" temporal="true"/>
     <boolean name="iscodeni">
@@ -288,5 +336,63 @@
     <string name="nomenclatureIndex" createlog="true">
       <storage-field name="nomenclatureIndex"/>
     </string>
+    <boolean name="isOldFrCompatible" system="true" createlog="true" temporal="true">
+      <storage-field name="isOldFrCompatible"/>
+      <storage-string value="1"/>
+    </boolean>
+    <string array="true" name="AddedTempSubsNoticeReceivers" system="true" temporal="true"/>
+    <string array="true" name="DeletedTempSubsNoticeReceivers" system="true" temporal="true"/>
+    <schema-ref name="russianPostTable" ref="PostTable" null-empty="true" array="true"/>
+    <string name="reasonSubstitution" >
+      <storage-field name="reasonSubstitution"/>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importPackage(Packages.java.util);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+
+function querySave(object, document) {
+    writeHistory(object, document);
+}
+
+function writeHistory(object, document) {
+
+    var hist = object.history();
+    if (!object.isNew()) {
+        writeTextHistory(object, document, hist, "reasonSubstitution", "reasonSubstitution", "reasonsubstitution.created");
+    }
+    object.history = hist;
+}
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName) {
+    var oldValue = getFieldValue(document, fieldName);
+    var newValue = getPropertyValue(object, propertyName);
+
+    if (!oldValue.equals(newValue)) {
+        TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+    }
+}
+
+function getFieldValue(document, fieldName) {
+    var value = null;
+    if (document != null) {
+        value = document.getItemValueString(fieldName);
+    }
+    return value != null ? value : "";
+}
+
+function getPropertyValue(object, propertyName) {
+    var value = null;
+    if (object != null && object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+        value = object.tuning().getValues().get(propertyName).getValue();
+    }
+    return value != null ? value : "";
+}
+
+]]></custom-event-handler>
   </schema>
 </schemas>

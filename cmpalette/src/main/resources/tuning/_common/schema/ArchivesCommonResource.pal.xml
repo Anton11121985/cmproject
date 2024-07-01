@@ -1,10 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
-  <schema extends="TNObject" name="ArchivesCommonResource">
+  <schema name="ArchivesCommonResource">
     <meta>
       <category name="Общее"/>
     </meta>
-    <schema-ref ref="ClientContext" name="$clientContext" />
+    <schema-ref ref="ClientContextArchives" name="$clientContext" />
+    <string temporal="true" name="emptyString">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['']]></script>
+      </calc-values>
+    </string>
     <string computed="true" temporal="true" name="ShowDash">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['-']]></script>
@@ -18,6 +23,11 @@
     <string computed="true" temporal="true" name="ArchiveOrgTitle">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['Архивное учреждение:']]></script>
+      </calc-values>
+    </string>
+    <string computed="true" temporal="true" name="FundNameTitle">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Название фонда:']]></script>
       </calc-values>
     </string>
     <string computed="true" temporal="true" name="departmentTitle">
@@ -57,16 +67,94 @@
     <boolean default-value="false" name="RealDoc_isNew">
       <storage-field name="RealDoc_isNew" />
     </boolean>
-    <string computed="true" temporal="true" name="noFields">
-      <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Нет полей пока']]></script>
-      </calc-values>
-    </string>
     <string computed="true" temporal="true" name="YearsTitle">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['Годы']]></script>
       </calc-values>
     </string>
     <string temporal="true" name="$parentunid" />
+
+    <string name="selfunid" temporal="true" >
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[id]]></script>
+      </calc-values>
+    </string>
+    <boolean name="isSuperAdmin" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[
+            T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplicationImpl)).isSuperAdmin(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getCurrentSoReplica())
+]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isNew" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[#this.isNew()]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isSupervisor" temporal="true"> <!-- Супервизор, Предметный администратор -->
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#hasRole(#this, 'Supervisor')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isBusinessAdmin" temporal="true"> <!-- Супервизор, Предметный администратор -->
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#hasRole(#this, '$BusinessAdministrator')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isArchivist" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+        #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+        ((#FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getArchivistSOOrgByReplicaIdSO(#CurUser.getUNID().split(':')[0]).contains(#CurUser)))
+    }[2]]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isChiefArchive" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{#FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+#CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+((#FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getArchiveManagerSOOrgByReplicaIdSO(#CurUser.getUNID().split(':')[0]).contains(#CurUser)))
+}[2]]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canSeeArchiveOrg" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+        #setting = ((#this.organization == null) ? null : ((#FileRegisterApplication == null) ? null : #FileRegisterApplication.findFileSettingByOrgId(#this.organization.id))),
+        ((#setting == null) ? false : #setting.getComplectStateArchive())
+    }[2]]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="spdUsedFile" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{
+        #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+        #setting = ((#this.organization == null) ? null : ((#FileRegisterApplication == null) ? null : #FileRegisterApplication.findFileSettingByOrgId(#this.organization.id))),
+        ((#setting == null) ? false : #setting.getSpdUsedFile())
+    }[2]]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="$canSendToApproving" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="$isSendToApproving" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#approving.lists'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <string name="title" temporal="true" />
+    <string name="mode" temporal="true" />
   </schema>
 </schemas>

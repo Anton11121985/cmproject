@@ -19,19 +19,33 @@
                 <script event="open" lang="SPEL"><![CDATA[#this.currentUserRoles]]></script>
             </calc-values>
         </string>
-        <enum-ref ref="FileStatusGeneralEnum" name="statusGeneral" system="true"/>
-        <enum-ref ref="FileStatusExtendedEnum" name="statusExtended" system="true"/>
+        <boolean name="$isNotDeleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[!isDeleted()]]></script>
+            </calc-values>
+        </boolean>
+        <enum-ref ref="FileStatusGeneralEnum" name="statusGeneral" system="true" createlog="true"/>
+        <enum-ref ref="FileStatusExtendedEnum" name="statusExtended" system="true" createlog="true"/>
         <boolean name="hasExtended" system="true"/>
-
-        <string name="indexPrefix" system="true"/>
-        <string name="indexNum" system="true"/>
-        <string name="indexSuffix" system="true"/>
+        <string name="indexTitleSpel" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Индекс дела:']]></script>
+            </calc-values>
+        </string>
+        <string name="indexPrefix" system="true" createlog="true"/>
+        <string name="indexNum" system="true" createlog="true"/>
+        <string name="indexSuffix" system="true" createlog="true"/>
         <string name="separatorPref" system="true"/>
         <string name="separatorSuff" system="true"/>
 
         <string name="indexFile" system="true"/>
-        <string name="titleFile" system="true"/>
-        <enum-ref ref="EFileType" name="eFile" system="true"/>
+        <string name="titleFile" system="true" createlog="true"/>
+        <string name="titleFileReserved" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Резервное']]></script>
+            </calc-values>
+        </string>
+        <enum-ref ref="EFileType" name="eFile" system="true" default-value="PHYSICAL"/>
         <boolean name="inPO" system="true"/>
         <boolean name="reserved" system="true"/>
         <boolean name="movable" system="true"/>
@@ -70,11 +84,11 @@
         <actor name="assigners" array="true" system="true"/>
 
         <string name="storage" system="true"/>
-        <string name="storagePeriod" system="true"/>
-        <schema-ref ref="StoragePeriodInfo" name="periodInfo" system="true">
+        <string name="storagePeriod" system="true" createlog="true"/>
+        <schema-ref ref="StoragePeriodInfo" name="periodInfo" system="true" createlog="true">
             <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.file.RecalcForSpDescription</recalc-processing-class>
         </schema-ref>
-        <string name="spDescription" system="true"/>
+        <string name="spDescription" system="true" createlog="true"/>
         <string array="true" system="true" name="indexFilePrev"/>
         <string  array="true" system="true" name="titleFilePrev"/>
         <string  array="true" system="true" name="storagePeriodPrev"/>
@@ -85,14 +99,27 @@
         <string name="fileRkk_ref" system="true"/>
 
         <actor name="organization" system="true"/>
+        <actor name="orgDepartment" system="true"/>
+        <boolean name="orgDepartmentIsNull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[orgDepartment == null]]></script>
+            </calc-values>
+        </boolean>
         <string name="statusDisplay" temporal="true" computed="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA["Проект"]]></script>
             </calc-values>
         </string>
-        <enum-ref name="divisionType" ref="DivisionType" default-value="DEPARTMENT" system="true"/>
         <string name="branchDivision" system="true"/>
         <actor name="soUnit" system="true"/>
+        <boolean name="soUnitIsNotNull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(branchDivision == null || "".equals(branchDivision)) && soUnit != null]]></script>
+            </calc-values>
+        </boolean>
+        <string name="soUnitFullName" default-value="">
+            <storage-field name="soUnitFullName"/>
+        </string>
         <string name="$id" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[#this.id]]></script>
@@ -100,6 +127,7 @@
         </string>
         <string name="showRkks" temporal="true"/>
         <string name="mode" temporal="true"/>
+        <boolean name="isSuffixUsed" system="true" temporal="true"/>
         <boolean name="$isProject" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[statusGeneral != null && "PROJECT".equals(statusGeneral.toString())]]></script>
@@ -124,6 +152,33 @@
                 <script event="open" lang="SPEL"><![CDATA[link.?[rel=='file.complete.formation'].size() > 0]]></script>
             </calc-values>
         </boolean>
+        <boolean name="$curUserIsFileFormationResponsible" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA[$currentUserRoles.contains("FileFormationResponsible")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canEditRespFormerWithStatusGeneralIsFormedChanged" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()) || "CHANGED".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canEditRespFormerWithStatusGeneralIsFormed" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
         <boolean name="ParentNDPIsActive" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
@@ -134,19 +189,69 @@
                 ]]></script>
             </calc-values>
         </boolean>
+        <boolean name="ParentNDPIsOnlyOneActiveOrNotActive" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    !#this.isNew() &&
+                    {#parentsStatusesGeneral = #this.getAllParentUnitRegistersStatusesGeneral(),
+                    (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "ACTIVE".equals(#this.toString())].size() < 2)
+                    &&
+                    (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "NOT_ACTIVE".equals(#this.toString())].size() <2)
+                    }[1]
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="ParentNDPIsOnlyActive" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    !#this.isNew() &&
+                    {#parentsStatusesGeneral = #this.getAllParentUnitRegistersStatusesGeneral(),
+                    (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "ACTIVE".equals(#this.toString())].size() != 0)
+                    &&
+                    (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "NOT_ACTIVE".equals(#this.toString())].size() == 0)
+                    }[1]
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canEditIsReserveNDPChangeCondition" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    {
+                    #unitRegisterChanges = #this.getUnitRegisterChanges(),
+                    statusGeneral != null && "RESERVED".equals(statusGeneral.toString()) &&
+                    statusExtended != null && "CHANGED".equals(statusExtended.toString()) &&
+                    (!#unitRegisterChanges.isEmpty() && #unitRegisterChanges.?[#this != null &&
+                    ("PROJECT".equals(#this.getStatusGeneral().toString()) && (#this.getStatusExtended() == null ||
+                    "".equals(#this.getStatusExtended().toString()) ||
+                    "ROLLBACK_TO_REWORK".equals(#this.getStatusExtended().toString())))].size() != 0)
+                    }[1]
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canEditIsReserveNDPCondition" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    {
+                    #unitRegisters = #this.getParents(),
+                    statusGeneral != null && "RESERVED".equals(statusGeneral.toString()) &&
+                    (statusExtended == null || "".equals(statusExtended.toString())) &&
+                    (!#unitRegisters.isEmpty() && #unitRegisters.?[#this != null &&
+                    ("PROJECT".equals(#this.getStatusGeneral().toString()) && (#this.getStatusExtended() == null ||
+                    "".equals(#this.getStatusExtended().toString()) ||
+                    "ROLLBACK_TO_REWORK".equals(#this.getStatusExtended().toString())))].size() != 0)
+                    }[1]
+                ]]></script>
+            </calc-values>
+        </boolean>
         <boolean name="ParentNDPIsActiveOrNotActive" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
                     !#this.isNew() &&
-                    (
                     {#parentsStatusesGeneral = #this.getAllParentUnitRegistersStatusesGeneral(),
                     (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "ACTIVE".equals(#this.toString())].size() != 0)
-                    }[1]
                     ||
-                    {#parentsStatusesGeneral = #this.getAllParentUnitRegistersStatusesGeneral(),
                     (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "NOT_ACTIVE".equals(#this.toString())].size() != 0)
                     }[1]
-                    )
                 ]]></script>
             </calc-values>
         </boolean>
@@ -154,15 +259,11 @@
             <calc-values>
                 <script event="open" lang="SPEL"><![CDATA[
                     !#this.isNew() &&
-                    (
                     {#parentsStatusesGeneral = #this.getAllParentUnitRegistersStatusesGeneral(),
                     (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "ACTIVE".equals(#this.toString())].size() == 0)
-                    }[1]
                     &&
-                    {#parentsStatusesGeneral = #this.getAllParentUnitRegistersStatusesGeneral(),
                     (!#parentsStatusesGeneral.isEmpty() && #parentsStatusesGeneral.?[#this != null && "NOT_ACTIVE".equals(#this.toString())].size() != 0)
                     }[1]
-                    )
                 ]]></script>
             </calc-values>
         </boolean>
@@ -177,13 +278,14 @@
                 </script>
             </calc-values>
         </boolean>
-        <boolean name="StatusGeneralIsReserved" temporal="true">
+        <boolean name="$canEditMovableWithStatusGeneralIsFormed" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL">
                     <![CDATA[
-                        statusGeneral != null && "RESERVED".equals(statusGeneral.toString())
-                        &&
-                        (statusExtended == null || statusExtended != null && "".equals(statusExtended.toString()))
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()) || "CHANGED".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                                && (movable || ParentNDPIsOnlyOneActiveOrNotActive)
                     ]]>
                 </script>
             </calc-values>
@@ -206,17 +308,6 @@
                         statusGeneral != null && "FORMED".equals(statusGeneral.toString())
                         &&
                         statusExtended != null && "CHANGED".equals(statusExtended.toString())
-                    ]]>
-                </script>
-            </calc-values>
-        </boolean>
-        <boolean name="StatusGeneralIsFormedAndStatusExtendedIsTransferred" temporal="true">
-            <calc-values>
-                <script event="open" lang="SPEL">
-                    <![CDATA[
-                        statusGeneral != null && "FORMED".equals(statusGeneral.toString())
-                        &&
-                        statusExtended != null && "TRANSFERRED".equals(statusExtended.toString())
                     ]]>
                 </script>
             </calc-values>
@@ -253,7 +344,16 @@
                 <script event="open" lang="SPEL">
                     <![CDATA[
                         statusGeneral != null && "FORMED".equals(statusGeneral.toString())
-                        && $currentUserRoles.contains("FileFormationResponsible")
+                        && $curUserIsFileFormationResponsible
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="StatusGeneralIsFormed" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString())
                     ]]>
                 </script>
             </calc-values>
@@ -263,42 +363,7 @@
                 <script event="open" lang="SPEL">
                     <![CDATA[
                         statusGeneral != null && ("FORMED".equals(statusGeneral.toString()) || "COMPLETED".equals(statusGeneral.toString()))
-                        && $currentUserRoles.contains("FileFormationResponsible")
-                    ]]>
-                </script>
-            </calc-values>
-        </boolean>
-        <boolean name="$canEditNdFormatWithStatusGeneralIsFormedOrCompleted" temporal="true">
-            <calc-values>
-                <script event="open" lang="SPEL">
-                    <![CDATA[
-                        statusGeneral != null && ("FORMED".equals(statusGeneral.toString()) || "COMPLETED".equals(statusGeneral.toString()))
-                        && (statusExtended == null || "".equals(statusExtended.toString()))
-                        && $currentUserRoles.contains("FileFormationResponsible")
-                    ]]>
-                </script>
-            </calc-values>
-        </boolean>
-        <boolean name="$canEditResponsiblesWithStatusGeneralIsFormedOrCompleted" temporal="true">
-            <calc-values>
-                <script event="open" lang="SPEL">
-                    <![CDATA[
-                        statusGeneral != null
-                        && ("FORMED".equals(statusGeneral.toString())
-                            || "COMPLETED".equals(statusGeneral.toString()) && (statusExtended == null || "".equals(statusExtended.toString())))
-                        && $currentUserRoles.contains("FileFormationResponsible")
-                    ]]>
-                </script>
-            </calc-values>
-        </boolean>
-        <boolean name="$canEditMovableWithStatusGeneralIsFormed" temporal="true">
-            <calc-values>
-                <script event="open" lang="SPEL">
-                    <![CDATA[
-                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) && (statusExtended == null || "".equals(statusExtended.toString()))
-                        && ($currentUserRoles.contains("FileFormationResponsible")
-                            || $currentUserRoles.contains("FormerNDPUnit")
-								&& #this.getAllParentUnitRegistersStatusesGeneral().?[#this == null || !"ACTIVE".equals(#this.toString())].size() == 0)
+                        && $curUserIsFileFormationResponsible
                     ]]>
                 </script>
             </calc-values>
@@ -313,11 +378,21 @@
                 <script event="open" lang="SPEL"><![CDATA[titleFile]]></script>
             </calc-values>
         </string>
+        <string name="spDescriptionHint" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA["Обоснование срока хранения"]]></script>
+            </calc-values>
+        </string>
+        <boolean name="periodInfoIsEmpty">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[periodInfo == null]]></script>
+            </calc-values>
+        </boolean>
         <boolean name="isReserved" temporal="true">
             <calc-values>
                 <script event="open"><![CDATA[reserved]]></script>
             </calc-values>
-            <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.file.operation.ToggleIsReserve</recalc-processing-class>
+<!--            <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.file.operation.ToggleIsReserve</recalc-processing-class>-->
         </boolean>
         <boolean name="isNotReserved" temporal="true">
             <calc-values>
@@ -335,14 +410,42 @@
                 <script event="open" lang="SPEL"><![CDATA[$isProject && (#this.isNew() || isReserved != null && isReserved)]]></script>
             </calc-values>
         </boolean>
-        <boolean name="$canEditCountTomeSections" temporal="true">
+        <boolean name="$canEditResponsiblesWithStatusCompleted" temporal="true">
             <calc-values>
                 <script event="open" lang="SPEL">
                     <![CDATA[
-                        !(eFile != null && "DIGITAL".equals(eFile.toString()))
-                        &&
-                        !(notExist)
-                    ]]></script>
+                        statusGeneral != null &&
+                            $curUserIsFileFormationResponsible
+                             && "COMPLETED".equals(statusGeneral.toString())
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canEditResponsiblesWithStatusGeneralIsFormedOrCompleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && (
+                            ($curUserIsFileFormationResponsible
+                             && ("FORMED".equals(statusGeneral.toString())
+                                 || "COMPLETED".equals(statusGeneral.toString()) && (statusExtended == null || "".equals(statusExtended.toString()))))
+                            || ($currentUserRoles.contains("FormerNDPUnit") && "FORMED".equals(statusGeneral.toString())
+                                && statusExtended != null && "CHANGED".equals(statusExtended.toString()))
+						)
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canEditCount" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                                && !ParentNDPIsOnlyActive
+                    ]]>
+                </script>
             </calc-values>
         </boolean>
         <boolean name="securityStampIsNotEmpty" createlog="true" temporal="true">
@@ -408,25 +511,116 @@
                     supportSecurityStampCalc]]></script>
             </calc-values>
         </boolean>
-        <boolean name="$canEditCountSheets" temporal="true">
-            <calc-values>
-                <script event="open" lang="SPEL">
-                    <![CDATA[
-                        !notExist
-                    ]]></script>
-            </calc-values>
-        </boolean>
         <boolean name="isNotExist">
             <calc-values>
                 <script event="open"><![CDATA[notExist]]></script>
             </calc-values>
             <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.file.operation.ToggleIsNotExist</recalc-processing-class>
         </boolean>
-        <boolean name="$curUserIsFileFormationResponsible" temporal="true">
+        <boolean name="cantEditBeginYear" temporal="true">
             <calc-values>
-                <script event="open"><![CDATA[
-                    #this.currentUserRoles != null && #this.currentUserRoles.contains("FileFormationResponsible")
+                <script event="open">
+                    <![CDATA[(statusGeneral != null && "FORMED".equals(statusGeneral.toString()) && statusExtended == null && $curUserIsFileFormationResponsible && ParentNDPIsActive)]]>
+                </script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="$canEditDateOfEnd" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                         statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()) || "CHANGED".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                                && ParentNDPIsOnlyNotActive
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canEditTome" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                                && ParentNDPIsOnlyNotActive
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="cannotEditNdFormatHasCopiesAndIndexes" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[((statusGeneral != null && "FORMED".equals(statusGeneral.toString()) && statusExtended == null) && $curUserIsFileFormationResponsible && ParentNDPIsActiveOrNotActive)]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <hyperlink computed="true" name="linkNDP" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                ("FORMED".equals(statusGeneral.toString())) ?
+                {
+                    #parentUnid = T(ru.intertrust.cmj.af.utils.BeansUtils).getTypedBean(T(ru.intertrust.cmj.ssrv.fileregister.Base.FrEntityGetter)).getParentURUnidByFileUnid(#root.id.split(':')[1]),
+                    #parentUnid == null ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('НД подразделения' + '~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/'
+                         + #parentUnid
+                         + '~#newTab~#local')
+                }[1]
+                : (("PROJECT".equals(statusGeneral.toString()) || "COMPLETED".equals(statusGeneral.toString()))
+                    ? {
+                        #parentUnid = T(ru.intertrust.cmj.af.utils.BeansUtils).getTypedBean(T(ru.intertrust.cmj.ssrv.fileregister.Base.FrEntityGetter)).getParentURUnidByFileUnidStatusNotActive(#root.id.split(':')[1]),
+                        (#parentUnid == null) ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('НД подразделения' + '~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/'
+                             + #parentUnid
+                             + '~#newTab~#local')
+                      }[1]
+                    : null
+                    )
                 ]]></script>
+            </calc-values>
+        </hyperlink>
+        <boolean name="$canDeleteFromTrash" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    statusGeneral != null && "DELETED".equals(statusGeneral.toString()) && #this.currentUserRoles.contains("[SuperUser]")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canEditNdFormatWithStatusGeneralIsFormedOrCompleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && ("FORMED".equals(statusGeneral.toString()) || "COMPLETED".equals(statusGeneral.toString()))
+                        && (statusExtended == null || "".equals(statusExtended.toString()))
+                        && $curUserIsFileFormationResponsible
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="StatusGeneralIsFormedAndStatusExtendedIsTransferred" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString())
+                        &&
+                        statusExtended != null && "TRANSFERRED".equals(statusExtended.toString())
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <string name="emptyStr" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['']]></script>
+            </calc-values>
+        </string>
+        <boolean name="$canEditStatusGeneralIsFormedNdpOnlyActive" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        statusGeneral != null && "FORMED".equals(statusGeneral.toString()) &&
+                            (statusExtended == null || "".equals(statusExtended.toString()))
+                                && ($curUserIsFileFormationResponsible || $currentUserRoles.contains("FormerNDPUnit"))
+                                && ParentNDPIsOnlyActive
+                    ]]>
+                </script>
             </calc-values>
         </boolean>
         <custom-event-handler lang="JavaScript"><![CDATA[
@@ -456,6 +650,14 @@ function querySave(object, document) {
         var securityStamp = frFileEx.getSecurityStamp();
 		var notExist = frFileEx.isNotExist();
 		var canChangeNotExist = false;
+		var isReserved = frFileEx.isResrved();
+
+        if (!isReserved) {
+            var titleFile = object.getTitleFile();
+            if (titleFile == null || titleFile.isEmpty()) {
+                throw "Заполните заголовок.";
+            }
+        }
 
 		if (!object.isNew()) {
 			if ("FORMED".equals(object.getStatusGeneral().toString())) {
@@ -472,10 +674,12 @@ function querySave(object, document) {
 					}
 				}
 			}
-			var doc = AFCMDomino.getDocByUNID(frFileEx.getUNID()).getDocument();
-            var secStamp = doc.getEntity().getAllFields().get("security_stamp_name");
-            if (!StringUtils.isEmpty(secStamp) && StringUtils.isEmpty(securityStamp)) {
-                writeSecurityStampHistory(object);
+			if (frFileEx.getUNID() != null) {
+			    var doc = AFCMDomino.getDocByUNID(frFileEx.getUNID()).getDocument();
+                var secStamp = doc.getEntity().getAllFields().get("security_stamp_name");
+                if (!StringUtils.isEmpty(secStamp) && StringUtils.isEmpty(securityStamp)) {
+                    writeSecurityStampHistory(object);
+                }
             }
 		}
 
@@ -496,6 +700,27 @@ function querySave(object, document) {
               throw "Для удаления грифа доступа воспользуйтесь кнопкой \"Снять гриф доступа\".";
             }
         }
+        if (isReserved) {
+                object.setTitleFile("Резервное");
+                frFileEx.setResrved(true);
+                object.setStoragePeriod("");
+                object.setSpDescription("");
+                object.setHasCopies(false);
+                object.setSpdPeriodInfo(null);
+                frFileEx.setStorage("");
+                frFileEx.setAssigners(null);
+                frFileEx.setNdFormat("");
+                object.setIndexSuffix("");
+                frFileEx.setDateOfBeginningType(FrFile.StorageDateType.YEAR);
+                frFileEx.setDateOfEndType(FrFile.StorageDateType.YEAR);
+                object.setDateOfBegining(null);
+                object.setDateOfEnd(null);
+                frFileEx.setDateYear(null);
+                frFileEx.setMovable(false);
+                frFileEx.setOutOfSystem(false);
+                frFileEx.setOutOfSystem(false);
+                frFileEx.setNotExist(false);
+        }
 	}
     return true;
 }
@@ -514,6 +739,10 @@ function postSave(object, document) {
 }
 
 function recalc(object, changedField) {
+    if (changedField == 'isReserved') {
+        var isReserved = TunableObjectHelper.getAFInstanceValue(object.tuning().getValues().get("isReserved"));
+        object.getFrFileEx().setResrved(isReserved);
+    }
 
 	var eFile = object.iseFile();
 
@@ -522,6 +751,13 @@ function recalc(object, changedField) {
     }
 
     if (object instanceof FrFile) {
+        if (changedField == 'periodInfo') {
+            if (object.getSpdPeriodInfo() == null) {
+                TunableObjectHelper.putAFInstanceValue(object.tuning(), "periodInfoIsEmpty", true);
+            } else {
+                TunableObjectHelper.putAFInstanceValue(object.tuning(), "periodInfoIsEmpty", false);
+            }
+        }
         if (changedField == 'addLinkedDocGrif') {
             var values = object.tuning().getValues();
             var addLinkedDoc = values.get('addLinkedDocGrif');
@@ -605,9 +841,8 @@ function queryCreate(object){
         var parent = object.tuning().getRelatedLinkObjects().get("parent");
         if (parent!=null) {
            object.setOrganization(parent.getOrganization());
-           object.getFrFileEx().setBranchDivision(parent.getBranchDivision());
-           object.getFrFileEx().setDivisionType(parent.getDivisionType());
-           object.getFrFileEx().setSoUnit(parent.getSoUnit());
+           object.setBranchDivision(parent.getBranchDivision());
+           object.setSoUnit(parent.getSoUnit());
 
            var frApp = AFSession.get().getApplication(FileRegisterApplication.class);
            var indexNum = frApp.getNextFileIndexNum(parent.getUNID(), 1, false).get(0);
@@ -618,7 +853,6 @@ function queryCreate(object){
            TunableObjectHelper.putAFInstanceValue(object.tuning(), "separatorPref", frSetting != null ? frSetting.getPrefixSplitterFile() : "-");
            TunableObjectHelper.putAFInstanceValue(object.tuning(), "separatorSuff", frSetting != null ? frSetting.getSuffixSplitterFile() : "-");
            computeIndexFile(object);
-           object.seteFile(FrFile.EFileType.PHYSICAL);
            object.getFrFileEx().setElectronic(true);
         }
     }
@@ -651,14 +885,14 @@ function padLeadingZeros(num, size) {
 function computeIndexFile(object){
     var updated = false;
     var values = object.tuning().getValues();
-    var str = object.getFrFileEx().getIndexPrefix();
-    var nextVal = object.getFrFileEx().getSeparatorPref();
+    var str = object.getIndexPrefix();
+    var nextVal = object.getSeparatorPref();
     str += nextVal == null ? "" : nextVal;
-    nextVal = object.getFrFileEx().getIndexNum();
+    nextVal = object.getIndexNum();
     str += nextVal == null ? "" : nextVal;
-    var suff = object.getFrFileEx().getIndexSuffix();
+    var suff = object.getIndexSuffix();
     if (suff!=null && suff!="") {
-        str += object.getFrFileEx().getSeparatorSuff();
+        str += object.getSeparatorSuff();
         str += suff;
     }
     if (object.getIndexFile() != str) {

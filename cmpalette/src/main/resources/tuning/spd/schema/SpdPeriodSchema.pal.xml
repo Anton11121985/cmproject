@@ -60,7 +60,11 @@
         <actor name="author">
             <storage-field name="IDAUTHOR"/>
         </actor>
-
+        <boolean name="$canDeleteFromTrash" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='delete.from.trash'].size() > 0]]></script>
+            </calc-values>
+        </boolean>
         <custom-event-handler lang="JavaScript"><![CDATA[
 importPackage(Packages.ru.intertrust.cmj.af.so);
 importPackage(Packages.ru.intertrust.cmj.dp);
@@ -68,6 +72,11 @@ importPackage(Packages.ru.intertrust.cmj.rest.tuning);
 importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
 
 function querySave(object, document) {
+    var docType = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docType");
+    if(docType.length() > 750){
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "docType", docType.substring(0, 750));
+    }
+
     return true;
 }
 function postSave(object) {}

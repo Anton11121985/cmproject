@@ -45,13 +45,28 @@ return 0;
   <sort name="По номеру" id="byDocRegCounter">
     <sql-field name="d.reg_number_counter desc"/>
     <script lang="JavaScript"><![CDATA[
-    if (object1.regNumber.regNumberCounter < object2.regNumber.regNumberCounter) {
-      return 1;
-    } else if (object1.regNumber.regNumberCounter > object2.regNumber.regNumberCounter) {
-      return -1;
-    } else {
-      return 0;
-    }]]></script>
+    if (!object1.regNumber) {
+        if (!object2.regNumber) {
+
+             if (object1.createdDate < object2.createdDate) {
+               return 1;
+             } else if (object1.createdDate > object2.createdDate) {
+               return -1;
+             } else {
+               return 0;
+             }
+        } else {
+            return 1;
+        }
+   } else if (!object2.regNumber) {
+     return -1;
+   } else if (object1.regNumber.regNumberCounter < object2.regNumber.regNumberCounter) {
+     return 1;
+   } else if (object1.regNumber.regNumberCounter > object2.regNumber.regNumberCounter) {
+     return -1;
+   } else {
+     return 0;
+   }]]></script>
   </sort>
   <sort name="По сроку" id="byDate">
     <sql-field name="is_pinned desc, event.task_date asc, event.event_dt asc"/>
@@ -97,5 +112,9 @@ return -1;
 } else {
 return 0;
 }]]></script>
+  </sort>
+  <sort name="Сортировка для очереди с ПКД-документами" id="pkdDocumentsSort">
+    <sql-field name="(CASE WHEN :defaultSort=TRUE THEN p.operation_dt END) DESC"/>
+    <script lang="JavaScript"/>
   </sort>
 </pkd>

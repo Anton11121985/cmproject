@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
-  <form schema-ref="VCardResource.PrivateHuman" id="VCardResource.PrivateHuman_Dialog" name="${ui.form.VCardResource.PrivateHuman_Dialog.name:Изменение частного лица}" projection="default">
-    <rename name="${ui.form.VCardResource.PrivateHuman_Dialog.rename.name:Добавить частное лицо}" condition-union="AND">
+  <form schema-ref="VCardResource.PrivateHuman" id="VCardResource.PrivateHuman_Dialog" name="${ui.form.VCardResource.PrivateHuman_Dialog.name:Изменение физического лица}" projection="default">
+    <rename name="${ui.form.VCardResource.PrivateHuman_Dialog.rename.name:Добавить физическое лицо}" condition-union="AND">
       <condition-ref ref="vcardIsNew"/>
     </rename>
     <properties>
@@ -9,8 +9,11 @@
         <negative-condition-ref ref="dialog"/>
       </hide>
     </properties>
+    <appearance field-layout="vertical">
+      <dialog-mode width="950" height="500" unit="symbol"/>
+    </appearance>
     <component>
-      <field attribute-ref="n.lastName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.n.lastName.name:Фамилия}">
+      <field attribute-ref="n.lastName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.n.lastName.name:Фамилия:}">
         <properties>
           <require condition-union="AND">
             <condition>true</condition>
@@ -18,76 +21,246 @@
         </properties>
         <appearance importance="normal"/>
       </field>
-      <field attribute-ref="n.firstName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.n.firstName.name:Имя}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="n.middleName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.n.middleName.name:Отчество}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="gender" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.gender.name:Пол}">
-        <appearance importance="normal" widget="radio"/>
-        <directories limit-livesearch="no-restrictions">
-          <directory-ref ref="gender"/>
-        </directories>
-      </field>
-      <field attribute-ref="citizenship" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.citizenship.name:Гражданство}">
-        <appearance importance="normal"/>
-        <directories limit-livesearch="sys-current">
-          <directory-ref ref="CitizenShips"/>
-        </directories>
-      </field>
-      <field attribute-ref="activeWriter" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.activeWriter.name:Много пишущий автор}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="email" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.email.name:Эл. почта}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="tel.home" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.tel.home.name:Телефон}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.countryName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.countryName.name:Страна}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.region" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.region.name:Регион}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.district" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.district.name:Район/Округ}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.locality" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.locality.name:Город/Населенный пункт}">
-        <appearance importance="normal"/>
-      </field>
-      <section id="Улица+Тип" group="true">
-        <appearance field-layout="horizontal"/>
+      <section group="true" id="name_row">
         <component>
-          <field attribute-ref="adrHome.streetTypeAddress" name="${ui.form.VCardResource.PrivateHuman_Dialog.section.Улица+Тип.field.adrHome.streetTypeAddress.name:Улица}">
+          <field attribute-ref="n.firstName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.n.firstName.name:Имя:}">
             <appearance importance="normal">
-              <label-style field-width="18" field-unit="symbol"/>
+              <label-style field-width="40" field-unit="percent">
+              </label-style>
             </appearance>
-            <directories limit-livesearch="no-restrictions">
-              <directory-ref ref="StreetType"/>
-            </directories>
           </field>
-          <field attribute-ref="adrHome.streetAddress">
+          <field attribute-ref="n.middleName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.n.middleName.name:Отчество:}">
             <appearance importance="normal"/>
           </field>
         </component>
+        <appearance field-layout="horizontal"/>
       </section>
-      <field attribute-ref="adrHome.extendedAddress.house" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.extendedAddress.house.name:Дом}">
+      <section group="true" id="gender_and_dateOfBirth_row">
+        <component>
+          <field attribute-ref="gender" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.gender.name:Пол:}">
+            <appearance importance="normal" widget="radio">
+              <label-style field-width="40" field-unit="percent">
+              </label-style>
+            </appearance>
+            <directories limit-livesearch="no-restrictions">
+              <directory-ref ref="gender"/>
+            </directories>
+          </field>
+          <field attribute-ref="dateOfBirth" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.dateOfBirth.name:Дата рождения::}">
+            <appearance importance="normal"/>
+          </field>
+        </component>
+        <appearance field-layout="horizontal"/>
+      </section>
+      <section group="true" id="inn">
+        <component>
+          <field attribute-ref="INN" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.INN.name:ИНН:}">
+            <appearance importance="normal">
+              <label-style field-width="40" field-unit="percent">
+              </label-style>
+              <limit min-lenght="12" max-lenght="12"/>
+            </appearance>
+          </field>
+          <field attribute-ref="SNILS" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.field.SNILS.name:СНИЛС:}">
+            <appearance importance="normal">
+              <limit min-lenght="14" max-lenght="14"/>
+            </appearance>
+          </field>
+        </component>
+        <appearance field-layout="horizontal"/>
+      </section>
+      <section group="true" id="citizenship">
+        <component>
+          <field attribute-ref="citizenship" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.citizenship.name:Гражданство:}">
+            <appearance importance="normal">
+              <label-style field-width="40" field-unit="percent">
+              </label-style>
+            </appearance>
+            <directories limit-livesearch="sys-current">
+              <directory-ref ref="CitizenShips"/>
+            </directories>
+          </field>
+          <field attribute-ref="pasportData" name="${ui.form.SPPDossierPrivateForm.section.CommonInfo.field.pasportData.name:Паспортные данные:}">
+            <appearance importance="normal"/>
+          </field>
+        </component>
+        <appearance field-layout="horizontal"/>
+      </section>
+      <section group="true" id="phone_email">
+        <component>
+          <field attribute-ref="email" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.email.name:Эл. почта:}">
+            <appearance importance="normal">
+              <label-style field-width="40" field-unit="percent">
+              </label-style>
+            </appearance>
+          </field>
+          <field attribute-ref="tel.home" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.tel.home.name:Телефон:}">
+            <appearance importance="normal"/>
+          </field>
+        </component>
+        <appearance field-layout="horizontal"/>
+      </section>
+      <field attribute-ref="activeWriter" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.activeWriter.name:Много пишущий автор:}">
         <appearance importance="normal"/>
       </field>
-      <field attribute-ref="adrHome.extendedAddress.housing" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.extendedAddress.housing.name:Корпус}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.extendedAddress.building" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.extendedAddress.building.name:Строение}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.postOfficeBox" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.postOfficeBox.name:Номер квартиры/офиса}">
-        <appearance importance="normal"/>
-      </field>
-      <field attribute-ref="adrHome.postalCode" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.postalCode.name:Почтовый индекс}">
-        <appearance importance="normal"/>
-      </field>
+      <section id="AddressDataAtThePlaceOfRegistration" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.name:Адресные данные по месту регистрации}">
+        <component>
+          <section group="true" id="AddressData_1">
+            <component>
+              <field attribute-ref="adrHome.countryName" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.countryName.name:Страна:}">
+                <appearance importance="normal">
+                  <label-style field-width="40" field-unit="percent">
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="adrHome.region" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.region.name:Регион:}">
+                <appearance importance="normal"/>
+                <directories manual-input="true">
+                  <directory-complex ref="valueRegion"/>
+                </directories>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+          <section group="true" id="AddressData_2">
+            <component>
+              <field attribute-ref="adrHome.district" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.district.name:Район/Округ:}">
+                <appearance importance="normal">
+                  <label-style field-width="40" field-unit="percent">
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="adrHome.locality" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.locality.name:Город/Населенный пункт:}">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+          <section id="StreetAndType_Reg" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="adrHome.streetTypeAddress" name="${ui.form.VCardResource.PrivateHuman_Dialog.section.Улица+Тип.field.adrHome.streetTypeAddress.name:Улица:}">
+                <appearance importance="normal">
+                  <label-style field-width="18" field-unit="symbol"/>
+                </appearance>
+                <directories limit-livesearch="no-restrictions">
+                  <directory-ref ref="StreetType"/>
+                </directories>
+              </field>
+              <field attribute-ref="adrHome.streetAddress">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <section group="true" id="AddressData_3">
+            <component>
+              <field attribute-ref="adrHome.extendedAddress.house" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.extendedAddress.house.name:Дом:}">
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="adrHome.extendedAddress.housing" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.extendedAddress.housing.name:Корпус:}">
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="adrHome.extendedAddress.building" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.extendedAddress.building.name:Строение:}">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+          <section group="true" id="AddressData_4">
+            <component>
+              <field attribute-ref="adrHome.postOfficeBox" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.postOfficeBox.name:Номер квартиры/офиса:}">
+                <appearance importance="normal">
+                  <label-style field-width="40" field-unit="percent">
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="adrHome.postalCode" name="${ui.form.VCardResource.PrivateHuman_Dialog.field.adrHome.postalCode.name:Почтовый индекс:}">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+        </component>
+      </section>
+      <section id="AddressDataAtThePlaceOfLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfLive.name:Адресные данные по месту проживания}">
+        <component>
+          <section group="true" id="AddressDataAtThePlaceOfLive_AddressData_1">
+            <component>
+              <field attribute-ref="countryLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.country.name:Страна:}">
+                <appearance importance="normal">
+                  <label-style field-width="40" field-unit="percent">
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="regionLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.region.name:Регион:}">
+                <appearance importance="normal"/>
+                <directories manual-input="true">
+                  <directory-complex ref="valueRegion"/>
+                </directories>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+          <section group="true" id="AddressDataAtThePlaceOfLive_AddressData_2">
+            <component>
+              <field attribute-ref="districtLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.district.name:Район/Округ:}">
+                <appearance importance="normal">
+                  <label-style field-width="40" field-unit="percent">
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="cityLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.city.name:Город/Населенный пункт:}">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+          <section id="Улица+Тип" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="typeStreetLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.section.улица.field.typeStreet.name:Улица:}">
+                <appearance importance="normal">
+                  <label-style field-width="18" field-unit="symbol"/>
+                </appearance>
+                <directories limit-livesearch="no-restrictions">
+                  <directory-ref ref="StreetType"/>
+                </directories>
+              </field>
+              <field attribute-ref="nameStreetLive">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <section group="true" id="AddressDataAtThePlaceOfLive_AddressData_3">
+            <component>
+              <field attribute-ref="houseLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.house.name:Дом:}">
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="housingLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.housing.name:Корпус:}">
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="structureLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.structure.name:Строение:}">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+          <section group="true" id="AddressDataAtThePlaceOfLive_AddressData_4">
+            <component>
+              <field attribute-ref="roomLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.room.name:Квартира:}">
+                <appearance importance="normal">
+                  <label-style field-width="40" field-unit="percent">
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="sendIndexLive" name="${ui.form.SPPDossierPrivateForm.section.ContactAndPrivateData.section.AddressDataAtThePlaceOfRegistration.field.sendIndex.name:Почтовый индекс:}">
+                <appearance importance="normal"/>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+        </component>
+      </section>
     </component>
   </form>
 </ui>

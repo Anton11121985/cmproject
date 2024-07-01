@@ -20,7 +20,7 @@
                   </read-only>
                 </properties>
                 <appearance align="left">
-                  <label-style>
+                  <label-style field-width="25" field-unit="symbol">
                     <style id="tunIconProgress"/>
                   </label-style>
                   <field-style>
@@ -28,6 +28,36 @@
                       <style id="tunIconProgress"/>
                     </value-style>
                   </field-style>
+                </appearance>
+              </field>
+              <field autofill="true" attribute-ref="selfOrSeparLabel">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <condition-ref ref="isnotSelfOrSeparDepartment"/>
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="50" field-unit="symbol">
+                    <style id="tunIconProgress"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunIconProgress"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+              <field autofill="true" attribute-ref="organizationUnit">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="25" field-unit="symbol"/>
                 </appearance>
               </field>
               <field autofill="true" attribute-ref="deletedLabel">
@@ -48,41 +78,21 @@
           <section id="row2" group="true">
             <appearance field-layout="horizontal"/>
             <component>
-              <field autofill="true" clickable="true" attribute-ref="organizationUnit">
+              <field autofill="true" attribute-ref="fullname">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance open-mode="dialog" align="left" importance="high" clickable="true">
-                  <label-style>
-                    <style id="tunBlue"/>
-                    <style id="tunItalic"/>
+                <appearance align="left" importance="high">
+                  <label-style field-width="100" field-unit="symbol">
+                    <style id="tunFontSize12"/>
+                    <style id="tunBold"/>
                   </label-style>
                   <field-style>
                     <value-style>
-                      <style id="tunBlue"/>
-                      <style id="tunItalic"/>
-                    </value-style>
-                  </field-style>
-                </appearance>
-                <directories limit-livesearch="no-restrictions">
-                  <directory-ref ref="arm-admin-dialog-hierarchi"/>
-                </directories>
-              </field>
-              <field clickable="true" attribute-ref="isolatedDep">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance open-mode="dialog" align="right" importance="high" clickable="true">
-                  <label-style>
-                    <style id="tunBlue"/>
-                  </label-style>
-                  <field-style>
-                    <value-style>
-                      <style id="tunBlue"/>
+                      <style id="tunFontSize12"/>
+                      <style id="tunBold"/>
                     </value-style>
                   </field-style>
                 </appearance>
@@ -92,21 +102,25 @@
           <section id="row3" group="true">
             <appearance field-layout="horizontal"/>
             <component>
-              <field attribute-ref="depName">
+              <field attribute-ref="shortname">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance align="left" importance="high"/>
+                <appearance align="left">
+                  <label-style field-width="25" field-unit="symbol"/>
+                </appearance>
               </field>
-              <field attribute-ref="headInfoWithPost">
+              <field attribute-ref="codeDepLabel">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance align="right" importance="normal"/>
+                <appearance align="left">
+                  <label-style field-width="25" field-unit="symbol"/>
+                </appearance>
               </field>
             </component>
           </section>
@@ -114,7 +128,7 @@
       </section>
       <section id="CommonInfo" name="${ui.form.SODepartmentForm.section.CommonInfo.name:Общая информация}">
         <appearance>
-          <label-style width="27" unit="symbol"/>
+          <label-style width="35" unit="symbol"/>
         </appearance>
         <component>
           <field attribute-ref="empty">
@@ -125,16 +139,28 @@
             </properties>
             <appearance importance="normal"/>
           </field>
+          <field recalc="true" attribute-ref="depType" name="${ui.form.SODepartmentForm.section.CommonInfo.field.depType.name:Тип подразделения:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModuleDep"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+            <directories manual-input="false" limit-livesearch="no-restrictions">
+              <directory-ref ref="depTypeClassif"/>
+            </directories>
+          </field>
           <field attribute-ref="fullname" name="${ui.form.SODepartmentForm.section.CommonInfo.field.fullname.name:Полное название:}">
             <properties>
               <require condition-union="AND">
                 <condition-ref ref="edit"/>
                 <condition>true</condition>
               </require>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModuleDep"/>
+              </read-only>
             </properties>
-            <appearance importance="normal">
-              <label-style field-width="62" field-unit="symbol"/>
-            </appearance>
+            <appearance importance="normal"/>
           </field>
           <field attribute-ref="shortname" name="${ui.form.SODepartmentForm.section.CommonInfo.field.shortname.name:Краткое название:}">
             <properties>
@@ -142,10 +168,30 @@
                 <condition-ref ref="edit"/>
                 <condition>true</condition>
               </require>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModuleDep"/>
+              </read-only>
             </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="rang" name="${ui.form.SODepartmentForm.section.CommonInfo.field.rang.name:Ранг:}">
             <appearance importance="normal">
-              <label-style field-width="62" field-unit="symbol"/>
+              <label-style field-width="7" field-unit="symbol"/>
             </appearance>
+          </field>
+          <field clickable="true" attribute-ref="curator" name="${ui.form.SODepartmentForm.section.CommonInfo.field.curator.name:Куратор:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance open-mode="dialog" digest-mode="digest" importance="normal" clickable="true"/>
+            <directories livesearch="true" limit-livesearch="sys-current" relation="arm-admin-livesearch-empl" digest="digestSOLiveSearch">
+              <show-select-value>
+                <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group"/>
+              </show-select-value>
+              <directory-ref ref="arm-admin-dialog-empl"/>
+            </directories>
           </field>
           <field attribute-ref="empty">
             <properties>
@@ -157,25 +203,45 @@
                 <negative-condition-ref ref="read"/>
               </hide>
             </properties>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
+            </appearance>
           </field>
           <section id="codes_row" group="true">
-            <appearance field-layout="horizontal" align="right"/>
+            <appearance field-layout="horizontal"/>
             <component>
               <field recalc="true" attribute-ref="codedep" name="${ui.form.SODepartmentForm.section.CommonInfo.section.codes_row.field.codedep.name:Код подразделения:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="percent" field-width="20" />
-                </appearance>
+                <properties>
+                  <require condition-union="AND">
+                    <condition-ref ref="edit"/>
+                    <condition>true</condition>
+                  </require>
+                  <read-only condition-union="AND">
+                    <condition-ref ref="isNotAnyAdminAndHasHRModuleDep"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
               </field>
               <field recalc="true" attribute-ref="iscodeni" name="${ui.form.SODepartmentForm.section.CommonInfo.section.codes_row.field.iscodeni.name:Код является номенклатурным индексом:}">
                 <properties>
-                  <read-only>
+                  <read-only condition-union="AND">
                     <condition-ref ref="HasNotCodeDep"/>
                   </read-only>
                 </properties>
-                <appearance importance="normal" multiline="false" align="left" />
+                <appearance importance="normal"/>
               </field>
             </component>
           </section>
+          <field attribute-ref="ogrn" name="${ui.form.SODepartmentForm.section.CommonInfo.field.ogrn.name:ОГРН:}">
+            <appearance importance="normal"/>
+          </field>
           <section id="ndIndex" group="true">
             <properties>
               <hide>
@@ -242,36 +308,72 @@
           </field>
           <field attribute-ref="hasNDO" name="${ui.form.SODepartmentForm.section.CommonInfo.field.hasNDO.name:Имеет отдельную сводную НД:}">
             <appearance importance="normal" widget="checkbox"/>
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="SODepartment_IsSeparateUnit"/>
+              </hide>
+            </properties>
           </field>
+          <field attribute-ref="isSharedAccessDep" name="${ui.form.SODepartmentForm.section.CommonInfo.field.isSharedAccessDep.name:Разрешена общедоступность документов:}">
+            <appearance importance="normal" widget="checkbox"/>
+          </field>
+          
+          <field attribute-ref="IsGAS" name="${ui.form.SODepartmentForm.section.CommonInfo.field.IsGAS.name:Передавать в ГАС:}">
+          	  <properties>
+	              <hide condition-union="AND">
+	                <condition-ref ref="SODepartment_IsLegalEntity"/>
+	              </hide>
+	          </properties>
+            <appearance importance="normal" widget="checkbox"/>
+          </field>
+          
           <field attribute-ref="empty">
             <properties>
               <read-only condition-union="AND">
                 <condition>true</condition>
               </read-only>
             </properties>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
+            </appearance>
           </field>
-          <section group="true" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.name:Тип}" id="Type">
+          <section id="Type" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.name:Тип}" group="true">
+            <appearance field-layout="horizontal"/>
             <component>
               <field attribute-ref="selfunit" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.field.selfunit.name:Самостоятельное подразделение:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="percent" field-width="20" />
-                </appearance>
+                <appearance importance="normal"/>
               </field>
-              <field attribute-ref="separateunit" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.field.separateunit.name:Обособленное подразделение:}">
-                <appearance importance="normal" align="left" />
-              </field>
-              <field attribute-ref="legalentity" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.field.legalentity.name:Юридическое лицо:}">
-                <appearance importance="normal" align="left" />
+              <field recalc="true" attribute-ref="separateunit" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.field.separateunit.name:Обособленное подразделение:}">
+                <appearance importance="normal"/>
               </field>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
+          <field attribute-ref="legalentity" name="${ui.form.SODepartmentForm.section.CommonInfo.section.Type.field.legalentity.name:Юридическое лицо:}">
+            <appearance importance="normal"/>
+          </field>
           <field attribute-ref="empty">
             <properties>
               <read-only condition-union="AND">
                 <condition>true</condition>
               </read-only>
             </properties>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
+            </appearance>
           </field>
           <field attribute-ref="area" name="${ui.form.SODepartmentForm.section.CommonInfo.field.area.name:Территория:}">
             <properties>
@@ -280,26 +382,22 @@
                 <condition>true</condition>
               </require>
             </properties>
-            <appearance align="left" multiline="true" importance="normal">
-              <label-style field-width="30" field-unit="symbol"/>
-            </appearance>
+            <appearance align="left" multiline="true" importance="normal"/>
             <hint-pop-up>${ui.form.SODepartmentForm.section.CommonInfo.field.area.hintPopUp:Территория}</hint-pop-up>
             <directories limit-livesearch="no-restrictions">
               <directory-ref ref="admin-area-string-collection"/>
             </directories>
           </field>
           <field attribute-ref="WorkingProfile" name="${ui.form.SODepartmentForm.section.CommonInfo.field.WorkingProfile.name:Профиль рабочего времени:}">
-            <appearance align="left" importance="normal">
-              <label-style field-width="60" field-unit="symbol"/>
-            </appearance>
+            <appearance align="left" importance="normal"/>
             <directories livesearch="true" limit-livesearch="no-restrictions">
               <directory-ref ref="admin-worktime-profiles-hierarchy"/>
             </directories>
           </field>
-          <field attribute-ref="systemEditors" name="${ui.form.SODepartmentForm.section.CommonInfo.field.systemEditors.name:Системные редакторы:}">
+          <field attribute-ref="systemEditors" name="${ui.form.SODepartmentForm.section.CommonInfo.field.systemEditors.name:Бизнес-Администраторы:}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="SOTNObject_canPerfomOperationOnThisObject"/>
+                <negative-condition-ref ref="soDepIsHeadOfficeOrRegionalBranchCanPerfomOperation"/>
               </hide>
             </properties>
             <appearance digest-mode="digest6" importance="normal"/>
@@ -312,13 +410,13 @@
               <directory-ref ref="arm-admin-dialog-hierarchi-emplGroup"/>
             </directories>
           </field>
-          <field attribute-ref="systemEditors" name="${ui.form.SODepartmentForm.section.CommonInfo.field.systemEditors.name:Системные редакторы:}">
+          <field attribute-ref="systemEditors" name="${ui.form.SODepartmentForm.section.CommonInfo.field.systemEditors.name:Бизнес-Администраторы:}">
             <properties>
               <read-only condition-union="AND">
                 <condition>true</condition>
               </read-only>
               <hide condition-union="AND">
-                <condition-ref ref="SOTNObject_canPerfomOperationOnThisObject"/>
+                <negative-condition-ref ref="soDepIsHeadOfficeOrRegionalBranchNotCanPerfomOperation"/>
               </hide>
             </properties>
             <appearance digest-mode="digest6" importance="normal"/>
@@ -337,6 +435,16 @@
                 <condition>true</condition>
               </read-only>
             </properties>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
+            </appearance>
           </field>
           <field clickable="true" recalc="true" attribute-ref="parentUnit" name="${ui.form.SODepartmentForm.section.CommonInfo.field.parentUnit.name:Вышестоящее подразделение:}">
             <properties>
@@ -349,7 +457,7 @@
               </hide>
             </properties>
             <appearance importance="normal" clickable="true">
-              <label-style field-unit="symbol">
+              <label-style>
                 <style id="tunClickableRed"/>
               </label-style>
               <field-style>
@@ -395,13 +503,11 @@
             </appearance>
           </field>
           <section id="При удалении дела передаются" group="true">
-            <appearance field-layout="vertical">
-              <label-style width="27" unit="symbol"/>
-            </appearance>
+            <appearance field-layout="vertical"/>
             <component>
               <field clickable="true" attribute-ref="delegate_beard" name="${ui.form.SODepartmentForm.section.CommonInfo.section.При удалении дела передаются.field.delegate_beard.name:Как участнику документооборота:}">
                 <appearance open-mode="dialog" importance="normal" clickable="true">
-                  <label-style field-width="62" field-unit="symbol">
+                  <label-style>
                     <style id="tunClickableRed"/>
                   </label-style>
                   <field-style>
@@ -427,7 +533,7 @@
                   </hide>
                 </properties>
                 <appearance open-mode="dialog" clickable="true">
-                  <label-style field-width="62" field-unit="symbol">
+                  <label-style>
                     <style id="tunClickableRed"/>
                   </label-style>
                   <field-style>
@@ -464,19 +570,18 @@
                 <condition>true</condition>
               </read-only>
             </properties>
-          </field>
-          <field attribute-ref="depType" recalc="true" name="${ui.form.SODepartmentForm.section.CommonInfo.field.depType.name:Тип:}">
-            <appearance importance="normal"/>
-            <directories manual-input="true" limit-livesearch="no-restrictions">
-              <directory-ref ref="depTypeClassif"/>
-            </directories>
-          </field>
-          <field attribute-ref="rang" name="${ui.form.SODepartmentForm.section.CommonInfo.field.rang.name:Ранг:}">
             <appearance importance="normal">
-              <label-style field-width="7" field-unit="symbol"/>
+              <label-style>
+                <style id="tunBgSky"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunBgSky"/>
+                </value-style>
+              </field-style>
             </appearance>
           </field>
-          <field attribute-ref="notauto" name="${ui.form.SODepartmentForm.section.CommonInfo.field.notauto.name:Не подлежит автоматической обработке:}">
+          <field attribute-ref="notauto" name="${ui.form.SODepartmentForm.section.CommonInfo.section.NoAuto.field.notauto.name:Не подлежит автоматической обработке:}">
             <appearance importance="normal"/>
           </field>
           <field attribute-ref="comment" name="${ui.form.SODepartmentForm.section.CommonInfo.field.comment.name:Комментарий:}">
@@ -518,7 +623,10 @@
                   <label-style field-width="14" field-unit="symbol"/>
                 </appearance>
               </field>
-              <field attribute-ref="GDBaseName" name="${ui.form.SODepartmentForm.section.SystemNames.section.rowsystname.field.GDBaseName.name:Группа доступа в АК:}">
+              <field attribute-ref="reasonSubstitution" name="${ui.form.SODepartmentForm.section.SystemNames.section.rowsystname.field.reasonSubstitution.name:Основание замещения:}">
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="GDBaseName" name="${ui.form.SODepartmentForm.section.SystemNames.section.rowsystname.field.GDBaseName.name:Группы доступа:}">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
@@ -543,12 +651,10 @@
                 <component>
                   <field attribute-ref="hasAnotherDepNd" autofill="true" name="${ui.form.SODepartmentForm.section.SystemGroups.section.anotherUnitNDRow.section.anotherDepNdUnitSection.field.hasAnotherDepNd.name:Другое подразделение:}">
                     <properties>
-                      <read-only condition-union="AND">
-                        <negative-condition-ref ref="SODepartment_isAnotherUnit" />
-                      </read-only>
+
                     </properties>
                     <appearance>
-                      <label-style label-unit="percent" label-width="26">
+                      <label-style label-width="21" label-unit="symbol">
                         <style id="tunTxtAlignRight" />
                       </label-style>
                       <field-style>
@@ -583,7 +689,7 @@
                 <appearance clickable="true" importance="normal" align="left">
                   <label-style field-unit="symbol" field-width="85" />
                 </appearance>
-                <directories relation="arm-admin-livesearch-dep-rvz" livesearch="true" manual-input="true">
+                <directories relation="arm-admin-livesearch-dep-rvz" livesearch="true">
                   <show-select-value>
                     <descriptor-ref ref="arm-admin-livesearch-dep-empl-fr-group" />
                   </show-select-value>
@@ -592,69 +698,47 @@
                 </directories>
               </field>
               <section group="true" id="formerNDPRow">
+                <appearance field-layout="horizontal">
+                  <label-style width="21" unit="symbol"/>
+                </appearance>
                 <component>
-                  <field attribute-ref="emptyRow" name="${ui.form.SODepartmentForm.section.SystemGroups.section.anotherUnitNDRow.section.formerNDPRow.field.emptyRow.name:Составитель НД подразделения:}">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance align="left">
-                      <label-style label-unit="percent" label-width="14" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="formerNDPUnit" clickable="true">
+                  <field clickable="true" attribute-ref="formerNDPUnit" name="${ui.form.SODepartmentForm.section.SystemGroups.section.anotherUnitNDRow.section.formerNDPRow.field.emptyRow.name:Составитель НД подразделения:}">
                     <properties>
                       <hide condition-union="AND">
                         <condition-ref ref="SODepartment_hasAnotherUnit" />
                       </hide>
                     </properties>
-                    <appearance clickable="true" open-mode="dialog" align="left">
-                      <label-style field-unit="symbol" field-width="85" />
-                    </appearance>
-                    <directories digest="digestSOLiveSearch" relation="arm-admin-livesearch-empl-group" livesearch="true">
+                    <appearance clickable="true" open-mode="dialog" align="left"  digest-mode="digest4"/>
+                    <directories digest="digestSOLiveSearch" relation="arm-admin-livesearch-empl-main-noVacancy" livesearch="true">
                       <show-select-value>
                         <descriptor-ref ref="arm-admin-livesearch-empl-group" />
                       </show-select-value>
-                      <directory-ref ref="arm-admin-dialog-empl" />
+                      <directory-ref ref="arm-admin-dialog-empl-main-noVacancy" />
                     </directories>
                   </field>
                 </component>
-                <appearance field-layout="vertical" />
               </section>
               <section group="true" name="${ui.form.SODepartmentForm.section.SystemGroups.section.anotherUnitNDRow.section.responsibleNdRow.name:Ответственный за делопроизводство:}" id="responsibleNdRow">
+                <appearance field-layout="horizontal">
+                  <label-style width="21" unit="symbol"/>
+                </appearance>
                 <component>
-                  <field attribute-ref="emptyRow" name="${ui.form.SODepartmentForm.section.SystemGroups.section.anotherUnitNDRow.section.responsibleNdRow.field.emptyRow.name:Ответственный за делопроизводство:}">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance>
-                      <label-style label-unit="symbol" label-width="28" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="responsibleNdUnit" clickable="true">
+                  <field clickable="true" attribute-ref="responsibleNdUnit" name="${ui.form.SODepartmentForm.section.SystemGroups.section.anotherUnitNDRow.section.responsibleNdRow.field.emptyRow.name:Ответственный за делопроизводство:}">
                     <properties>
                       <hide condition-union="OR">
-                        <condition-ref ref="SODepartment_hasAnotherUnit" />
-                        <condition-ref ref="SODepartment_IsNotUseArchiveModule" />
+                        <condition-ref ref="SODepartment_hasAnotherUnit"/>
+                        <condition-ref ref="SODepartment_IsNotUseArchiveModule"/>
                       </hide>
                     </properties>
-                    <appearance clickable="true" open-mode="dialog" align="left">
-                      <label-style field-unit="symbol" field-width="85" />
-                    </appearance>
-                    <directories digest="digestSOLiveSearch" relation="arm-admin-livesearch-empl-group" livesearch="true">
+                    <appearance clickable="true" open-mode="dialog" align="left" digest-mode="digest4"/>
+                    <directories digest="digestSOLiveSearch" relation="arm-admin-livesearch-empl-main-noVacancy" livesearch="true">
                       <show-select-value>
                         <descriptor-ref ref="arm-admin-livesearch-empl-group" />
                       </show-select-value>
-                      <directory-ref ref="arm-admin-dialog-empl" />
+                      <directory-ref ref="arm-admin-dialog-empl-main-noVacancy" />
                     </directories>
                   </field>
                 </component>
-                <appearance field-layout="vertical">
-                  <label-style unit="symbol" width="8" />
-                </appearance>
               </section>
             </component>
             <appearance align="left" />
@@ -699,6 +783,12 @@
               <label-style field-width="27" field-unit="symbol"/>
             </appearance>
           </field>
+          <field attribute-ref="medoGuid" name="${ui.form.SODepartmentForm.section.AddressesAndRequisites.field.medoGuid.name:GUID в МЭДО:}" recalc="true">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="operatorMedoGuid" name="${ui.form.SODepartmentForm.section.AddressesAndRequisites.field.operatorMedoGuid.name:GUID Оператора:}">
+            <appearance importance="normal"/>
+          </field>
           <field attribute-ref="empty">
             <properties>
               <read-only condition-union="AND">
@@ -707,6 +797,13 @@
             </properties>
             <appearance importance="normal"/>
           </field>
+          <section id="postRussianSending" name="${ui.form.SODepartmentForm.section.AddressesAndRequisites.section.RussianPostSending.name:Отправка в Почту России}">
+            <component>
+              <field attribute-ref="russianPostTable">
+                <appearance importance="normal" location="table"/>
+              </field>
+            </component>
+          </section>
           <section id="Contacts" name="${ui.form.SODepartmentForm.section.AddressesAndRequisites.section.Contacts.name:Контактные данные}">
             <appearance>
               <label-style width="0" unit="symbol"/>
@@ -884,6 +981,34 @@
       </section>
       <section id="Additional" name="${ui.form.SODepartmentForm.section.Additional.name:Дополнительно}">
         <component>
+          <field attribute-ref="structBossAC" name="${boss.tabNum:Таб. номер руководителя (АСУП):}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="isNotAnyAdminAndHasHRModuleDep"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <section id="worksForSection" name="${ui.form.SODepartmentForm.section.Additional.section.worksForSection.name:Дела принял}">
+            <component>
+              <field attribute-ref="worksfor" name="${ui.form.SODepartmentForm.section.Additional.section.worksForSection.field.worksfor.name:Дела принял от:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="WorksForRegistration" name="${ui.form.SODepartmentForm.section.Additional.section.worksForSection.field.WorksForRegistration.name:Дела принял по месту регистрации:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+            </component>
+          </section>
           <section id="CaseSection" name="${ui.form.SODepartmentForm.section.Additional.section.CaseSection.name:Склонение по падежам}">
             <component>
               <section id="rowcase1" group="true">
@@ -1171,22 +1296,6 @@
               </field>
             </component>
           </section>
-          <field attribute-ref="worksfor" name="${ui.form.SODepartmentForm.section.Additional.field.worksfor.name:Дела принял от:}">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
-          <field attribute-ref="WorksForRegistration" name="${ui.form.SODepartmentForm.section.Additional.field.WorksForRegistration.name:Дела принял по месту регистрации:}">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal"/>
-          </field>
         </component>
       </section>
       <section id="RootMenu" name="${ui.form.SODepartmentForm.section.RootMenu.name:SODepartmentMenu}">
@@ -1236,12 +1345,10 @@
               </custom>
             </action>
           </button>
-          <section id="Create" name="${ui.form.SODepartmentForm.section.RootMenu.section.Create.name:Создать}">
+          <section id="CREATE" name="${ui.form.SODepartmentForm.section.RootMenu.section.Create.name:Создать}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="SOTNObject_canPerfomOperationInSO"/>
-                <negative-condition-ref ref="read"/>
-                <condition-ref ref="TNObject_isDeleted"/>
+                <condition-ref ref="hidePersonSaveButton"/>
               </hide>
             </properties>
             <component>
@@ -1278,7 +1385,7 @@
                   </custom>
                 </action>
               </button>
-              <button name="${ui.form.SODepartmentForm.section.RootMenu.section.Create.button.Подчиненную штатную единицу сотрудника.name:Подчиненную штатную единицу сотрудника}">
+              <button name="${ui.form.SODepartmentForm.section.RootMenu.section.Create.button.Подчиненную штатную единицу работника.name:Подчиненную штатную единицу работника}">
                 <properties>
                   <hide condition-union="AND">
                     <negative-condition-ref ref="read"/>
@@ -1303,10 +1410,12 @@
           <section id="Operations" name="${ui.form.SODepartmentForm.section.RootMenu.section.Operations.name:Операции}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="TNObject_CanEdit"/>
-                <condition-ref ref="TNObject_isDeleted"/>
+                <condition-ref ref="hidePersonSaveButton"/>
               </hide>
             </properties>
+            <appearance>
+              <action position="60"/>
+            </appearance>
             <component>
               <button name="${ui.form.SODepartmentForm.section.RootMenu.section.Operations.button.Переподчинить.name:Переподчинить}" alias="SET_PARENT_ONLY_READ_MODE">
                 <properties>
@@ -1316,7 +1425,7 @@
                     <condition-ref ref="TNObject_isDeleted"/>
                   </hide>
                 </properties>
-                <action position="9.0">
+                <action>
                   <custom>
                     <operation>
                       <handler>

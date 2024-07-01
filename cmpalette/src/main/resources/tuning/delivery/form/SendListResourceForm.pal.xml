@@ -8,6 +8,17 @@
       </hide>
     </properties>
     <component>
+      <button name="${ui.form.SendListResourceForm.button.delete.document.name:Документ}">
+          <properties>
+              <hide condition-union="AND">
+                  <negative-condition-ref ref="CanDelete"/>
+              </hide>
+          </properties>
+          <hint-pop-up>${ui.form.SendListResourceForm.button.delete.document.hintPopUp:Документ}</hint-pop-up>
+          <action>
+              <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+          </action>
+      </button>
       <section id="Header">
         <component>
           <section id="row1" group="true">
@@ -175,7 +186,7 @@
               <button recalc="true" attribute-ref="$calculate" name="${ui.form.SendListResourceForm.section.Attributes.section.Main.button.calculate.name:Вычислить состав}">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="showCalculateButton"/>
+                    <negative-condition-ref ref="SendList_ShowCalculateButton"/>
                   </hide>
                 </properties>
                 <appearance>
@@ -188,19 +199,71 @@
           </section>
         </component>
       </section>
-      <section id="Access" name="${ui.form.SendListResourceForm.section.Access.name:Доступ}">
+      <section id="AccessType" name="${ui.form.SendListResourceForm.section.AccessType.name:Доступ}">
         <component>
-          <field attribute-ref="$accessItem">
-            <appearance importance="normal"/>
+          <field recalc="true" attribute-ref="accessType">
+            <appearance widget="radio">
+              <label-style>
+                <style id="tunVertical"/>
+              </label-style>
+              <field-style>
+                <value-style>
+                  <style id="tunVertical"/>
+                </value-style>
+              </field-style>
+            </appearance>
+            <directories limit-livesearch="sys-current">
+              <directory-ref ref="accessType"/>
+            </directories>
           </field>
-          <field attribute-ref="accessType">
+          <field attribute-ref="acl" recalc="true" name="${ui.form.RkkTemplateResourceInputForm.section.AccessType.field.acl.name:Индивидуально:}">
             <properties>
               <hide condition-union="AND">
-                <condition>true</condition>
+                <negative-condition-ref ref="SendList_IsFavourites"/>
               </hide>
             </properties>
-            <appearance importance="normal"/>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBorderedField"/>
+              </label-style>
+            </appearance>
+            <directories limit-livesearch="sys-current">
+              <directory-ref ref="CURRENT_HH_ROLE_HUMAN"/>
+              <directory-ref ref="CURRENT_HH_ROLE_HUMAN_HIER"/>
+              <directory-ref ref="sys_roles"/>
+              <directory-ref ref="FV_CURR_HUMAN_HH_ROLE"/>
+            </directories>
           </field>
+          <section id="departmentAccessSection" group="true">
+            <component>
+              <field attribute-ref="labelDepartmentAccess">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SendList_IsFavourites"/>
+                  </hide>
+                </properties>
+                <appearance align="right">
+                  <label-style field-width="15" field-unit="symbol">
+                    <style id="tunGray"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field clickable="true" attribute-ref="departmentAccess" recalc="true">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="SendList_IsFavourites"/>
+                  </hide>
+                </properties>
+                <appearance location="table" importance="normal" clickable="true">
+                  <field-style space-for-empty-name="true"/>
+                </appearance>
+              </field>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
         </component>
       </section>
     </component>

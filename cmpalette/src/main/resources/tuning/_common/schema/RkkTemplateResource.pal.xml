@@ -16,6 +16,9 @@
     <boolean name="public" system="true"/>
     <actor array="true" name="acl" system="true"/>
     <string name="name" system="true"/>
+    <actor name="authorTemplate" system="true"/>
+    <actor name="authorDepartment" system="true"/>
+    <schema-ref ref="ContentResource" name="$content" system="true"/>
     <string name="showTemplate" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA['Шаблон'+
@@ -53,6 +56,11 @@
     <string name="comment">
       <storage-field name="Comment"/>
     </string>
+    <string name="labelDepartmentAccess" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Всем из подразделений:']]></script>
+      </calc-values>
+    </string>
     <boolean name="disableLinkAccess" system="true"/>
     <boolean name="isSupervisor" temporal="true">
       <calc-values>
@@ -72,6 +80,66 @@
         <script event="open">
           <![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature') && signature != null && !(signature.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD)]]>
         </script>
+      </calc-values>
+    </boolean>
+    <actor name="executor" array="true" system="true"/>
+    <schema-ref ref="ContentResourceAdditional" name="contentAdd"/>
+    <string name="securityStamp"/>
+    <string name="contentEmptyLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[""]]></script>
+      </calc-values>
+    </string>
+    <boolean name="contentAddNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentAdd != null && ((contentAdd.richtext != null && !contentAdd.richtext.isEmpty()) || (contentAdd.content != null && !contentAdd.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(content != null && !content.isEmpty()) || #this.richtext != null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentSectionNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentNotEmpty || contentAddNotEmpty]]></script>
+      </calc-values>
+    </boolean>
+    <string name="labelMain" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Основные']]></script>
+      </calc-values>
+    </string>
+    <string name="labelExecutor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Исполнитель"]]></script>
+      </calc-values>
+    </string>
+    <string name="labelAdditional" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Дополнительные"]]></script>
+      </calc-values>
+    </string>
+    <string array="true" temporal="true" name="personGrifs">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getPerson().getPersonStampGrifs()]]></script>
+      </calc-values>
+    </string>
+    <boolean name="supportSecurityStamp" system="true" createlog="true" temporal="true"/>
+    <boolean name="securityStampIsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[securityStamp != null && securityStamp != '']]></script>
+      </calc-values>
+    </boolean>
+    <string computed="true" createlog="true" name="editSecurityStampField">
+      <storage-field name="editSecurityStampField"/>
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(editSecurityStampField == null || editSecurityStampField == '') ? (securityStampIsNotEmpty != null && securityStampIsNotEmpty ? 'No' : 'Yes') : editSecurityStampField]]></script>
+      </calc-values>
+    </string>
+    <boolean default-value="false" temporal="true" name="supportSecurityStampCalc">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(supportSecurityStamp != null && supportSecurityStamp) || ( isNew && T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'DOPName') && T(ru.intertrust.cmj.af.utils.BeansUtils).getBean('securityStampImpl').isSupportSecurityStamp(DOPName) && T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).usedSecurityStamp)]]></script>
       </calc-values>
     </boolean>
   </schema>

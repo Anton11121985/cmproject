@@ -39,9 +39,170 @@
     <boolean name="isDeletedByOrg" temporal="true"/>
     <string name="deletedAddStatus" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[isDeletedByOrg ? "в связи с удалением организации" : "" ]]>
+        <script event="open" lang="SPEL"><![CDATA[isDeletedByOrg != null ? (isDeletedByOrg? "в связи с удалением организации" : "") : ""  ]]>
         </script>
       </calc-values>
     </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.java.lang.System);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importPackage(Packages.java.util);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.java.lang.String);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.admin.so.worktimeprofile.SOWorkTimeProfile);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.Date);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.java.lang.Integer);
+importClass(Packages.ru.intertrust.cm.core.business.api.CollectionsService);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.RichTextResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.java.text.SimpleDateFormat);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.af.core.Version.VersionCard);
+
+function querySave(object, document) {
+
+	var orgPostType = getPropertyValue(object, "orgPostType");
+	var createdFromSpark = getPropertyValue(object, "createdFromSpark");
+	var isDead = getPropertyValue(object, "isDead");
+	var values = object.tuning().getValues();
+	var oldOrgPostTypeValue = getFieldValue(document, "OrgPostType");
+  var oldOrgPostType = oldOrgPostTypeValue ==null? null:oldOrgPostTypeValue.isEmpty()?null:(oldOrgPostTypeValue[0]+"");
+	if (orgPostType == 1 && oldOrgPostType!="1" && isDead!=true && createdFromSpark!=true && (object.entity()==null || !object.entity().isDeleted())){
+		var orgID = getFieldValue(document, "OrgID")[0].toString();
+		if (orgID != ""){
+		    var org = getDocOrg("OrgDirectory", "", orgID);
+			if (org != null) {
+				var sparkRefreshProhibit = org.getItemValue("Tn$_isSpark");
+				var sparkId = org.getItemValue("sparkId");
+				var isSparkOrg = sparkId!=null && !sparkId.isEmpty() && sparkId.get(0)!="" && sparkId.get(0)!=0;
+				if (isSparkOrg &&
+				  (sparkRefreshProhibit == null || sparkRefreshProhibit.isEmpty() || sparkRefreshProhibit.get(0)+"" != "1") ) {
+				    throw "Для контрагентов, обновляемых из СПАРК, недопустимо ручное заведение карточки руководителя организации. Выберите другой тип должности.";
+				}
+			}
+
+		}
+	}
+	// при изменении ФИО руководителя, создании досье руководителя записываем это изменение в организацию
+	var createOrgVersion = false;
+	var oldName = "";
+	var newName = "";
+	if (createdFromSpark!=true && (orgPostType == 1) && !object.entity().isDeleted() && !isDead && getPropertyValue(object, "state")!='REQUEST_FOR_EDITING' ) {
+    createOrgVersion = document.isNewNote();
+
+    oldName = (document.getItemValueString("LastName")+" "+document.getItemValueString("FirstName")+" "+document.getItemValueString("MiddleName")).trim();
+    if (document.getItemValueString("OrgPost")!=null && document.getItemValueString("OrgPost")!="") {
+      oldName+=", "+document.getItemValueString("OrgPost");
+    }
+    oldName = oldName.trim();
+
+    newName = (getPropertyValue(object, "lastName")+" "+getPropertyValue(object, "firstName")+" "+getPropertyValue(object, "middleName")).trim();
+    if (getPropertyValue(object, "orgPost")!=null && getPropertyValue(object, "orgPost")!="") {
+      newName+=", "+getPropertyValue(object, "orgPost");
+    }
+    newName = newName.trim();
+
+    createOrgVersion |= newName!=oldName;
+  }
+  if (createOrgVersion) {
+    if (document.getItemValueString("Dead")=="1" || document.getItemValueString("met")=="1" || oldOrgPostType!="1"){
+      oldName = "";
+    }
+    oldName = oldName.trim();
+
+    if (isDead || (object.entity()!=null && object.entity().isDeleted()) || orgPostType != 1) {
+      newName = "";
+    }
+
+    if (newName!=oldName) {
+      TunableObjectHelper.putAFInstanceValue(object, "orgLeaderChange", oldName+"%%"+newName);
+    }
+  }
+
+  return true;
+}
+
+function postSave(object, document) {
+  var changedLeader = getPropertyValue(object, "orgLeaderChange");
+  if (changedLeader!=null && changedLeader!="") {
+    var names = changedLeader.split("%%");
+    var appTnObjectApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var orgID = getFieldValue(document, "OrgID")[0].toString();
+    var spoInfo = AFCMDomino.getDbInfoByIdentNamed("OrgDirectory", "");
+    var org = appTnObjectApp.getEntityByUNID(spoInfo.replicaID+"-TN:"+orgID);
+    if (org!=null && AFCMDomino.getDbInfoByAFObject(org).versionalEnable) {
+      var versionApplication = AFSession.get().getApplication(VersionApplication.class);
+      TunableObjectHelper.putAFInstanceValue(org.tuning(), "leaderFIO", names[0]);
+      TunableObjectHelper.putAFInstanceValue(org.tuning(), "versionType", "ORG_DESC");
+      var orgResource = new TunableObjectREST.Resource(org, null);
+
+      var versionCard = versionApplication.createVersionCardByChange(orgResource, orgResource, org);
+      if (versionCard != null) {
+        versionCard.save();
+        versionApplication.updateVersionInfo(org);
+        TunableHistoryHelper.hist_addTextOne(org.history(), FieldBase.OBJECT_ORG_LEADER_CHANGED, names[0], names[1]);
+        org.save();
+      }
+    }
+  }
+
+  object.tuning().getValues().remove("orgLeaderChange");
+}
+
+function getFieldValue(document, fieldName) {
+	var value = document.getItemValue(fieldName);
+	if (value == null) {
+		value = "";
+	}
+	return value;
+}
+
+function getDocOrg(ident, complect, id) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var docOrg =db.getDocumentByUNID(id);
+	if (docOrg != null) {
+		try{
+			return docOrg;
+		} finally {
+
+		}
+
+	}
+
+}
+
+function getPropertyValue(object, propertyName) {
+	var value = "";
+	if (object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+		value = object.tuning().getValues().get(propertyName).getValue();
+	}
+	return value;
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

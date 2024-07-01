@@ -8,6 +8,23 @@
       </hide>
     </properties>
     <component>
+      <button name="${ui.form.NdpRegisterForm.button.Удалить.name:Удалить}">
+        <hint-pop-up>${ui.form.NdpRegisterForm.button.Удалить.hintPopUp:Удалить}</hint-pop-up>
+        <action position="30">
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.NdpRegisterForm.button.Связанный документ.name:Связанный документ}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.NdpRegisterForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+        </action>
+      </button>
       <section id="RootMenu">
         <component>
           <button name="${ui.form.NdpRegisterForm.section.RootMenu.button.system.hide.name:Скрыть системную кнопку Сохранить}">
@@ -25,9 +42,6 @@
               <hide condition-union="AND">
                 <negative-condition-ref ref="TNObjectIsShowSaveButton"/>
               </hide>
-<!--&lt;!&ndash;              <hide condition-union="AND">&ndash;&gt;-->
-<!--&lt;!&ndash;                  <negative-condition-ref ref="isTypeEditor"/>&ndash;&gt;-->
-<!--&lt;!&ndash;              </hide>&ndash;&gt;-->
             </properties>
             <icon code="92"/>
             <action>
@@ -62,13 +76,12 @@
                 </action>
               </button>
               <button name="${ui.form.NdpRegisterForm.section.RootMenu.button.CreateNDPChange.name:Изменения к НД подразделения}" alias="create-ndpchange">
-                <!--
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="isTypeEditor"/>
+                    <negative-condition-ref ref="NdpIsReadyFinalNote" />
+                    <negative-condition-ref ref="canCreateChangedNdp"/>
                   </hide>
                 </properties>
-                -->
                 <action>
                   <custom>
                     <operation>
@@ -79,6 +92,35 @@
                   </custom>
                 </action>
               </button>
+              <section id="CREATE_DOCUMENT_RELATED" name="${ui.form.NdpRegisterForm.section.RootMenu.section.CREATE_DOCUMENT_RELATED.name:Связанный документ}">
+                <appearance>
+                  <action>
+                    <system name="CREATE_DOCUMENT_RELATED"/>
+                  </action>
+                </appearance>
+                <component>
+                  <button name="${ui.form.NdpRegisterForm.section.RootMenu.section.CREATE_DOCUMENT_RELATED.OutputDocs.button:Исходящий}">
+                    <properties>
+                      <hide>
+                        <condition>true</condition>
+                      </hide>
+                    </properties>
+                    <action>
+                      <system name="http://intertrust.ru/cmj/relations#create.linked.document#OUTPUT"/>
+                    </action>
+                  </button>
+                  <button name="${ui.form.NdpRegisterForm.section.RootMenu.section.CREATE_DOCUMENT_RELATED.MISSIONS.button:ОРД}">
+                    <properties>
+                      <hide>
+                        <condition>true</condition>
+                      </hide>
+                    </properties>
+                    <action>
+                      <system name="http://intertrust.ru/cmj/relations#create.linked.document#MISSIONS"/>
+                    </action>
+                  </button>
+                </component>
+              </section>
             </component>
             <appearance>
               <action position="8.0">
@@ -99,7 +141,7 @@
                 <style id="tunClickableRed"/>
               </label-style>
             </appearance>
-            <action>
+            <action position="20.5">
               <custom>
                 <operation>
                   <handler>
@@ -138,7 +180,7 @@
                 <style id="tunClickableRed" />
               </label-style>
             </appearance>
-            <action>
+            <action position="20.2">
               <custom>
                 <operation>
                   <handler>
@@ -161,7 +203,7 @@
                 <style id="tunClickableRed" />
               </label-style>
             </appearance>
-            <action>
+            <action position="20.7">
               <custom>
                 <operation>
                   <handler>
@@ -176,7 +218,7 @@
               <button attribute-ref="$canSendToApproving" name="${ui.form.NdpRegisterForm.button.canSendToApproving.name:На согласование}">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="CanSendToApproving"/>
+                    <negative-condition-ref ref="NdpRegisterCanSendToApproving"/>
                   </hide>
                 </properties>
                 <hint-pop-up>${ui.form.NdpRegisterForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
@@ -191,7 +233,7 @@
               <button name="${ui.form.NdpRegisterForm.section.RootMenu.section.OTHER.button.Readers.name:Читатели}" alias="ndp-readers" tid="ndp-readers">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="read"/>
+                    <condition-ref ref="NdpRegister_isDeleted"/>
                   </hide>
                 </properties>
                 <action>
@@ -215,6 +257,11 @@
                 </action>
               </button>
               <section name="${ui.form.NdpRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.name:Печатная форма}" id="PRINT_REPORT">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="NdpRegister_isDeleted"/>
+                  </hide>
+                </properties>
                 <component>
                   <button alias="unit-register" tid="unitRegister"
                           name="${ui.form.NdpRegisterForm.section.RootMenu.section.OTHER.section.PRINT_REPORT.button.unitRegister.name:Номенклатура дел подразделения}">
@@ -252,6 +299,36 @@
                   </button>
                 </component>
               </section>
+              <button name="${ui.form.NdpRegisterForm.section.RootMenu.section.OTHER.button.Удалить.name:Удалить}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="canDeleteIfAdminNdp"/>
+                  </hide>
+                </properties>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">DeleteNdpWithFilesForAdmin</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.NdpRegisterForm.section.RootMenu.section.OTHER.button.Удалить из корзины.name:Удалить из корзины}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="canDeleteNdpFromTrash"/>
+                  </hide>
+                </properties>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler-ref ref="DeleteUnitRegisterFromTrash"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
             </component>
             <appearance>
               <action position="25">
@@ -281,8 +358,8 @@
                         <condition>true</condition>
                       </read-only>
                     </properties>
-                    <appearance align="left" importance="normal">
-                      <label-style field-width="30" field-unit="symbol">
+                    <appearance align="left" importance="normal" multiline="false">
+                      <label-style field-width="1" field-unit="symbol">
                         <style id="tunIconProgress"/>
                       </label-style>
                     </appearance>
@@ -290,19 +367,35 @@
                   <field attribute-ref="organization">
                     <properties>
                       <read-only>
-                        <condition-ref ref="TObjectIsNotNew"/>
+                        <condition>true</condition>
                       </read-only>
                       <require>
                         <condition-ref ref="TObjectIsNew"/>
                       </require>
                     </properties>
-                    <appearance align="left" importance="normal">
-                      <label-style field-width="28" field-unit="symbol">
+                    <appearance align="left" importance="normal" multiline="false">
+                      <label-style field-width="1" field-unit="symbol">
                         <style id="tunIconProgress"/>
                       </label-style>
                     </appearance>
-                    <directories livesearch="true" limit-livesearch="no-restrictions" relation="NdOrgAndDepsHasNdo" digest="digestSOLiveSearch">
-                      <directory-ref ref="CURRENT_ORG_ONLY"/>
+                  </field>
+                  <field attribute-ref="orgDepartment" recalc="true">
+                    <properties>
+                      <read-only>
+                        <condition-ref ref="TObjectIsNotNew"/>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="showOrgDepartment"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left" importance="normal">
+                      <limit min-lenght="31" min-size="30"/>
+                      <label-style field-width="30" field-unit="symbol">
+                        <style id="tunIconProgress"/>
+                      </label-style>
+                    </appearance>
+                    <show-value schema-ref="VCardResource.FullName"/>
+                    <directories livesearch="true" limit-livesearch="no-restrictions" relation="NdDepsHasNdo" digest="digestSOLiveSearch">
                       <directory-ref ref="NdDepsHasNdo"/>
                     </directories>
                   </field>
@@ -311,24 +404,21 @@
                   <dialog-mode unit="percent" width="60" />
                 </appearance>
               </section>
-              <section id="indexSection" group="true">
-                <component>
-                  <field attribute-ref="index" name="${ui.form.NdpRegister.Header.index.name:Номенклатурный индекс:}">
-                    <properties>
-                      <require>
-                        <condition-ref ref="edit"/>
-                      </require>
-                      <read-only>
-                        <condition-ref ref="NdpBranchDivisionIsDepartment"/>
-                      </read-only>
-                    </properties>
-                    <appearance importance="normal" multiline="false">
-                      <label-style field-width="15" field-unit="symbol"/>
-                    </appearance>
-                  </field>
-                </component>
-                <appearance align="right"/>
-              </section>
+              <field attribute-ref="index" name="${ui.form.NdpRegister.Header.index.name:Номенклатурный индекс:}">
+                <properties>
+                  <require>
+                    <condition-ref ref="edit"/>
+                  </require>
+                  <read-only>
+                    <condition-ref ref="NdpBranchDivisionIsDepartment"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" multiline="false">
+                  <label-style field-width="16" field-unit="symbol" label-width="20" label-unit="symbol">
+                    <style id="tunNowrapTitle"/>
+                  </label-style>
+                </appearance>
+              </field>
               <field attribute-ref="statusGeneral">
                 <properties>
                   <read-only>
@@ -387,19 +477,36 @@
                   </field>
                   <field attribute-ref="sounit" name="${ui.form.NdpRegister.Unit.name:Структурное подразделение:}" recalc="true">
                     <properties>
-                      <read-only condition-union="AND">
-                        <negative-condition-ref ref="ReadOnlySounit" />
-                      </read-only>
+                      <hide>
+                        <negative-condition-ref ref="ndpOrganizationIsRoot"/>
+                      </hide>
                       <require>
                         <condition-ref ref="edit"/>
                       </require>
                     </properties>
+                    <show-value schema-ref="VCardResource.TitleOrShortName"/>
                     <rename name="${ui.form.NdpRegister.FormerUnit.name:Подразделение составителя:}" condition-union="AND">
                       <condition-ref ref="NdpIsActivity"/>
                     </rename>
-                    <!--<appearance open-mode="grid" digest-mode="grid" importance="normal" widget="grid"/>-->
-                    <directories limit-livesearch="sys-current" digest="grid">
-                      <directory-ref ref="so-former-ndp-in-so-dep-rvz"/>
+                    <directories limit-livesearch="sys-current" livesearch="true" relation="so-ndp-deps" digest="digestSOLiveSearch">
+                      <directory-ref ref="so-alldeps"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="sounit" name="${ui.form.NdpRegister.Unit.name:Структурное подразделение:}" recalc="true">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="ndpOrganizationIsRoot"/>
+                      </hide>
+                      <require>
+                        <condition-ref ref="edit"/>
+                      </require>
+                    </properties>
+                    <show-value schema-ref="VCardResource.TitleOrFullName"/>
+                    <rename name="${ui.form.NdpRegister.FormerUnit.name:Подразделение составителя:}" condition-union="AND">
+                      <condition-ref ref="NdpIsActivity"/>
+                    </rename>
+                    <directories limit-livesearch="sys-current" livesearch="true" relation="so-ndp-deps-byIsolatedDep" digest="digestSOLiveSearch">
+                      <directory-ref ref="so-alldeps-by-isolatedDep"/>
                     </directories>
                   </field>
                   <field attribute-ref="statusExtended">
@@ -442,7 +549,7 @@
                     <appearance field-layout="horizontal"/>
                     <properties>
                       <hide>
-                        <negative-condition-ref ref="hideSection_changeStates"/>
+                        <condition-ref ref="hideSection_changeStates"/>
                       </hide>
                     </properties>
                     <component>
@@ -471,9 +578,10 @@
                           </custom>
                         </action>
                       </button>
-                      <button name="${ui.form.NdpRegister.label.unreadyToAdd.name:Не готова к включению в сводную НД}" tid="unreadyToAdd">
+                      <button name="${ui.form.NdpRegister.label.unreadyToAdd.name:Не готова к включению в сводную НД}"
+                              tid="unreadyToAdd">
                         <properties>
-                          <hide>
+                          <hide condition-union="AND">
                             <condition-ref ref="NdpIsReadyToAdd"/>
                           </hide>
                           <disabled>
@@ -482,8 +590,8 @@
                         </properties>
                         <appearance>
                           <label-style>
-                            <style id="tunBtnHeader" />
-                            <style id="tunRed" />
+                            <style id="tunBtnHeader"/>
+                            <style id="tunRed"/>
                           </label-style>
                         </appearance>
                         <action>
@@ -581,9 +689,19 @@
         </properties>
         <component>
           <field attribute-ref="contentDocuments" name="${ui.form.NdpRegisterForm.content.section.contentDocuments.name:Документ}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="contentDocumentsEmpty"/>
+              </hide>
+            </properties>
             <appearance importance="normal"/>
           </field>
           <field attribute-ref="contentAddInformations" name="${ui.form.NdpRegisterForm.content.section.contentAddInformations.name:Доп. Информация}">
+            <properties>
+              <hide condition-union="AND">
+                <condition-ref ref="contentAddInformationsEmpty"/>
+              </hide>
+            </properties>
             <appearance importance="normal"/>
           </field>
         </component>
@@ -757,6 +875,29 @@
                       </custom>
                     </action>
                   </button>
+                  <button name="${ui.form.NdpRegisterForm.section.FileRegisterActions.button.createArcDeal.name:Сформировать архивные дела}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="read"/>
+                        <negative-condition-ref ref="Ndp_canCreateArcDeal"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style width="25">
+                        <style id="tunUnderline" />
+                        <style id="tunClickableRed" />
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">CreateArcDealFrFileOperation</script>
+                          </handler>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
                 </component>
               </section>
               <!--field attribute-ref="showFileRegisters">
@@ -792,7 +933,16 @@
                 <appearance field-layout="horizontal"/>
                 <component>
                   <field attribute-ref="sumTotalSpd" name="${ui.form.NdpRegister.label.sumTotalSpd.name:Всего дел постоянного срока хранения}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -803,7 +953,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="movable" name="${ui.form.NdpRegister.label.movable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -814,7 +973,16 @@
                     </properties>
                   </field>
                   <field attribute-ref="epkMark" name="${ui.form.NdpRegister.label.epkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -829,8 +997,17 @@
               <section id="row3" group="true">
                 <appearance field-layout="horizontal"/>
                 <component>
-                  <field attribute-ref="gt10SumTemporalOver" name="${ui.form.NdpRegister.label.gt10SumTemporalOver.name:Всего дел временного (свыше 10 лет) срока хранения:}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="gt10_SumTemporalOver" name="${ui.form.NdpRegister.label.gt10SumTemporalOver.name:Всего дел временного (свыше 10 лет) срока хранения:}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -840,8 +1017,17 @@
                       </read-only>
                     </properties>
                   </field>
-                  <field attribute-ref="gt10Movable" name="${ui.form.NdpRegister.label.gt10Movable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="gt10_Movable" name="${ui.form.NdpRegister.label.gt10Movable.name:в том числе переходящих}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -851,8 +1037,17 @@
                       </read-only>
                     </properties>
                   </field>
-                  <field attribute-ref="gt10EpkMark" name="${ui.form.NdpRegister.label.gt10EpkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="gt10_EpkMark" name="${ui.form.NdpRegister.label.gt10EpkMark.name:с отметкой «ЭПК»}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -867,8 +1062,17 @@
               <section id="row4" group="true">
                 <appearance field-layout="horizontal"/>
                 <component>
-                  <field attribute-ref="lt10SumTemporalLess" name="${ui.form.NdpRegister.label.lt10SumTemporalLess.name:Всего дел временного (до 10 лет) срока хранения}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="lt10_SumTemporalLess" name="${ui.form.NdpRegister.label.lt10SumTemporalLess.name:Всего дел временного (до 10 лет) срока хранения}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -878,8 +1082,17 @@
                       </read-only>
                     </properties>
                   </field>
-                  <field attribute-ref="lt10Movable" name="${ui.form.NdpRegister.label.lt10Movable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="lt10_Movable" name="${ui.form.NdpRegister.label.lt10Movable.name:в том числе переходящих}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -889,8 +1102,17 @@
                       </read-only>
                     </properties>
                   </field>
-                  <field attribute-ref="lt10EpkMark" name="${ui.form.NdpRegister.label.lt10EpkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="lt10_EpkMark" name="${ui.form.NdpRegister.label.lt10EpkMark.name:с отметкой «ЭПК»}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -906,7 +1128,16 @@
                 <appearance field-layout="horizontal"/>
                 <component>
                   <field attribute-ref="sum" name="${ui.form.NdpRegister.label.sum.name:Всего дел}">
-                    <appearance align="left" importance="normal"/>
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -916,8 +1147,17 @@
                       </read-only>
                     </properties>
                   </field>
-                  <field attribute-ref="sumMovable" name="${ui.form.NdpRegister.label.sumMovable.name:в том числе переходящих}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="sum_Movable" name="${ui.form.NdpRegister.label.sumMovable.name:в том числе переходящих}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -927,8 +1167,17 @@
                       </read-only>
                     </properties>
                   </field>
-                  <field attribute-ref="sumEpkMark" name="${ui.form.NdpRegister.label.sumEpkMark.name:с отметкой «ЭПК»}">
-                    <appearance align="left" importance="normal"/>
+                  <field attribute-ref="sum_EpkMark" name="${ui.form.NdpRegister.label.sumEpkMark.name:с отметкой «ЭПК»}">
+                    <appearance align="left" importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
                     <properties>
                       <require condition-union="AND">
                         <condition-ref ref="canEditSummaryInfo"/>
@@ -970,7 +1219,7 @@
       <section id="LifeCycle" name="${ui.form.NdpRegister.section.LifeCycle.name:Жизненный цикл}">
         <properties>
           <hide>
-            <condition-ref ref="throughIternalUnit"/>
+            <condition-ref ref="throughInternalUnit"/>
           </hide>
         </properties>
         <appearance widget="leftMenu"/>
@@ -988,9 +1237,14 @@
         </component>
       </section>
       <section id="Links" name="${ui.form.NdpRegister.section.Links.name:Связанные}">
+        <properties>
+          <read-only condition-union="AND">
+            <condition-ref ref="isNotActive"/>
+          </read-only>
+        </properties>
         <appearance widget="leftMenu"/>
         <component>
-          <section id="Documеnts" name="${ui.form.NdpRegister.section.Links.section.Documеnts.name:Документы}"/>
+          <section id="Documents" name="${ui.form.NdpRegister.section.Links.section.Documеnts.name:Документы}"/>
           <section id="Visualization" name="${ui.form.NdpRegister.section.Links.section.Visualization.name:Визуализация}"/>
         </component>
       </section>

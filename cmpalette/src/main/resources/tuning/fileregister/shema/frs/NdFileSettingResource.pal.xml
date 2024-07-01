@@ -4,10 +4,7 @@
     <boolean computed="true" temporal="true" name="IsUseArchiveModule">
       <calc-values>
         <script lang="SPEL" event="open">
-          <![CDATA[
-            T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(T(ru.intertrust.cmj.af.core.AFCMDomino)
-                                                               .getDbReplicaIdNamedAny("FileRegister")).useArchiveModule
-          ]]>
+          <![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByIdentNamed("FileRegister", "")?.useArchiveModule]]>
         </script>
       </calc-values>
     </boolean>
@@ -20,9 +17,19 @@
         </script>
       </calc-values>
     </string>
+    <string name="deletedLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Удален']]></script>
+      </calc-values>
+    </string>
+    <boolean name="deleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[dateDeleteToTrash!=null]]></script>
+      </calc-values>
+    </boolean>
     <string computed="true" temporal="true" name="DealSettingTitle">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Секция - Настройки дела']]></script>
+        <script lang="SPEL" event="open"><![CDATA['Настройки дела']]></script>
       </calc-values>
     </string>
     <string computed="true" temporal="true" name="ApproveThrowInternalDocTitle">
@@ -42,6 +49,9 @@
     <string name="ApproveStateOrgYears" array="true">
       <storage-field name="Approve_StateOrg_Years"/>
     </string>
+    <datetime name="dateDeleteToTrash">
+      <storage-field name="DateDeleteToTrash"/>
+    </datetime>
     <boolean name="SpdUsedFile">
       <storage-field name="SpdUsed_File"/>
     </boolean>
@@ -53,15 +63,31 @@
     </boolean>
     <string name="PrefixSplitterFr">
       <storage-field name="PrefixSplitter_Fr"/>
+      <validate>
+        <regex>^[^\s\da-zA-Zа-яА-Я]*$</regex>
+        <message locale="ru">Допустимый формат - Знаки (не буквы, не цифры, не пробел)</message>
+      </validate>
     </string>
     <enum-ref ref="FrsChangeTypeEnum" name="FrChangeType" default-value="CONFIRM_END_OF_YEAR">
       <storage-field name="Fr_Change_Type" />
     </enum-ref>
     <string name="PrefixSplitterFile">
       <storage-field name="PrefixSplitter_File"/>
+      <validate>
+        <regex>^[^\s\da-zA-Zа-яА-Я]*$</regex>
+        <message locale="ru">Допустимый формат - Знаки (не буквы, не цифры, не пробел)</message>
+      </validate>
     </string>
+    <boolean name="isSuffixUsed">
+      <recalc-processing-class>ru.intertrust.cmj.rest.fileregister.filesetting.RecalcForFrFileSettingIsSuffixUsed</recalc-processing-class>
+      <storage-field name="isSuffixUsed"/>
+    </boolean>
     <string name="SuffixSplitterFile">
       <storage-field name="SuffixSplitter_File"/>
+      <validate>
+        <regex>^[^\s\da-zA-Zа-яА-Я]*$</regex>
+        <message locale="ru">Допустимый формат - Знаки (не буквы, не цифры, не пробел)</message>
+      </validate>
     </string>
     <boolean name="IndexAutoGenerationFile">
       <storage-field name="IndexAutoGeneration_File"/>
@@ -92,6 +118,11 @@
     </boolean>
     <boolean name="ArcADestrThroughApprove" >
       <storage-field name="ArcADestr_ThroughApprove"/>
+    </boolean>
+    <boolean name="$canDeleteFromTrash" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='delete.from.trash'].size() > 0]]></script>
+      </calc-values>
     </boolean>
   </schema>
 </schemas>

@@ -79,5 +79,45 @@
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#discussion'].size() > 0]]></script>
       </calc-values>
     </boolean>
+    <boolean name="$isOldFrCompatible" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.utils.BeansUtils).getTypedBean(T(ru.intertrust.cmj.af.fdnd.FrCompatibleService)).isOldFrCompatible()]]></script>
+      </calc-values>
+    </boolean>
+    <string name="$fdndFiles" temporal="true"/>
+    <string name="$fdndFilesWithCopies" temporal="true"/>
+    <boolean name="addLinksForNd" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[
+                    $isOldFrCompatible?
+            #this.link.add(
+               new ru.intertrust.cmj.rest.core.ResourceLink(
+                    T(ru.intertrust.cmj.rest.core.ResourceLink).rel("fdnd.for.regplace.old"),
+                    T(ru.intertrust.cmj.rest.core.ReferenceFactory).get().getReference("NodeListByAliasCategorized",
+                            "inventory-all-case",
+                             ((#this instanceof T(ru.intertrust.cmj.rest.contracts.document.Document.Resource)) || #this.registration == null) ? '' : (#this.registration.place == null ? '' : (T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place).getUNID().split(':')[1])),
+                             null, true)
+                            )):
+            #this.link.add(
+               new ru.intertrust.cmj.rest.core.ResourceLink(
+                    T(ru.intertrust.cmj.rest.core.ResourceLink).rel("fdnd.for.regplace.with.originalInfo"),
+                    T(ru.intertrust.cmj.rest.core.ReferenceFactory).get().getReference("NodeListByAliasCategorized",
+                            "inventory-all-cases-{originalInfo}",
+                             ((#this instanceof T(ru.intertrust.cmj.rest.contracts.document.Document.Resource)) || #this.registration == null) ? '' :
+                              (#this.registration.place == null ? '' :
+                              (T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place).getUNID().split(':')[1])),
+                             null, true)
+                            ))
+                            &&
+              #this.link.add(
+                new ru.intertrust.cmj.rest.core.ResourceLink(
+                    T(ru.intertrust.cmj.rest.core.ResourceLink).rel("fdnd.all.with.originalInfo"),
+                    "/collections/byAlias/PROGRAMMED/inventory-all-cases-{originalInfo}/true/true/false", ''
+                            ))
+]]>
+        </script>
+      </calc-values>
+    </boolean>
   </schema>
 </schemas>

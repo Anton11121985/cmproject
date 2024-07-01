@@ -2,98 +2,182 @@
 <schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
   <schema name="ArchivesAnnualInventoryResource" extends="ArchivesCommonResource">
 
-    <enum-ref ref="archivesAnnualInventoryStateEnum" name="MainState">
-      <storage-field name="MainState" />
-    </enum-ref>
+    <schema-ref ref="ContentResourceAddInformations" name="contentAddInformations" />
+    <schema-ref ref="ContentResourceDocuments" name="contentDocuments" />
 
-    <!--fields-->
-    <actor default-value="Выбор из справочника" required="true" name="Organization">
-      <storage-field name="Organization" />
-    </actor>
-    <integer name="Year">
-      <storage-field name="Year" />
-    </integer>
-    <string name="AdditionalState">
-      <storage-field name="AdditionalState" />
-    </string>
-    <boolean name="IsApproveAK">
-      <storage-field name="IsApproveAK" />
-    </boolean>
-    <date required="true" name="ProtocolAKDate">
-      <storage-field name="ProtocolAKDate" />
-    </date>
-    <string name="ProtocolAKNumber">
-      <storage-field name="ProtocolAKNumber" />
-    </string>
-    <enum-ref ref="archivesKindDealEnum" required="true" name="KindDeal">
-      <storage-field name="KindDeal" />
-    </enum-ref>
-    <boolean name="ReadyToConsider">
-      <storage-field name="ReadyToConsider" />
-    </boolean>
-    <boolean name="IsConfirmAPKArcOrg">
-      <storage-field name="IsConfirmAPKArcOrg" />
-    </boolean>
-    <boolean name="IsApproveAPKArcOrg">
-      <storage-field name="IsApproveAPKArcOrg" />
-    </boolean>
-    <date name="ProtocolApkDate">
-      <storage-field name="ProtocolApkDate" />
-    </date>
-    <string name="ProtocolApkNumber">
-      <storage-field name="ProtocolApkNumber" />
-    </string>
-    <enum-ref ref="archivesInventorisationType" required="true" name="TypeInv">
-      <storage-field name="TypeInv" />
-    </enum-ref>
-    <string name="LiteralNumbers">
-      <storage-field name="LiteralNumbers" />
-    </string>
-    <string name="MissedNumbers">
-      <storage-field name="MissedNumbers" />
-    </string>
-	<actor default-value="Текущий пользователь" name="InvFormer">
-      <storage-field name="InvFormer" />
-    </actor>
+    <enum-ref ref="archivesAnnualInventoryStateAdditionalStateEnum" name="additionalState" system="true"/>
+    <enum-ref ref="archivesAnnualInventoryStateEnum" name="annualInventoryStatus" system="true" />
+    <enum-ref ref="archivesInventorisationType" name="typeInv" system="true" />
+    <enum-ref ref="archivesKindDealEnum" name="kindDeal" default-value="PAPER" system="true"/>
 
-    <string name="FundNumber">
-      <storage-field name="fund.FundNumber" />
-    </string>
-    <string name="fund_unid">
-      <storage-field name="fund_unid" />
-    </string>
-    <string name="annual_inv">
-      <storage-field name="annual_inv" />
-    </string>
+    <boolean name="isConfirmAPKArcOrg" system="true"/>
+    <boolean name="isApproveAPKArcOrg" system="true"/>
+    <boolean name="readyToConsider" system="true"/>
+    <boolean name="isApproveAK" system="true"/>
 
-    <string computed="true" temporal="true" name="actAKTitle">
+    <boolean default-value="false" name="startFinalRecord" temporal="true"/>
+
+    <string name="$approvStatusInfo" system="true"/>
+    <string name="protocolApkNumber" system="true"/>
+    <string name="protocolAKNumber" system="true"/>
+    <string name="literalNumbers" system="true"/>
+    <string name="missedNumbers" system="true"/>
+
+    <integer name="beginNumber" system="true"/>
+    <integer name="endNumber" system="true"/>
+    <integer name="dealNumber" system="true"/>
+    <actor name="whoDevolvedDeals" system="true"/>
+    <actor name="whoGotDeals" system="true" />
+
+    <string name="annual_inv" system="true"/>
+    <string name="fundNumber" system="true"/>
+    <string name="fund_unid" system="true"/>
+    <string name="year" system="true"/>
+
+    <actor name="organization" system="true"/>
+    <actor name="invFormer" system="true"/>
+
+    <date name="protocolApkDate" system="true"/>
+    <date name="protocolAKDate" system="true"/>
+
+    <string name="DepDealInfoTable" temporal="true" />
+    <boolean name="depDealInfoTableNotEmpty" temporal="true"/>
+
+    <string name="$id" temporal="true">
       <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Согласован ЭК']]></script>
-      </calc-values>
-    </string>
-    <string computed="true" temporal="true" name="actAPKTitle">
-      <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['Утверждён госархивом']]></script>
-      </calc-values>
-    </string>
-    <string computed="true" temporal="true" name="InvInfo">
-      <calc-values>
-        <script lang="SPEL" event="open"><![CDATA['В опись внесено']]></script>
+        <script event="open">
+          <![CDATA[id]]>
+        </script>
       </calc-values>
     </string>
 
-    <string computed="true" temporal="true" name="showident">
+    <string name="fakeString" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[""]]></script>
+      </calc-values>
+    </string>
+    <string temporal="true" name="showident">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['Годовой раздел описи дел']]></script>
       </calc-values>
     </string>
-
-    <schema-ref null-empty="true" ref="DepDealInfoTableResource" array="true" name="DepDealInfoTable" />
-    <string computed="true" temporal="true" name="DepDealTableLabel">
+    <string temporal="true" name="DepDealTableLabel">
       <calc-values>
         <script lang="SPEL" event="open"><![CDATA['Описи дел подразделений']]></script>
       </calc-values>
     </string>
+    <string name="typeInvValue" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[typeInv == null ? "" : typeInv.title()]]></script>
+      </calc-values>
+    </string>
+    
+    <boolean name="isProject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.annualInventoryStatus != null && (T(ru.intertrust.cmj.archives.common.AnnualInventory.AnnualInventoryStatus).PROJECT).equals(#this.annualInventoryStatus)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isReturned" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && (T(ru.intertrust.cmj.archives.common.AnnualInventory.AnnualInventoryAdditionalStatus).RETURNED).equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isArcAnnInvThroughApprove" temporal="true">
+      <calc-values>
+        <script event="open"> <![CDATA[
+          {#FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+          #setting = ((#this.organization == null) ? null : ((#FileRegisterApplication == null) ? null : #FileRegisterApplication.findFileSettingByOrgId(#this.organization.id))),
+          ((#setting == null) ? false : #setting.getArcAnnInvThroughApprove())
+          }[2]]]> </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isReady" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && (T(ru.intertrust.cmj.archives.common.AnnualInventory.AnnualInventoryAdditionalStatus).READY).equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isConfirmed" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && (T(ru.intertrust.cmj.archives.common.AnnualInventory.AnnualInventoryAdditionalStatus).CONFIRMED).equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="contentDocumentsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentDocuments != null && ((contentDocuments.richtext != null && !contentDocuments.richtext.isEmpty()) || (contentDocuments.content != null && !contentDocuments.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentAddInformationsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentAddInformations != null && ((contentAddInformations.richtext != null && !contentAddInformations.richtext.isEmpty()) || (contentAddInformations.content != null && !contentAddInformations.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canAddDepDeal" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[isProject && (#this.additionalState == null || isReturned)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canAddDepDealAndDepDealTableNotEmpty" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[canAddDepDeal && depDealInfoTableNotEmpty]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canRemoveDepDeal" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[canAddDepDealAndDepDealTableNotEmpty && (isArchivist || isChiefArchive)]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="isSuperAdminOrChiefArchive" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[isSuperAdmin || isChiefArchive]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isNotDisabledReadyToConsider" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[canAddDepDealAndDepDealTableNotEmpty && (isArchivist || isSuperAdminOrChiefArchive)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isStatusProjectAndReady" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(isChiefArchive|| isSuperAdmin) && isProject && (isReady || isConfirmed) ]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canVerify" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[(isProject && isConfirmed) && (isSuperAdmin || isChiefArchive) && (contentDocumentsNotEmpty || contentAddInformationsNotEmpty)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="totalDealsString" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA['В опись внесено ' + (dealNumber != null ? T(java.lang.String).valueOf(dealNumber) : '...') + ' дел']]>
+        </script>
+      </calc-values>
+    </string>
+    <boolean name="canComposeFinalNote" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(isChiefArchive || isSuperAdmin) && isProject]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="canEdit" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[link.?[rel=='edit'].size() > 0 ? isSuperAdmin || (isChiefArchive ? (isReady || isConfirmed) && dealNumber == null : true) : false]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.annualInventoryStatus != null && (T(ru.intertrust.cmj.archives.common.AnnualInventory.AnnualInventoryStatus).DELETED).equals(#this.annualInventoryStatus)]]></script>
+      </calc-values>
+    </boolean>
     <schema-ref null-empty="true" ref="ArcObjectInfo" array="true" name="tmpDepDealInfoList" />
     <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
 importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
@@ -125,234 +209,23 @@ importClass(Packages.java.text.SimpleDateFormat);
 importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
 
 //точки входа
-function querySave(object, document)
-{
+function querySave(object, document) {
+    if (object.approving() != null && object.approving().isProcessRun){
+      object.setAdditionalState(null);
+    }
     return true;
 }
 
-function postSave(object, document)
-{
+function postSave(object, document) {
 }
 
 function recalc(object, changedField) {
+}
 
-    var TableNameList = new ArrayList();
-
-	TableNameList.add("DepDealInfoTable");
-
-    if(changedField == "tmpDepDealInfoList")
-    {
-        DepDealListToTable(object);
-    }
-    else
-    {
-        var apl = AFSession.get().getApplication(TuningApplication.class);
-        for (var j = 0; j < TableNameList.size(); j++){
-
-            if(changedField != TableNameList.get(j))
-                continue;
-
-            var Table = GetValue(object, TableNameList.get(j));
-            if (Table == null)
-                continue;
-
-            var newList = new ArrayList();
-
-            for (var i = 0; i < Table.size(); i++) {
-                var row = Table.get(i);
-                var number = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), (i + 1).intValue());
-                row.put("InnerCounter", number);
-                newList.add(row);
-            }
-
-
-            object.tuning().put(TableNameList.get(j), new AFInstanceArrayImpl(object.tuning().getSchema().getProperty(TableNameList.get(j)).getSchema(), newList));
-        }
-    }
+function queryCreate(object) {
+  var beard = AFSession.get().currentUser().getBeard();
 }
 //-----------------
-
-function getValue(field)
-{
-    if(field instanceof AFInstanceSimple)
-    {
-        return getValueBySimple(field);
-    }
-    else if(field instanceof AFInstanceObject)
-    {
-        return getValueByObject(field);
-    }
-    else if(field instanceof AFInstanceArray)
-    {
-        return getValueByArray(field);
-    }
-    else return "";
-}
-
-function getValueBySimple(field)
-{
-    var tmp = field.getValue();
-    if(tmp instanceof SOBeard)
-    {
-        return tmp.toString(SOBeard.ToStringFormat.CMDOMINO_SHORT_NAME);
-    }
-    return tmp.toString();
-}
-
-function getValueByArray(field)
-{
-    var value = "";
-    var tmpAFInstanceList = field.getValues();
-    if(tmpAFInstanceList != null)
-    {
-        for(var j = 0; j < tmpAFInstanceList.size(); j++)
-        {
-            var tmp = "";
-            tmp = getValue(tmpAFInstanceList.get(j));
-            if(tmp == null || tmp.isEmpty()) continue;
-
-            if(value.length() != 0) value += ", ";
-            value += tmp;
-        }
-    }
-    return value.toString();
-}
-
-function getValueByObject(field)
-{
-    var tmpValue = field.getValues().get("Value");
-    if(tmpValue != null)
-        return getValue(tmpValue);
-    else return "";
-}
-
-function GetValue(doc, fileName)
-{
-    var tmp = doc.tuning().getValues().get(fileName);
-    if(tmp == null)
-        return null;
-
-    return tmp.getValues();
-}
-
-function GetSimpleValue(doc, fileName)
-{
-    var tmp = doc.tuning().getValues().get(fileName);
-    if(tmp == null)
-        return null;
-
-    return tmp.getValue();
-}
-function GetBeardValue(doc, fileName)
-{
-    var tmp = doc.tuning().getValues().get(fileName);
-    if(tmp == null || tmp.getValue() == null)
-        return null;
-
-    return tmp.getValue().toString(SOBeard.ToStringFormat.CMDOMINO_SHORT_NAME);
-}
-
-function SetValue(doc, fileName, value)
-{
-    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
-}
-
-function SetNewArrayValue(doc, fileName, value)
-{
-    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
-}
-
-function DepDealListToTable(object)
-{
-    var apl = AFSession.get().getApplication(TuningApplication.class);
-    var oldProcesses = GetValue(object, "DepDealInfoTable");
-    var newProcesses = GetValue(object, "tmpDepDealInfoList");
-    var dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-
-    if(newProcesses == null || newProcesses.size() == 0)
-        return;
-
-    var counter = 1;
-
-    var newList = new ArrayList();
-    var idList = new ArrayList();
-
-    for (var i = 0; i < oldProcesses.size(); i++) {
-        var process = oldProcesses.get(i);
-        var number = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
-        counter ++;
-        process.put("InnerCounter", number);
-        newList.add(process);
-
-        idList.add(getUNID(process.getValues().get("id").getValue()))
-    }
-    for(var t = 0; t < newProcesses.size(); t++)
-    {
-        var newProc = newProcesses.get(t).getValues();
-        var newID = getUNID(newProc.get("id").getValue());
-        var unid = newProc.get("id").getValue();
-        var module = unid.split(":")[0];
-        if(idList.contains(newID))
-            continue;
-
-        var newp = new AFInstanceObjectImpl(apl.getSchemaByName("DepDealInfoTableResource"));
-        var number1 = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
-        var id1 = new AFInstanceSimpleImpl(apl.getSchemaByName("String"), newID);
-        counter ++;
-        newp.put("InnerCounter", number1);
-        newp.put("id", id1);
-        //var doc = AFCMDomino.getDocByUNID(object.getUNID());
-        var doc = getDocByUNIDDoc(unid);
-        if(doc != null) {
-            newp.put("Module", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), module));
-            newp.put("Index", new AFInstanceSimpleImpl(apl.getSchemaByName("String"),
-                java.lang.String.join("-", doc.getItemValueString("Index1"), doc.getItemValueString("Index2"), doc.getItemValueString("Index3"))));
-
-            var value = "";
-            var isDep = doc.getItemValueString("isDepartment").equals("1");
-            if (isDep) {
-                var soApp = AFSession.get().getApplication(SOApplication.class);
-                var dep = soApp.getBeard(doc.getItemValueString("Department"));
-                if (dep != null)
-                    value = dep.originalData().getFullName();
-                else
-                    value = "";
-            } else
-                value = doc.getItemValueString("Direction_Work");
-            newp.put("Subject", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), value));
-        }
-        newList.add(newp);
-        idList.add(newID);
-    }
-    object.tuning().put("DepDealInfoTable", new AFInstanceArrayImpl(object.tuning().getSchema().getProperty("DepDealInfoTable").getSchema(), newList));
-    SetValue(object, "tmpDepDealInfoList", null);
-}
-
-function getDocByUNID(unid) {
-    var doc = AFSession.get().getApplication(ArchivesApplication.class).getEntityByUNID(unid);
-    if(doc == null) {
-        if (!unid.contains("-TN:")) {
-            var tmpID = unid.split(":");
-            unid = tmpID[0] + "-TN:" + tmpID[1];
-        }
-        doc = AFSession.get().getApplication(TunableObjectApplication.class).getEntityByUNID(unid);
-    }
-    return doc;
-}
-
-function getDocByUNIDDoc(unid) {
-    var parts = AFCMDomino.ormUNIDToCMFullUNID(unid);
-    var db = AFCMDomino.getDbByReplicaID(parts[0]);
-    var doc = AFCMDomino.getDocByUNID(db, parts[1]);
-    return doc;
-}
-
-function getUNID(unid){
-    if (unid == null || unid == "")
-        return "";
-    var tmpID = unid.split(":");
-
-    return tmpID.length > 1 ? tmpID[1] : unid;
-}]]></custom-event-handler>
+]]></custom-event-handler>
   </schema>
 </schemas>

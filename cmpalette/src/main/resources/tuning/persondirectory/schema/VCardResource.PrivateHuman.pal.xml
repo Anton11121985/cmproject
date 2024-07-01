@@ -9,7 +9,7 @@
     <schema-ref ref="CommonName" name="n" system="true"/>
     <string name="showIdent" computed="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA['ч/л']]></script>
+        <script event="open" lang="SPEL"><![CDATA['Физическое лицо']]></script>
       </calc-values>
     </string>
     <schema-ref ref="AddressValue" name="adrHome" system="true"/>
@@ -24,5 +24,502 @@
         <script event="open" lang="SPEL"><![CDATA[(adr_home == null || ''.equals(adr_home)) ? '' : adr_home.toString().substring(0, adr_home.length()-2)]]></script>
       </calc-values>
     </string>
+    <string name="addressString" computed="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.adr_home_real]]></script>
+      </calc-values>
+    </string>
+    <date name="dateOfBirth"/>
+    <string name="INN">
+      <storage-field name="INN"/>
+      <validate>
+        <regex>^[0-9]*$</regex>
+        <message locale="ru">Допустимый формат - арабские цифры без разделителей</message>
+      </validate>
+    </string>
+    <string name="SNILS">
+      <storage-field name="Pension"/>
+      <validate>
+        <regex>^(\d{3}[-]\d{3}[-]\d{3}\s\d{2})?$</regex>
+      </validate>
+    </string>
+    <string name="pasportData">
+      <storage-field name="pasportData"/>
+    </string>
+    <string name="countryLive">
+      <storage-field name="CAddr_Country_Live"/>
+    </string>
+    <string name="regionLive">
+      <storage-field name="CAddr_Region_Live"/>
+    </string>
+    <string name="cityLive">
+      <storage-field name="CAddr_City_Live"/>
+    </string>
+    <string name="districtLive">
+      <storage-field name="CAddr_Locality_Live"/>
+    </string>
+    <string name="roomLive">
+      <storage-field name="CAddr_Office_Live"/>
+    </string>
+    <string name="housingLive">
+      <storage-field name="CAddr_Corp_Live"/>
+    </string>
+    <string name="structureLive">
+      <storage-field name="CAddr_Build_Live"/>
+    </string>
+    <string name="houseLive">
+      <storage-field name="CAddr_House_Live"/>
+      <validate>
+        <regex>^[0-9]*$</regex>
+        <message locale="ru">Допустимый формат - арабские цифры без разделителей</message>
+      </validate>
+    </string>
+    <string name="typeStreetLive">
+      <storage-field name="CAddr_StreetType_Live"/>
+    </string>
+    <string name="nameStreetLive">
+      <storage-field name="CAddr_Street_Live"/>
+    </string>
+    <string name="sendIndexLive">
+      <storage-field name="CAddr_ZipCode_Live"/>
+    </string>
+    <string name="adr_homeLive" computed="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(nameStreetLive==null ? '' : (typeStreetLive==null ? ('ул. ' + nameStreetLive + ', ') : (typeStreetLive + ' ' + nameStreetLive + ', '))) + ((houseLive==null || ''.equals(houseLive)) ? '' : 'д. ' + houseLive+ ', ') + (housingLive==null || ''.equals(housingLive) ? '' : 'корп. ' + housingLive+ ', ') + ((structureLive==null || ''.equals(structureLive)) ? '' : 'стр. ' + structureLive+ ', ') + (roomLive==null ? '' : 'кв.' + roomLive+ ', ') + (cityLive==null ? '' : 'г. ' + cityLive+ ', ') + (districtLive==null ? '' : 'р-н ' + districtLive+ ', ') + (regionLive==null ? '' : regionLive + ', ') + (countryLive==null ? '' : countryLive + ', ') + (sendIndexLive==null ? '' : sendIndexLive + ', ')]]></script>
+      </calc-values>
+    </string>
+    <string name="adr_home_realLive" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(adr_homeLive == null || ''.equals(adr_homeLive)) ? '' : adr_homeLive.toString().substring(0, adr_homeLive.length()-2)]]></script>
+      </calc-values>
+    </string>
+    <string name="statusLabel" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.stateNotAdmin==null? '' :
+         #this.stateNotAdmin.get('deprecated')==true ? 'Устаревшее' :
+         #this.stateNotAdmin.get('in use')==false ? 'Неактуально' : '']]></script>
+      </calc-values>
+    </string>
+    <string name="sppDossierPrivateCommonInfoSectionLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Общая информация о физ.лице']]></script>
+      </calc-values>
+    </string>
+    <string name="contactAndPrivateDataLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Контактная информация']]></script>
+      </calc-values>
+    </string>
+    <string name="region_code">
+      <storage-field name="CAddr_Region_code"/>
+    </string>
+    <string name="region_codeLive">
+      <storage-field name="CAddr_Region_code_Live"/>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.java.lang.System);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util.HashMap);
+importPackage(Packages.java.util.Map);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.java.lang.String);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.admin.so.worktimeprofile.SOWorkTimeProfile);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.Date);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.java.lang.Integer);
+importClass(Packages.ru.intertrust.cm.core.business.api.CollectionsService);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceContentImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.RichTextResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.links.impl.AFTypedLinkImpl);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.rest.vcards.VCardResource);
+importClass(Packages.java.text.SimpleDateFormat);
+importClass(Packages.org.springframework.web.context.request.RequestContextHolder);
+importClass(Packages.org.springframework.web.context.request.ServletRequestAttributes);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.CEHHttpStatusException);
+importClass(Packages.java.lang.System);
+
+
+function querySave(object, document) {
+	var values = object.tuning().getValues();
+		var inn = getPropertyValue(object, "INN").toString();
+		  if (inn != ""){
+		    var key = getInnByKey("PersonDirectory", "", "(vw_cmj_admin_all_private_inn)", inn);
+		    if (key != null) {
+		      var curUnid = document==null ? object.getUNID().replace("-TN","").substring(17) : document.getUniversalID();
+			  if (!key.getUniversalID().equals(curUnid)) {
+			    throw "Данный контрагент уже существует";
+			  }
+			}
+		  }
+		  var lastName = object.name().getLast();
+	      if (lastName != ""){
+		    var curUnid = document==null ? object.getUNID().replace("-TN","").substring(17) : document.getUniversalID();
+		    var res = getInnByName("PersonDirectory", "", "(vw_cmj_admin_all_private_name)", lastName, curUnid, object);
+		    if (res != "") {
+			  var requestAttrs = RequestContextHolder.getRequestAttributes();
+			  if (requestAttrs != null) {
+			    if (requestAttrs.getRequest().getParameterMap().containsKey('force')) {
+			    	// action
+			    } else {
+				  throw new CEHHttpStatusException(406, "Контрагент с такими данными уже существует ["+ res +"] продолжить сохранение?");
+	    		}
+			  }
+			}
+		  }
+
+  // обновление кода региона. Если нужно вычислять сразу при выборе региона, нужно сделать нормальный рекалк у ф/л в CMJ
+  if(object.addressInfo().getRegion() == null) {
+	  values.put("region_code", TuningHelper.createPropertyValue(null, object.tuning().getSchema().getProperty("region_code")));
+	}else{
+		var code = getCodeByKey("CustomDirectory", "", "(vw_cmj_directory_10)", object.addressInfo().getRegion());
+    values.put("region_code", TuningHelper.createPropertyValue(code, object.tuning().getSchema().getProperty("region_code")));
+	}
+	if(values.get('regionLive') == null) {
+		values.put("region_codeLive", TuningHelper.createPropertyValue(null, object.tuning().getSchema().getProperty("region_codeLive")));
+	}else{
+		var code = getCodeByKey("CustomDirectory", "", "(vw_cmj_directory_10)", getPropertyValue(object, 'regionLive'));
+	  values.put("region_codeLive", TuningHelper.createPropertyValue(code, object.tuning().getSchema().getProperty("region_codeLive")));
+	}
+
+    writeHistory(object, document);
+
+	return true;
+}
+
+function writeHistory(object, document) {
+        var hist = object.history();
+        if (object.isNew()) {
+		  TunableHistoryHelper.hist_addBasicText(hist, FieldBase.OBJECT_CREATED, null);
+        }
+        object.history = hist;
+}
+
+function getInnByName(ident, complect, view, lastName, curUnid, object) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return "";
+	}
+	var res = "";
+	var coll = null;
+	var vw = db.getView(view);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(lastName);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+				if (lastName.equals(doc.getItemValueString("lastName"))&&(!doc.getUniversalID().equals(curUnid))) {
+					if (equalsdoc(object, doc)){
+						if (res != ""){
+							res+=", "
+						}
+						res += doc.getItemValueString("lastName") + " " + doc.getItemValueString("firstName") + " " + doc.getItemValueString("middleName")
+					}
+				}
+				doc = coll.getNextDocument(doc);
+			}
+
+			return res;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+
+	}
+}
+function equalsdoc(object, doc) {
+	var result = true;
+	var firstname =  object.name().getFirst();
+	var middlename =  object.name().getMiddle();
+	var dateOfBirth = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "dateOfBirth");
+	var firstnamedoc =  doc.getItemValueString("FirstName");
+	var middlenamedoc =  doc.getItemValueString("MiddleName");
+
+	var dateOfBirthdocitem = doc.getItemValue("Tn$_dateOfBirth");
+	var dateOfBirthdoc = "";
+    if(dateOfBirthdocitem != null && !dateOfBirthdocitem.isEmpty())
+    {
+        dateOfBirthdoc = dateOfBirthdocitem.get(0).toString();
+    }
+
+	if (firstname!="" && firstname!=null && firstnamedoc!="" && firstname!=firstnamedoc){
+		return false
+	}
+	if (middlename!="" && middlename!=null && middlenamedoc!="" && middlename!=middlenamedoc){
+		return false
+	}
+	if (dateOfBirth!="" && dateOfBirth!=null && dateOfBirthdoc!="" && dateOfBirth!=dateOfBirthdoc){
+		return false
+	}
+
+	var country = object.addressInfo().getCountry();
+	var district = object.addressInfo().getLocality();
+	var sendIndex = object.addressInfo().getZipCode();
+	var typeStreet = object.addressInfo().getStreetType();
+	var nameStreet = object.addressInfo().getStreet();
+	var region = object.addressInfo().getRegion();;
+	var city = object.addressInfo().getCity();
+	var room = object.addressInfo().getOffice();
+	var house = object.addressInfo().getHouse();
+	var housing = object.addressInfo().getHousing();
+	var structure = object.addressInfo().getBuild();
+	var countryLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "countryLive");
+	var districtLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "districtLive");
+	var sendIndexLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "sendIndexLive");
+	var typeStreetLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "typeStreetLive");
+	var nameStreetLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "nameStreetLive");
+	var regionLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "regionLive");
+	var cityLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "cityLive");
+	var roomLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "roomLive");
+	var houseLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "houseLive");
+	var housingLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "housingLive");
+	var structureLive = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "structureLive");
+	var countrydoc = doc.getItemValueString("CAddr_Country");
+	var districtdoc = doc.getItemValueString("CAddr_Locality");
+	var sendIndexdoc = doc.getItemValueString("CAddr_ZipCode");
+	var typeStreetdoc = doc.getItemValueString("CAddr_StreetType");
+	var nameStreetdoc = doc.getItemValueString("CAddr_Street");
+	var regiondoc = doc.getItemValueString("CAddr_Region");
+	var citydoc = doc.getItemValueString("CAddr_City");
+	var roomdoc = doc.getItemValueString("CAddr_Office");
+	var housedoc = doc.getItemValueString("CAddr_House");
+	var housingdoc = doc.getItemValueString("CAddr_Corp");
+	var structuredoc = doc.getItemValueString("CAddr_Build");
+	var countryLivedoc = doc.getItemValueString("CAddr_Country_Live");
+	var districtLivedoc = doc.getItemValueString("CAddr_Locality_Live");
+	var sendIndexLivedoc = doc.getItemValueString("CAddr_ZipCode_Live");
+	var typeStreetLivedoc = doc.getItemValueString("CAddr_StreetType_Live");
+	var nameStreetLivedoc = doc.getItemValueString("CAddr_Street_Live");
+	var regionLivedoc = doc.getItemValueString("CAddr_Region_Live");
+	var cityLivedoc = doc.getItemValueString("CAddr_City_Live");
+	var roomLivedoc = doc.getItemValueString("CAddr_Office_Live");
+	var houseLivedoc = doc.getItemValueString("CAddr_House_Live");
+	var housingLivedoc = doc.getItemValueString("CAddr_Corp_Live");
+	var structureLivedoc = doc.getItemValueString("CAddr_Build_Live");
+	var adresnull = isadresenull(country, district, sendIndex, typeStreet, nameStreet, region, city, room, house, housing, structure);
+	var adresLivenull = isadresenull(countryLive, districtLive, sendIndexLive, typeStreetLive, nameStreetLive, regionLive, cityLive, roomLive, houseLive, housingLive, structureLive);
+	var adresdocnull = isadresenull(countrydoc, districtdoc, sendIndexdoc, typeStreetdoc, nameStreetdoc, regiondoc, citydoc, roomdoc, housedoc, housingdoc, structuredoc);
+	var adresLivedocnull = isadresenull(countryLivedoc, districtLivedoc, sendIndexLivedoc, typeStreetLivedoc, nameStreetLivedoc, regionLivedoc, cityLivedoc, roomLivedoc, houseLivedoc, housingLivedoc, structureLivedoc);
+
+	var flag1 = true
+	var flag2 = true
+	if (!adresnull && !adresdocnull){
+		 if (!isadresequals(country, district, sendIndex, typeStreet, nameStreet, region, city, room, house, housing, structure, countrydoc, districtdoc, sendIndexdoc, typeStreetdoc, nameStreetdoc, regiondoc, citydoc, roomdoc, housedoc, housingdoc, structuredoc)	){
+			 flag1 = false
+		 }
+	}
+	if (!adresnull && !adresLivedocnull){
+		 if (!isadresequals(country, district, sendIndex, typeStreet, nameStreet, region, city, room, house, housing, structure, countryLivedoc, districtLivedoc, sendIndexLivedoc, typeStreetLivedoc, nameStreetLivedoc, regionLivedoc, cityLivedoc, roomLivedoc, houseLivedoc, housingLivedoc, structureLivedoc)){
+			 flag2 = false
+		 }
+	}
+	if (!flag1 && !flag2){
+		return false
+	}
+    flag1 = true
+    flag2 = true
+	if (!adresLivenull && !adresdocnull){
+		 if (!isadresequals(countryLive, districtLive, sendIndexLive, typeStreetLive, nameStreetLive, regionLive, cityLive, roomLive, houseLive, housingLive, structureLive, countrydoc, districtdoc, sendIndexdoc, typeStreetdoc, nameStreetdoc, regiondoc, citydoc, roomdoc, housedoc, housingdoc, structuredoc)){
+			 flag1 = false
+		 }
+	}
+	if (!adresLivenull && !adresLivedocnull){
+		 if (!isadresequals(countryLive, districtLive, sendIndexLive, typeStreetLive, nameStreetLive, regionLive, cityLive, roomLive, houseLive, housingLive, structureLive, countryLivedoc, districtLivedoc, sendIndexLivedoc, typeStreetLivedoc, nameStreetLivedoc, regionLivedoc, cityLivedoc, roomLivedoc, houseLivedoc, housingLivedoc, structureLivedoc)){
+			flag2 = false
+		 }
+	}
+
+	if (!flag1 && !flag2){
+		return false
+	}
+	return result;
+}
+
+function isadresequals(country, district, sendIndex, typeStreet, nameStreet, region, city, room, house, housing, structure, countrydoc, districtdoc, sendIndexdoc, typeStreetdoc, nameStreetdoc, regiondoc, citydoc, roomdoc, housedoc, housingdoc, structuredoc) {
+	var value = true;
+	if (country!="" && country!=null && countrydoc!="" && country!=countrydoc){
+		return false
+	}
+	if (district!="" && district!=null && districtdoc!="" && district!=districtdoc){
+		return false
+	}
+	if (sendIndex!="" && sendIndex!=null && sendIndexdoc!="" && sendIndex!=sendIndexdoc){
+		return false
+	}
+	if (typeStreet!="" && typeStreet!=null && typeStreetdoc!="" && typeStreet!=typeStreetdoc){
+		return false
+	}
+	if (nameStreet!="" && nameStreet!=null && nameStreetdoc!="" && nameStreet!=nameStreetdoc){
+		return false
+	}
+	if (region!="" && region!=null && regiondoc!="" && region!=regiondoc){
+		return false
+	}
+	if (city!="" && city!=null && citydoc!="" && city!=citydoc){
+		return false
+	}
+	if (room!="" && room!=null && roomdoc!="" && room!=roomdoc){
+		return false
+	}
+	if (house!="" && house!=null && housedoc!="" && house!=housedoc){
+		return false
+	}
+	if (housing!="" && housing!=null && housingdoc!="" && housing!=housingdoc){
+		return false
+	}
+	if (structure!="" && structure!=null && structuredoc!="" && structure!=structuredoc){
+		return false
+	}
+	return value;
+}
+
+function isadresenull(country, district, sendIndex, typeStreet, nameStreet, region, city, room, house, housing, structure) {
+	var value = true;
+	if (country!="" && country!=null){
+		return false
+	}
+	if (district!="" && district!=null){
+		return false
+	}
+	if (sendIndex!="" && sendIndex!=null){
+		return false
+	}
+	if (typeStreet!="" && typeStreet!=null){
+		return false
+	}
+	if (nameStreet!="" && nameStreet!=null){
+		return false
+	}
+	if (region!="" && region!=null){
+		return false
+	}
+	if (city!="" && city!=null){
+		return false
+	}
+	if (room!="" && room!=null){
+		return false
+	}
+	if (house!="" && house!=null){
+		return false
+	}
+	if (housing!="" && housing!=null){
+		return false
+	}
+	if (structure!="" && structure!=null){
+		return false
+	}
+	return value;
+}
+
+
+function getFieldValue(document, fieldName) {
+	var value = document.getItemValue(fieldName);
+	if (value == null) {
+		value = "";
+	}
+	return value;
+}
+function getPropertyValueRef(object, shemName, propertyName) {
+	var value = "";
+	if (object.tuning().getValues().get(shemName) != null && object.tuning().getValues().get(shemName).getValues().get(propertyName) != null && object.tuning().getValues().get(shemName).getValues().get(propertyName).getValue() != null) {
+		value = object.tuning().getValues().get(shemName).getValues().get(propertyName).getValue()
+	}
+	return value;
+}
+
+
+function getInnByKey(ident, complect, view, inn) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var coll = null;
+	var vw = db.getView(view);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(inn);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+				if (inn.equals(doc.getItemValueString("INN"))) {
+					break;
+				}
+				doc = coll.getNextDocument(doc);
+			}
+
+			return doc;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+
+	}
+}
+
+function getPropertyValue(object, propertyName) {
+	var value = "";
+	if (object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+		value = object.tuning().getValues().get(propertyName).getValue();
+	}
+	return value;
+}
+
+function getCodeByKey(ident, complect, view, key) {
+	var db = AFCMDomino.getDbByIdent(ident, complect);
+	if (db == null) {
+		return null;
+	}
+	var coll = null;
+	var vw = db.getView(view);
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(key);
+			var doc = coll.getFirstDocument();
+			while (doc != null) {
+				if (key.equals(doc.getItemValueString("Tn$_valueRegion"))) {
+					break;
+				}
+				doc = coll.getNextDocument(doc);
+			}
+            if (doc != null) {
+		        return doc.getItemValueString("Tn$_codeRegion");
+	        } else {
+	            return null;
+	        }
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+	}
+}
+]]></custom-event-handler>
   </schema>
 </schemas>

@@ -33,6 +33,7 @@
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#save.button.name.is.changed'].size() > 0]]></script>
       </calc-values>
     </boolean>
+    <string name="previousText" system="true"/>
     <string name="showIdent" temporal="true">
       <calc-values>
         <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#resolution.name.is.changed'].size() > 0 ? 'Поручение' : 'Резолюция']]></script>
@@ -45,13 +46,13 @@
     </boolean>
     <boolean name="$ControllerIsEmpty" system="true" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[#this.control !=null && #this.control.controllerIsEmpty]]></script>
+        <script event="open" lang="SPEL"><![CDATA[#this.control != null && #this.control.isHasNotControllers()]]></script>
       </calc-values>
     </boolean>
-    <boolean name="isPeriodicResolutionsEnabled" system="true" temporal="true"/>
+    <boolean name="isPeriodicResolutionsEnabled" system="true" createlog="true" temporal="true"/>
     <boolean name="$IsControlled" system="true" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[#this.control != null && #this.control.isControlled]]></script>
+        <script event="open" lang="SPEL"><![CDATA[#this.control != null && #this.control.isControlled()]]></script>
       </calc-values>
     </boolean>
     <boolean name="$isSendToHead" temporal="true">
@@ -107,7 +108,7 @@
     <schema-ref ref="PRVZInfo" name="head" system="true"/>
     <boolean name="hasHeadChangedFiles" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[head != null && head.changedFiles != null && !head.changedFiles.isEmpty()]]></script>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'head') && #this.head?.changedFiles != null && !#this.head?.changedFiles?.isEmpty()]]></script>
       </calc-values>
     </boolean>
     <string name="repeatPeriod" system="true"/>
@@ -126,14 +127,33 @@
     <boolean name="isMedoDocument" system="true"/>
     <boolean name="isMedoAndInOrOutDoc" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[((#top instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#top instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))) && isMedoDocument]]></script>
+        <script event="open" lang="SPEL"><![CDATA[isMedoDocument && ('OutputDocs'.equals(ModuleName) || 'InputDocs'.equals(ModuleName))]]></script>
       </calc-values>
     </boolean>
-    <boolean name="$restoreFromTrash" temporal="true">
+    <boolean name="isOutputDoc" temporal="true">
       <calc-values>
-        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#restore.from.trash'].size() > 0 ? true : link.add(T(ru.intertrust.cmj.rest.core.ResourceLink).getResourceLink('http://intertrust.ru/cmj/relations#restore.from.trash', '', ''))]]></script>
+        <script event="open" lang="SPEL"><![CDATA['OutputDocs'.equals(ModuleName)]]></script>
       </calc-values>
     </boolean>
+    <boolean name="restoreFromTrash" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#restore.from.trash'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$isAuthorOrSubs" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[author != null && T( ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(author.id)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="comments" createlog="true" system="true"/>
+    <boolean name="commentsIsEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[comments==null || comments.isEmpty()]]></script>
+      </calc-values>
+    </boolean>
+    <string name="previousTexthasHeadChangedFiles">
+      <storage-field name="PreviousResolution"/>
+    </string>
     <boolean name="isPeriodic" system="true"/>
     <schema-ref name="periodicParameters" ref="PeriodicParametersResource" system="true"/>
     <boolean name="isPeriodTypeDates" temporal="true" system="true">
@@ -155,6 +175,26 @@
       <recalc-processing-class>ru.intertrust.cmj.rest.tuning.RecalcForResolutionFillSchedule</recalc-processing-class>
     </string>
     <boolean name="isAutoCreated" system="true" temporal="true"/>
+    <string temporal="true" system="true" name="id"/>
+    <string temporal="true" system="true" name="$id">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[id]]></script>
+      </calc-values>
+    </string>
+    <boolean temporal="true" name="$hasLinkSaveAsTemplate">
+      <calc-values>
+        <script lang="SPEL" event="open">
+          <![CDATA[
+            link.?[rel=='http://intertrust.ru/cmj/relations#compose-template-by-obj'].size() > 0
+          ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="tDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(java.lang.Boolean).TRUE.equals(status.deleted)]]></script>
+      </calc-values>
+    </boolean>
     <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.java.util);
 importPackage(Packages.java.lang);
 importPackage(Packages.ru.intertrust.cmj.af.core);

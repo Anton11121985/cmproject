@@ -56,7 +56,7 @@
     </schema-ref>
   </condition>
   <condition name="deadlineIsreadonly">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
       <boolean-ref value="true" ref="deadline_readonly"/>
     </schema-ref>
   </condition>
@@ -107,7 +107,7 @@
     </schema-ref>
   </condition>
   <condition name="ControlCardResource_isExecuted">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
       <boolean-ref value="true" ref="executed"/>
     </schema-ref>
   </condition>
@@ -126,9 +126,14 @@
       <boolean-ref value="false" ref="isRequestForEdit"/>
     </schema-ref>
   </condition>
+  <condition name="ControlCardResource_parentIsRoot">
+    <schema-ref ref="ControlCardResourceRes" condition-union="AND">
+      <boolean-ref value="true" ref="parentIsRoot"/>
+    </schema-ref>
+  </condition>
   <condition name="ControlCardResource_executorcontrol">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
-      <boolean-ref value="true" ref="executorcontrol"/>
+    <schema-ref ref="ControlCardResourceRes" condition-union="AND">
+      <boolean-ref value="true" ref="isIndividual"/>
     </schema-ref>
   </condition>
   <condition name="MeetingSettingsVotingIsOn">
@@ -151,19 +156,25 @@
       <boolean-ref value="true" ref="orgOfficeIsDidderent"/>
     </schema-ref>
   </condition>
-  <condition name="ControlCardResource_isControlled">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
-      <boolean-ref value="true" ref="isControlled"/>
+  <condition name="ControlCardResource_isControlledTmp">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
+      <boolean-ref value="true" ref="isControlled_tmp"/>
     </schema-ref>
   </condition>
-  <condition name="ControlCardResource_isControlledTmp">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
-      <boolean-ref value="true" ref="isControlledTmp"/>
+  <condition name="ControlCardResource_isControlled">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
+      <boolean-ref value="true" ref="isControlled"/>
     </schema-ref>
   </condition>
   <condition name="ControlCardResourceRkkRequests_isControlled2">
     <schema-ref ref="ControlCardResourceRkkRequests" condition-union="AND">
       <string-ref value="2" ref="controltype"/>
+    </schema-ref>
+  </condition>
+  <condition name="ControlCardResource_showControllers">
+    <schema-ref ref="ControlCardResourceRes" condition-union="AND">
+      <boolean-ref value="true" ref="isControlled_tmp"/>
+      <boolean-ref value="false" ref="isIndividual"/>
     </schema-ref>
   </condition>
   <condition name="ArchivesIsNew">
@@ -216,7 +227,7 @@
     </schema-ref>
   </condition>
   <condition name="ControlCardResource_isControlled_onDisk">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
       <boolean-ref value="true" ref="isControlled_onDisk"/>
     </schema-ref>
   </condition>
@@ -240,13 +251,18 @@
     </schema-ref>
   </condition>
   <condition name="ArchivesIsDepartment">
-    <schema-ref condition-union="AND" ref="ArchivesDepDealResource">
+    <schema-ref condition-union="AND" ref="ArchivesPropActDestructionResource">
       <string-ref value="1" ref="IsDepartment" />
     </schema-ref>
   </condition>
-  <condition name="ArchivesIsDepartment">
-    <schema-ref condition-union="AND" ref="ArchivesPropActDestructionResource">
-      <string-ref value="1" ref="IsDepartment" />
+  <condition name="DepDeal_IsDepartment">
+    <schema-ref condition-union="AND" ref="ArchivesDepDealResource">
+      <string-ref value="DEPARTMENT" ref="isDepartment" />
+    </schema-ref>
+  </condition>
+  <condition name="DepDeal_IsNotDepartment">
+    <schema-ref condition-union="AND" ref="ArchivesDepDealResource">
+      <string-ref value="DIRECTION_WORK" ref="isDepartment" />
     </schema-ref>
   </condition>
   <condition name="Archives_InternalRkkCanRegister">
@@ -273,6 +289,11 @@
   <condition name="isSignedOrOnSign">
     <schema-ref ref="RkkResource" condition-union="AND">
       <boolean-ref value="true" ref="isSignedOrOnSign"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOnSign">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="isOnSign"/>
     </schema-ref>
   </condition>
   <condition name="isSignedOrOnSignAgr">
@@ -312,6 +333,11 @@
   <condition name="VCardResource.Organization_addressMedoIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="addressMedoIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_addressMedoTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="addressMedoTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="SPPDossierPrivate_orgPostIsDifferentAndOldNotIsEmpty">
@@ -389,6 +415,32 @@
     </modes>
     <schema-ref ref="ResolutionResource" condition-union="AND">
       <boolean-ref value="true" ref="isMedoAndInOrOutDoc"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOutputDocResolution">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ResolutionResource" condition-union="AND">
+      <boolean-ref value="true" ref="isOutputDoc"/>
+    </schema-ref>
+  </condition>
+  <condition name="isNewNotOutputDocResolution">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ResolutionResource" condition-union="AND">
+      <boolean-ref value="false" ref="isOutputDoc"/>
+      <boolean-ref value="true" ref="$IsNewResolution"/>
+    </schema-ref>
+  </condition>
+  <condition name="isNotNewNotOutputDocResolution">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ResolutionResource" condition-union="AND">
+      <boolean-ref value="false" ref="isOutputDoc"/>
+      <boolean-ref value="false" ref="$IsNewResolution"/>
     </schema-ref>
   </condition>
   <condition name="isNumeratorInDominoStorage">
@@ -538,6 +590,12 @@
       <boolean-ref value="true" ref="deleted"/>
     </schema-ref>
   </condition>
+    <condition name="isAuthorOrSubTask">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="true" ref="curUserIsAuthor"/>
+            <boolean-ref value="true" ref="$canPublish"/>
+        </schema-ref>
+    </condition>
   <condition name="canJoinSPP">
     <modes>
       <mode name="read"/>
@@ -590,6 +648,16 @@
       <mode name="edit"/>
     </modes>
     <schema-ref ref="SendListResource" condition-union="AND"/>
+  </condition>
+  <condition name="SendList_ShowCalculateButton">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="SendListResource" condition-union="AND">
+      <boolean-ref value="true" ref="isSupervisor"/>
+      <boolean-ref value="true" ref="isAutoUpdatedList"/>
+    </schema-ref>
   </condition>
   <condition name="canApproveSPOOrganization">
     <schema-ref ref="VCardResource.Organization" condition-union="AND">
@@ -836,9 +904,9 @@
       <mode name="edit"/>
     </modes>
     <schema-ref ref="Actions" condition-union="AND">
-      <boolean-ref value="false" ref="canSeeTypeButtonSendToSignature"/>
+      <boolean-ref value="false" ref="signStateNotRejected"/>
       <boolean-ref value="true" ref="$canSendToSign"/>
-      <boolean-ref value="false" ref="$canSign"/>
+      <boolean-ref value="false" ref="currentUserIsSigner"/>
       <boolean-ref value="false" ref="$CanSignLocker"/>
     </schema-ref>
   </condition>
@@ -877,6 +945,7 @@
   <condition name="resolutionIsControlled">
     <modes>
       <mode name="edit"/>
+      <mode name="read"/>
     </modes>
     <schema-ref ref="ResolutionResource" condition-union="AND">
       <boolean-ref value="true" ref="$IsControlled"/>
@@ -926,9 +995,19 @@
   <condition name="CanSendToApproving">
     <modes>
       <mode name="read"/>
+      <mode name="edit"/>
     </modes>
     <schema-ref ref="Actions" condition-union="AND">
       <boolean-ref value="true" ref="$canSendToApproving"/>
+      <boolean-ref value="false" ref="sendToSignOnPaper"/>
+    </schema-ref>
+  </condition>
+  <condition name="CanSendToApproveIssueFixing">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="$canSendToApproveIssueFixing"/>
     </schema-ref>
   </condition>
   <condition name="tagsEmpty">
@@ -949,6 +1028,11 @@
       <boolean-ref value="true" ref="deleted"/>
     </schema-ref>
   </condition>
+  <condition name="Settings_isDeleted">
+    <schema-ref ref="NdFileSettingResource" condition-union="AND">
+      <boolean-ref value="true" ref="deleted"/>
+    </schema-ref>
+  </condition>
   <condition name="isRequestAnonymous">
     <schema-ref ref="RkkResourceRequests" condition-union="AND">
       <string-ref value="ANONYMOUS" ref="correspondent.type"/>
@@ -962,6 +1046,11 @@
   <condition name="VCardResource.Organization_pHouseIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="adrPostalHouseIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_pHouseTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pHouseTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="SPPDossierPrivate_citizenshipIsDifferent">
@@ -1194,10 +1283,10 @@
       <mode name="edit"/>
     </modes>
     <schema-ref ref="Actions" condition-union="AND">
-      <boolean-ref value="true" ref="canSeeTypeButtonSendToSignature"/>
+      <boolean-ref value="true" ref="signStateNotRejected"/>
       <boolean-ref value="true" ref="$canSendToSign"/>
-      <boolean-ref value="false" ref="$canSign"/>
-      <boolean-ref value="false" ref="$CanSignLocker"/>
+      <boolean-ref value="false" ref="$sendApproving"/>
+      <boolean-ref value="false" ref="sendToSignOnPaper"/>
     </schema-ref>
   </condition>
   <condition name="isTemplateRequestLegal">
@@ -1226,6 +1315,11 @@
   <condition name="VCardResource.Organization_pHousingIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="adrPostalHousingIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_pHousingTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pHousingTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="CanTrash">
@@ -1381,6 +1475,11 @@
       <boolean-ref value="true" ref="adrPostalLocalityIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_pLocalityTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pLocalityTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="VCardResource.Organization_jNameStreetIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="jNameStreetIsDifferent"/>
@@ -1436,6 +1535,15 @@
   <condition name="dpQueryFormContextualISS_isAF5Storage">
     <schema-ref ref="dpQueryFormContextual_edmdocsiss" condition-union="AND">
       <boolean-ref value="true" ref="isAf5Storage"/>
+    </schema-ref>
+  </condition>
+  <condition name="hasLinkSaveAsTemplate">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="ResolutionResource">
+      <boolean-ref value="true" ref="$hasLinkSaveAsTemplate"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_jNameStreetIsDifferentAndIsEmpty">
@@ -1689,6 +1797,11 @@
       <boolean-ref value="true" ref="banknameIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_banknameTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="banknameTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="showOrdCopyButton">
     <modes>
       <mode name="edit"/>
@@ -1779,11 +1892,52 @@
       <boolean-ref value="false" ref="exStatusIsApproved"/>
     </schema-ref>
   </condition>
-  <condition name="exStatusIsEkApproved">
+  <condition name="exStatusIsNotEkApproved">
     <schema-ref ref="NdoRegister" condition-union="AND">
-      <boolean-ref value="false" ref="exStatusIsEkApproved"/>
+      <boolean-ref value="false" ref="exStatusIsNotEkApproved"/>
     </schema-ref>
   </condition>
+  <condition name="canLoadAllFile">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="NdoRegister" condition-union="AND">
+      <boolean-ref value="true" ref="canLoadAllFile"/>
+    </schema-ref>
+  </condition>
+  <condition name="NdoRegisterCanSendToApproving">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="NdoRegister" condition-union="AND">
+      <boolean-ref value="true" ref="$canSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="NdpChangeRegisterCanSendToApproving">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="NdpChangeRegister" condition-union="AND">
+      <boolean-ref value="true" ref="$canSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="NdoChangeRegisterCanSendToApproving">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="NdoChangeRegister" condition-union="AND">
+      <boolean-ref value="true" ref="$canSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="NdpRegisterCanSendToApproving">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="NdpRegister" condition-union="AND">
+      <boolean-ref value="true" ref="$canSendToApproving"/>
+    </schema-ref>
+  </condition>
+
   <condition name="VCardResource.Organization_bikbankIsDifferentAndOldNotIsEmpty">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="bikbankIsDifferent"/>
@@ -1855,6 +2009,11 @@
   <condition name="VCardResource.Organization_bikbankIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="bikbankIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_bikbankTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="bikbankTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="SPPDossierPrivate_phoneHouseIsDifferentAndIsEmpty">
@@ -2108,6 +2267,11 @@
       <boolean-ref value="true" ref="adrPostalOfficeIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_pOfficeTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pOfficeTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="AllowVisaOnOriginal">
     <modes>
       <mode name="read"/>
@@ -2248,9 +2412,9 @@
     <schema-ref ref="Actions" condition-union="AND">
       <boolean-ref value="true" ref="$canSendToRegister"/>
       <boolean-ref value="false" ref="regStateStatusRejected"/>
-      <boolean-ref value="false" ref="apreOnApproving"/>
+      <boolean-ref value="false" ref="statusOnApproving"/>
       <boolean-ref value="false" ref="regStateStatusSent"/>
-      <boolean-ref value="false" ref="signStateStatusSentContracts"/>
+      <boolean-ref value="false" ref="isOnSign"/>
     </schema-ref>
   </condition>
   <condition name="HasProtocolNumberLink">
@@ -2263,6 +2427,11 @@
       <boolean-ref value="true" ref="adrPostalStreetTypeAddressIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_pStreetTypeAddrTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pStreetTypeAddrTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="SPPDossierPrivate_regionIsDifferent">
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <boolean-ref value="true" ref="regionIsDidderent"/>
@@ -2271,6 +2440,11 @@
   <condition name="VCardResource.Organization_pStreetAddrIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="adrPostalStreetAddressIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_pStreetAddrTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pStreetAddrTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="isClerk">
@@ -2386,6 +2560,15 @@
     </modes>
     <schema-ref ref="SendListResource" condition-union="AND">
       <boolean-ref value="false" ref="isSupervisor"/>
+    </schema-ref>
+  </condition>
+  <condition name="isSupervisorOrKSREditor">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="SendListCollection" condition-union="AND">
+      <boolean-ref value="true" ref="isSupervisorOrKSREditor"/>
     </schema-ref>
   </condition>
   <condition name="MeetingsDocCanTrash">
@@ -2593,6 +2776,11 @@
       <boolean-ref value="true" ref="kppIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_kppTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="kppTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="resTemplateIsNotPublic">
     <schema-ref ref="ResolutionTemplateResource" condition-union="AND">
       <boolean-ref value="false" ref="isPublic"/>
@@ -2611,6 +2799,11 @@
   <condition name="VCardResource.Organization_ccheckIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="ccheckIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_ccheckTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="ccheckTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="isReadOnlyMembers">
@@ -2645,6 +2838,24 @@
     </modes>
     <schema-ref ref="RkkResourceInput" condition-union="AND">
       <boolean-ref value="true" ref="correspondent.withoutNumber"/>
+    </schema-ref>
+  </condition>
+  <condition name="corrIsEditWithoutRegNumberFalse">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResourceInput" condition-union="AND">
+      <boolean-ref value="false" ref="correspondent.withoutNumber"/>
+    </schema-ref>
+  </condition>
+  <condition name="corrIsPrivateHuman">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResourceInput" condition-union="OR">
+      <boolean-ref value="true" ref="$isHuman"/>
     </schema-ref>
   </condition>
   <condition name="DocTypeSettingResource_isNew">
@@ -2743,8 +2954,8 @@
     </modes>
     <schema-ref ref="Actions" condition-union="AND">
       <boolean-ref value="true" ref="regStateStatusRejected"/>
-      <boolean-ref value="false" ref="apreOnApproving"/>
-      <boolean-ref value="false" ref="signStateStatusSentContracts"/>
+      <boolean-ref value="false" ref="statusOnApproving"/>
+      <boolean-ref value="false" ref="isOnSign"/>
       <boolean-ref value="false" ref="regStateStatusSent"/>
       <boolean-ref value="true" ref="$canSendToRegister"/>
     </schema-ref>
@@ -2764,6 +2975,14 @@
     </schema-ref>
   </condition>
   <condition name="corrIsEditRegNumber">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResourceInput" condition-union="AND">
+      <boolean-ref value="false" ref="correspondent.withoutNumber"/>
+    </schema-ref>
+  </condition>
+  <condition name="corrIsEditRegNumberForNum">
     <modes>
       <mode name="read"/>
       <mode name="edit"/>
@@ -2919,6 +3138,29 @@
       <boolean-ref value="true" ref="MedoFormatIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_MedoFormatTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="medoFormatTunBordered"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_MedoStampsIsDifferentAndOldNotIsEmpty">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="medoStampsIsDifferent"/>
+      <boolean-ref value="false" ref="medoStampsOldIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_MedoStampsIsDifferentAndIsEmpty">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="medoStampsIsDifferent"/>
+      <boolean-ref value="true" ref="medoStampsIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_MedoStampsIsDifferent">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="medoStampsIsDifferent"/>
+    </schema-ref>
+  </condition>
+
   <condition name="isSpecialReply">
     <modes>
       <mode name="edit"/>
@@ -2930,6 +3172,11 @@
   <condition name="VCardResource.Organization_checkIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="checkIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_checkTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="checkTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="TNObject_CanCreate">
@@ -2975,6 +3222,14 @@
     </schema-ref>
   </condition>
   <condition name="corrIsEditRegDate">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResourceInput" condition-union="AND">
+      <boolean-ref value="false" ref="correspondent.withoutDate"/>
+    </schema-ref>
+  </condition>
+  <condition name="corrIsEditRegDateForDate">
     <modes>
       <mode name="read"/>
       <mode name="edit"/>
@@ -3057,10 +3312,10 @@
     </modes>
     <schema-ref ref="RkkResource" condition-union="AND">
       <boolean-ref value="true" ref="regStateStatusRejected"/>
-      <boolean-ref value="false" ref="apreOnApproving"/>
+      <boolean-ref value="false" ref="statusOnApproving"/>
       <boolean-ref value="true" ref="$canSendToRegister"/>
       <boolean-ref value="false" ref="regStateStatusSent"/>
-      <boolean-ref value="false" ref="signStateStatusSent"/>
+      <boolean-ref value="false" ref="isOnSign"/>
     </schema-ref>
   </condition>
   <condition name="CanSendToReview_minutes">
@@ -3081,9 +3336,19 @@
       <boolean-ref value="true" ref="ogrnIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_ogrnTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="ogrnTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="VCardResource.Organization_countryIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="adrPostalCountryNameIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_countryTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="countryTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="SO_GroupZamBeards_isSeparateAccess">
@@ -3210,6 +3475,11 @@
   <condition name="VCardResource.Organization_emailIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="emailIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_emailTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="emailTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="CanSendToRegisterAfterSigned_read">
@@ -3361,6 +3631,11 @@
   <condition name="VCardResource.Organization_faxIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="faxIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_faxTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="faxTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_replicaidSOIsDifferentAndOldNotIsEmpty">
@@ -3747,6 +4022,11 @@
       <boolean-ref value="true" ref="urlIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_urlTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="urlTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="TNObject_CanEdit_EditMode">
     <modes>
       <mode name="edit"/>
@@ -3811,7 +4091,7 @@
   </condition>
   <condition name="isMedoSendingComplete">
     <schema-ref ref="RkkResourceOutput" condition-union="AND">
-      <boolean-ref value="false" ref="digitalsending.isMedoSendingComplete"/>
+      <boolean-ref value="false" ref="isDocumentSent"/>
       <boolean-ref value="true" ref="isMedoDocument"/>
       <string-ref value="registered" ref="registration.state.status"/>
     </schema-ref>
@@ -3871,16 +4151,21 @@
       <mode name="read"/>
     </modes>
     <schema-ref ref="RkkResource" condition-union="AND">
-      <boolean-ref value="false" ref="signStateStatusSent"/>
+      <boolean-ref value="false" ref="isOnSign"/>
       <boolean-ref value="true" ref="$canSendToRegister"/>
       <boolean-ref value="false" ref="regStateStatusRejected"/>
-      <boolean-ref value="false" ref="apreOnApproving"/>
+      <boolean-ref value="false" ref="statusOnApproving"/>
       <boolean-ref value="false" ref="regStateStatusSent"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_okatoIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="okatoIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_okatoTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="okatoTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="resolutionButtonDeleteHide">
@@ -3890,6 +4175,7 @@
     <schema-ref ref="ResolutionResource" condition-union="OR">
       <boolean-ref value="true" ref="$IsControlled"/>
       <boolean-ref value="true" ref="$IsNewResolution"/>
+      <boolean-ref value="true" ref="tDeleted"/>
     </schema-ref>
   </condition>
   <condition name="showMinutes">
@@ -3969,7 +4255,7 @@
     </schema-ref>
   </condition>
   <condition name="ControlCardResource_canOpen">
-    <schema-ref ref="ControlCardResource" condition-union="OR">
+    <schema-ref ref="ControlCardResourceBase" condition-union="OR">
       <boolean-ref value="false" ref="control_readonly"/>
       <boolean-ref value="false" ref="controllerIsEmpty"/>
     </schema-ref>
@@ -4002,7 +4288,7 @@
     </schema-ref>
   </condition>
   <condition name="ControlCardResource_control_readonly">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
       <boolean-ref value="true" ref="control_readonly"/>
       <boolean-ref value="false" ref="isSupervisor"/>
     </schema-ref>
@@ -4027,6 +4313,11 @@
       <boolean-ref value="true" ref="okpoIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_okpoTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="okpoTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="RkkResource_CanRegisterAndVerify">
     <modes>
       <mode name="read"/>
@@ -4038,7 +4329,7 @@
     </schema-ref>
   </condition>
   <condition name="ControlCardResource_notOpened">
-    <schema-ref ref="ControlCardResource" condition-union="AND">
+    <schema-ref ref="ControlCardResourceBase" condition-union="AND">
       <boolean-ref value="true" ref="control_readonly"/>
       <boolean-ref value="true" ref="controllerIsEmpty"/>
     </schema-ref>
@@ -4056,6 +4347,17 @@
     </modes>
     <schema-ref ref="TNObject" condition-union="AND">
       <boolean-ref value="true" ref="canEdit"/>
+    </schema-ref>
+  </condition>
+  <condition name="TNObject_CanEdit_And_NotNew">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+      <mode name="template"/>
+    </modes>
+    <schema-ref ref="TNObject" condition-union="AND">
+      <boolean-ref value="true" ref="canEdit"/>
+      <boolean-ref value="false" ref="new"/>
     </schema-ref>
   </condition>
   <condition name="canSeeCustomButtonSendForSignatureContacts">
@@ -4076,9 +4378,19 @@
       <boolean-ref value="true" ref="legalentity"/>
     </schema-ref>
   </condition>
+  <condition name="SODepartment_IsSeparateUnit">
+    <schema-ref ref="SODepartment" condition-union="AND">
+      <boolean-ref value="true" ref="separateunit"/>
+    </schema-ref>
+  </condition>
   <condition name="canCancelVisa">
     <schema-ref ref="ApprovingReplyResource" condition-union="AND">
       <boolean-ref value="true" ref="$canCancelVisa"/>
+    </schema-ref>
+  </condition>
+  <condition name="canWithdrawFromIdocsApproving">
+    <schema-ref ref="ApprovingReplyResource" condition-union="AND">
+      <boolean-ref value="true" ref="$canWithdrawFromIdocs"/>
     </schema-ref>
   </condition>
   <condition name="corrIsManualUVK">
@@ -4111,9 +4423,19 @@
       <string-ref value="SystemGroupsCopyFrom_Requests" ref="dialogId"/>
     </schema-ref>
   </condition>
+  <condition name="DialogQuestionSetPostMain_SystemGroupsCopy_fromExpeditionOrdersForm">
+    <schema-ref ref="DialogQuestionSetPostMain" condition-union="AND">
+      <string-ref value="SystemGroupsCopyFrom_ExpeditionOrders" ref="dialogId"/>
+    </schema-ref>
+  </condition>
+  <condition name="DialogQuestionSetPostMain_SystemGroupsCopy_fromDTRForm">
+    <schema-ref ref="DialogQuestionSetPostMain" condition-union="AND">
+      <string-ref value="SystemGroupsCopyFrom_DTR" ref="dialogId"/>
+    </schema-ref>
+  </condition>
   <condition name="signStateSentContracts">
     <schema-ref ref="Actions" condition-union="AND">
-      <boolean-ref value="true" ref="signStateStatusSentContracts"/>
+      <boolean-ref value="true" ref="isOnSign"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_fnIsDifferentAndOldNotEmpty">
@@ -4163,6 +4485,11 @@
   <condition name="VCardResource.Organization_okvedIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="okvedIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_okvedTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="okvedTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_fnIsDifferent">
@@ -4302,6 +4629,11 @@
       <boolean-ref value="true" ref="guidMedoIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_guidMedoTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="guidMedoTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="RkkResource_CanSignOnlyWithReservedNumberLocker">
     <modes>
       <mode name="read"/>
@@ -4351,7 +4683,7 @@
   </condition>
   <condition name="signStateSent">
     <schema-ref ref="Actions" condition-union="AND">
-      <boolean-ref value="true" ref="signStateStatusSent"/>
+      <boolean-ref value="true" ref="isOnSign"/>
     </schema-ref>
   </condition>
   <condition name="isShowPreambleRead_DecisionProject">
@@ -4463,6 +4795,11 @@
   <condition name="VCardResource.Organization_idcctyIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="idcctyIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_idcctyTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="idcctyTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="DialogShowImportXMLResults_hasGlobalErr">
@@ -4754,6 +5091,11 @@
       <string-ref value="Устные/Личный прием" ref="appealWay"/>
     </schema-ref>
   </condition>
+  <condition name="isRequestTemplatePersonalReception">
+    <schema-ref ref="RkkTemplateResourceRequests" condition-union="AND">
+      <boolean-ref value="true" ref="isPersonalReception"/>
+    </schema-ref>
+  </condition>
   <condition name="RkkResource_CanSignAndRegister">
     <modes>
       <mode name="read"/>
@@ -4820,6 +5162,7 @@
   <condition name="SOTNOnject_isAnyAdmin">
     <schema-ref ref="SOTNObject" condition-union="AND">
       <boolean-ref value="true" ref="isAnyAdmin"/>
+      <boolean-ref value="false" ref="new"/>
     </schema-ref>
   </condition>
   <condition name="isDeliveryBarcode">
@@ -4852,6 +5195,22 @@
   <condition name="RkkResource_canRegisterWithReserve">
     <modes>
       <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="canRegisterWithReserve"/>
+    </schema-ref>
+  </condition>
+  <condition name="RkkResource_canRegisterWithReserveRead">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="canRegisterWithReserve"/>
+    </schema-ref>
+  </condition>
+  <condition name="RkkResource_canRegisterWithReserveEdit">
+    <modes>
       <mode name="edit"/>
     </modes>
     <schema-ref ref="RkkResource" condition-union="AND">
@@ -4964,6 +5323,11 @@
       <boolean-ref value="true" ref="adrPostalBuildingIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_pBuildingTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pBuildingTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="SPPDossierPrivate_nameStreetIsDifferent">
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <boolean-ref value="true" ref="nameStreetIsDidderent"/>
@@ -4982,6 +5346,11 @@
   <condition name="ApprovingReplyResource_canCopyFromNestedReplies">
     <schema-ref ref="ApprovingReplyResource" condition-union="AND">
       <boolean-ref value="true" ref="$canCopyFromNestedReplies"/>
+    </schema-ref>
+  </condition>
+  <condition name="ApprovingReplyResource_canPublish">
+    <schema-ref ref="ApprovingReplyResource" condition-union="AND">
+      <boolean-ref value="true" ref="$canPublish"/>
     </schema-ref>
   </condition>
   <condition name="RkkResource_CanSignAndRegisterLocker">
@@ -5066,6 +5435,11 @@
       <boolean-ref value="true" ref="adrPostalCodeIsDifferent"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_pCodeTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pCodeTunBordered"/>
+    </schema-ref>
+  </condition>
   <condition name="selectPartiesOther_currOrg">
     <schema-ref ref="RkkResourceContracts" condition-union="AND">
       <string-ref value="1" ref="$selectPartiesOtherIsOrg"/>
@@ -5074,6 +5448,11 @@
   <condition name="VCardResource.Organization_innIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="innIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_innTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="innTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="SelectedPartiesThisIsOrg_tmpl">
@@ -5113,7 +5492,7 @@
     </modes>
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <string-ref value="Заявка на корректировку досье" ref="state"/>
-      <string-ref value="Досье сотрудника организации" ref="type"/>
+      <string-ref value="Досье работника организации" ref="type"/>
     </schema-ref>
   </condition>
   <condition name="CanSignAndRegisterLocker_NotRequiredDefaultMR">
@@ -5187,7 +5566,7 @@
     </modes>
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <string-ref value="Досье" ref="state"/>
-      <string-ref value="Досье сотрудника организации" ref="type"/>
+      <string-ref value="Досье работника организации" ref="type"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_pCodeIsDifferentAndOldNotIsEmpty">
@@ -5230,12 +5609,22 @@
     </modes>
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <string-ref value="Заявка на создание досье" ref="state"/>
-      <string-ref value="Досье сотрудника организации" ref="type"/>
+      <string-ref value="Досье работника организации" ref="type"/>
     </schema-ref>
   </condition>
   <condition name="RequestFinalReportCanTrash">
     <schema-ref ref="FinalReportResource" condition-union="AND">
       <boolean-ref value="true" ref="$canTrash"/>
+    </schema-ref>
+  </condition>
+  <condition name="isApprovingReplyReturnedByHead">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="ApprovingReplyResource">
+      <boolean-ref value="true" ref="isProject"/>
+      <string-ref value="rejected" ref="head.state"/>
     </schema-ref>
   </condition>
   <condition name="isEditedDoc">
@@ -5362,6 +5751,12 @@
       <boolean-ref value="true" ref="adrPostalCodeIsEmpty"/>
     </schema-ref>
   </condition>
+  <condition name="VCardResource.Organization_pCodeIsDifferentAndIsEmpty">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="adrPostalCodeIsDifferent"/>
+      <boolean-ref value="true" ref="adrPostalCodeIsEmpty"/>
+    </schema-ref>
+  </condition>
   <condition name="VCardResource.Organization_innIsDifferentAndIsEmpty">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="innIsDifferent"/>
@@ -5380,7 +5775,7 @@
     </modes>
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <string-ref value="Досье" ref="state"/>
-      <string-ref value="Досье частного лица" ref="type"/>
+      <string-ref value="Досье физического лица" ref="type"/>
     </schema-ref>
   </condition>
   <condition name="RequestFinalReportIsDeleted">
@@ -5428,7 +5823,7 @@
     </modes>
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <string-ref value="Заявка на создание досье" ref="state"/>
-      <string-ref value="Досье частного лица" ref="type"/>
+      <string-ref value="Досье физического лица" ref="type"/>
     </schema-ref>
   </condition>
   <condition name="IsTaskNotEditable">
@@ -5475,6 +5870,11 @@
       <boolean-ref value="true" ref="prohibitChangeOrg"/>
     </schema-ref>
   </condition>
+  <condition name="NonsysDepartmentMedoIdIsNotEmpty">
+    <schema-ref ref="SPPDossier" condition-union="AND">
+      <boolean-ref value="true" ref="orgOfficeIntegrationIdIsNotEmpty"/>
+    </schema-ref>
+  </condition>
   <condition name="isRequestTemplateAnonymous">
     <modes>
       <mode name="read"/>
@@ -5505,7 +5905,7 @@
     </modes>
     <schema-ref ref="SPPDossierPrivate" condition-union="AND">
       <string-ref value="Заявка на корректировку досье" ref="state"/>
-      <string-ref value="Досье частного лица" ref="type"/>
+      <string-ref value="Досье физического лица" ref="type"/>
     </schema-ref>
   </condition>
   <condition name="SOEmployee_canAssignPerson">
@@ -5517,6 +5917,11 @@
   <condition name="VCardResource.Organization_phoneIsDifferent">
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="phoneIsDifferent"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_phoneTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="phoneTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="VCardResource.Organization_jDistrictIsDifferent">
@@ -5560,6 +5965,11 @@
     <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
       <boolean-ref value="true" ref="adrPostalDistrictIsDifferent"/>
       <boolean-ref value="true" ref="adrPostalDistrictIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_pDistrictTunBordered">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="pDistrictTunBordered"/>
     </schema-ref>
   </condition>
   <condition name="HasParentRole">
@@ -5856,6 +6266,14 @@
       <boolean-ref value="true" ref="$canFillFiles"/>
     </schema-ref>
   </condition>
+  <condition name="$canFillFilesTasks">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+      <boolean-ref value="true" ref="$canFillFilesTasks"/>
+    </schema-ref>
+  </condition>
   <condition name="hideSendlistFormulas">
     <modes>
       <mode name="read"/>
@@ -5982,11 +6400,6 @@
       <boolean-ref value="false" ref="IsUseArchiveModule"/>
     </schema-ref>
   </condition>
-  <condition name="SOEmployeeRVZ_isAnotherUnit">
-    <schema-ref ref="SOEmployeeRVZ" condition-union="AND">
-      <boolean-ref value="true" ref="isAnotherDepND"/>
-    </schema-ref>
-  </condition>
   <condition name="SODepartment_hasAnotherUnit">
     <schema-ref ref="SODepartment" condition-union="AND">
       <boolean-ref value="true" ref="hasAnotherDepNd"/>
@@ -5995,11 +6408,6 @@
   <condition name="SODepartment_IsNotUseArchiveModule">
     <schema-ref ref="SODepartment" condition-union="AND">
       <boolean-ref value="false" ref="IsUseArchiveModule"/>
-    </schema-ref>
-  </condition>
-  <condition name="SODepartment_isAnotherUnit">
-    <schema-ref ref="SODepartment" condition-union="AND">
-      <boolean-ref value="true" ref="isAnotherDepND"/>
     </schema-ref>
   </condition>
   <condition name="IsCodeNotEqualsNI">
@@ -6215,6 +6623,11 @@
       <boolean-ref ref="hasMultipleSigners" value="true"/>
     </schema-ref>
   </condition>
+  <condition name="Finance_hasMultipleSigners">
+    <schema-ref ref="FinanceResource" condition-union="AND">
+      <boolean-ref ref="hasMultipleSigners" value="true"/>
+    </schema-ref>
+  </condition>
   <condition name="Document_hasMultipleSigners">
     <schema-ref ref="DocumentResource" condition-union="AND">
       <boolean-ref ref="hasMultipleSigners" value="true"/>
@@ -6236,8 +6649,8 @@
       <mode name="edit"/>
     </modes>
     <schema-ref ref="Actions" condition-union="OR">
-      <boolean-ref value="true" ref="signStateStatusSent"/>
-      <boolean-ref value="true" ref="signStateStatusSentContracts"/>
+      <boolean-ref value="true" ref="isOnSign"/>
+      <boolean-ref value="true" ref="isOnSign"/>
     </schema-ref>
   </condition>
   <condition name="gateSignalStructBossACChanged">
@@ -6258,6 +6671,11 @@
   <condition name="hideCrlButtons">
     <schema-ref ref="CertAuthCertificate" condition-union="AND">
       <boolean-ref ref="hasCrl" value="false"/>
+    </schema-ref>
+  </condition>
+  <condition name="CertificateCanTrash">
+    <schema-ref ref="LockerCertificate" condition-union="AND">
+      <boolean-ref value="true" ref="$canTrash"/>
     </schema-ref>
   </condition>
   <condition name="CurrentAbsenceInfo_IsEmpty">
@@ -6373,6 +6791,15 @@
       <string-ref value="В работе" ref="state.status"/>
     </schema-ref>
   </condition>
+  <condition name="executedFromResAndReasonIsNotEmptyOrResInWork">
+    <modes>
+      <mode name="dialog"/>
+    </modes>
+    <schema-ref ref="CompletionResourceResolution" condition-union="OR">
+      <boolean-ref value="true" ref="isReasonNotEmpty"/>
+      <string-ref value="В работе" ref="state.status"/>
+    </schema-ref>
+  </condition>
   <condition name="inWorkCompletionResourceResolution">
     <modes>
       <mode name="dialog"/>
@@ -6457,6 +6884,12 @@
         <string-ref value="No" ref="editSecurityStampField" />
       </schema-ref>
     </condition>
+  <condition name="isMobilePlatformInSearch">
+    <schema-ref ref="WDSearchParameter" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.platform === 'MOBILE'
+    ]]></expression>
+  </condition>
   <condition name="wdAdvancedQueryFormSection_AvailableParamsNotExists">
     <schema-ref ref="wdAdvancedQueryForm" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
@@ -6466,198 +6899,385 @@
   <condition name="WDSearchParameterForm_IsSearchAreasParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'searchAreas';
+      return resource.id != null && resource.id === 'searchAreas';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamNotSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id == null;
+      return resource.id == null;
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsBundlesParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'bundles';
+      return resource.id != null && resource.id === 'bundles';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithoutClassifiersSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'subject' || object.id === 'resText' || object.id === 'parentDocNumber' || object.id === 'docNumber'
-        || object.id === 'dogNumber' || object.id === 'AgrNumber' || object.id === 'contractNumber' || object.id === 'question_cl_code'
-        || object.id === 'SP_RegNumber' || object.id === 'regFullNumber' || object.id === 'house' || object.id === 'street' || object.id === 'city'
-        || object.id === 'locality' || object.id === 'region' || object.id === 'linkedDocs' || object.id === 'CorrespondentAddress'
-        || object.id === 'foreignDocNumber' || object.id === 'serviceDescription');
+      return resource.id != null && (resource.id === 'subject' || resource.id === 'resText' || resource.id === 'parentDocNumber' || resource.id === 'docNumber'
+        || resource.id === 'dogNumber' || resource.id === 'AgrNumber' || resource.id === 'contractNumber' || resource.id === 'question_cl_code'
+        || resource.id === 'SP_RegNumber' || resource.id === 'regFullNumber' || resource.id === 'house' || resource.id === 'street' || resource.id === 'city'
+        || resource.id === 'locality' || resource.id === 'region' || resource.id === 'linkedDocs' || resource.id === 'CorrespondentAddress'
+        || resource.id === 'foreignDocNumber' || resource.id === 'serviceDescription'
+        || resource.id === 'projectNumber'|| resource.id === 'cancelReason'|| resource.id === 'searchInContent'|| resource.id === 'searchOnEverywhere');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsCorrTypeParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'mainTypeRequest';
+      return resource.id != null && resource.id === 'mainTypeRequest';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithSingleValueWithoutClassifiersSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'searchInContent');
+      return resource.id != null && (resource.id === 'searchInContent');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsDecimalParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'sum');
+      return resource.id != null && (resource.id === 'sum');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsBoolParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.type != null && object.type === 'BOOLEAN';
+      return resource.id != null && resource.type != null && resource.type === 'BOOLEAN';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsDateIntervalParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.type != null && object.type === 'DATE_INTERVAL' && object.condition != null && object.condition === 'INTERVAL';
+      return resource.id != null && resource.type != null && resource.type === 'DATE_INTERVAL' && resource.valueContainer.condition != null && resource.valueContainer.condition === 'INTERVAL';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsDateParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.type != null && object.type === 'DATE_INTERVAL' && object.condition != null && object.condition !== 'INTERVAL';
+      return resource.id != null && resource.type != null && resource.type === 'DATE_INTERVAL' && resource.valueContainer.condition != null && resource.valueContainer.condition !== 'INTERVAL';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardFromSOSelected_EHRD">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'controlPeople' || object.id === 'preparedBy' || object.id === 'responsibles' || object.id === 'executor' || object.id === 'resExecutor' || object.id === 'resAuthor' || object.id === 'reqAddressees' || (object.id === 'addressees' && resource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'searchAreas' && p.value_textlist != null && p.value_textlist.filter(function(sa) { return sa === 'output_OutputDocs'; }).length > 0; }).length === 0));
+      return resource.id != null && (resource.id === 'controlPeople' || resource.id === 'preparedBy' || resource.id === 'responsibles' || resource.id === 'executor' || resource.id === 'resExecutor' || resource.id === 'resAuthor' || resource.id === 'reqAddressees' || resource.id === 'resTasksAuthor' || resource.id === 'resTasksExecutorWD' || (resource.id === 'addressees' && environment.parentResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'searchAreas' && p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(sa) { return sa === 'output_OutputDocs'; }).length === 0; }).length > 0));
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardFromSOSelected_HDO">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'regPlace');
+      return resource.id != null && (resource.id === 'regPlace');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardFromSOSelected_EH">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'signer');
+      return resource.id != null && (resource.id === 'signer');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardFromSOSelected_Deps">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'preparedByUnit' || object.id === 'execdep');
+      return resource.id != null && (resource.id === 'execdep');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardSelected_EHRDNP">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'addressees' && resource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'searchAreas' && p.value_textlist != null && p.value_textlist.filter(function(sa) { return sa === 'output_OutputDocs'; }).length > 0; }).length > 0;
+      return resource.id != null && resource.id === 'addressees' && environment.parentResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'searchAreas' && p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(sa) { return sa === 'output_OutputDocs'; }).length > 0; }).length > 0;
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardForeignSelected_NP">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'corrExecutor');
+      return resource.id != null && (resource.id === 'corrExecutor');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardForeignSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'correspondent' || object.id === 'additionalCorrespondent');
+      return resource.id != null && (resource.id === 'correspondent' || resource.id === 'additionalCorrespondent');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardForeignSelected_Orgs">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'redirection');
+      return resource.id != null && (resource.id === 'redirection');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardForContractsSelected_OP">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'supplier' || object.id === 'buyer' || object.id === 'receiver');
+      return resource.id != null && (resource.id === 'supplier' || resource.id === 'buyer' || resource.id === 'receiver');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardForContractsSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'party1' || object.id === 'party2' || object.id === 'otherParties');
+      return resource.id != null && (resource.id === 'party1' || resource.id === 'party2' || resource.id === 'otherParties');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithVCardForContractsSigning1Selected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'signing1');
-    ]]></expression>
-  </condition>
-  <condition name="WDSearchParameterForm_IsParamWithFetchedValues_OnlySelection">
-    <schema-ref ref="WDSearchParameter" condition-union="AND"/>
-    <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.availableValues != null && object.availableValues.length > 0) &&
-        (object.id === 'reqType' || object.id === 'theme' || object.id === 'specMark' || object.id === 'appealWay' || object.id === 'referenceObject'
-        || object.id === 'incomingSign' || object.id === 'reqTypeRequests' || object.id === 'mainTypeRequest' || object.id === 'correspondentType'
-        || object.id === 'deliveryInfo' || object.id === 'receiveWay' || object.id === 'benefitGroups' || object.id === 'contractType'
-        || object.id === 'contractStatus' || object.id === 'parentDocType');
+      return resource.id != null && (resource.id === 'signing1');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsParamWithFetchedValues">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && (object.id === 'receptionPlace' || object.id === 'solution' || object.id === 'reviewResults' || object.id === 'currencyType');
+      return resource.id != null && (resource.id === 'receptionPlace' || resource.id === 'solution' || resource.id === 'reviewResults' || resource.id === 'currencyType'
+      || resource.id === 'reqType' || resource.id === 'theme' || resource.id === 'specMark' || resource.id === 'appealWay' || resource.id === 'referenceObject'
+        || resource.id === 'incomingSign' || resource.id === 'reqTypeRequests' || resource.id === 'mainTypeRequest' || resource.id === 'correspondentType'
+        || resource.id === 'deliveryInfo' || resource.id === 'receiveWay' || resource.id === 'benefitGroups' || resource.id === 'contractType'
+        || resource.id === 'contractStatus' || resource.id === 'parentDocType');
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsQuestionSectionParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'question_section';
+      return resource.id != null && resource.id === 'question_section';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsQuestionThematicParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'question_thematic';
+      return resource.id != null && resource.id === 'question_thematic';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsQuestionThemeParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'question_theme';
+      return resource.id != null && resource.id === 'question_theme';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsQuestionQuestionParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'question_question';
+      return resource.id != null && resource.id === 'question_question';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsQuestionSubquestionParamSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id != null && object.id === 'question_subquestion';
+      return resource.id != null && resource.id === 'question_subquestion';
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsLegalCorrTypeSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id === 'correspondentRequests' && resource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
-        && (p.value_text === '2' || p.value_textlist != null && p.value_textlist.filter(function(t) { return t === '2'; })); }).length > 0;
+      return resource.id === 'correspondentRequests' && environment.parentResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
+        && (p.valueContainer.value_text === '2' || p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(t) { return t === '2'; })); }).length > 0;
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsCitizenCorrTypeSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id === 'correspondentRequests' && resource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
-        && (p.value_text === '2' || p.value_textlist != null && p.value_textlist.filter(function(t) { return t === '2'; })); }).length === 0;
+      return resource.id === 'correspondentRequests' && environment.parentResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
+        && (p.valueContainer.value_text === '2' || p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(t) { return t === '2'; })); }).length === 0;
     ]]></expression>
   </condition>
   <condition name="WDSearchParameterForm_IsLegalAuthorSelected">
     <schema-ref ref="WDSearchParameter" condition-union="AND"/>
     <expression lang="JavaScript"><![CDATA[
-      return object.id === 'requestLegalAuthor' && resource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
-        && (p.value_text === '2' || p.value_textlist != null && p.value_textlist.filter(function(t) { return t === '2'; })); }).length > 0;
+      return resource.id === 'requestLegalAuthor' && environment.parentResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
+        && (p.valueContainer.value_text === '2' || p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(t) { return t === '2'; })); }).length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsSearchAreasParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'searchAreas';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamNotSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id == null;
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsBundlesParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'bundles';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithoutClassifiersSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'subject' || environment.parentResource.id === 'resText' || environment.parentResource.id === 'parentDocNumber' || environment.parentResource.id === 'docNumber'
+        || environment.parentResource.id === 'dogNumber' || environment.parentResource.id === 'AgrNumber' || environment.parentResource.id === 'contractNumber' || environment.parentResource.id === 'question_cl_code'
+        || environment.parentResource.id === 'SP_RegNumber' || environment.parentResource.id === 'regFullNumber' || environment.parentResource.id === 'house' || environment.parentResource.id === 'street' || environment.parentResource.id === 'city'
+        || environment.parentResource.id === 'locality' || environment.parentResource.id === 'region' || environment.parentResource.id === 'linkedDocs' || environment.parentResource.id === 'CorrespondentAddress'
+        || environment.parentResource.id === 'foreignDocNumber' || environment.parentResource.id === 'serviceDescription'
+        || environment.parentResource.id === 'projectNumber'|| environment.parentResource.id === 'cancelReason'|| environment.parentResource.id === 'searchInContent'|| environment.parentResource.id === 'searchOnEverywhere');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsCorrTypeParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'mainTypeRequest';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithSingleValueWithoutClassifiersSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'searchInContent');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsDecimalParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'sum');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsBoolParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.type != null && environment.parentResource.type === 'BOOLEAN';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsDateIntervalParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.type != null && environment.parentResource.type === 'DATE_INTERVAL' && resource.condition != null && resource.condition === 'INTERVAL';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsDateParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.type != null && environment.parentResource.type === 'DATE_INTERVAL' && resource.condition != null && resource.condition !== 'INTERVAL';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardFromSOSelected_EHRD">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'controlPeople' || environment.parentResource.id === 'preparedBy' || environment.parentResource.id === 'responsibles' || environment.parentResource.id === 'executor' || environment.parentResource.id === 'resExecutor' || environment.parentResource.id === 'resAuthor' || environment.parentResource.id === 'reqAddressees' || (environment.parentResource.id === 'addressees' && environment.rootResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'searchAreas' && p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(sa) { return sa === 'output_OutputDocs'; }).length === 0; }).length > 0));
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardFromSOSelected_HDO">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'regPlace');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardFromSOSelected_EH">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'signer');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardFromSOSelected_Deps">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'execdep');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardSelected_EHRDNP">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'addressees' && environment.rootResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'searchAreas' && p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(sa) { return sa === 'output_OutputDocs'; }).length > 0; }).length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardForeignSelected_NP">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'corrExecutor');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardForeignSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'correspondent' || environment.parentResource.id === 'additionalCorrespondent');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardForeignSelected_Orgs">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'redirection');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardForContractsSelected_OP">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'supplier' || environment.parentResource.id === 'buyer' || environment.parentResource.id === 'receiver');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardForContractsSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'party1' || environment.parentResource.id === 'party2' || environment.parentResource.id === 'otherParties');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithVCardForContractsSigning1Selected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'signing1');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsParamWithFetchedValues">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'receptionPlace' || environment.parentResource.id === 'solution' || environment.parentResource.id === 'reviewResults' || environment.parentResource.id === 'currencyType'
+      || environment.parentResource.id === 'reqType' || environment.parentResource.id === 'theme' || environment.parentResource.id === 'specMark' || environment.parentResource.id === 'appealWay' || environment.parentResource.id === 'referenceObject'
+        || environment.parentResource.id === 'incomingSign' || environment.parentResource.id === 'reqTypeRequests' || environment.parentResource.id === 'mainTypeRequest' || environment.parentResource.id === 'correspondentType'
+        || environment.parentResource.id === 'deliveryInfo' || environment.parentResource.id === 'receiveWay' || environment.parentResource.id === 'benefitGroups' || environment.parentResource.id === 'contractType'
+        || environment.parentResource.id === 'contractStatus' || environment.parentResource.id === 'parentDocType');
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsQuestionSectionParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'question_section';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsQuestionThematicParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'question_thematic';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsQuestionThemeParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'question_theme';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsQuestionQuestionParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'question_question';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsQuestionSubquestionParamSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && environment.parentResource.id === 'question_subquestion';
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsLegalCorrTypeSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id === 'correspondentRequests' && environment.rootResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
+        && (p.valueContainer.value_text === '2' || p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(t) { return t === '2'; })); }).length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsCitizenCorrTypeSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id === 'correspondentRequests' && environment.rootResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
+        && (p.valueContainer.value_text === '2' || p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(t) { return t === '2'; })); }).length === 0;
+    ]]></expression>
+  </condition>
+  <condition name="WDSearchParameterValueForm_IsLegalAuthorSelected">
+    <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id === 'requestLegalAuthor' && environment.rootResource.searchParametersTable.filter(function(p) { return p.id != null && p.id === 'mainTypeRequest'
+        && (p.valueContainer.value_text === '2' || p.valueContainer.value_textlist != null && p.valueContainer.value_textlist.filter(function(t) { return t === '2'; })); }).length > 0;
     ]]></expression>
   </condition>
   <condition name="SPPDossier_isDeletedByOrg">
@@ -6675,39 +7295,24 @@
       <boolean-ref value="true" ref="showSecurityStampField"/>
     </schema-ref>
   </condition>
+  <condition name="pointIsStubAndIncluded">
+    <schema-ref ref="PointResource" condition-union="AND">
+      <boolean-ref value="true" ref="isStubAndIncluded"/>
+    </schema-ref>
+  </condition>
   <condition name="RkkIsPublicAccess">
     <schema-ref ref="RkkResourceMissions" condition-union="AND">
       <boolean-ref value="true" ref="isPublicAccess"/>
     </schema-ref>
   </condition>
-  <condition name="ReadersMissions">
-    <schema-ref ref="RkkResourceMissions" condition-union="AND">
+  <condition name="ReadersRkkResource">
+    <schema-ref ref="RkkResource" condition-union="AND">
       <boolean-ref value="false" ref="tDeleted"/>
     </schema-ref>
   </condition>
   <condition name="SOOrganization_isProhibitOldUid">
     <schema-ref ref="SOOrganization" condition-union="AND">
       <boolean-ref value="true" ref="isProhibitOldUid"/>
-    </schema-ref>
-  </condition>
-  <condition name="ReadersOutput">
-    <schema-ref ref="RkkResourceOutput" condition-union="AND">
-      <boolean-ref value="false" ref="tDeleted"/>
-    </schema-ref>
-  </condition>
-  <condition name="ReadersRequests">
-    <schema-ref ref="RkkResourceRequests" condition-union="AND">
-      <boolean-ref value="false" ref="tDeleted"/>
-    </schema-ref>
-  </condition>
-  <condition name="ReadersInput">
-    <schema-ref ref="RkkResourceInput" condition-union="AND">
-      <boolean-ref value="false" ref="tDeleted"/>
-    </schema-ref>
-  </condition>
-  <condition name="ReadersInternal">
-    <schema-ref ref="RkkResourceInternal" condition-union="AND">
-      <boolean-ref value="false" ref="tDeleted"/>
     </schema-ref>
   </condition>
   <condition name="ReadersTasks">
@@ -6745,9 +7350,1914 @@
       <string-ref value="ABSENT" ref="type"/>
     </schema-ref>
   </condition>
+  <condition name="isVCardSysHumanHeadForShort">
+    <schema-ref ref="VCardResource.TitleOrShortName" condition-union="AND">
+      <string-ref value="SYS_HUMAN_HEAD" ref="type"/>
+    </schema-ref>
+  </condition>
+  <condition name="isVCardSysHumanForShort">
+    <schema-ref ref="VCardResource.TitleOrShortName" condition-union="AND">
+      <string-ref value="SYS_HUMAN" ref="type"/>
+    </schema-ref>
+  </condition>
+  <condition name="isVCardAbsentForShort">
+    <schema-ref ref="VCardResource.TitleOrShortName" condition-union="AND">
+      <string-ref value="ABSENT" ref="type"/>
+    </schema-ref>
+  </condition>
+  <condition name="Agreement_SigningStatusRejected">
+    <schema-ref ref="AgreementResource" condition-union="AND">
+      <string-ref value="rejected" ref="signatureContracts.this.state.status"/>
+    </schema-ref>
+  </condition>
+  <condition name="Signing_StatusRejected">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <string-ref value="rejected" ref="signature.state.status"/>
+    </schema-ref>
+  </condition>
+  <condition name="Document_SigningStatusRejected">
+    <schema-ref ref="DocumentResource" condition-union="AND">
+      <string-ref value="rejected" ref="signature.state.status"/>
+    </schema-ref>
+  </condition>
+  <condition name="Finance_SigningStatusRejected">
+    <schema-ref ref="FinanceResource" condition-union="AND">
+      <string-ref value="rejected" ref="signature.state.status"/>
+    </schema-ref>
+  </condition>
+  <condition name="DocumentResource_HasSigner">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signature != null && resource.signature.signer != null;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasSignerOrSigners">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signature != null && resource.signature.signer != null
+            || resource.signature != null && resource.signature.signers != null && resource.signature.signers.length > 0 ;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasSigners">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signature != null && resource.signature.signers != null && resource.signature.signers.length > 0 ;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSigner">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signature != null
+            && resource.relatedDocument.object.signature.signer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signature != null
+            && resource.rootDocument.object.signature.signer != null)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSignerOrSigners">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signature != null
+            && resource.relatedDocument.object.signature.signer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signature != null
+            && resource.rootDocument.object.signature.signer != null)
+            || (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signature != null
+            && resource.relatedDocument.object.signature.signers != null
+            && resource.relatedDocument.object.signature.signers.length > 0)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signature != null
+            && resource.rootDocument.object.signature.signers != null
+            && resource.rootDocument.object.signature.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSigners">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signature != null
+            && resource.relatedDocument.object.signature.signers != null
+            && resource.relatedDocument.object.signature.signers.length > 0)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signature != null
+            && resource.rootDocument.object.signature.signers != null
+            && resource.rootDocument.object.signature.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasSupplier">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.supplier != null;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSupplier">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null && resource.relatedDocument.object.supplier != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null && resource.rootDocument.object.supplier != null);
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasCustomer">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.customer != null;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasCustomer">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null && resource.relatedDocument.object.customer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null && resource.rootDocument.object.customer != null);
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasReceiver">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.receiver != null;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasReceiver">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null && resource.relatedDocument.object.receiver != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null && resource.rootDocument.object.receiver != null);
+        ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasCorrespondent">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.correspondent != null && resource.relatedDocument.object.correspondent.length > 0
+      || resource.rootDocument != null && resource.rootDocument.object.correspondent != null && resource.rootDocument.object.correspondent.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceRead_HasFromWhoHuman">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.$correspondentInfo != null
+        && resource.$correspondentInfo.PrivateHuman != null
+        && resource.$correspondentInfo.PrivateHuman.length > 0 ;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceRead_HasFromWhoOrg">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.$correspondentInfo != null
+        && resource.$correspondentInfo.organization != null
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceRead_HasNotFromWho">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.$correspondentInfo != null
+        && resource.$correspondentInfo.organization == null
+        && (resource.$correspondentInfo.PrivateHuman == null
+        || resource.$correspondentInfo.PrivateHuman.length == 0) ;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextRead_HasFromWhoHuman">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return ((resource.rootDocument == null)
+        && (resource.relatedDocument.object.$correspondentInfo != null)
+        && (resource.relatedDocument.object.$correspondentInfo.PrivateHuman != null)
+        && (resource.relatedDocument.object.$correspondentInfo.PrivateHuman.length > 0))
+        || ((resource.rootDocument != null)
+        && (resource.rootDocument.object.$correspondentInfo != null)
+        && (resource.rootDocument.object.$correspondentInfo.PrivateHuman != null)
+        && (resource.rootDocument.object.$correspondentInfo.PrivateHuman.length > 0));
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextRead_HasFromWhoOrg">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return ((resource.rootDocument == null)
+        && (resource.relatedDocument.object.$correspondentInfo != null)
+        && (resource.relatedDocument.object.$correspondentInfo.organization != null))
+        || ((resource.rootDocument != null)
+        && (resource.rootDocument.object.$correspondentInfo != null)
+        && (resource.rootDocument.object.$correspondentInfo.organization != null));
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextRead_HasNotFromWho">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+ return ((resource.rootDocument == null)
+        && ((resource.relatedDocument.object.$correspondentInfo == null)
+        || (resource.relatedDocument.object.$correspondentInfo.organization == null)))
+        && ((resource.relatedDocument.object.$correspondentInfo == null)
+        || (resource.relatedDocument.object.$correspondentInfo.PrivateHuman == null)
+        || (resource.rootDocument.object.$correspondentInfo.PrivateHuman.length == 0))
+     || ((resource.rootDocument != null)
+        && ((resource.rootDocument.object.$correspondentInfo == null)
+        || (resource.rootDocument.object.$correspondentInfo.organization == null)))
+        && ((resource.rootDocument.object.$correspondentInfo == null)
+        || (resource.rootDocument.object.$correspondentInfo.PrivateHuman == null)
+        || (resource.rootDocument.object.$correspondentInfo.PrivateHuman.length == 0))
+    ]]></expression>
+  </condition>
+
+  <condition name="RkkResourceInputRead_HasExecutor">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.correspondent != null
+        && resource.correspondent.organization != null
+        && resource.correspondent.organization.executors != null
+        && resource.correspondent.organization.executors.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextInputRead_HasExecutor">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.rootDocument == null
+      && resource.relatedDocument.object.correspondent != null
+      && resource.relatedDocument.object.correspondent.organization != null
+      && resource.relatedDocument.object.correspondent.organization.executors != null
+      && resource.relatedDocument.object.correspondent.organization.executors.length > 0)
+      || (resource.rootDocument != null
+      && resource.rootDocument.object.correspondent != null
+      && resource.rootDocument.object.correspondent.organization != null
+      && resource.rootDocument.object.correspondent.organization.executors != null
+      && resource.rootDocument.object.correspondent.organization.executors.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInputRead_HasDeliveryType">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.receiptTablesDigest != null && resource.receiptTablesDigest.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextInputRead_HasDeliveryType">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.rootDocument == null && resource.relatedDocument.object.receiptTablesDigest != null && resource.relatedDocument.object.receiptTablesDigest.length > 0 != null)
+      || (resource.rootDocument != null && resource.rootDocument.object.receiptTablesDigest != null && resource.rootDocument.object.receiptTablesDigest.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInput_HasAuthors">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.correspondent != null
+        && resource.correspondent.organization != null
+        && resource.correspondent.organization.authors != null
+        && resource.correspondent.organization.authors.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextInput_HasAuthors">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.rootDocument == null
+      && resource.relatedDocument.object.correspondent != null
+      && resource.relatedDocument.object.correspondent.organization != null
+      && resource.relatedDocument.object.correspondent.organization.authors != null
+      && resource.relatedDocument.object.correspondent.organization.authors.length > 0)
+      || (resource.rootDocument != null
+      && resource.rootDocument.object.correspondent != null
+      && resource.rootDocument.object.correspondent.organization != null
+      && resource.rootDocument.object.correspondent.organization.authors != null
+      && resource.rootDocument.object.correspondent.organization.authors.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasAddresseesWD">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.rootDocument == null && resource.relatedDocument.object.addresseeWD != null && resource.relatedDocument.object.addresseeWD.length > 0)
+      || (resource.rootDocument != null && resource.rootDocument.object.addresseeWD != null && resource.rootDocument.object.addresseeWD.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasAddresseesWD">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.addresseeWD != null && resource.addresseeWD.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasCorrespondent">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.correspondent != null && resource.correspondent.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="Actions_HasApprovingChilds">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.$hasApprovingChilds;
+    ]]></expression>
+  </condition>
+  <condition name="Actions_HasReviewChilds">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.$hasReviewChilds;
+    ]]></expression>
+  </condition>
+  <condition name="Actions_HasNotReviewChildsInNotProject">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !resource.$hasReviewChilds && !resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasApprovingChilds">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.$hasApprovingChilds
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object != null && resource.rootDocument.object.$hasApprovingChilds;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasReviewChilds">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.$hasReviewChilds
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+       && resource.rootDocument.object.$hasReviewChilds;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasNotReviewChildsInNotProject">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && !resource.relatedDocument.object.$hasReviewChilds && !resource.relatedDocument.object.$isProject
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && !resource.rootDocument.object.$hasReviewChilds && !resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="isMobilePlatform">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return environment.platform === 'MOBILE'
+    ]]></expression>
+  </condition>
+  <condition name="isRelationDocument">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !!environment.relation
+    ]]></expression>
+  </condition>
+  <condition name="isTaskWithResolution">
+    <schema-ref ref="PersonTaskResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument.contentType === 'application/vnd.intertrust.cm.resolution+json';
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_WithParentResolution">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument.object.parentResolutionAttributes != null;
+    ]]></expression>
+  </condition>
+  <condition name="Actions_HasExecutionChilds">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.$hasExecutionChilds;
+    ]]></expression>
+  </condition>
+  <condition name="Actions_HasNotExecutionChildsInNotProject">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !resource.$hasExecutionChilds && !resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasNotSignersAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.signersWithOtherSigners.length === 0 && !resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasSignersAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.signersWithOtherSigners.length > 0 && !resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasSignersAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.signersWithOtherSigners.length > 0 && resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasNotSignersAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.signersWithOtherSigners.length === 0 && resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasTags">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !resource.tagsEmpty;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceOutput_HasSignerDigestAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.SignerDigest != null && resource.SignerDigest.length > 0 && resource.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceOutputInTaskContext_HasSignerDigestAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null
+        && resource.relatedDocument.object.SignerDigest != null
+        && resource.relatedDocument.object.SignerDigest.length > 0)
+        && resource.relatedDocument.object.status == 'project'
+        || (resource.rootDocument != null
+        && resource.rootDocument.object.SignerDigest != null
+        && resource.rootDocument.object.SignerDigest.length > 0
+        && resource.rootDocument.object.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceOutput_HasNotSignerDigestAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.SignerDigest == null || resource.SignerDigest.length == 0) && resource.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceOutputInTaskContext_HasNotSignerDigestAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null
+        && (resource.relatedDocument.object.SignerDigest == null
+        || resource.relatedDocument.object.SignerDigest.length == 0))
+        && resource.relatedDocument.object.status == 'project'
+        || (resource.rootDocument != null
+        && (resource.rootDocument.object.SignerDigest == null
+        || resource.rootDocument.object.SignerDigest.length == 0)
+        && resource.rootDocument.object.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasRegPlace">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.registration != null && resource.registration.place != null;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasExecutionChilds">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.$hasExecutionChilds
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object.$hasExecutionChilds;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasNotExecutionChildsInNotProject">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && !resource.relatedDocument.object.$hasExecutionChilds && !resource.relatedDocument.object.$isProject
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && !resource.rootDocument.object.$hasExecutionChilds && !resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasExecutionChildsInRegistered">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.$hasExecutionChilds && resource.relatedDocument.object.regStateStatusRegistered
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object.$hasExecutionChilds && resource.rootDocument.object.regStateStatusRegistered;
+    ]]></expression>
+  </condition>
+  <condition name="ActionsInTaskContext_HasNotExecutionChildsInRegistered">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && !resource.relatedDocument.object.$hasExecutionChilds && resource.relatedDocument.object.regStateStatusRegistered
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && !resource.rootDocument.object.$hasExecutionChilds && resource.rootDocument.object.regStateStatusRegistered;
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionTasksInTaskContext_HasNotExecutionChildsAndNotProject">
+    <schema-ref ref="ResolutionTasksInTaskContext" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && !resource.relatedDocument.object.hasExecutionChilds && !resource.relatedDocument.object.isProject
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && !resource.rootDocument.object.hasExecutionChilds && !resource.rootDocument.object.isProject;
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionTasksInTaskContext_HasExecutionChilds">
+    <schema-ref ref="ResolutionTasksAsRootInTaskContext" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.hasExecutionChilds
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object != null && resource.rootDocument.object.hasExecutionChilds;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasNotSignersAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.signersWithOtherSigners == null || resource.relatedDocument.object.signersWithOtherSigners.length === 0) && !resource.relatedDocument.object.$isProject
+      || resource.rootDocument != null && resource.rootDocument.object.signersWithOtherSigners.length === 0 && !resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasSignersAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.signersWithOtherSigners != null && resource.relatedDocument.object.signersWithOtherSigners.length > 0) && !resource.relatedDocument.object.$isProject
+      || resource.rootDocument != null && resource.rootDocument.object.signersWithOtherSigners.length > 0 && !resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasSignersAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.signersWithOtherSigners != null || resource.relatedDocument.object.signersWithOtherSigners.length > 0) && resource.relatedDocument.object.$isProject
+      || resource.rootDocument != null && resource.rootDocument.object.signersWithOtherSigners.length > 0 && resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasNotSignersAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.signersWithOtherSigners == null || resource.relatedDocument.object.signersWithOtherSigners.length === 0) && resource.relatedDocument.object.$isProject
+      || resource.rootDocument != null && resource.rootDocument.object.signersWithOtherSigners.length === 0 && resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasTags">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && !resource.relatedDocument.object.tagsEmpty)
+      || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object != null && !resource.rootDocument.object.tagsEmpty);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasRegPlace">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.registration != null && resource.relatedDocument.object.registration.place != null
+      || resource.rootDocument != null && resource.rootDocument.object.registration != null && resource.rootDocument.object.registration.place != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_DeadlineExpiredOnControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_DeadlineExpiredNoControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && !resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_DeadlineExpireSoonNoControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && !resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_NormalDeadlineNoControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && !resource.control.isControlled && resource.control.deadline != null && resource.control.deadlineStatus === 'NONE';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_DeadlineExpireSoonWithControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_OnControlNormalDeadline">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && resource.control.deadline != null && resource.control.isControlled && resource.control.deadlineStatus === 'NONE';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_WithoutDeadline">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.control.deadline == null;
+    ]]></expression>
+  </condition>
+
+  <condition name="RkkResource_WithReviewDirectiveORAssignments">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.control.deadline == null) || (type != "Отзыв Директивы" || type != "Отзыв Поручения");
+    ]]></expression>
+  </condition>
+
+  <condition name="RkkResourceInTaskContext_WithoutDeadline">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.control == null || resource.relatedDocument.object.control.deadline == null)
+      || resource.rootDocument != null && resource.rootDocument.object.control.deadline == null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasExecutorsAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.executor != null && resource.executor.length > 0 && resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasExecutorsAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.executor != null && resource.executor.length > 0 && !resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasNotExecutorsAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.executor == null || resource.executor.length === 0) && !resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasNotExecutorsAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.executor == null || resource.executor.length === 0) && resource.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasAddressees">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.addressee != null && resource.addressee.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasSignedStatusAndSigContent">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.documentStatus.main === 'signed' && (resource.image != null && resource.image.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasContent">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return (resource.richtext != null || resource.content != null && resource.content.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasExecutorsAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.executor != null && resource.relatedDocument.object.executor.length > 0
+      && resource.relatedDocument.object.$isProject || resource.rootDocument != null && resource.rootDocument.object.executor != null
+      && resource.rootDocument.object.executor.length > 0 && resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasExecutorsAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.executor != null && resource.relatedDocument.object.executor.length > 0
+      && !resource.relatedDocument.object.$isProject || resource.rootDocument != null && resource.rootDocument.object.executor != null
+      && resource.rootDocument.object.executor.length > 0 && !resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasNotExecutorsAndRkkNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.executor == null || resource.relatedDocument.object.executor.length === 0)
+      && !resource.relatedDocument.object.$isProject || resource.rootDocument != null && (resource.rootDocument.object.executor == null || resource.rootDocument.object.executor.length === 0)
+      && !resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasNotExecutorsAndRkkProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.executor == null || resource.relatedDocument.object.executor.length === 0)
+      && resource.relatedDocument.object.$isProject || resource.rootDocument != null && (resource.rootDocument.object.executor == null || resource.rootDocument.object.executor.length === 0)
+      && resource.rootDocument.object.$isProject;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasAddressees">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.addressee != null && resource.relatedDocument.object.addressee.length > 0
+      || resource.rootDocument != null && resource.rootDocument.object.addressee != null && resource.rootDocument.object.addressee.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasSignedStatus">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.documentStatus != null
+      && resource.relatedDocument.object.documentStatus.main === 'signed'
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object != null && resource.rootDocument.object.documentStatus != null
+      && resource.rootDocument.object.documentStatus.main === 'signed';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasContentAdd">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && (resource.relatedDocument.object.contentAddCount > 0)
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && (resource.rootDocument.object.contentAddCount > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasSignedStatusAndSigContent">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && resource.relatedDocument.object != null && resource.relatedDocument.object.documentStatus != null && resource.relatedDocument.object.documentStatus.main != null
+      && resource.relatedDocument.object.documentStatus.main === 'signed' && (resource.relatedDocument.object.image != null && resource.relatedDocument.object.image.length > 0)
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && resource.rootDocument.object != null && resource.rootDocument.object.documentStatus != null && resource.rootDocument.object.documentStatus.main != null
+      && resource.rootDocument.object.documentStatus.main === 'signed' && (resource.rootDocument.object.image != null && resource.rootDocument.object.image.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_HasContent">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && (resource.relatedDocument.object.content != null
+      && resource.relatedDocument.object.content.length > 0 || resource.relatedDocument.object.richtext != null)
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && (resource.rootDocument.object.content != null
+      && resource.rootDocument.object.content.length > 0 || resource.rootDocument.object.richtext != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_DeadlineExpiredOnControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null
+      && resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRED'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null
+      && resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_DeadlineExpiredNoControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null
+      && !resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRED'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null
+      && !resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_DeadlineExpireSoonNoControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null && !resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRE_SOON'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null && !resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_NormalDeadlineNoControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null
+      && !resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadline != null && resource.relatedDocument.object.control.deadlineStatus === 'NONE'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null
+      && !resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadline != null && resource.rootDocument.object.control.deadlineStatus === 'NONE';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_DeadlineExpireSoonWithControl">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null && resource.relatedDocument.object.control.isControlled
+      && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRE_SOON'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null && resource.rootDocument.object.control.isControlled
+      && resource.rootDocument.object.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContext_OnControlNormalDeadline">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null && resource.relatedDocument.object.control.deadline != null
+      && resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'NONE'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null && resource.rootDocument.object.control.deadline != null
+      && resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'NONE';
+    ]]></expression>
+  </condition>
+
+  <condition name="ResolutionResourceInTaskContext_WithoutDeadline">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.resolutionDeadline == null;
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_DeadlineExpiredNoControl">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !resource.resolutionIsControlled && resource.resolutionDeadlineStatus === 'EXPIRED';
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_DeadlineExpireSoonNoControl">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !resource.resolutionIsControlled && resource.resolutionDeadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_NormalDeadlineNoControl">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return !resource.resolutionIsControlled && resource.resolutionDeadline != null && resource.resolutionDeadlineStatus === 'NONE';
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_DeadlineExpiredOnControl">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.resolutionIsControlled && resource.resolutionDeadlineStatus === 'EXPIRED';
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_DeadlineExpireSoonWithControl">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.resolutionIsControlled && resource.resolutionDeadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+  </condition>
+  <condition name="ResolutionResourceInTaskContext_OnControlNormalDeadline">
+    <schema-ref ref="ResolutionResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.resolutionIsControlled && resource.resolutionDeadline != null && resource.resolutionDeadlineStatus === 'NONE';
+    ]]></expression>
+  </condition>
+  <condition name="TrueCondition">
+    <schema-ref ref="Actions" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return true;
+    ]]></expression>
+  </condition>
+  <condition name="ContractResource_HasFirstSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.contractResourceFirstSide != null;
+        ]]></expression>
+  </condition>
+  <condition name="ContractResourceInTaskContext_HasFirstSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null && resource.relatedDocument.object.contractResourceFirstSide != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null && resource.rootDocument.object.contractResourceFirstSide != null)
+        ]]></expression>
+  </condition>
+  <condition name="ContractResource_HasSecondSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.contractResourceSecondSide != null;
+        ]]></expression>
+  </condition>
+  <condition name="ContractResourceInTaskContext_HasSecondSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null && resource.relatedDocument.object.contractResourceSecondSide != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null && resource.rootDocument.object.contractResourceSecondSide != null)
+        ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_IsProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.documentStatus == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_IsProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null && resource.relatedDocument.object.documentStatus == 'project')
+            || (resource.rootDocument != null && resource.rootDocument.object.documentStatus == 'project');
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasType">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.type != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasType">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+    return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+    && resource.relatedDocument.object != null && resource.relatedDocument.object.type != null)
+        || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+    && resource.rootDocument.object != null && resource.rootDocument.object.type != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasDateOfConclusionAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[ return resource.registration != null
+        && resource.concluded != null && resource.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasDateOfConclusionAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null &&
+        resource.relatedDocument.object.registration != null &&resource.relatedDocument.object.concluded != null && resource.relatedDocument.object.status == 'project')
+        || (resource.rootDocument != null
+        && resource.rootDocument.object.registration != null && resource.rootDocument.object.concluded != null && resource.rootDocument.object.status == 'project');
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasFinishedDate">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.finished != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasFinishedDateNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.finished != null && resource.status != 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasFinishedDate">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && resource.relatedDocument.object != null && resource.relatedDocument.object.finished != null)
+        || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+        && resource.rootDocument.object.finished != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasFinishedDateNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && resource.relatedDocument.object != null && resource.relatedDocument.object.finished != null && resource.relatedDocument.object.status != 'project')
+        || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+         && resource.rootDocument.object != null  && resource.rootDocument.object.finished != null && resource.rootDocument.object.status != 'project');
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasFirstSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.parties != null && resource.parties.this != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasFirstSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null && resource.relatedDocument.object.parties != null && resource.relatedDocument.object.parties.this != null)
+        || (resource.rootDocument != null && resource.rootDocument.object.parties != null && resource.rootDocument.object.parties.this != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasSecondSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.parties != null && resource.parties.other != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasSecondSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null && resource.relatedDocument.object.parties != null && resource.relatedDocument.object.parties.other != null)
+        || (resource.rootDocument != null && resource.rootDocument.object.parties != null && resource.rootDocument.object.parties.other != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasRegistrationDate">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.started != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasRegistrationDate">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null && resource.relatedDocument.object.started != null)
+        || (resource.rootDocument != null && resource.rootDocument.object.started != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasRelationsType">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.relationsType != null;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasRelationsType">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null && resource.relatedDocument.object.relationsType != null)
+        || (resource.rootDocument != null && resource.rootDocument.object.relationsType != null);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasContractValueWD">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.ContractValueWD!= null && resource.ContractValueWD.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasContractValueWD">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && resource.relatedDocument.object != null && resource.relatedDocument.object.ContractValueWD != null && resource.relatedDocument.object.ContractValueWD.length > 0)
+        || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+        && resource.rootDocument.object.ContractValueWD != null && resource.rootDocument.object.ContractValueWD.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasFirstSideSignDigest">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.FirstSideSignDigest!= null && resource.FirstSideSignDigest.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasFirstSideSignDigest">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null
+        && resource.relatedDocument.object.FirstSideSignDigest != null
+        && resource.relatedDocument.object.FirstSideSignDigest.length > 0)
+        || (resource.rootDocument != null
+        && resource.rootDocument.object.FirstSideSignDigest != null
+        && resource.rootDocument.object.FirstSideSignDigest.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasSecondSideSignDigest">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.SecondSideSignDigest!= null && resource.SecondSideSignDigest.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasSecondSideSignDigest">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null
+        && resource.relatedDocument.object.SecondSideSignDigest != null
+        && resource.relatedDocument.object.SecondSideSignDigest.length > 0)
+        || (resource.rootDocument != null
+        && resource.rootDocument.object.SecondSideSignDigest != null
+        && resource.rootDocument.object.SecondSideSignDigest.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasOtherSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.OtherSideDigest != null && resource.OtherSideDigest.length > 0;]]>
+    </expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasOtherSide">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.rootDocument == null
+        && resource.relatedDocument.object.OtherSideDigest != null
+        && resource.relatedDocument.object.OtherSideDigest.length > 0)
+        || (resource.rootDocument != null
+        && resource.rootDocument.object.OtherSideDigest != null
+        && resource.rootDocument.object.OtherSideDigest.length > 0);
+    ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasFirstSideSigner">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signatureContracts != null
+            && resource.signatureContracts.this != null
+            && resource.signatureContracts.this.signer != null
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasFirstSideSignerOrSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.signatureContracts != null
+            && resource.signatureContracts.this != null
+            && resource.signatureContracts.this.signer != null)
+            || (resource.signatureContracts != null
+            && resource.signatureContracts.this != null
+            && resource.signatureContracts.this.signers != null
+            && resource.signatureContracts.this.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasFirstSideSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signatureContracts != null
+            && resource.signatureContracts.this != null
+            && resource.signatureContracts.this.signers != null
+            && resource.signatureContracts.this.signers.length > 0
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasFirstSideSigner">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.this != null
+            && resource.relatedDocument.object.signatureContracts.this.signer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.this != null
+            && resource.rootDocument.object.signatureContracts.this.signer != null)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasFirstSideSignerOrSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.this != null
+            && resource.relatedDocument.object.signatureContracts.this.signer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.this != null
+            && resource.rootDocument.object.signatureContracts.this.signer != null)
+            || (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.this != null
+            && resource.relatedDocument.object.signatureContracts.this.signers != null
+            && resource.relatedDocument.object.signatureContracts.this.signers.length > 0)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.this != null
+            && resource.rootDocument.object.signatureContracts.this.signers != null
+            && resource.rootDocument.object.signatureContracts.this.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasFirstSideSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.this != null
+            && resource.relatedDocument.object.signatureContracts.this.signers != null
+            && resource.relatedDocument.object.signatureContracts.this.signers.length > 0)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.this != null
+            && resource.rootDocument.object.signatureContracts.this.signers != null
+            && resource.rootDocument.object.signatureContracts.this.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasSecondSideSigner">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signatureContracts != null
+            && resource.signatureContracts.other != null
+            && resource.signatureContracts.other.signer != null
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasSecondSideSignerOrSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.signatureContracts != null
+            && resource.signatureContracts.other != null
+            && resource.signatureContracts.other.signer != null)
+            || (resource.signatureContracts != null
+            && resource.signatureContracts.other != null
+            && resource.signatureContracts.other.signers != null
+            && resource.signatureContracts.other.signers.length > 0);
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResource_HasSecondSideSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return resource.signatureContracts != null
+            && resource.signatureContracts.other != null
+            && resource.signatureContracts.other.signers != null
+            && resource.signatureContracts.other.signers.length > 0;
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSecondSideSigner">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.other != null
+            && resource.relatedDocument.object.signatureContracts.other.signer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.other != null
+            && resource.rootDocument.object.signatureContracts.other.signer != null)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSecondSideSignerOrSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.other != null
+            && resource.relatedDocument.object.signatureContracts.other.signer != null)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.other != null
+            && resource.rootDocument.object.signatureContracts.other.signer != null)
+            || (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.other != null
+            && resource.relatedDocument.object.signatureContracts.other.signers != null
+            && resource.relatedDocument.object.signatureContracts.other.signers.length > 0)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.other != null
+            && resource.rootDocument.object.signatureContracts.other.signers != null
+            && resource.rootDocument.object.signatureContracts.other.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="DocumentResourceInTaskContext_HasSecondSideSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+            return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+            && resource.relatedDocument.object != null
+            && resource.relatedDocument.object.signatureContracts != null
+            && resource.relatedDocument.object.signatureContracts.other != null
+            && resource.relatedDocument.object.signatureContracts.other.signers != null
+            && resource.relatedDocument.object.signatureContracts.other.signers.length > 0)
+            || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null
+            && resource.rootDocument.object.signatureContracts != null
+            && resource.rootDocument.object.signatureContracts.other != null
+            && resource.rootDocument.object.signatureContracts.other.signers != null
+            && resource.rootDocument.object.signatureContracts.other.signers.length > 0)
+        ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasPreparedByAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.preparedBy != null && resource.preparedBy.length > 0 && resource.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasNotPreparedByAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.preparedBy == null || resource.preparedBy.length == 0) && resource.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasResponsiblesAndNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.responsibles != null && resource.responsibles.length > 0 && resource.status != 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasNotResponsiblesAndNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.responsibles == null || resource.responsibles.length == 0) && resource.status != 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextContract_HasPreparedByAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.relatedDocument != null && resource.relatedDocument.object != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && (resource.relatedDocument.object.preparedBy != null && resource.relatedDocument.object.preparedBy.length > 0)
+        && resource.relatedDocument.object != null && resource.relatedDocument.object.status == 'project'
+            || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+            && resource.rootDocument.object != null && (resource.rootDocument.object.preparedBy != null && resource.rootDocument.object.preparedBy.length > 0)
+        && resource.rootDocument.object != null && resource.rootDocument.object.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextContract_HasNotPreparedByAndProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && resource.relatedDocument.object != null && (resource.relatedDocument.object.preparedBy == null || resource.relatedDocument.object.preparedBy.length == 0)
+        && resource.relatedDocument.object.status != null && resource.relatedDocument.object.status == 'project'
+        || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+        && resource.rootDocument.object != null && (resource.rootDocument.object.preparedBy == null || resource.rootDocument.object.preparedBy.length == 0)
+        && resource.rootDocument.object.status != null && resource.rootDocument.object.status == 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextContract_HasResponsiblesAndNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+        return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && resource.relatedDocument.object != null && (resource.relatedDocument.object.responsibles != null && resource.relatedDocument.object.responsibles.length > 0)
+        && resource.relatedDocument.object.status != null && resource.relatedDocument.object.status != 'project'
+        || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+        && resource.rootDocument.object != null && (resource.rootDocument.object.responsibles != null && resource.rootDocument.object.responsibles.length > 0)
+        && resource.rootDocument.object.status != null && resource.rootDocument.object.status != 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceInTaskContextContract_HasNotResponsiblesAndNotProject">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+        && resource.relatedDocument.object != null && (resource.relatedDocument.object.responsibles == null || resource.relatedDocument.object.responsibles.length == 0)
+        && resource.relatedDocument.object.status != null && resource.relatedDocument.object.status != 'project'
+        || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+        && resource.rootDocument.object != null && (resource.rootDocument.object.responsibles == null || resource.rootDocument.object.responsibles.length == 0)
+        && resource.rootDocument.object.status != null && resource.rootDocument.object.status != 'project';
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContract_HasSendlist">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return resource.sendlist != null && resource.sendlist.length > 0;
+    ]]></expression>
+  </condition>
+  <condition name="RkkResourceContractInTaskContext_HasSendlist">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[return (resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+         && resource.relatedDocument.object != null && resource.relatedDocument.object.sendlist != null && resource.relatedDocument.object.sendlist.length > 0)
+        || (resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+        && resource.rootDocument.object != null && resource.rootDocument.object.sendlist != null && resource.rootDocument.object.sendlist.length > 0);
+    ]]></expression>
+  </condition>
   <condition name="ComplexClassifierDelete">
     <schema-ref ref="ComplexClassifierAbstract" condition-union="AND">
       <boolean-ref ref="met" value="true"/>
+    </schema-ref>
+  </condition>
+  <condition name="CompletionResource_isOnlyRead">
+    <modes>
+      <mode name="dialog"/>
+    </modes>
+    <schema-ref ref="CompletionResource" condition-union="AND">
+      <boolean-ref value="true" ref="onlyRead"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOldFrCompatible">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="$isOldFrCompatible"/>
+    </schema-ref>
+  </condition>
+  <condition name="isNotInventoryEditorOrCanEditAndModeIsRead">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="false" ref="isInventoryEditor"/>
+      <boolean-ref value="false" ref="$canEditByServer"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOldFrCompatibleNRD">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="NRDDocumentResource" condition-union="AND">
+      <boolean-ref value="true" ref="$isOldFrCompatible"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOldFrNotCompatible">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="false" ref="$isOldFrCompatible"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOldFrNotCompatibleNRD">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="NRDDocumentResource" condition-union="AND">
+      <boolean-ref value="false" ref="$isOldFrCompatible"/>
+    </schema-ref>
+  </condition>
+  <condition name="Missions_accessModeForSelected">
+    <schema-ref ref="RkkResourceMissions" condition-union="AND">
+      <string-ref value="Для выбранных:" ref="accessMode"/>
+    </schema-ref>
+  </condition>
+  <condition name="Missions_accessModeForSelectedOrIsPublic">
+    <schema-ref ref="RkkResourceMissions" condition-union="AND">
+      <boolean-ref value="true" ref="accessModeIsNotNull" />
+    </schema-ref>
+  </condition>
+  <condition name="FundDeal_isCanCreateNewAnnualInventory">
+    <schema-ref ref="ArchivesFundDealResource" condition-union="AND">
+      <boolean-ref value="true" ref="canCreateNewAnnualInventory"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_IsShowSaveButtonForNew">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="true" ref="isNew"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_IsNotNew">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="false" ref="isNew"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_ContentEmpty">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="false" ref="contentDocumentsNotEmpty"/>
+      <boolean-ref value="false" ref="contentAddInformationsNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_contentDocumentsNotEmpty">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="true" ref="contentDocumentsNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_contentDocumentsEmpty">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="false" ref="contentDocumentsNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_contentAddInformationsNotEmpty">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="true" ref="contentAddInformationsNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_contentAddInformationsEmpty">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="false" ref="contentAddInformationsNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_IsApproveAPKArcOrg">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="false" ref="isApproveAPKArcOrg"/>
+      <boolean-ref value="false" ref="isConfirmAPKArcOrg"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesAnnualInventory_IsApproveAK">
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="false" ref="isApproveAK"/>
+    </schema-ref>
+  </condition>
+  <condition name="AnnualInventory_canEdit">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="ArchivesAnnualInventoryResource" condition-union="AND">
+      <boolean-ref value="true" ref="canEdit"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesDepDealResource_IsNotNew">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ArchivesDepDealResource" condition-union="AND">
+      <boolean-ref value="false" ref="isNew"/>
+    </schema-ref>
+  </condition>
+  <condition name="$isSendToApproving">
+    <schema-ref ref="ArchivesCommonResource" condition-union="AND">
+      <boolean-ref value="true" ref="$isSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesDepDealResource_IsReadyIncludeToAnnInv">
+    <schema-ref ref="ArchivesDepDealResource" condition-union="AND">
+      <boolean-ref value="true" ref="readyIncludeToAnnInv"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesDepDealResource_ReadyIncludeToAnnInvOn">
+    <schema-ref ref="ArchivesDepDealResource" condition-union="AND">
+      <boolean-ref value="true" ref="readyIncludeToAnnInv"/>
+      <boolean-ref value="true" ref="isRespsDelo"/>
+      <boolean-ref value="true" ref="arcDealsNotEmpty"/>
+      <boolean-ref value="true" ref="isNotDisabledReadyIncludeToAnnInv"/>
+      <boolean-ref value="false" ref="$isSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesDepDealResource_ReadyIncludeToAnnInvOff">
+    <schema-ref ref="ArchivesDepDealResource" condition-union="AND">
+      <boolean-ref value="false" ref="readyIncludeToAnnInv"/>
+      <boolean-ref value="true" ref="isRespsDelo"/>
+      <boolean-ref value="true" ref="arcDealsNotEmpty"/>
+      <boolean-ref value="true" ref="isNotDisabledReadyIncludeToAnnInv"/>
+      <boolean-ref value="false" ref="$isSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesDepDealResource_IsRespsDelo">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="ArchivesDepDealResource" condition-union="AND">
+      <boolean-ref value="true" ref="isRespsDelo"/>
+    </schema-ref>
+  </condition>
+  <condition name="archivesDepDealResource_CanRemoveArcDeal">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="ArchivesDepDealResource" condition-union="AND">
+      <boolean-ref value="true" ref="canRemoveArcDeal"/>
+    </schema-ref>
+  </condition>
+  <condition name="arcDealInfoTableResource_canRemoveArcDeal">
+    <schema-ref ref="ArcDealInfoTableResource" condition-union="AND">
+      <boolean-ref value="true" ref="canRemoveArcDeal"/>
+    </schema-ref>
+  </condition>
+
+  <condition name="RkkResource_HasProjectNumber">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+          return resource.wdProjectNumber != null;
+      ]]></expression>
+  </condition>
+  <condition name="RkkResource_HasMultipleSigners">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+          return resource.hasMultipleSigners;
+      ]]></expression>
+  </condition>
+  <condition name="RkkResource_EnablePersonal">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+          return resource.enablePersonal;
+      ]]></expression>
+  </condition>
+  <condition name="CanSendToApprovingWD">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="$canSendToApproving"/>
+      <boolean-ref value="true" ref="canStartStandardApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="RkkResource_regStatusInfoIsEmpty">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="regStatusInfoIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="Actions_isSendToSignOnPaper">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="Actions">
+      <boolean-ref value="true" ref="sendToSignOnPaper"/>
+    </schema-ref>
+  </condition>
+  <condition name="Actions_isOnRework">
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="isOnRework"/>
+    </schema-ref>
+  </condition>
+  <condition name="Actions_IsSignStateStatusRecalled">
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="signStateStatusRecalled"/>
+    </schema-ref>
+  </condition>
+  <condition name="Actions_canSeeCustomButtonSendForSign">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="canSeeCustomButtonSendForSign"/>
+    </schema-ref>
+  </condition>
+  <condition name="wasUnderAppr">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="wasUnderAppr"/>
+    </schema-ref>
+  </condition>
+  <condition name="on_IssueFixing">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <string-ref value="ON_ISSUEFIXING" ref="OnIssueFixing"/>
+    </schema-ref>
+  </condition>
+  <condition name="onApprovingActions">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="OnApprovingOrIssueFixing"/>
+      <boolean-ref value="false" ref="isSupervisor"/>
+    </schema-ref>
+  </condition>
+  <condition name="notCanEditByServer">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="false" ref="$canEditByServer"/>
+    </schema-ref>
+  </condition>
+  <condition name="Actions_showOnReworkButton">
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="showOnReworkButton"/>
+    </schema-ref>
+  </condition>
+  <condition name="canNotEditSigners">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="true" ref="canNotEditSigners"/>
+    </schema-ref>
+  </condition>
+  <condition name="Actions_notAproving">
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="false" ref="$sendApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="on_Approving">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <string-ref value="ON_APPROVING" ref="OnAproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="tempContentEmpty">
+    <schema-ref ref="RkkTemplateResource" condition-union="AND">
+      <boolean-ref value="false" ref="contentNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="tempContentSectionEmpty">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="RkkTemplateResource" condition-union="AND">
+      <boolean-ref value="false" ref="contentSectionNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="tempContentAddEmpty">
+    <schema-ref ref="RkkTemplateResource" condition-union="AND">
+      <boolean-ref value="false" ref="contentAddNotEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="ClientContextRequestDialogIsAnswer">
+    <schema-ref ref="ClientContextRequest" condition-union="AND">
+      <string-ref value="answer" ref="counter"/>
+    </schema-ref>
+  </condition>
+  <condition name="isTunableOrder">
+    <schema-ref ref="SignatureItemResource" condition-union="AND">
+      <boolean-ref value="true" ref="isTunableOrder"/>
+    </schema-ref>
+  </condition>
+  <condition name="DocStatusExecIsEmpty">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="docStatusExecIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="RkkResource_HasSignedStatus">
+    <schema-ref ref="RkkResource" condition-union="AND"/>
+    <expression lang="JavaScript"><![CDATA[
+      return resource.documentStatus.main === 'signed';
+    ]]></expression>
+  </condition>
+  <condition name="ComplexClassifierCanDelete">
+    <roles>
+      <role name="Supervisor"/>
+      <role name="Trash"/>
+    </roles>
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="ComplexClassifierAbstract" condition-union="AND">
+      <boolean-ref ref="met" value="false"/>
+    </schema-ref>
+  </condition>
+  <condition name="isCurUserNotSupervisorOrClerk">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="false" ref="isSupervisor"/>
+      <boolean-ref value="false" ref="isClerk"/>
+    </schema-ref>
+  </condition>
+  <condition name="isNotRegPlaceClerk">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="false" ref="$isClerk"/>
+    </schema-ref>
+  </condition>
+  <condition name="isRegPlaceClerk">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="$isClerk"/>
+    </schema-ref>
+  </condition>
+  <condition name="ComplexClassifierEdit">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <roles>
+      <role name="Supervisor"/>
+      <role name="OrgEditor"/>
+    </roles>
+    <schema-ref ref="" condition-union="AND"/>
+  </condition>
+  <condition name="canSeeSigningModeOnWrite">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="canSeeSigningModeOnWrite"/>
+      <boolean-ref value="false" ref="signStatusIsSigned"/>
+      <boolean-ref value="false" ref="isRegisteredOrNotProject"/>
+    </schema-ref>
+  </condition>
+  <condition name="canSeeSigningModeOnWriteContract">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="$canSeeSigningModeOnWriteContract"/>
+      <boolean-ref value="false" ref="signStatusIsSigned"/>
+      <boolean-ref value="false" ref="isRegisteredOrNotProject"/>
+    </schema-ref>
+  </condition>
+  <condition name="canSeeSigningModeOnRead">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="canSeeSigningModeOnRead"/>
+      <boolean-ref value="false" ref="isRegisteredOrNotProject"/>
+    </schema-ref>
+  </condition>
+  <condition name="canSeeSigningModeOnReadContract">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="$canSeeSigningModeOnReadContract"/>
+      <boolean-ref value="false" ref="isRegisteredOrNotProject"/>
+    </schema-ref>
+  </condition>
+  <condition name="SendList_IsFavourites">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="SendListResource" condition-union="AND">
+      <boolean-ref value="true" ref="isFavouritesAccess"/>
+    </schema-ref>
+  </condition>
+  <condition name="isResponsibleVisible">
+    <schema-ref ref="ChangeExecutorsDialog" condition-union="AND">
+      <boolean-ref value="false" ref="isDeletedChosen"/>
+    </schema-ref>
+  </condition>
+  <condition name="isReasonRequired">
+    <schema-ref ref="ChangeExecutorsDialog" condition-union="AND">
+      <string-ref value="0" ref="timeShift"/>
+    </schema-ref>
+  </condition>
+  <condition name="DepOrRvzVcardIsRVZ">
+    <schema-ref ref="VCardResource.DepOrRvzWithVacancy" condition-union="AND">
+      <string-ref value="SYS_HUMAN_HEAD" ref="type"/>
+    </schema-ref>
+  </condition>
+  <condition name="ResolutionTasksResource_isSendToApproving">
+    <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+      <boolean-ref value="true" ref="$isSendToApproving"/>
+    </schema-ref>
+  </condition>
+  <condition name="canDeleteIfAdminNdp">
+    <schema-ref ref="NdpRegister" condition-union="AND">
+      <boolean-ref value="true" ref="canDeleteIfAdminNdp"/>
+    </schema-ref>
+  </condition>
+  <condition name="canDeleteIfAdminNdo">
+    <schema-ref ref="NdoRegister" condition-union="AND">
+      <boolean-ref value="true" ref="canDeleteIfAdminNdo"/>
+    </schema-ref>
+  </condition>
+  <condition name="canDeleteIfAdminNdoChange">
+    <schema-ref ref="NdoChangeRegister" condition-union="AND">
+      <boolean-ref value="true" ref="canDeleteIfAdminNdoChange"/>
+    </schema-ref>
+  </condition>
+  <condition name="isRKKSendToHead">
+    <schema-ref ref="RkkResource" condition-union="AND">
+      <boolean-ref value="true" ref="isSendToHead"/>
+    </schema-ref>
+  </condition>
+  <condition name="isNewFrCompatible">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="Actions" condition-union="AND">
+      <boolean-ref value="false" ref="$isOldFrCompatible"/>
+    </schema-ref>
+  </condition>
+  <condition name="islockerSingExistVer">
+    <schema-ref ref="VersionRkk" condition-union="AND">
+      <boolean-ref value="true" ref="$lockerSignExist"/>
+    </schema-ref>
+  </condition>
+  <condition name="isNotUsing">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="notUsing"/>
+    </schema-ref>
+  </condition>
+  <condition name="isDefault">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="byDefault"/>
+    </schema-ref>
+  </condition>
+  <condition name="isMedoDirectory">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="fromMedo"/>
+    </schema-ref>
+  </condition>
+  <condition name="isParentGroup">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="isParentGroup"/>
+    </schema-ref>
+  </condition>
+  <condition name="isGroupOfValues">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="isGroupOfValues"/>
+    </schema-ref>
+  </condition>
+  <condition name="SPPOrganization_isMedoAdmin">
+    <roles>
+      <role name="Supervisor"/>
+      <role name="MEDO"/>
+    </roles>
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="trueCondition"/>
+    </schema-ref>
+  </condition>
+  <condition name="SPPOrganization_hasMedoResponseStatus">
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="medoResponseReceived"/>
+    </schema-ref>
+  </condition>
+  <condition name="isSupervisorMEDO">
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="isSupervisor"/>
+    </schema-ref>
+  </condition>
+  <condition name="ForeignReportResource_deleted">
+    <schema-ref ref="ForeignReportResource" condition-union="AND">
+      <boolean-ref value="true" ref="deleted"/>
+    </schema-ref>
+  </condition>
+  <condition name="isReadAndSupervisorMEDO">
+   <modes>
+      <mode name="read"/>  
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="isSupervisor"/>
+    </schema-ref>
+  </condition>
+  <condition name="isSupervisorInMEDOForCollection">
+    <schema-ref ref="ComplectClassifierSchemeDirMedoCollectionTempl" condition-union="AND">
+      <boolean-ref value="true" ref="isSupervisor"/>
+    </schema-ref>
+  </condition>
+  <condition name="isReadAndSupervisorMEDONotDel">
+   <modes>
+      <mode name="read"/>  
+    </modes>
+    <schema-ref ref="ComplectClassifierMedoExchange" condition-union="AND">
+      <boolean-ref value="true" ref="isSupervisor"/>
+      <boolean-ref value="false" ref="isDel"/>
+    </schema-ref>
+  </condition>
+  <condition name="canRestoreMEDOClassif">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="ComplectClassifierMedoExchange">
+     <boolean-ref value="true" ref="isSupervisor"/>
+     <boolean-ref value="true" ref="isDel"/>
+    </schema-ref>
+  </condition>
+  <condition name="SODepartment_IsLegalEntity">
+    <schema-ref condition-union="AND" ref="SODepartment">      
+      <boolean-ref value="true" ref="legalentity"/>
+    </schema-ref>
+  </condition>
+  <condition name="hidePersonSaveButton">
+    <modes>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="SOTNObject" condition-union="AND">
+      <boolean-ref value="false" ref="canPerfomOperationInSOForCondition"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_counterpartyIsDifferentAndOldNotIsEmpty">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="counterpartyIsDifferent"/>
+      <boolean-ref value="false" ref="counterpartyOldIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_counterpartyIsDifferentAndIsEmpty">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="counterpartyIsDifferent"/>
+      <boolean-ref value="true" ref="counterpartyIsEmpty"/>
+    </schema-ref>
+  </condition>
+  <condition name="VCardResource.Organization_counterpartyIsDifferent">
+    <schema-ref ref="VCardResourceOrganizationChangeRequest" condition-union="AND">
+      <boolean-ref value="true" ref="counterpartyIsDifferent"/>
     </schema-ref>
   </condition>
 </ui>

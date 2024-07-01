@@ -12,6 +12,11 @@
         <appearance field-layout="horizontal"/>
         <component>
           <button name="${ui.form.ApprovingReplyResourceEditForm.section.Buttons.button.Отправить.name:Отправить}" alias="sendButton">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="ApprovingReplyResource_canPublish"/>
+              </hide>
+            </properties>
             <action>
               <system name="save"/>
             </action>
@@ -28,6 +33,16 @@
             <hint-pop-up>${ui.form.ApprovingReplyResourceEditForm.section.Buttons.field.sendVisaToHead.hintPopUp:Передать руководителю}</hint-pop-up>
             <hint-in-field>${ui.form.ApprovingReplyResourceEditForm.section.Buttons.field.sendVisaToHead.hintInField:Передать руководителю}</hint-in-field>
           </field>
+          <button name="${withdraw.from.approval:Отозвать с утверждения}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="canWithdrawFromIdocsApproving"/>
+              </hide>
+            </properties>
+            <action>
+              <system name="withdraw.send.to.head"/>
+            </action>
+          </button>
           <button name="${ui.form.ApprovingReplyResourceEditForm.section.Buttons.button.Отменить.name:Отменить}">
             <appearance>
               <label-style>
@@ -74,7 +89,27 @@
               </field>
             </component>
           </section>
-          <section id="commentSection" group="true">            
+	      <field attribute-ref="head.rejectComment" name="${ui.form.rejectComment:Причина отклонения:}">
+	        <properties>
+	          <read-only condition-union="AND">
+	            <condition>true</condition>
+	          </read-only>
+	          <hide condition-union="AND">
+	            <negative-condition-ref ref="isApprovingReplyReturnedByHead"/>
+	          </hide>
+	        </properties>
+	        <appearance importance="normal">
+	          <label-style label-unit="symbol">
+	            <style id="tunRed"/>
+	          </label-style>
+	          <field-style>
+	            <value-style>
+	              <style id="tunRed"/>
+	            </value-style>
+	          </field-style>
+	        </appearance>
+	      </field>
+      	  <section id="commentSection" group="true">            
             <component>
               <field attribute-ref="comment" name="${ui.form.ApprovingReplyResourceEditForm.field.comment.name:Комментарий:}">
                 <properties>
@@ -126,9 +161,7 @@
           <section id="ContentSection" name="${ui.form.ApprovingReplyResourceEditForm.section.ContentRow.section.ContentSection.name:Содержание}">
             <appearance style="tunBorderBlueSection" turn="true"/>
             <component>
-              <field attribute-ref="$content">
-                <appearance importance="normal"/>
-              </field>
+              <section id="Content" name="${ui.form.ApprovingReplyResourceReadForm.section.Inclusions.section.subContent.section.ContentSection.section.Content.name:Содержание}"/>
             </component>
           </section>
         </component>

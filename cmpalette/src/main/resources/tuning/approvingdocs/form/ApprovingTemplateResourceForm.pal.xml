@@ -9,6 +9,28 @@
     </properties>
     <appearance widget="tabs"/>
     <component>
+      <button name="${ui.form.ApprovingTemplateResourceForm.button.delete.name:Удалить}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.ApprovingTemplateResourceForm.button.delete.hintPopUp:Удалить}</hint-pop-up>
+        <action>
+          <system name="delete"/>
+        </action>
+      </button>
+      <button name="${ui.form.ApprovingTemplateResourceForm.button.В корзину.name:В корзину}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.ApprovingTemplateResourceForm.button.В корзину.hintPopUp:В корзину}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
       <section id="Header">
         <component>
           <section group="true" id="row1">
@@ -122,282 +144,356 @@
       </section>
       <section name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.name:Реквизиты}" id="Attributes">
         <component>
-          <field attribute-ref="ident" recalc="true" autofill="true" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.ident.name:Тип документа:}">
-            <properties>
-              <require condition-union="AND">
-                <condition>true</condition>
-              </require>
-              <read-only condition-union="AND">
-                <negative-condition-ref ref="aprTemplateIsNotNew"/>
-              </read-only>
-            </properties>
-            <appearance importance="normal" align="left"/>
-            <directories>
-              <directory-select-value attribute-ref="dbInfoList"/>
-            </directories>
-          </field>
-          <field attribute-ref="documentTypes" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.documentTypes.name:Вид документа:}">
-            <properties>
-              <require condition-union="AND">
-                <condition>true</condition>
-              </require>
-            </properties>
-            <appearance importance="normal" align="left"/>
-            <directories>
-              <directory-select-value attribute-ref="docTypeList"/>
-            </directories>
-          </field>
-          <field attribute-ref="aprParamsName">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="high" align="left">
-              <label-style>
-                <style id="tunBgSky"/>
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunBgSky"/>
-                </value-style>
-              </field-style>
-            </appearance>
-          </field>
-          <section group="true" id="row40">
-            <appearance field-layout="horizontal"/>
+          <section id="Main" group="true">
             <component>
-              <field attribute-ref="processtype" recalc="true" autofill="true" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row40.field.processtype.name:Тип согласования:}">
-                <properties>
-                  <require condition-union="AND">
-                    <condition>true</condition>
-                  </require>
-                </properties>
-                <appearance importance="normal" align="left">
-                  <label-style field-unit="symbol" field-width="25"/>
-                </appearance>
-                <directories>
-                  <directory-ref ref="approvingProcessType"/>
-                </directories>
-              </field>
-            </component>
-          </section>
-          <section group="true" id="row50">
-            <appearance field-layout="horizontal"/>
-            <component>
-              <field attribute-ref="$duration" autofill="true" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row50.field.duration.name:Длительность:}">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="aprTemplateIsDurationView"/>
-                  </hide>
-                </properties>
-                <appearance importance="normal" align="left">
-                  <label-style field-unit="symbol" field-width="10"/>
-                </appearance>
-              </field>
-              <field attribute-ref="sendToSignAfterAllApproveName">
+              <field attribute-ref="labelMain">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="aprTemplateIsEnableSSAA"/>
-                  </hide>
                 </properties>
-                <appearance importance="normal" align="right">
+                <appearance importance="normal">
                   <label-style>
-                    <style id="tunGray"/>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="ident" recalc="true" autofill="true" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.ident.name:Тип документа:}">
+                <properties>
+                  <require condition-union="AND">
+                    <condition-ref ref="edit"/>
+                  </require>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="aprTemplateIsNotNew"/>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" align="left"/>
+                <directories>
+                  <directory-select-value attribute-ref="dbInfoList"/>
+                </directories>
+              </field>
+              <field attribute-ref="documentTypes" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.documentTypes.name:Вид документа:}">
+                <properties>
+                  <require condition-union="AND">
+                    <condition-ref ref="edit"/>
+                  </require>
+                </properties>
+                <appearance importance="normal" align="left"/>
+                <directories>
+                  <directory-select-value attribute-ref="docTypeList"/>
+                </directories>
+              </field>
+              <field attribute-ref="aprParamsName">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="high" align="left">
+                  <label-style>
+                    <style id="tunBgSky"/>
                   </label-style>
                   <field-style>
                     <value-style>
-                      <style id="tunGray"/>
+                      <style id="tunBgSky"/>
                     </value-style>
                   </field-style>
                 </appearance>
-                <hint-pop-up>${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row50.field.sendToSignAfterAllApproveName.hintPopUp:Отправить на подпись при наличии всех виз "согласовано"}</hint-pop-up>
               </field>
-              <field attribute-ref="sendToSignAfterAllApprove" autofill="true">
+              <section group="true" id="row40">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="processtype" recalc="true" autofill="true" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row40.field.processtype.name:Тип согласования:}">
+                    <properties>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                      </require>
+                    </properties>
+                    <appearance importance="normal" align="left">
+                      <label-style field-unit="symbol" field-width="25"/>
+                    </appearance>
+                    <directories>
+                      <directory-ref ref="approvingProcessType"/>
+                    </directories>
+                  </field>
+                </component>
+              </section>
+              <section group="true" id="row50">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="$duration" autofill="true" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row50.field.duration.name:Длительность:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="aprTemplateIsDurationView"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" align="left">
+                      <label-style field-unit="symbol" field-width="10"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="sendToSignAfterAllApproveName">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="aprTemplateIsEnableSSAA"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal" align="left">
+                      <label-style field-width="40" field-unit="symbol">
+                        <style id="tunGray"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunGray"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row50.field.sendToSignAfterAllApproveName.hintPopUp:Отправить на подпись при наличии всех виз "согласовано"}</hint-pop-up>
+                  </field>
+                  <field attribute-ref="sendToSignAfterAllApprove" autofill="true">
+                    <appearance importance="normal" align="left">
+                      <label-style field-unit="symbol" field-width="5"/>
+                      <limit max-lenght="150"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section group="true" id="row60">
+                <properties>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="read"/>
+                  </read-only>
+                </properties>
+                <component>
+                  <button name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row60.button.Напоминания.name:Напоминания}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style unit="symbol" width="16">
+                        <style id="tunClickableUnderline"/>
+                        <style id="tunBlue"/>
+                        <style id="tunTxtAlignRight"/>
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <change-subobject schema-ref="ApprovingTemplateEditNotify"/>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row60.button.Напоминания1.name:Напоминания:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="edit"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style unit="symbol" width="16">
+                        <style id="tunGray"/>
+                        <style id="tunTxtAlignRight"/>
+                      </label-style>
+                    </appearance>
+                  </button>
+                  <field attribute-ref="numOfWorkDaysTextValue" recalc="true" autofill="true">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal" align="left">
+                      <label-style field-unit="symbol" field-width="70"/>
+                    </appearance>
+                  </field>
+                  <button name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row60.button.Сбросить.name:Сбросить}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style>
+                        <style id="tunClickableUnderline"/>
+                        <style id="tunBlue"/>
+                      </label-style>
+                    </appearance>
+                  </button>
+                  <field attribute-ref="numOfWorkDays" recalc="true">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition>true</condition>
+                      </hide>
+                    </properties>
+                  </field>
+                </component>
+                <appearance style="tunTxtAlignRight" field-layout="horizontal"/>
+              </section>
+              <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
                 <properties>
                   <hide condition-union="AND">
-                    <negative-condition-ref ref="aprTemplateIsEnableSSAA"/>
+                    <negative-condition-ref ref="aprTemplateIsNoParallelEnableSSAA"/>
                   </hide>
                 </properties>
-                <appearance importance="normal" align="right">
-                  <label-style field-unit="symbol" field-width="5"/>
-                  <limit max-lenght="150"/>
+                <appearance importance="normal" align="left">
+                  <label-style field-unit="symbol" field-width="0"/>
+                </appearance>
+                <directories>
+                  <directory-ref ref="approvingAllowActions"/>
+                </directories>
+              </field>
+              <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="aprTemplateIsNoParallelDesableSSAA"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal" align="left">
+                  <label-style field-unit="symbol" field-width="0"/>
+                </appearance>
+                <directories>
+                  <directory-ref ref="approvingAllowActionsNoCSTS"/>
+                </directories>
+              </field>
+              <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="aprTemplateIsParallelEnableSSAA"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal" align="left">
+                  <label-style field-unit="symbol" field-width="0"/>
+                </appearance>
+                <directories>
+                  <directory-ref ref="approvingParallelAllowActions"/>
+                </directories>
+              </field>
+              <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="aprTemplateIsParallelDesableSSAA"/>
+                  </hide>
+                </properties>
+                <appearance importance="normal" align="left">
+                  <label-style field-unit="symbol" field-width="0"/>
+                </appearance>
+                <directories>
+                  <directory-ref ref="approvingParallelAllowActionsNoCSTS"/>
+                </directories>
+              </field>
+              <field attribute-ref="stageParamName" autofill="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <condition-ref ref="aprTemplateIsParallel"/>
+                  </hide>
+                </properties>
+                <appearance importance="high" align="left">
+                  <label-style>
+                    <style id="tunBgSky"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBgSky"/>
+                    </value-style>
+                  </field-style>
                 </appearance>
               </field>
+              <field attribute-ref="stageParamName2">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="aprTemplateIsParallel"/>
+                  </hide>
+                </properties>
+                <appearance importance="high" align="left">
+                  <label-style>
+                    <style id="tunBgSky"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBgSky"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+              <section group="true" id="row100">
+                <component>
+                  <field attribute-ref="$stages">
+                    <appearance importance="normal"/>
+                  </field>
+                </component>
+              </section>
             </component>
           </section>
-          <section group="true" id="row60">
-            <properties>
-              <read-only condition-union="AND">
-                <negative-condition-ref ref="read"/>
-              </read-only>
-            </properties>
+          <section id="Additional" group="true">
             <component>
-              <button name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row60.button.Напоминания.name:Напоминания}">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition-ref ref="read"/>
-                  </hide>
-                </properties>
-                <appearance align="left">
-                  <label-style unit="symbol" width="16">
-                    <style id="tunClickableUnderline"/>
-                    <style id="tunBlue"/>
-                    <style id="tunTxtAlignRight"/>
-                  </label-style>
-                </appearance>
-                <action>
-                  <custom>
-                    <change-subobject schema-ref="ApprovingTemplateEditNotify"/>
-                  </custom>
-                </action>
-              </button>
-              <button name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row60.button.Напоминания1.name:Напоминания:}">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition-ref ref="edit"/>
-                  </hide>
-                </properties>
-                <appearance align="left">
-                  <label-style unit="symbol" width="16">
-                    <style id="tunGray"/>
-                    <style id="tunTxtAlignRight"/>
-                  </label-style>
-                </appearance>
-              </button>
-              <field attribute-ref="numOfWorkDaysTextValue" recalc="true" autofill="true">
+              <field attribute-ref="labelAdditional">
                 <properties>
                   <read-only condition-union="AND">
                     <condition>true</condition>
                   </read-only>
                 </properties>
-                <appearance importance="normal" align="left">
-                  <label-style field-unit="symbol" field-width="70"/>
-                </appearance>
-              </field>
-              <button name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.row60.button.Сбросить.name:Сбросить}">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition-ref ref="read"/>
-                  </hide>
-                </properties>
-                <appearance align="left">
+                <appearance importance="normal">
                   <label-style>
-                    <style id="tunClickableUnderline"/>
-                    <style id="tunBlue"/>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
                   </label-style>
                 </appearance>
-              </button>
-              <field attribute-ref="numOfWorkDays" recalc="true">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition>true</condition>
-                  </hide>
-                </properties>
               </field>
-            </component>
-            <appearance style="tunTxtAlignRight" field-layout="horizontal"/>
-          </section>
-          <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="aprTemplateIsNoParallelEnableSSAA"/>
-              </hide>
-            </properties>
-            <appearance importance="normal" align="left">
-              <label-style field-unit="symbol" field-width="0"/>
-            </appearance>
-            <directories>
-              <directory-ref ref="approvingAllowActions"/>
-            </directories>
-          </field>
-          <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="aprTemplateIsNoParallelDesableSSAA"/>
-              </hide>
-            </properties>
-            <appearance importance="normal" align="left">
-              <label-style field-unit="symbol" field-width="0"/>
-            </appearance>
-            <directories>
-              <directory-ref ref="approvingAllowActionsNoCSTS"/>
-            </directories>
-          </field>
-          <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="aprTemplateIsParallelEnableSSAA"/>
-              </hide>
-            </properties>
-            <appearance importance="normal" align="left">
-              <label-style field-unit="symbol" field-width="0"/>
-            </appearance>
-            <directories>
-              <directory-ref ref="approvingParallelAllowActions"/>
-            </directories>
-          </field>
-          <field attribute-ref="allowActions" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.field.allowActions.name:Разрешено менять:}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="aprTemplateIsParallelDesableSSAA"/>
-              </hide>
-            </properties>
-            <appearance importance="normal" align="left">
-              <label-style field-unit="symbol" field-width="0"/>
-            </appearance>
-            <directories>
-              <directory-ref ref="approvingParallelAllowActionsNoCSTS"/>
-            </directories>
-          </field>
-          <field attribute-ref="stageParamName" autofill="true">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-              <hide condition-union="AND">
-                <condition-ref ref="aprTemplateIsParallel"/>
-              </hide>
-            </properties>
-            <appearance importance="high" align="left">
-              <label-style>
-                <style id="tunBgSky"/>
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunBgSky"/>
-                </value-style>
-              </field-style>
-            </appearance>
-          </field>
-          <field attribute-ref="stageParamName2">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="aprTemplateIsParallel"/>
-              </hide>
-            </properties>
-            <appearance importance="high" align="left">
-              <label-style>
-                <style id="tunBgSky"/>
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunBgSky"/>
-                </value-style>
-              </field-style>
-            </appearance>
-          </field>
-          <section group="true" id="row100">
-            <component>
-              <field attribute-ref="$stages">
-                <appearance importance="normal"/>
-              </field>
+              <section id="tableAdditional" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <section id="tableAdditionalColumn1" group="true">
+                    <appearance>
+                      <dialog-mode width="50" unit="percent"/>
+                    </appearance>
+                    <component>
+                      <field recalc="true" attribute-ref="authorTemplate" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.Main.field.authorTemplate.name:Автор шаблона:}">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                          </require>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.Main.field.authorTemplate.hintPopUp:Автор шаблона}</hint-pop-up>
+                        <directories limit-livesearch="sys-current">
+                          <directory-ref ref="CURRENT_SYS_HUMAN"/>
+                        </directories>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="tableAdditionalColumn2" group="true">
+                    <component>
+                      <field attribute-ref="authorDepartment" name="${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.Main.field.authorDepartment.name:СП автора:}">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedField"/>
+                          </label-style>
+                        </appearance>
+                        <hint-pop-up>${ui.form.ApprovingTemplateResourceForm.section.Attributes.section.Main.field.authorDepartment.name:СП автора}</hint-pop-up>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
             </component>
           </section>
         </component>

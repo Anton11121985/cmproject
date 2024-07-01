@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
-  <form schema-ref="ArchivesDepDealResource" showtabs="true" projection="default" name="${ui.form.ArchivesDepDealResourceForm.name:ArchivesDepDealResourceForm}" id="ArchivesDepDealResourceForm">
+  <form schema-ref="ArchivesDepDealResource" id="ArchivesDepDealResourceForm" projection="default" showtabs="true" >
     <properties>
       <hide condition-union="AND">
         <negative-condition-ref ref="edit" />
@@ -8,388 +8,580 @@
       </hide>
     </properties>
     <component>
+      <button name="${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.name:Связанный документ}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+        </action>
+      </button>
+      <button name="${ui.form.AgreementResourceForm.button.В корзину.name:В корзину}">
+        <hint-pop-up>${ui.form.AgreementResourceForm.button.В корзину.hintPopUp:В корзину}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.name:Восстановить}">
+        <hint-pop-up>${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.hintPopUp:Восстановить}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#restore.from.trash"/>
+        </action>
+      </button>
+      <button attribute-ref="$canSendToApproving" name="${ui.form.RkkResourceContractsForm.button.canSendToApproving.name:На согласование}">
+        <hint-pop-up>${ui.form.RkkResourceContractsForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#approving.start"/>
+        </action>
+      </button>
+      <section id="RootMenu">
+        <component>
+          <section name="${ui.form.ArchivesDepDealResourceForm.section.RootMenu.section.CREATE.name:Создать}" id="CREATE">
+            <component>
+              <button name="${ui.form.ArchivesDepDealResourceForm.section.RootMenu.section.CREATE.button.Создать ОДП.name:Создать ОДП}" alias="create-arc-department-deal">
+                <action>
+                  <system name="http://intertrust.ru/cmj/relations#create-new-object"/>
+                </action>
+              </button>
+            </component>
+            <appearance>
+              <action position="8.0">
+                <system name="CREATE"/>
+              </action>
+            </appearance>
+          </section>
+          <section id="SEND" name="${ui.form.NdpRegisterForm.section.RootMenu.section.SEND.name:Отправить}">
+            <component>
+              <button attribute-ref="$canSendToApproving" name="${ui.form.NdpRegisterForm.button.canSendToApproving.name:На согласование}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="Archives_CanSendToApproving"/>
+                  </hide>
+                </properties>
+                <hint-pop-up>${ui.form.NdpRegisterForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
+                <action>
+                  <system name="http://intertrust.ru/cmj/relations#approving.start"/>
+                </action>
+              </button>
+            </component>
+          </section>
+          <button name="${ui.form.NdpRegisterForm.button.canSendToApproving.name:Вернуть в доработку}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="Archives_CanReturnToRevisionDepDeal"/>
+              </hide>
+            </properties>
+            <hint-pop-up>${ui.form.NdpRegisterForm.button.canSendToApproving.hintPopUp:Вернуть в доработку}</hint-pop-up>
+            <action position="9.0">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">ReturnToRevisionDepartmentDeal</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.NdoRegisterForm.section.RootMenu.button.ComposeFinalNote.name:Составить итоговую запись}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="canSeeButtonComposeFinalNoteDepDeal"/>
+              </hide>
+            </properties>
+            <appearance align="left">
+              <label-style width="20">
+                <style id="tunUnderline" />
+                <style id="tunClickableRed" />
+              </label-style>
+            </appearance>
+            <action>
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">ComposeFinalNoteForDepDeal</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.Verify.name:Заверить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="DepDeal_canVerify" />
+              </hide>
+            </properties>
+            <action position="20">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">DepartmentDealVerify</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.DeletePermanent.name:Удалить из корзины}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="ArchivesDepDeal_isSuperAdminAndDeleted"/>
+              </hide>
+            </properties>
+            <action position="30">
+              <custom>
+                <operation>
+                  <handler-ref ref="DeletePermanentlyArchive"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+        </component>
+      </section>
       <section name="${ui.form.ArchivesDepDealResourceForm.section.Header.name:ArcDepHeader}" id="Header">
         <component>
-          <section group="true" id="HeaderRow10">
-            <component>
-              <field attribute-ref="showident">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="12" />
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementWithIcon" />
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-              </field>
-              <field attribute-ref="Organization">
-                <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
-                    <condition>true</condition>
-                  </require>
-                  <read-only condition-union="AND">
-                    <negative-condition-ref ref="TObjectIsNotNew" />
-                  </read-only>
-                </properties>
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="30" />
-                  <alt-appearancies>
-                    <alt-appearance>
-                      <appearance-ref ref="css_headerElementWithIcon" />
-                      <enable condition-union="AND">
-                        <condition>true</condition>
-                      </enable>
-                    </alt-appearance>
-                  </alt-appearancies>
-                </appearance>
-                <directories>
-                  <directory-ref ref="sysOrgs" />
-                </directories>
-              </field>
-              <field attribute-ref="AnnualInventory">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="normal" multiline="false" align="center" />
-              </field>
-              <section group="true" id="HeaderRow10Index">
-                <component>
-                  <field attribute-ref="Index1" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.HeaderRow10.section.HeaderRow10Index.field.Index1.name:Номенклатурный индекс:}">
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="5" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="ShowDash">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance importance="normal" multiline="false" align="center">
-                      <label-style field-unit="symbol" field-width="1" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="Index2">
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="5" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="ShowDash">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance importance="normal" multiline="false" align="center">
-                      <label-style field-unit="symbol" field-width="1" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="Index3">
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="5" />
-                    </appearance>
-                  </field>
-                </component>
-                <appearance field-layout="horizontal" />
-              </section>
-              <field attribute-ref="MainState">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <directories>
-                  <directory-ref ref="archivesDepDealState" />
-                </directories>
-                <appearance importance="high" multiline="false" align="right" />
-              </field>
-            </component>
+          <section group="true" id="HeaderColumn">
             <appearance field-layout="horizontal" />
-          </section>
-          <section group="true" id="HeaderRow20">
             <component>
-              <section group="true" id="HeaderRow20Row10">
+              <section group="true" id="LeftColum">
+                <appearance>
+                  <dialog-mode unit="percent" width="70"/>
+                </appearance>
                 <component>
-                  <field attribute-ref="IsDepartment" recalc="true">
+                  <section group="true" id="HeaderRow10">
+                    <component>
+                      <field attribute-ref="showident">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="12" />
+                          <alt-appearancies>
+                            <alt-appearance>
+                              <appearance-ref ref="css_headerElementWithIcon" />
+                              <enable condition-union="AND">
+                                <condition>true</condition>
+                              </enable>
+                            </alt-appearance>
+                          </alt-appearancies>
+                        </appearance>
+                      </field>
+                      <field recalc="true" attribute-ref="organization">
+                        <properties>
+                          <require condition-union="AND">
+                            <condition-ref ref="edit"/>
+                            <condition>true</condition>
+                          </require>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="30" />
+                          <alt-appearancies>
+                            <alt-appearance>
+                              <appearance-ref ref="css_headerElementWithIcon" />
+                              <enable condition-union="AND">
+                                <condition>true</condition>
+                              </enable>
+                            </alt-appearance>
+                          </alt-appearancies>
+                        </appearance>
+                        <directories livesearch="true" limit-livesearch="no-restrictions" relation="NdOrgAndDepsHasNdo" digest="digestSOLiveSearch">
+                          <directory-ref ref="CURRENT_ORG_ONLY"/>
+                          <directory-ref ref="NdDepsHasNdo"/>
+                        </directories>
+                      </field>
+                      <section id="AnnualInventorySection" group="true">
+                        <properties>
+                          <hide>
+                            <negative-condition-ref ref="DepDeal_isInAnnualSection"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <field attribute-ref="annualInventory">
+                            <properties>
+                              <read-only condition-union="AND">
+                                <condition>true</condition>
+                              </read-only>
+                              <hide>
+                                <condition-ref ref="DepDeal_parentInventoryUnidIsEmpty"/>
+                              </hide>
+                            </properties>
+                            <appearance importance="normal" multiline="false" align="center" />
+                          </field>
+                          <field attribute-ref="annualInventoryTitle">
+                            <properties>
+                              <read-only condition-union="AND">
+                                <condition>true</condition>
+                              </read-only>
+                              <hide>
+                                <negative-condition-ref ref="DepDeal_parentInventoryUnidIsEmpty"/>
+                              </hide>
+                            </properties>
+                            <appearance importance="normal" multiline="false" align="center" />
+                          </field>
+                        </component>
+                      </section>
+                      <section group="true" id="IndexSection">
+                        <appearance field-layout="horizontal">
+                          <label-style width="19" unit="symbol"/>
+                        </appearance>
+                        <component>
+                          <field attribute-ref="index" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.LeftColum.section.HeaderRow10.section.IndexSection.field.index.name:Индекс подразделения:}">
+                            <properties>
+                              <read-only>
+                                <condition-ref ref="DepDeal_IsDepartment"/>
+                              </read-only>
+                            </properties>
+                            <appearance importance="normal" multiline="false" align="left">
+                              <label-style field-unit="symbol" field-width="30" />
+                            </appearance>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                    <appearance field-layout="horizontal" />
+                  </section>
+                  <section group="true" id="HeaderRow20">
+                    <component>
+                      <section id="isDepartmentSection" group="true">
+                        <appearance field-layout="horizontal">
+                          <dialog-mode width="67" height="1" unit="symbol"/>
+                        </appearance>
+                        <component>
+                          <field recalc="true" attribute-ref="isDepartment">
+                            <appearance widget="radio"/>
+                            <properties>
+                              <require>
+                                <condition>true</condition>
+                              </require>
+                            </properties>
+                            <directories>
+                              <directory-ref ref="archivesPartitionTypes" />
+                            </directories>
+                          </field>
+                        </component>
+                      </section>
+                      <section id="kindDealSection" group="true">
+                        <appearance field-layout="horizontal" >
+                          <dialog-mode width="50" height="1" unit="symbol"/>
+                        </appearance>
+                        <component>
+                          <field attribute-ref="kindDeal">
+                            <appearance widget="radio" align="right"/>
+                            <properties>
+                              <require>
+                                <condition>true</condition>
+                              </require>
+                            </properties>
+                            <directories>
+                              <directory-ref ref="archivesKindDeals" />
+                            </directories>
+                          </field>
+                        </component>
+                      </section>
+                      <section id="SectionReadyIncludeToAnnInv" group="true">
+                        <appearance field-layout="horizontal" align="right"/>
+                        <properties>
+                          <hide>
+                            <condition-ref ref="archivesDepDealResource_IsNotNew"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <button name="${ui.form.ArchivesDepDealResourceForm.label.readyIncludeToAnnInv.name:Не готова к включению в Годовой раздел описи}">
+                            <properties>
+                              <hide>
+                                <condition-ref ref="archivesDepDealResource_IsReadyIncludeToAnnInv" />
+                              </hide>
+                              <disabled>
+                                <negative-condition-ref ref="archivesDepDealResource_ReadyIncludeToAnnInvOff"/>
+                              </disabled>
+                            </properties>
+                            <appearance>
+                              <label-style>
+                                <style id="tunBtnHeader" />
+                                <style id="tunRed" />
+                              </label-style>
+                            </appearance>
+                            <action>
+                              <custom>
+                                <operation>
+                                  <handler>
+                                    <script lang="JavaBean">ToggleReadyIncludeToAnnInv</script>
+                                  </handler>
+                                </operation>
+                              </custom>
+                            </action>
+                          </button>
+                          <button name="${ui.form.ArchivesDepDealResourceForm.label.unreadyIncludeToAnnInv.name:Готова к включению в Годовой раздел описи}">
+                            <properties>
+                              <hide>
+                                <negative-condition-ref ref="archivesDepDealResource_IsReadyIncludeToAnnInv" />
+                              </hide>
+                              <disabled>
+                                <negative-condition-ref ref="archivesDepDealResource_ReadyIncludeToAnnInvOn"/>
+                              </disabled>
+                            </properties>
+                            <appearance>
+                              <label-style>
+                                <style id="tunBtnHeader" />
+                                <style id="tunGreen" />
+                              </label-style>
+                            </appearance>
+                            <action>
+                              <custom>
+                                <operation>
+                                  <handler>
+                                    <script lang="JavaBean">ToggleReadyIncludeToAnnInv</script>
+                                  </handler>
+                                </operation>
+                              </custom>
+                            </action>
+                          </button>
+                        </component>
+                      </section>
+                    </component>
+                    <appearance field-layout="horizontal" />
+                  </section>
+                  <section group="true" id="HeaderRow30">
+                    <component>
+                      <section group="true" id="DepartmentSection">
+                        <appearance>
+                          <label-style width="23" unit="symbol"/>
+                        </appearance>
+                        <component>
+                          <field recalc="true" attribute-ref="department" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.LeftColum.section.HeaderRow30.field.department.name:Структурное подразделение:}">
+                            <show-value schema-ref="VCardResource.TitleOrFullName"/>
+                            <properties>
+                              <require condition-union="AND">
+                                <condition-ref ref="edit"/>
+                              </require>
+                              <hide condition-union="OR">
+                                <condition-ref ref="DepDeal_IsNotDepartment"/>
+                                <condition-ref ref="DepDeal_isArchivistOrSuperadmin"/>
+                              </hide>
+                              <read-only>
+                                <condition-ref ref="DepDeal_OrganizationIsEmpty"/>
+                                <negative-condition-ref ref="startedFinalRecordReadOnlyDD"/>
+                              </read-only>
+                            </properties>
+                            <appearance importance="normal" multiline="false" align="left">
+                              <label-style field-unit="symbol" field-width="40" />
+                              <limit height="1" />
+                            </appearance>
+                            <directories livesearch="true" >
+                              <directory-category-custom-coll attribute-ref="userId" ref="Archives-departmentByUser"/>
+                            </directories>
+                          </field>
+                          <field recalc="true" attribute-ref="department" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.LeftColum.section.HeaderRow30.field.department.name:Структурное подразделение:}">
+                            <show-value schema-ref="VCardResource.TitleOrFullName"/>
+                            <properties>
+                              <require condition-union="AND">
+                                <condition-ref ref="edit"/>
+                              </require>
+                              <hide condition-union="OR">
+                                <condition-ref ref="DepDeal_IsNotDepartment"/>
+                                <condition-ref ref="DepDeal_isNotArchivistOrSuperadmin"/>
+                              </hide>
+                              <read-only>
+                                <condition-ref ref="DepDeal_OrganizationIsEmpty"/>
+                                <negative-condition-ref ref="startedFinalRecordReadOnlyDD"/>
+                              </read-only>
+                            </properties>
+                            <appearance importance="normal" multiline="false" align="left">
+                              <label-style field-unit="symbol" field-width="40" />
+                              <limit height="1" />
+                            </appearance>
+                            <directories livesearch="true" >
+                              <directory-ref ref="Archives-department-all"/>
+                            </directories>
+                          </field>
+                          <field recalc="true" attribute-ref="directionWork" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.LeftColum.section.HeaderRow30.field.directionWork.name:Направление деятельности:}">
+                            <properties>
+                              <require condition-union="AND">
+                                <condition-ref ref="edit"/>
+                              </require>
+                              <hide>
+                                <condition-ref ref="DepDeal_IsDepartment"/>
+                              </hide>
+                            </properties>
+                            <appearance importance="normal" multiline="false" align="left">
+                              <label-style field-unit="symbol" field-width="40" />
+                              <limit height="1" />
+                            </appearance>
+                          </field>
+                        </component>
+                      </section>
+                      <section group="true" id="TypeInvSection">
+                        <appearance>
+                          <label-style unit="symbol" width="25"/>
+                        </appearance>
+                        <component>
+                          <field attribute-ref="typeInv" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.LeftColum.section.HeaderRow30.section.TypeInvSection.field.typeInv.name:Тип описи:}">
+                            <properties>
+                              <require condition-union="AND">
+                                <condition-ref ref="edit"/>
+                                <condition>true</condition>
+                              </require>
+                            </properties>
+                            <appearance importance="normal" multiline="false" />
+                            <directories>
+                              <directory-ref ref="ArchivesInventorisationType" />
+                            </directories>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                    <appearance field-layout="horizontal" />
+                  </section>
+                  <section group="true" id="HeaderRow40">
+                    <component>
+                      <field attribute-ref="depDealNumber" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.LeftColum.section.HeaderRow40.field.depDealNumber.name:№:}">
+                        <properties>
+                          <require>
+                            <condition>true</condition>
+                          </require>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="40" label-unit="symbol" label-width="2"/>
+                          <limit max-lenght="40"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="boundaryDateLabel">
+                        <properties>
+                          <read-only>
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="11"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="boundaryDateBeg">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="8" />
+                          <field-style date-format="dd.MM.yyyy" />
+                        </appearance>
+                      </field>
+                      <field attribute-ref="ShowDash">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="1" />
+                        </appearance>
+                      </field>
+                      <field attribute-ref="boundaryDateEnd">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false" align="left">
+                          <label-style field-unit="symbol" field-width="8" />
+                          <field-style date-format="dd.MM.yyyy" />
+                        </appearance>
+                      </field>
+                    </component>
+                    <appearance field-layout="horizontal" />
+                  </section>
+                </component>
+              </section>
+              <section group="true" id="RightColumn">
+                <component>
+                  <field attribute-ref="depDealStatus">
                     <properties>
-                      <require condition-union="AND">
-                        <condition-ref ref="edit"/>
+                      <read-only condition-union="AND">
                         <condition>true</condition>
-                      </require>
+                      </read-only>
                     </properties>
-                    <appearance importance="normal" multiline="false" align="left" widget="radio">
-                      <label-style field-unit="symbol" field-width="50" />
-                    </appearance>
                     <directories>
-                      <directory-ref ref="archivesTypeDep" />
+                      <directory-ref ref="archivesDepDealState" />
                     </directories>
+                    <appearance importance="high" multiline="false" align="right" />
+                  </field>
+                  <section group="true" id="rcrow20">
+                    <appearance field-layout="horizontal" />
+                    <component>
+                      <field attribute-ref="additionalState">
+                        <properties>
+                          <read-only condition-union="AND">
+                            <condition>true</condition>
+                          </read-only>
+                        </properties>
+                        <directories>
+                          <directory-ref ref="archivesDepDealAdditionalState" />
+                        </directories>
+                        <appearance importance="high" multiline="false" align="right">
+                          <label-style field-width="35" field-unit="symbol"/>
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                  <field attribute-ref="$approvStatusInfo">
+                    <appearance align="right"/>
                   </field>
                 </component>
-                <appearance field-layout="horizontal" align="left">
-                  <label-style unit="symbol" width="50" />
-                </appearance>
-              </section>
-              <field attribute-ref="KindDeal">
-                <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
-                    <condition>true</condition>
-                  </require>
-                  <read-only condition-union="AND">
-                    <negative-condition-ref ref="TObjectIsNotNew" />
-                  </read-only>
-                </properties>
-                <appearance importance="normal" multiline="false" align="center" widget="radio">
-                  <label-style field-unit="symbol" field-width="28" />
-                </appearance>
-                <directories>
-                  <directory-ref ref="archivesKindDeals" />
-                </directories>
-              </field>
-              <field attribute-ref="ReadyIncludeToAnnInv" name="${ui.form.ArchivesDepDealResourceForm.section.Header.section.HeaderRow20.field.ReadyIncludeToAnnInv.name:Готов:}">
-                <appearance importance="normal" align="left" widget="checkbox" />
-                <hint-pop-up>${ui.form.ArchivesDepDealResourceForm.section.Header.section.HeaderRow20.field.ReadyIncludeToAnnInv.hintPopUp:Готовности к включению в годовой раздел}</hint-pop-up>
-              </field>
-              <field attribute-ref="AdditionalState">
-                <properties>
-                  <read-only condition-union="AND">
-                    <condition>true</condition>
-                  </read-only>
-                </properties>
-                <appearance importance="high" multiline="false" align="right" />
-              </field>
-            </component>
-            <appearance field-layout="horizontal" />
-          </section>
-          <section group="true" id="HeaderRow30">
-            <component>
-              <section group="true" id="HeaderRow30Row10">
-                <properties>
-                  <hide condition-union="AND">
-                    <negative-condition-ref ref="ArchivesIsDepartment" />
-                  </hide>
-                </properties>
-                <component>
-                  <field attribute-ref="departmentTitle">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="12" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="Department">
-                    <properties>
-                      <require condition-union="AND">
-                        <condition-ref ref="edit"/>
-                        <condition>true</condition>
-                      </require>
-                    </properties>
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="33" />
-                      <limit height="1" />
-                    </appearance>
-                    <directories>
-                      <directory-ref ref="CURRENT_ORG_WITH_DEP" />
-                    </directories>
-                  </field>
-                </component>
-                <appearance field-layout="horizontal" />
-              </section>
-              <section group="true" id="HeaderRow30Row20">
-                <properties>
-                  <hide condition-union="AND">
-                    <condition-ref ref="ArchivesIsDepartment" />
-                  </hide>
-                </properties>
-                <component>
-                  <field attribute-ref="DirectionWorkTitle">
-                    <properties>
-                      <read-only condition-union="AND">
-                        <condition>true</condition>
-                      </read-only>
-                    </properties>
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="12" />
-                    </appearance>
-                  </field>
-                  <field attribute-ref="DirectionWork">
-                    <properties>
-                      <require condition-union="AND">
-                        <condition-ref ref="edit"/>
-                        <condition>true</condition>
-                      </require>
-                    </properties>
-                    <appearance importance="normal" multiline="false" align="left">
-                      <label-style field-unit="symbol" field-width="33" />
-                      <limit height="1" />
-                    </appearance>
-                  </field>
-                </component>
-                <appearance field-layout="horizontal" />
               </section>
             </component>
-            <appearance field-layout="horizontal" />
           </section>
         </component>
       </section>
-      <section id="RootMenu">
+      <section id="ContentSection" name="${ui.form.ArchivesDepDealResourceForm.section.ContentSection.name:Содержание}">
+        <properties>
+          <hide condition-union="AND">
+            <condition-ref ref="archivesDepDeal_ContentEmpty"/>
+            <condition-ref ref="archivesDepDeal_isNotFullAccess"/>
+          </hide>
+        </properties>
         <component>
-          <button name="${ui.form.ArchivesDepDealResourceForm.section.RootMenu.button.Сохранить скрыта системная.name:Сохранить скрыта системная}">
+          <field attribute-ref="contentDocuments.content">
             <properties>
+              <read-only>
+                <condition-ref ref="$isSendToApproving"/>
+              </read-only>
               <hide condition-union="AND">
-                <condition>true</condition>
+                <negative-condition-ref ref="archivesDepDeal_contentDocumentsNotEmpty"/>
               </hide>
             </properties>
-            <action>
-              <system name="SAVE" />
-            </action>
-          </button>
-          <button name="${ui.form.ArchivesDepDealResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="contentDocuments.content">
             <properties>
+              <read-only>
+                <condition-ref ref="$isSendToApproving"/>
+              </read-only>
               <hide condition-union="AND">
-                <negative-condition-ref ref="TNObjectIsShowSaveButtonForNew" />
+                <negative-condition-ref ref="archivesDepDeal_contentDocumentsEmpty"/>
+                <negative-condition-ref ref="edit"/>
               </hide>
             </properties>
-            <appearance>
-              <label-style>
-                <style id="tunBtnHeader" />
-                <style id="tunIconSave" />
-              </label-style>
-            </appearance>
-            <action>
-              <custom>
-                <save />
-              </custom>
-            </action>
-          </button>
-          <button name="${ui.form.ArchivesDepDealResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
-            <properties>
-              <hide condition-union="AND">
-                <negative-condition-ref ref="TNObjectIsShowSaveButton" />
-              </hide>
-            </properties>
-            <appearance>
-              <label-style>
-                <style id="tunBtnHeader" />
-                <style id="tunIconSave" />
-              </label-style>
-            </appearance>
-            <action>
-              <custom>
-                <save-existing />
-              </custom>
-            </action>
-          </button>
+            <appearance importance="normal"/>
+          </field>
         </component>
       </section>
       <section group="true" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.name:Архивные дела}" id="Attributes">
         <component>
-          <field attribute-ref="TypeInv" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.field.TypeInv.name:Тип описи:}">
-            <properties>
-              <require condition-union="AND">
-                <condition-ref ref="edit"/>
-                <condition>true</condition>
-              </require>
-            </properties>
-            <appearance importance="normal" multiline="false" align="left" />
-            <directories>
-              <directory-ref ref="ArchivesInventorisationType" />
-            </directories>
-          </field>
-          <field attribute-ref="InvInfo">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal" multiline="false" align="left" />
-          </field>
-          <field attribute-ref="LiteralNumbers" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.field.LiteralNumbers.name:Литерные номера:}">
-            <appearance importance="normal" multiline="false" align="left" />
-          </field>
-          <field attribute-ref="MissedNumbers" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.field.MissedNumbers.name:Пропущенные номера:}">
-            <appearance importance="normal" multiline="false" align="left" />
-          </field>
-          <section group="true" id="AttributesRow10">
-            <component>
-              <field attribute-ref="InvFormer" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.AttributesRow10.field.InvFormer.name:Опись составил:}">
-                <properties>
-                  <require condition-union="AND">
-                    <condition-ref ref="edit"/>
-                    <condition>true</condition>
-                  </require>
-                </properties>
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="10" />
-                </appearance>
-                <directories>
-                  <directory-ref ref="CURRENT_All" />
-                </directories>
-              </field>
-              <field attribute-ref="WhoDevolvedDeals" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.AttributesRow10.field.WhoDevolvedDeals.name:Передал дела:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="10" />
-                </appearance>
-                <directories>
-                  <directory-ref ref="CURR_HUMAN_HH" />
-                </directories>
-              </field>
-              <field attribute-ref="WhoGotDeals" name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.AttributesRow10.field.WhoGotDeals.name:Принял дела:}">
-                <appearance importance="normal" multiline="false" align="left">
-                  <label-style field-unit="symbol" field-width="10" />
-                </appearance>
-                <directories>
-                  <directory-ref ref="CURR_HUMAN_HH" />
-                </directories>
-              </field>
-            </component>
-            <appearance field-layout="horizontal" />
-          </section>
-          <field attribute-ref="arcDealTableLabel">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance importance="normal">
-              <label-style>
-                <style id="tunBgGrayBlue" />
-                <style id="tunCaption" />
-              </label-style>
-              <field-style>
-                <value-style>
-                  <style id="tunBgGrayBlue" />
-                  <style id="tunCaption" />
-                </value-style>
-              </field-style>
-            </appearance>
-          </field>
           <section group="true" id="ArcDealInfoTableRow">
             <component>
               <section group="true" id="RowButtons">
                 <component>
-                  <button name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.ArcDealInfoTableRow.button.Добавить.name:Добавить}">
+                  <button name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.ArcDealInfoTableRow.button.Добавить дело.name:Добавить дело}">
                     <properties>
                       <hide condition-union="AND">
-                        <condition-ref ref="read" />
+                        <negative-condition-ref ref="archivesDepDealResource_IsRespsDelo" />
                       </hide>
                     </properties>
                     <appearance align="left">
-                      <label-style>
+                      <label-style width="15" unit="symbol">
                         <style id="tunIconAdd" />
                         <style id="tunUnderline" />
                         <style id="tunClickableRed" />
@@ -397,14 +589,41 @@
                     </appearance>
                     <action>
                       <custom>
-                        <change-subobject schema-ref="SetRelatedArcDealInfoDialog" />
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">AddArcDealInDepDeal</script>
+                          </handler>
+                        </operation>
+                      </custom>
+                    </action>
+                  </button>
+                  <button name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.ArcDealInfoTableRow.button.Исключить дела.name:Исключить дела}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="archivesDepDealResource_CanRemoveArcDeal" />
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style width="15" unit="symbol">
+                        <style id="tunIconDelete" />
+                        <style id="tunUnderline" />
+                        <style id="tunClickableRed" />
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler>
+                            <script lang="JavaBean">RemoveArcDealInDepDeal</script>
+                          </handler>
+                        </operation>
                       </custom>
                     </action>
                   </button>
                   <button name="${ui.form.ArchivesDepDealResourceForm.section.Attributes.section.ArcDealInfoTableRow.button.Принять в архив.name:Принять в архив}">
                     <properties>
                       <hide condition-union="AND">
-                        <condition-ref ref="read" />
+                        <negative-condition-ref ref="Archives_CanTakeToArchiveDepDeal" />
                       </hide>
                     </properties>
                     <appearance align="left">
@@ -417,7 +636,7 @@
                       <custom>
                         <operation>
                           <handler>
-                            <script lang="JavaBean">ArcDealTakeToArchiveOperation</script>
+                            <script lang="JavaBean">DepDealTakeToArchiveOperation</script>
                           </handler>
                         </operation>
                       </custom>
@@ -426,7 +645,7 @@
                 </component>
                 <appearance field-layout="horizontal" />
               </section>
-              <field attribute-ref="ArcDealInfoTable" recalc="true">
+              <field attribute-ref="arcDeals">
                 <appearance>
                   <alt-appearancies>
                     <alt-appearance>
@@ -450,7 +669,116 @@
         </component>
         <appearance field-layout="vertical" />
       </section>
+      <section name="${ui.form.ArchivesDepDealResourceForm.section.totalRecord.name:Итоговая запись}" id="TotalRecord">
+        <appearance field-layout="vertical" align="left"/>
+        <component>
+          <section id="totalRow1" group="true">
+            <appearance field-layout="horizontal" align="left"/>
+            <component>
+              <field attribute-ref="totalDealsString" recalc="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+              </field>
+              <field attribute-ref="beginNumber" name="${ui.form.ArchivesDepDealResourceForm.section.fromNum.name:с №}" recalc="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+              </field>
+              <field attribute-ref="endNumber" name="${ui.form.ArchivesDepDealResourceForm.section.toNum.name:по №}" recalc="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="literalNumbers" name="${ui.form.ArchivesDepDealResourceForm.section.literalNumbers.name:Литерные номера: }">
+            <properties>
+              <require>
+                <negative-condition-ref ref="startedFinalRecordDD"/>
+              </require>
+              <read-only condition-union="AND">
+                <condition-ref ref="startedFinalRecordReadOnlyDD"/>
+              </read-only>
+              <hide condition-union="AND">
+                <condition>false</condition>
+              </hide>
+            </properties>
+          </field>
+          <field attribute-ref="missedNumbers" name="${ui.form.ArchivesDepDealResourceForm.section.missedNumbers.name:Пропущенные номера: }">
+            <properties>
+              <require>
+                <negative-condition-ref ref="startedFinalRecordDD"/>
+              </require>
+              <read-only condition-union="AND">
+                <negative-condition-ref ref="startedFinalRecordReadOnlyDD"/>
+              </read-only>
+              <hide condition-union="AND">
+                <condition>false</condition>
+              </hide>
+            </properties>
+          </field>
+          <section id="totalRow2" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="invFormer" name="${ui.form.ArchivesDepDealResourceForm.section.invFormer.name:Опись составил: }">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <directories>
+                  <directory-ref ref="employeesOfTheOrganization"/>
+                </directories>
+              </field>
+              <field attribute-ref="whoDevolvedDeals" name="${ui.form.ArchivesDepDealResourceForm.section.whoDevolvedDeals.name:Передал дела}">
+                <properties>
+                  <require>
+                    <negative-condition-ref ref="startedFinalRecordDD"/>
+                  </require>
+                  <hide condition-union="AND">
+                    <condition>false</condition>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="startedFinalRecordReadOnlyDD"/>
+                  </read-only>
+                </properties>
+                <directories>
+                  <directory-ref ref="employeesOfTheOrganization"/>
+                </directories>
+              </field>
+              <field attribute-ref="whoGotDeals" name="${ui.form.ArchivesDepDealResourceForm.section.whoGotDeals.name:Принял дела}">
+                <properties>
+                  <require>
+                    <negative-condition-ref ref="startedFinalRecordDD"/>
+                  </require>
+                  <hide condition-union="AND">
+                    <condition>false</condition>
+                  </hide>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="startedFinalRecordReadOnlyDD"/>
+                  </read-only>
+                </properties>
+                <directories>
+                  <directory-ref ref="employeesOfTheOrganization"/>
+                </directories>
+              </field>
+            </component>
+          </section>
+        </component>
+      </section>
       <section name="${ui.form.ArchivesDepDealResourceForm.section.LifeCycle.name:Жизненный цикл}" id="LifeCycle">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="DepDeal_isNotArcDepThroughApprove"/>
+          </hide>
+        </properties>
         <component>
           <section group="true" name="${ui.form.ArchivesDepDealResourceForm.section.LifeCycle.section.ApprovingSection.name:Согласование}" id="ApprovingSection">
             <component>
@@ -464,12 +792,24 @@
         <appearance widget="leftMenu" />
       </section>
       <section name="${ui.form.ArchivesDepDealResourceForm.section.Links.name:Связанные}" id="Links">
+        <properties>
+          <hide condition-union="AND">
+            <condition-ref ref="archivesDepDeal_isNotFullAccess"/>
+          </hide>
+        </properties>
         <component>
           <section name="${ui.form.ArchivesDepDealResourceForm.section.Links.section.Documеnts.name:Документы}" id="Documеnts" />
+          <section name="${ui.form.ArchivesDepDealResourceForm.section.Links.section.Visualization.name:Визуализация}" id="Visualization"/>
         </component>
         <appearance widget="leftMenu" />
       </section>
-      <section name="${ui.form.ArchivesDepDealResourceForm.section.History.name:История}" id="History" />
+      <section name="${ui.form.ArchivesDepDealResourceForm.section.History.name:История}" id="History">
+        <properties>
+          <hide condition-union="AND">
+            <condition-ref ref="archivesDepDeal_isNotFullAccess"/>
+          </hide>
+        </properties>
+      </section>
     </component>
   </form>
 </ui>

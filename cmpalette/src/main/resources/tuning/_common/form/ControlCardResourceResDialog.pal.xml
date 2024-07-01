@@ -13,34 +13,42 @@
       </hide>
     </properties>
     <component>
-      <field attribute-ref="isControlledTmp" name="${ui.form.ControlCardResourceResDialog.field.isControlled.name:Контроль}" recalc="true">
-        <properties>
-          <read-only condition-union="AND">
-            <condition-ref ref="ControlCardResource_control_readonly"/>
-          </read-only>
-        </properties>
-        <appearance importance="normal"/>
-      </field>
       <section id="row_documentcontrol" group="true">
+        <properties>
+          <hide condition-union="AND">
+            <condition-ref ref="ControlCardResource_executorcontrol"/>
+          </hide>
+        </properties>
         <component>
-          <field attribute-ref="controller" name="${ui.form.ControlCardResourceResDialog.section.row_documentcontrol.field.controller.name:Исполнение контролируют:}">
+          <field attribute-ref="isControlled_tmp" name="${ui.form.ControlCardResourceResDialog.field.isControlled.name:Контроль}" recalc="true">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="ControlCardResource_control_readonly"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="controller_tmp" name="${ui.form.ControlCardResourceResDialog.section.row_documentcontrol.field.controller.name:Исполнение контролируют:}" recalc="true">
             <properties>
               <read-only condition-union="AND">
                 <condition-ref ref="ControlCardResource_control_readonly"/>
               </read-only>
               <hide condition-union="AND">
-                <negative-condition-ref ref="ControlCardResource_isControlledTmp"/>
+                <negative-condition-ref ref="ControlCardResource_showControllers"/>
               </hide>
             </properties>
             <appearance importance="normal"/>
-            <directories limit-livesearch="sys-current">
+            <directories livesearch="true" relation="so-livesearch-dep-empl-role">
+              <show-select-value>
+                <descriptor-ref ref="so-livesearch-dep-empl-role"/>
+              </show-select-value>
               <directory-ref ref="CURRENT_SYS_HUMAN"/>
-              <directory-ref ref="CURRENT_All_Hierarchy"/>
+              <directory-ref ref="CURRENT_WITHOUT_DEP"/>
               <directory-ref ref="sys_roles"/>
               <directory-ref ref="FV_CURR_HUMAN_HH_DEP_ROLE"/>
             </directories>
           </field>
-          <field attribute-ref="deadline" name="${ui.form.ControlCardResourceResDialog.section.row_documentcontrol.field.deadline.name:Срок исполнения:}">
+          <field attribute-ref="deadline" name="${ui.form.ControlCardResourceResDialog.section.row_documentcontrol.field.deadline.name:Срок исполнения:}" recalc="true">
             <properties>
               <require condition-union="AND">
                 <condition>true</condition>
@@ -64,6 +72,29 @@
           </hide>
         </properties>
         <component>
+          <field attribute-ref="isControlled" name="${ui.form.ControlCardResourceResDialog.field.isControlledExec.name:Контроль}" recalc="true">
+            <properties>
+              <read-only condition-union="AND">
+                <condition-ref ref="ControlCardResource_control_readonly"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="deadline" name="${ui.form.ControlCardResourceResDialog.section.row_documentcontrol.field.deadline.name:Срок исполнения:}" recalc="true">
+            <properties>
+              <require condition-union="AND">
+                <condition>true</condition>
+              </require>
+              <read-only condition-union="AND">
+                <condition-ref ref="deadlineIsreadonly"/>
+                <condition-ref ref="ControlCardResource_control_readonly"/>
+              </read-only>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="ControlCardResource_isControlled"/>
+              </hide>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
           <field attribute-ref="opened" name="${ui.form.ControlCardResourceResDialog.section.row_executorcontrol.field.opened.name:Дата}">
             <properties>
               <hide condition-union="AND">

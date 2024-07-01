@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
-  <form schema-ref="ArchivesAnnualInventoryResource" showtabs="true" projection="default" name="${ui.form.ArchivesAnnualInventoryResourceForm.name:ArchivesAnnualInventoryResourceForm}" id="ArchivesAnnualInventoryResourceForm">
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui" >
+  <form schema-ref="ArchivesAnnualInventoryResource" id="ArchivesAnnualInventoryResourceForm" showtabs="true" projection="default" name="${ui.form.ArchivesAnnualInventoryResourceForm.name:ArchivesAnnualInventoryResourceForm}">
     <properties>
       <hide condition-union="AND">
         <negative-condition-ref ref="edit" />
@@ -8,214 +8,479 @@
       </hide>
     </properties>
     <component>
+      <button name="${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.name:Связанный документ}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+        </action>
+      </button>
+      <button name="${ui.form.AgreementResourceForm.button.В корзину.name:В корзину}">
+        <hint-pop-up>${ui.form.AgreementResourceForm.button.В корзину.hintPopUp:В корзину}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.name:Восстановить}">
+        <hint-pop-up>${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.hintPopUp:Восстановить}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#restore.from.trash"/>
+        </action>
+      </button>
+      <button attribute-ref="$canSendToApproving" name="${ui.form.RkkResourceContractsForm.button.canSendToApproving.name:На согласование}">
+        <hint-pop-up>${ui.form.RkkResourceContractsForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#approving.start"/>
+        </action>
+      </button>
 <!--header section-->
       <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.name:AnnualInventoryHeader}" id="Header">
+        <appearance field-layout="horizontal"/>
         <component>
-          <section group="true" id="HeaderRow10">
-             <component>
-                <field attribute-ref="showident">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="12" />
-                    <alt-appearancies>
-                      <alt-appearance>
-                        <appearance-ref ref="css_headerElementWithIcon" />
-                        <enable condition-union="AND">
+          <section id="HeaderLeftColumn" group="true">
+            <component>
+              <section group="true" id="HeaderRow10">
+                 <component>
+                    <field attribute-ref="showident">
+                      <properties>
+                        <read-only condition-union="AND">
                           <condition>true</condition>
-                        </enable>
-                      </alt-appearance>
-                    </alt-appearancies>
-                  </appearance>
-                </field>
-
-                <field attribute-ref="Organization">
-                  <properties>
-                    <require condition-union="AND">
-                      <condition-ref ref="edit"/>
-                      <condition>true</condition>
-                    </require>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="30" />
-                    <alt-appearancies>
-                      <alt-appearance>
-                        <appearance-ref ref="css_headerElementWithIcon" />
-                        <enable condition-union="AND">
+                        </read-only>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="12" />
+                        <alt-appearancies>
+                          <alt-appearance>
+                            <appearance-ref ref="css_headerElementWithIcon" />
+                            <enable condition-union="AND">
+                              <condition>true</condition>
+                            </enable>
+                          </alt-appearance>
+                        </alt-appearancies>
+                      </appearance>
+                    </field>
+                    <field attribute-ref="organization">
+                      <properties>
+                        <require condition-union="AND">
                           <condition>true</condition>
-                        </enable>
-                      </alt-appearance>
-                    </alt-appearancies>
-                  </appearance>
-                  <directories>
-                    <directory-ref ref="sysOrgs" />
-                  </directories>
-                </field>
+                        </require>
+                        <read-only>
+                          <condition>true</condition>
+                        </read-only>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="30" />
+                        <alt-appearancies>
+                          <alt-appearance>
+                            <appearance-ref ref="css_headerElementWithIcon" />
+                            <enable condition-union="AND">
+                              <condition>true</condition>
+                            </enable>
+                          </alt-appearance>
+                        </alt-appearancies>
+                      </appearance>
+                      <directories>
+                        <directory-ref ref="sysOrgs" />
+                      </directories>
+                    </field>
 
-                <field attribute-ref="FundNumber" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow10.field.FundNumber.name:Фонд №:}">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="20" />
-                  </appearance>
-                </field>
+                   <section id="row10RightGroup" group="true">
+                     <appearance field-layout="horizontal" align="right"/>
+                     <component>
+                       <field attribute-ref="fundNumber" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow10.field.fundNumber.name:Фонд №:}">
+                         <properties>
+                           <read-only condition-union="AND">
+                             <condition>true</condition>
+                           </read-only>
+                         </properties>
+                         <appearance importance="normal" multiline="false" align="left">
+                           <label-style field-unit="symbol" field-width="20" />
+                         </appearance>
+                       </field>
+                       <field attribute-ref="year" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow10.field.year.name:Год:}">
+                         <properties>
+                           <require condition-union="AND">
+                             <condition>true</condition>
+                           </require>
+                         </properties>
+                         <appearance importance="normal" multiline="false" align="right">
+                           <label-style field-unit="symbol" field-width="15" />
+                         </appearance>
+                         <directories limit-livesearch="no-restrictions">
+                           <directory-ref ref="NDOYears"/>
+                         </directories>
+                       </field>
+                     </component>
+                   </section>
+                 </component>
+                 <appearance field-layout="horizontal" />
+              </section>
+              <section group="true" id="HeaderRow20">
+                 <component>
+                    <section id="SectionIsApproveAK" group="true">
+                      <appearance field-layout="horizontal" align="right"/>
+                      <component>
+                        <button recalc="true" attribute-ref="isApproveAK" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.isNotApproveAK.name:Не согласован ЭК}">
+                          <properties>
+                            <hide>
+                              <condition-ref ref="AnnualInventory_isApproveAK" />
+                            </hide>
+                            <disabled>
+                              <negative-condition-ref ref="AnnualInventory_isApproveAKOff"/>
+                            </disabled>
+                          </properties>
+                          <appearance>
+                            <label-style>
+                              <style id="tunBtnHeader" />
+                              <style id="tunRed" />
+                            </label-style>
+                          </appearance>
+                        </button>
+                        <button recalc="true" attribute-ref="isApproveAK" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.isApproveAK.name:Согласован ЭК}">
+                          <properties>
+                            <hide>
+                              <negative-condition-ref ref="AnnualInventory_isApproveAK" />
+                            </hide>
+                            <disabled>
+                              <negative-condition-ref ref="AnnualInventory_isApproveAKOn"/>
+                            </disabled>
+                          </properties>
+                          <appearance>
+                            <label-style>
+                              <style id="tunBtnHeader" />
+                              <style id="tunGreen" />
+                            </label-style>
+                          </appearance>
+                        </button>
+                      </component>
+                    </section>
+                    <field attribute-ref="protocolAKDate" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow20.field.protocolAKDate.name:Протокол ЦЭК (ЭК) от}">
+                      <properties>
+                        <hide condition-union="AND">
+                          <condition-ref ref="archivesAnnualInventory_IsApproveAK"/>
+                        </hide>
+                        <require>
+                          <condition>true</condition>
+                        </require>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="8" label-unit="symbol" label-width="17"/>
+                        <field-style date-format="dd.MM.yyyy" />
+                      </appearance>
+                    </field>
+                    <field attribute-ref="ShowNumberSymbol">
+                      <properties>
+                        <hide condition-union="AND">
+                          <condition-ref ref="archivesAnnualInventory_IsApproveAK"/>
+                        </hide>
+                        <read-only condition-union="AND">
+                          <condition>true</condition>
+                        </read-only>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="1" />
+                      </appearance>
+                    </field>
+                    <field attribute-ref="protocolAKNumber">
+                      <properties>
+                        <hide condition-union="AND">
+                          <condition-ref ref="archivesAnnualInventory_IsApproveAK"/>
+                        </hide>
+                        <require>
+                          <condition>true</condition>
+                        </require>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="14" />
+                        <limit height="1" />
+                      </appearance>
+                    </field>
 
-                <field attribute-ref="Year" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow10.field.Year.name:Год:}">
-                  <properties>
-                    <require condition-union="AND">
-                      <condition-ref ref="edit"/>
-                      <condition>true</condition>
-                    </require>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="8" />
-                  </appearance>
-                </field>
+                   <section id="row20RightGroup" group="true">
+                     <appearance field-layout="horizontal" align="right" />
+                     <component>
+                       <field attribute-ref="kindDeal">
+                         <properties>
+                           <require condition-union="AND">
+                             <condition>true</condition>
+                           </require>
+                           <read-only>
+                             <condition-ref ref="archivesAnnualInventory_IsNotNew"/>
+                           </read-only>
+                         </properties>
+                         <appearance importance="normal" multiline="false" align="right" widget="radio">
+                           <label-style field-unit="symbol" field-width="28" />
+                         </appearance>
+                         <directories>
+                           <directory-ref ref="archivesKindDeals" />
+                         </directories>
+                       </field>
+                       <section id="SectionReadyToConsider" group="true">
+                         <appearance field-layout="horizontal" align="right"/>
+                         <component>
+                           <button name="${ui.form.ArchivesAnnualInventoryResourceForm.label.unreadyToConsider.name:Не готова к ЭК}">
+                             <properties>
+                               <hide condition-union="AND">
+                                 <negative-condition-ref ref="AnnualInventory_isNotReadyToConsider"/>
+                               </hide>
+                               <disabled>
+                                 <negative-condition-ref ref="AnnualInventory_isNotDisabledReadyToConsider"/>
+                               </disabled>
+                             </properties>
+                             <appearance>
+                               <label-style>
+                                 <style id="tunBtnHeader" />
+                                 <style id="tunRed" />
+                               </label-style>
+                             </appearance>
+                             <action>
+                               <custom>
+                                 <operation>
+                                   <handler>
+                                     <script lang="JavaBean">ToggleReadyToConsider</script>
+                                   </handler>
+                                 </operation>
+                               </custom>
+                             </action>
+                           </button>
+                           <button recalc="true" attribute-ref="readyToConsider" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.unreadyToConsider.name:Не готова к ЭК}">
+                             <properties>
+                               <hide condition-union="AND">
+                                 <negative-condition-ref ref="AnnualInventory_isNotReadyToConsiderEdit"/>
+                               </hide>
+                               <disabled>
+                                 <negative-condition-ref ref="AnnualInventory_isNotDisabledReadyToConsider"/>
+                               </disabled>
+                             </properties>
+                             <appearance>
+                               <label-style>
+                                 <style id="tunBtnHeader" />
+                                 <style id="tunRed" />
+                               </label-style>
+                             </appearance>
+                           </button>
+                           <button recalc="true" attribute-ref="readyToConsider" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.readyToConsider.name:Готова к ЭК}">
+                             <properties>
+                               <hide>
+                                 <negative-condition-ref ref="AnnualInventory_isReadyToConsider"/>
+                               </hide>
+                               <disabled>
+                                 <negative-condition-ref ref="AnnualInventory_isDisabledReadyToConsider"/>
+                               </disabled>
+                             </properties>
+                             <appearance>
+                               <label-style>
+                                 <style id="tunBtnHeader" />
+                                 <style id="tunGreen" />
+                               </label-style>
+                             </appearance>
+                           </button>
+                         </component>
+                       </section>
+                     </component>
+                   </section>
 
-               <field attribute-ref="MainState">
-                 <properties>
-                   <read-only condition-union="AND">
-                     <condition>true</condition>
-                   </read-only>
-                 </properties>
-                 <directories>
-                   <directory-ref ref="archivesAnnualInventoryState" />
-                 </directories>
-                 <appearance importance="high" multiline="false" align="right" />
-               </field>
-
-                <!--HeaderRow10 section content-->
-             </component>
-             <appearance field-layout="horizontal" />
+                    <!--HeaderRow20 section content-->
+                 </component>
+                 <appearance field-layout="horizontal" />
+              </section>
+    
+              <section group="true" id="HeaderRow30">
+                 <component>
+                   <section id="SectionApproveAndConfirmAPKArcOrg" group="true">
+                     <properties>
+                       <hide>
+                         <negative-condition-ref ref="Archives_canSeeArchiveOrg"/>
+                       </hide>
+                     </properties>
+                     <component>
+                      <section id="SectionIsApproveAPKArcOrg" group="true">
+                        <appearance field-layout="horizontal" align="right"/>
+                        <properties>
+                          <hide>
+                            <negative-condition-ref ref="AnnualInventory_showApproveAPKArcOrg"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <button recalc="true" attribute-ref="isApproveAPKArcOrg" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.isNotApproveAPKArcOrg.name:Не согласован госархивом}">
+                            <properties>
+                              <hide>
+                                <condition-ref ref="AnnualInventory_isApproveAPKArcOrg" />
+                              </hide>
+                              <disabled>
+                                <negative-condition-ref ref="AnnualInventory_isApproveAPKArcOrgOff"/>
+                              </disabled>
+                            </properties>
+                            <appearance>
+                              <label-style>
+                                <style id="tunBtnHeader" />
+                                <style id="tunRed" />
+                              </label-style>
+                            </appearance>
+                          </button>
+                          <button recalc="true" attribute-ref="isApproveAPKArcOrg" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.isApproveAPKArcOrg.name:Согласован госархивом}">
+                            <properties>
+                              <hide>
+                                <negative-condition-ref ref="AnnualInventory_isApproveAPKArcOrg" />
+                              </hide>
+                              <disabled>
+                                <negative-condition-ref ref="AnnualInventory_isApproveAPKArcOrgOn"/>
+                              </disabled>
+                            </properties>
+                            <appearance>
+                              <label-style>
+                                <style id="tunBtnHeader" />
+                                <style id="tunGreen" />
+                              </label-style>
+                            </appearance>
+                          </button>
+                        </component>
+                      </section>
+                      <section id="SectionIsConfirmAPKArcOrg" group="true">
+                        <appearance field-layout="horizontal" align="right"/>
+                        <properties>
+                          <hide>
+                            <negative-condition-ref ref="AnnualInventory_showConfirmAPKArcOrg"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <button recalc="true" attribute-ref="isConfirmAPKArcOrg" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.isNotConfirmAPKArcOrg.name:Не утвержден госархивом}">
+                            <properties>
+                             <hide>
+                               <condition-ref ref="AnnualInventory_isConfirmAPKArcOrg" />
+                             </hide>
+                             <disabled>
+                               <negative-condition-ref ref="AnnualInventory_isConfirmAPKArcOrgOff"/>
+                             </disabled>
+                            </properties>
+                            <appearance>
+                             <label-style>
+                               <style id="tunBtnHeader" />
+                               <style id="tunRed" />
+                             </label-style>
+                            </appearance>
+                          </button>
+                          <button recalc="true" attribute-ref="isConfirmAPKArcOrg" name="${ui.form.ArchivesAnnualInventoryResourceForm.label.isConfirmAPKArcOrg.name:Утвержден госархивом}">
+                            <properties>
+                              <hide>
+                                <negative-condition-ref ref="AnnualInventory_isConfirmAPKArcOrg"/>
+                              </hide>
+                              <disabled>
+                                <negative-condition-ref ref="AnnualInventory_isConfirmAPKArcOrgOn"/>
+                              </disabled>
+                            </properties>
+                            <appearance>
+                              <label-style>
+                                <style id="tunBtnHeader" />
+                                <style id="tunGreen" />
+                              </label-style>
+                            </appearance>
+                          </button>
+                        </component>
+                       </section>
+                     </component>
+                   </section>
+                    <field attribute-ref="protocolApkDate" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow30.field.protocolApkDate.name:Протокол ЭПК от}">
+                      <properties>
+                        <hide condition-union="AND">
+                          <condition-ref ref="archivesAnnualInventory_IsApproveAPKArcOrg"/>
+                        </hide>
+                        <require>
+                          <condition>true</condition>
+                        </require>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="8" label-unit="symbol" label-width="17"/>
+                        <field-style date-format="dd.MM.yyyy" />
+                      </appearance>
+                    </field>
+                    <field attribute-ref="ShowNumberSymbol">
+                      <properties>
+                        <hide condition-union="AND">
+                          <condition-ref ref="archivesAnnualInventory_IsApproveAPKArcOrg"/>
+                        </hide>
+                        <read-only condition-union="AND">
+                          <condition>true</condition>
+                        </read-only>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="3" />
+                      </appearance>
+                    </field>
+                    <field attribute-ref="protocolApkNumber">
+                      <properties>
+                        <hide condition-union="AND">
+                          <condition-ref ref="archivesAnnualInventory_IsApproveAPKArcOrg"/>
+                        </hide>
+                        <require>
+                          <condition>true</condition>
+                        </require>
+                      </properties>
+                      <appearance importance="normal" multiline="false" align="left">
+                        <label-style field-unit="symbol" field-width="14" />
+                        <limit height="1" />
+                      </appearance>
+                    </field>
+                   <section group="true" id="TypeInvSection">
+                     <appearance>
+                       <label-style unit="symbol" width="25"/>
+                     </appearance>
+                     <component>
+                       <field attribute-ref="typeInv" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.LeftColum.section.HeaderRow30.section.TypeInvSection.field.typeInv.name:Тип описи:}">
+                         <properties>
+                           <require condition-union="AND">
+                             <condition-ref ref="edit"/>
+                             <condition>true</condition>
+                           </require>
+                         </properties>
+                         <appearance importance="normal" multiline="false">
+                          <label-style field-width="60" field-unit="symbol"/>
+                         </appearance>
+                         <directories>
+                           <directory-ref ref="ArchivesInventorisationType" />
+                         </directories>
+                       </field>
+                     </component>
+                   </section>
+                 </component>
+                 <appearance field-layout="horizontal" />
+              </section>
+              
+            </component>
           </section>
-
-          <section group="true" id="HeaderRow20">
-             <component>
-                <field attribute-ref="actAKTitle">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="normal" align="left">
-                    <label-style field-unit="symbol" field-width="11" />
-                  </appearance>
-                </field>
-                <field attribute-ref="IsApproveAK">
-                  <appearance importance="normal" align="left" widget="checkbox">
-                    <label-style field-unit="symbol" field-width="2" />
-                  </appearance>
-                  <hint-pop-up>${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow20.field.IsApproveAK.hintPopUp:Отметка о согласовании ЭК}</hint-pop-up>
-                </field>
-                <field attribute-ref="ProtocolAKDate" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow20.field.ProtocolAKDate.name:Протокол ЦЭК (ЭК) от}">
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="12" />
-                    <field-style date-format="dd.MM.yyyy" />
-                  </appearance>
-                </field>
-                <field attribute-ref="ShowNumberSymbol">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="1" />
-                  </appearance>
-                </field>
-                <field attribute-ref="ProtocolAKNumber">
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="12" />
-                    <limit height="1" />
-                  </appearance>
-                </field>
-
-                <field attribute-ref="KindDeal">
-                  <properties>
-                    <require condition-union="AND">
-                      <condition-ref ref="edit"/>
-                      <condition>true</condition>
-                    </require>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="center" widget="radio">
-                    <label-style field-unit="symbol" field-width="28" />
-                  </appearance>
-                  <directories>
-                    <directory-ref ref="archivesKindDeals" />
-                  </directories>
-                </field>
-
-                <field attribute-ref="ReadyToConsider" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow20.field.ReadyToConsider.name:Готов:}">
-                  <appearance importance="normal" align="left" widget="checkbox" />
-                  <hint-pop-up>${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow20.field.ReadyToConsider.hintPopUp:Готовность к вынесению на рассмотрение ЭК}</hint-pop-up>
-                </field>
-
-                <field attribute-ref="AdditionalState">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="high" multiline="false" align="right" />
-                </field>
-
-                <!--HeaderRow20 section content-->
-             </component>
-             <appearance field-layout="horizontal" />
+          <section id="HeaderRightColumn" group="true">
+            <component>
+              <field attribute-ref="annualInventoryStatus">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <directories>
+                  <directory-ref ref="archivesAnnualInventoryState" />
+                </directories>
+                <appearance importance="high" multiline="false" align="right" />
+              </field>
+              <field attribute-ref="additionalState">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <directories>
+                  <directory-ref ref="archivesAnnualInventoryStateAdditionalState" />
+                </directories>
+                <appearance importance="high" multiline="false" align="right" />
+              </field>
+              <field attribute-ref="$approvStatusInfo">
+                <appearance align="right"/>
+              </field>
+            </component>
           </section>
-
-          <section group="true" id="HeaderRow30">
-             <component>
-                <field attribute-ref="actAPKTitle">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="normal" align="left">
-                    <label-style field-unit="symbol" field-width="11" />
-                  </appearance>
-                </field>
-                <field attribute-ref="IsApproveAPKArcOrg">
-                  <appearance importance="normal" align="left" widget="checkbox">
-                    <label-style field-unit="symbol" field-width="2" />
-                  </appearance>
-                  <hint-pop-up>${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow30.field.IsApproveAPKArcOrg.hintPopUp:Отметка о согласовании ЭПК}</hint-pop-up>
-                </field>
-                <field attribute-ref="ProtocolApkDate" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Header.section.HeaderRow30.field.ProtocolApkDate.name:Протокол ЭПК от}">
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="12" />
-                    <field-style date-format="dd.MM.yyyy" />
-                  </appearance>
-                </field>
-                <field attribute-ref="ShowNumberSymbol">
-                  <properties>
-                    <read-only condition-union="AND">
-                      <condition>true</condition>
-                    </read-only>
-                  </properties>
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="1" />
-                  </appearance>
-                </field>
-                <field attribute-ref="ProtocolApkNumber">
-                  <appearance importance="normal" multiline="false" align="left">
-                    <label-style field-unit="symbol" field-width="12" />
-                    <limit height="1" />
-                  </appearance>
-                </field>
-
-                <!--HeaderRow30 section content-->
-             </component>
-             <appearance field-layout="horizontal" />
-          </section>
-
           <!--Header section content-->
         </component>
       </section>
@@ -223,6 +488,29 @@
 <!--root menu section-->
       <section id="RootMenu">
         <component>
+          <button name="${ui.form.PersonsCollectionForm.section.RootMenu.button.Редактировать.name:Редактировать}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="AnnualInventory_canEdit"/>
+              </hide>
+            </properties>
+            <icon code="95"/>
+            <action position="4.0">
+              <custom>
+                <open-edit/>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.ReceiveDocs.name:Скрыть Редактировать}">
+            <properties>
+              <hide>
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <action>
+              <system name="EDIT"/>
+            </action>
+          </button>
           <button name="${ui.form.ArchivesAnnualInventoryResourceForm.section.RootMenu.button.Сохранить скрыта системная.name:Сохранить скрыта системная}">
             <properties>
               <hide condition-union="AND">
@@ -236,7 +524,7 @@
           <button name="${ui.form.ArchivesAnnualInventoryResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="TNObjectIsShowSaveButtonForNew" />
+                <negative-condition-ref ref="archivesAnnualInventory_IsShowSaveButtonForNew" />
               </hide>
             </properties>
             <appearance>
@@ -254,7 +542,7 @@
           <button name="${ui.form.ArchivesAnnualInventoryResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
             <properties>
               <hide condition-union="AND">
-                <negative-condition-ref ref="TNObjectIsShowSaveButton" />
+                <negative-condition-ref ref="archivesAnnualInventory_IsNotNew" />
               </hide>
             </properties>
             <appearance>
@@ -269,125 +557,255 @@
               </custom>
             </action>
           </button>
+          <button name="${ui.form.NdpRegisterForm.button.canSendToApproving.name:Вернуть в доработку}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="Archives_CanReturnToRevisionAnnInv"/>
+              </hide>
+            </properties>
+            <hint-pop-up>${ui.form.NdpRegisterForm.button.canSendToApproving.hintPopUp:Вернуть в доработку}</hint-pop-up>
+            <action position="9.0">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">ReturnToRevisionAnnualInventory</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.NdoRegisterForm.section.RootMenu.button.ComposeFinalNote.name:Составить итоговую запись}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="canSeeButtonComposeFinalNoteDepDeal"/>
+              </hide>
+            </properties>
+            <appearance align="left">
+              <label-style width="20">
+                <style id="tunUnderline" />
+                <style id="tunClickableRed" />
+              </label-style>
+            </appearance>
+            <action>
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">ComposeFinalNoteForAnnInv</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.Verify.name:Заверить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="AnnInv_canVerify" />
+              </hide>
+            </properties>
+            <action position="20">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">AnnualInventoryVerify</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.DeletePermanent.name:Удалить из корзины}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="ArchivesAnnualInventory_isSuperAdminAndDeleted"/>
+              </hide>
+            </properties>
+            <action position="30">
+              <custom>
+                <operation>
+                  <handler-ref ref="DeletePermanentlyArchive"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
         </component>
       </section>
 
 <!--main sections-->
-      <section group="true" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.name:Архивные дела}" id="Attributes">
+      <section id="ContentSection" name="${ui.form.ArchivesDepDealResourceForm.section.ContentSection.name:Содержание}">
+        <properties>
+          <hide condition-union="AND">
+            <condition-ref ref="archivesAnnualInventory_ContentEmpty"/>
+          </hide>
+        </properties>
         <component>
-          <section group="true" id="AttributesRow10">
-             <component>
-            <field attribute-ref="TypeInv" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.AttributesRow10.field.TypeInv.name:Тип описи:}">
-              <properties>
-                <require condition-union="AND">
-                  <condition-ref ref="edit"/>
-                  <condition>true</condition>
-                </require>
-              </properties>
-              <appearance importance="normal" multiline="false" align="left" />
-              <directories>
-                <directory-ref ref="ArchivesInventorisationType" />
-              </directories>
-            </field>
-            <field attribute-ref="InvInfo">
-              <properties>
-                <read-only condition-union="AND">
-                  <condition>true</condition>
-                </read-only>
-              </properties>
-              <appearance importance="normal" multiline="false" align="left" />
-            </field>
-            <field attribute-ref="LiteralNumbers" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.AttributesRow10.field.LiteralNumbers.name:Литерные номера:}">
-              <appearance importance="normal" multiline="false" align="left" />
-            </field>
-            <field attribute-ref="MissedNumbers" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.AttributesRow10.field.MissedNumbers.name:Пропущенные номера:}">
-              <appearance importance="normal" multiline="false" align="left" />
-            </field>
-            <field attribute-ref="InvFormer" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.AttributesRow10.field.InvFormer.name:Опись составил:}">
-              <properties>
-                <require condition-union="AND">
-                  <condition-ref ref="edit"/>
-                  <condition>true</condition>
-                </require>
-              </properties>
-              <appearance importance="normal" multiline="false" align="left" />
-              <directories>
-               <directory-ref ref="CURRENT_All" />
-              </directories>
-            </field>
-
-            <field attribute-ref="DepDealTableLabel">
-             <properties>
-               <read-only condition-union="AND">
-                 <condition>true</condition>
-               </read-only>
-             </properties>
-             <appearance importance="normal">
-               <label-style>
-                 <style id="tunBgGrayBlue" />
-                 <style id="tunCaption" />
-               </label-style>
-               <field-style>
-                 <value-style>
-                   <style id="tunBgGrayBlue" />
-                   <style id="tunCaption" />
-                 </value-style>
-               </field-style>
-             </appearance>
-            </field>
-            <section group="true" id="DepDealInfoTableRow">
-             <component>
-               <button name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.DepDealInfoTableRow.button.Добавить.name:Добавить}">
-                 <properties>
-                   <hide condition-union="AND">
-                     <condition-ref ref="read" />
-                   </hide>
-                 </properties>
-                 <appearance align="left">
-                   <label-style>
-                     <style id="tunIconAdd" />
-                     <style id="tunUnderline" />
-                     <style id="tunClickableRed" />
-                   </label-style>
-                 </appearance>
-                 <action>
-                   <custom>
-                     <change-subobject schema-ref="SetRelatedDepDealInfoAnnInvDialog" />
-                   </custom>
-                 </action>
-               </button>
-               <field attribute-ref="DepDealInfoTable" recalc="true">
-                 <appearance>
-                   <alt-appearancies>
-                     <alt-appearance>
-                       <appearance-ref ref="table" />
-                       <enable condition-union="AND">
-                         <condition>true</condition>
-                       </enable>
-                     </alt-appearance>
-                   </alt-appearancies>
-                 </appearance>
-               </field>
-               <field attribute-ref="tmpDepDealInfoList" recalc="true">
-                 <properties>
-                   <hide condition-union="AND">
-                     <condition>true</condition>
-                   </hide>
-                 </properties>
-               </field>
-             </component>
-            </section>
-                <!--AttributesRow10 section content-->
-             </component>
-             <appearance field-layout="vertical" />
-          </section>
-
-          <!--Attributes section content-->
+          <field attribute-ref="contentDocuments.content">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="archivesAnnualInventory_contentDocumentsNotEmpty"/>
+              </hide>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="contentDocuments.content">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="archivesAnnualInventory_contentDocumentsEmpty"/>
+                <negative-condition-ref ref="edit"/>
+              </hide>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
         </component>
-        <appearance field-layout="vertical" />
+      </section>
+
+      <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.name:Опись дел подразделений}" id="Attributes">
+        <component>
+          <section id="OperationSection" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <button name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.Attributes.button.Добавить опись.name:Добавить опись}">
+                <appearance>
+                  <label-style width="15" unit="symbol">
+                    <style id="tunIconAdd" />
+                    <style id="tunUnderline" />
+                    <style id="tunClickableRed" />
+                  </label-style>
+                </appearance>
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="AnnualInventory_canAddDepDeal"/>
+                  </hide>
+                </properties>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">AddDepDealInAnnualInventory</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Attributes.section.Attributes.button.Исключить опись.name:Исключить опись}">
+                <appearance>
+                  <label-style width="15" unit="symbol">
+                    <style id="tunIconDelete" />
+                    <style id="tunUnderline" />
+                    <style id="tunClickableRed" />
+                  </label-style>
+                </appearance>
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="AnnualInventory_canRemoveDepDeal"/>
+                  </hide>
+                </properties>
+                <action>
+                  <custom>
+                    <operation>
+                      <handler>
+                        <script lang="JavaBean">RemoveDepDealInAnnualInventory</script>
+                      </handler>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+
+          </section>
+          <section group="true" id="DepDealInfoTableRow">
+           <component>
+             <field attribute-ref="DepDealInfoTable">
+               <appearance widget="grid" open-form="full"/>
+               <directories>
+                 <directory-category-custom-coll attribute-ref="selfunid" ref="archives-dep-deal-by-annual-inventory"/>
+               </directories>
+             </field>
+           </component>
+          </section>
+        </component>
+      </section>
+
+      <section id="FinalEdit" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.FinalEdit.name:Итоговая запись}">
+        <appearance field-layout="vertical" align="left"/>
+        <component>
+          <section id="totalRow1" group="true">
+            <appearance field-layout="horizontal" align="left"/>
+            <component>
+              <field attribute-ref="totalDealsString" recalc="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+              </field>
+              <field attribute-ref="beginNumber" name="${ui.form.ArchivesDepDealResourceForm.section.fromNum.name:с №}" recalc="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+              </field>
+              <field attribute-ref="endNumber" name="${ui.form.ArchivesDepDealResourceForm.section.toNum.name:по №}" recalc="true">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="literalNumbers" name="${ui.form.ArchivesDepDealResourceForm.section.literalNumbers.name:Литерные номера: }">
+            <properties>
+              <require>
+                <negative-condition-ref ref="startedFinalRecordAI"/>
+              </require>
+              <read-only condition-union="AND">
+                <condition-ref ref="startedFinalRecordReadOnlyAI"/>
+              </read-only>
+              <hide condition-union="AND">
+                <condition>false</condition>
+              </hide>
+            </properties>
+          </field>
+          <field attribute-ref="missedNumbers" name="${ui.form.ArchivesDepDealResourceForm.section.missedNumbers.name:Пропущенные номера: }">
+            <properties>
+              <require>
+                <negative-condition-ref ref="startedFinalRecordAI"/>
+              </require>
+              <read-only condition-union="AND">
+                <negative-condition-ref ref="startedFinalRecordReadOnlyAI"/>
+              </read-only>
+              <hide condition-union="AND">
+                <condition>false</condition>
+              </hide>
+            </properties>
+          </field>
+          <section id="totalRow2" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="invFormer" name="${ui.form.ArchivesDepDealResourceForm.section.invFormer.name:Опись составил: }">
+                <properties>
+                  <require>
+                    <negative-condition-ref ref="startedFinalRecordAI"/>
+                  </require>
+                  <read-only condition-union="AND">
+                    <negative-condition-ref ref="startedFinalRecordReadOnlyAI"/>
+                  </read-only>
+                </properties>
+                <directories>
+                  <directory-ref ref="employeesOfTheOrganization"/>
+                </directories>
+              </field>
+            </component>
+          </section>
+        </component>
       </section>
 
       <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.LifeCycle.name:Жизненный цикл}" id="LifeCycle">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="AnnualInventory_isNotArcAnnInvThroughApprove"/>
+          </hide>
+        </properties>
         <component>
           <section group="true" name="${ui.form.ArchivesAnnualInventoryResourceForm.section.LifeCycle.section.ApprovingSection.name:Согласование}" id="ApprovingSection">
             <component>
@@ -404,6 +822,7 @@
       <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Links.name:Связанные}" id="Links">
         <component>
           <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Links.section.Documеnts.name:Документы}" id="Documеnts" />
+          <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Links.section.Visualization.name:Визуализация}" id="Visualization"/>
         </component>
         <appearance widget="leftMenu" />
       </section>

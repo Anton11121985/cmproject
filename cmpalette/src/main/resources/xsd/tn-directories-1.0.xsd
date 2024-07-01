@@ -38,7 +38,7 @@
 
     <xs:complexType name="directoryModifierNameType">
         <xs:annotation>
-            <xs:documentation><![CDATA[Модификатор справочника. Дополнительная фильтрация и сортировка справочников. Применяет к типам справочников: Справочник организаций и Списки рассылки]]></xs:documentation>
+            <xs:documentation><![CDATA[Модификатор справочника. Дополнительная фильтрация и сортировка справочников. Применяет к типам справочников: Справочник организаций, Делопроизводители, Места регистрации и Списки рассылки]]></xs:documentation>
         </xs:annotation>
         <xs:all>
             <xs:element name="filter" type="scriptType" minOccurs="0">
@@ -85,6 +85,60 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
+
+    <!--Справочник СО -->
+    <xs:complexType name="baseActorsType">
+        <xs:annotation>
+            <xs:documentation> <![CDATA[Справочник организаций/подразделений/сотрудников]]></xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="directoryType">
+                <xs:attribute name="show-type" use="optional">
+                    <xs:annotation>
+                        <xs:documentation> <![CDATA[Тип отображения]]></xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="hierarchy">
+                                <xs:annotation>
+                                    <xs:documentation><![CDATA[Иерархическим списком]]></xs:documentation>
+                                </xs:annotation>
+                            </xs:enumeration>
+                            <xs:enumeration value="flat">
+                                <xs:annotation>
+                                    <xs:documentation><![CDATA[Плоским списком]]></xs:documentation>
+                                </xs:annotation>
+                            </xs:enumeration>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+                <xs:attribute name="empty-dialog" type="xs:boolean" use="optional" default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            <![CDATA[Не загружать первоначальный список субъектов в диалог]]></xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="descriptor-ref" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            <![CDATA[Дескриптор для отображения результатов отбора]]></xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="message" type="com:placeholderType" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            <![CDATA[Сообщение в диалоге вместо первоначального списка субъектов]]></xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="modifier-ref" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation><![CDATA[Модификатор справочника]]></xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
 
     <!--По ключу -->
     <xs:complexType name="byKeyType">
@@ -225,7 +279,7 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="PRIVATE_HUMAN">
                 <xs:annotation>
-                    <xs:documentation><![CDATA[Частные лица]]></xs:documentation>
+                    <xs:documentation><![CDATA[Физические лица]]></xs:documentation>
                 </xs:annotation>
             </xs:enumeration>
         </xs:restriction>
@@ -457,12 +511,21 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="allOrgsType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Любые организации включая текущую]]></xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="entity" type="anyEntityType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="actorsType">
         <xs:annotation>
             <xs:documentation> <![CDATA[Справочник организаций/подразделений/сотрудников]]></xs:documentation>
         </xs:annotation>
         <xs:complexContent>
-            <xs:extension base="directoryType">
+            <xs:extension base="baseActorsType">
                 <xs:choice>
                     <xs:element name="sys-current" type="sysCurrent"/>
                     <xs:element name="sys-foreign" type="sysForeignType"/>
@@ -470,49 +533,8 @@
                     <xs:element name="nonsys" type="nonSysType"/>
                     <xs:element name="any-foreign" type="anyForeignType"/>
                     <xs:element name="only-people" type="onlyPeopleType"/>
+                    <xs:element name="all" type="allOrgsType"/>
                 </xs:choice>
-                <xs:attribute name="show-type" use="optional">
-                    <xs:annotation>
-                        <xs:documentation> <![CDATA[Тип отображения]]></xs:documentation>
-                    </xs:annotation>
-                    <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                            <xs:enumeration value="hierarchy">
-                                <xs:annotation>
-                                    <xs:documentation><![CDATA[Иерархическим списком]]></xs:documentation>
-                                </xs:annotation>
-                            </xs:enumeration>
-                            <xs:enumeration value="flat">
-                                <xs:annotation>
-                                    <xs:documentation><![CDATA[Плоским списком]]></xs:documentation>
-                                </xs:annotation>
-                            </xs:enumeration>
-                        </xs:restriction>
-                    </xs:simpleType>
-                </xs:attribute>
-                <xs:attribute name="empty-dialog" type="xs:boolean" use="optional" default="false">
-                    <xs:annotation>
-                        <xs:documentation>
-                            <![CDATA[Не загружать первоначальный список субъектов в диалог]]></xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="descriptor-ref" type="xs:string" use="optional">
-                    <xs:annotation>
-                        <xs:documentation>
-                            <![CDATA[Дескриптор для отображения результатов отбора]]></xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="message" type="com:placeholderType" use="optional">
-                    <xs:annotation>
-                        <xs:documentation>
-                            <![CDATA[Сообщение в диалоге вместо первоначального списка субъектов]]></xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="modifier-ref" type="xs:string" use="optional">
-                    <xs:annotation>
-                        <xs:documentation><![CDATA[Модификатор справочника]]></xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -530,6 +552,7 @@
                     <xs:element name="sys" type="sysType"/>
                     <xs:element name="nonsys" type="nonSysType"/>
                     <xs:element name="any-foreign" type="anyForeignType"/>
+                    <xs:element name="all" type="allOrgsType"/>
                 </xs:choice>
                 <xs:attribute name="message" type="com:placeholderType" use="optional">
                     <xs:annotation>
@@ -568,6 +591,60 @@
             <xs:extension base="directoryType">
                 <xs:sequence>
                     <xs:element name="entity" type="favoriteEntityType" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Места регистрации -->
+    <xs:simpleType name="regPlaceNameType">
+        <xs:union
+                memberTypes="sysDepartmentEntityType sysHumanHeadEntityType sysOrgEntityType"/>
+    </xs:simpleType>
+
+    <xs:complexType name="regPlaceEntityType">
+        <xs:attribute name="name" type="regPlaceNameType" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Тип субъекта]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="actorsRegPlaceType">
+        <xs:annotation>
+            <xs:documentation> <![CDATA[Место регистрации]]></xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="baseActorsType">
+                <xs:sequence>
+                    <xs:element name="entity" type="regPlaceEntityType" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Делопроизводители -->
+    <xs:simpleType name="clerksNameType">
+        <xs:union
+                memberTypes="sysHumanEntityType sysHumanHeadEntityType"/>
+    </xs:simpleType>
+
+    <xs:complexType name="clerksEntityType">
+        <xs:attribute name="name" type="clerksNameType" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Тип субъекта]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="actorsClerksType">
+        <xs:annotation>
+            <xs:documentation> <![CDATA[Делопроизводители]]></xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="baseActorsType">
+                <xs:sequence>
+                    <xs:element name="entity" type="clerksEntityType" maxOccurs="unbounded"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -778,6 +855,8 @@
             <xs:element name="actors" type="actorsType" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="actors-favorite" type="actorsFavoriteType" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="actors-send-list" type="actorsSendListType" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="actors-regplace" type="actorsRegPlaceType" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="actors-clerks" type="actorsClerksType" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="value-list" type="valueListType" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="list" type="listType" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element name="report" type="reportType" maxOccurs="unbounded" minOccurs="0"/>
