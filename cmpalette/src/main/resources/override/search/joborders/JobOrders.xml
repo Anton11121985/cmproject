@@ -1,0 +1,180 @@
+<search-area name="JobOrders" replace="runtime">
+
+    <target-domain-object type="F_DP_IntRkk">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject">
+            <doel>Subject</doel>
+        </indexed-field>
+
+        <!-- Вид документа -->
+        <indexed-field name="reqType" search-by="exactmatch">
+            <doel>Type</doel>
+        </indexed-field>
+
+        <!-- Проектный номер -->
+        <indexed-field name="projectNumber" search-by="substring">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Рег. номер -->
+        <indexed-field name="regFullNum" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер, по точному совпадению -->
+        <indexed-field name="regNumberExact" search-by="exactmatch">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate"/>
+
+        <!-- Дата открытия заказа -->
+        <indexed-field name="dateOpenOrder">
+            <doel>RegDate</doel>
+        </indexed-field>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="exactmatch"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Подписант -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="signer" search-by="substring">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Исполнитель -->
+        <linked-domain-object type="F_DP_IntRkk_Executor">
+            <indexed-field name="executor" search-by="substring">
+                <doel>Executor.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- linkedDoc -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" include-everywhere="false">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Срок исполнения -->
+        <indexed-field name="extControlDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <!-- Заказчик -->
+            <indexed-field name="consumer">
+                <script>
+                    var partyNameArray = ctx.get('value').split('%');
+                    var result = '$'.equals(partyNameArray[0]) ? partyNameArray[1] : partyNameArray[0];
+                    result;
+                </script>
+                <filter>
+                    <doel>cmjfield:in("consumer")</doel>
+                </filter>
+            </indexed-field>
+
+            <!-- Отв. за исполнение -->
+            <indexed-field name="execManager">
+                <doel>value:split("%"):getString("0")</doel>
+                <filter>
+                    <doel>cmjfield:in("execManager")</doel>
+                </filter>
+            </indexed-field>
+
+            <!-- Инициатор -->
+            <indexed-field name="initiator">
+                <doel>value:split("%"):getString("0")</doel>
+                <filter>
+                    <doel>cmjfield:in("joInitiator")</doel>
+                </filter>
+            </indexed-field>
+
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_Datetime" nested="true">
+
+            <!-- Плановый срок -->
+            <indexed-field name="plannedDeadline" solr-prefix="cm_dt">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("plannedDeadline")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="(search)"/>
+
+        <filter>
+            <doel>Module.Type.Alias:in("JobOrders")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

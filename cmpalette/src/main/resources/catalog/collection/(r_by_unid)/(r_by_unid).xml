@@ -1,0 +1,62 @@
+<collection name="(r_by_unid)" idField="id" replace="runtime">
+  <prototype>
+		<![CDATA[
+            SELECT
+                Module,
+                parent_id as parentId,
+                parent_cd,
+                id,
+                created_date,
+                objtype
+            FROM (
+                 -- КР
+                 SELECT
+                     res.module AS Module,
+                     resf.hierparent AS parent_id,
+                     coalesce(res2.created_date, rkk.created_date) AS parent_cd,
+                     res.id,
+                     res.created_date,
+                     'resolution' as objtype
+                 FROM
+                     f_dp_resolution resf
+                     JOIN f_dp_resltnbase res ON res.id=resf.id
+                     LEFT JOIN f_dp_resltnbase res2 ON res2.id=resf.HierParent AND resf.hierroot <> resf.hierparent
+                     LEFT JOIN f_dp_rkkbase rkk ON rkk.id=resf.hierroot AND resf.hierroot = resf.hierparent
+                 WHERE
+                     res.isDeleted = 0
+                 UNION ALL
+                 -- КИ
+                 SELECT
+                     rep.module AS Module,
+                     rep.hierparent AS parent_id,
+                     coalesce(res2.created_date, rkk.created_date) AS parent_cd,
+                     rep.id,
+                     rep.created_date,
+                     'execution' as objtype
+                 FROM
+                     f_dp_report rep
+                     LEFT JOIN f_dp_resltnbase res2 ON res2.id=rep.HierParent AND rep.hierparent <> rep.hierroot
+                     LEFT JOIN f_dp_rkkbase rkk ON rkk.id=rep.hierroot AND rep.hierparent = rep.hierroot
+                 WHERE
+                     rep.isDeleted = 0 and rep.realdocid IS NULL
+                 ) s
+            WHERE
+                1=1
+                    ::where-clause
+    ]]>
+	</prototype>
+  <filter name="MODULE">
+    <criteria placeholder="where-clause">
+      <![CDATA[
+                Module = {0}
+            ]]>
+    </criteria>
+  </filter>
+  <filter name="parentId">
+    <criteria placeholder="where-clause">
+      <![CDATA[
+                parent_id = {0}
+            ]]>
+    </criteria>
+  </filter>
+</collection>

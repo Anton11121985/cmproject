@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2017-03-09T15:57:03 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="send2" pageWidth="555" pageHeight="20" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5d0b0afa-0408-47c3-bdf2-f4f9e76c9e19">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ID" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT
+string_agg(Send2,', ') as Send2,
+owner
+FROM
+(
+SELECT
+Send2Cur.orig_shortname as Send2,
+F_DP_ContractRkk_Send2Cur.Owner
+FROM
+F_DP_ContractRkk_Send2Cur
+JOIN So_Beard Send2Cur on Send2Cur.id = F_DP_ContractRkk_Send2Cur.SendToCurr
+UNION
+SELECT
+Send2Ext.orig_shortname as Send2,
+F_DP_ContractRkk_Send2Ext.Owner
+FROM
+F_DP_ContractRkk_Send2Ext
+JOIN So_Beard Send2Ext on Send2Ext.id = F_DP_ContractRkk_Send2Ext.SendToExt
+)q
+WHERE owner =$P{ID}
+GROUP BY
+q.owner]]>
+	</queryString>
+	<field name="send2" class="java.lang.String"/>
+	<field name="owner" class="java.lang.Object"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20">
+			<textField>
+				<reportElement x="0" y="0" width="555" height="20" isRemoveLineWhenBlank="true" uuid="139a4288-0bb6-4cc5-97c8-8b53438c5c29"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Рассылка - </b>"+ $F{send2}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,154 @@
+<search-area name="so_unit_search_dep_rvz_uicoll" replace="runtime">
+    <boost-every-where>
+        <field-boost name="displayName" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_unit">
+
+        <indexed-field name="depParent" search-by="substring">
+            <script>
+                var parent;
+                if (ctx.get('beard.eff_departmentname')) {
+                parent = ctx.get('beard.eff_departmentname');
+                } else if (ctx.get('beard.orig_departmentname')) {
+                parent = ctx.get('beard.orig_departmentname');
+                }
+                ctx.setResult(parent);
+            </script>
+        </indexed-field>
+
+        <indexed-field name="depName" search-by="substring">
+            <script>
+                <![CDATA[
+                var beard = calcCurBeard('so_appointmenthead^post');
+                if (beard == null) {
+                    beard = calcCurBeard('so_appointmentplain^post');
+                }
+                if (beard != null) {
+                    var effName = beard.getString('eff_departmentname');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    } else {
+                        ctx.setResult(beard.getString('orig_departmentname'));
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurBeard(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('beard'));
+                        }
+                    }
+                    return null;
+                }
+
+                ]]>
+            </script>
+        </indexed-field>
+
+        <indexed-field name="tabel" search-by="substring">
+            <script><![CDATA[
+                var person = calcCurPers('so_appointmenthead^post');
+                var empty = null;
+                if (person == null) {
+                    person = calcCurPers('so_appointmentplain^post');
+                }
+                if (person != null) {
+                    var effName = person.getString('tabnum');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    }
+                }
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+
+        <indexed-field name="code" search-by="substring">
+            <doel>hierparent.code</doel>
+        </indexed-field>
+
+        <indexed-field name="displayName" search-by="substring">
+            <script>
+                var personName, result;
+
+                var name = ctx.get('name') ? ctx.get('name') : '';
+                var shortName = ctx.get('shortname') ? ctx.get('shortname') : '';
+                var fullName = ctx.get('fullname') ? ctx.get('fullname') : '';
+                var whsp = ' ';
+
+                if (ctx.get('so_appointmenthead^post')) {
+                if(ctx.get('so_appointmenthead^post.person')){
+                personName = ctx.get('so_appointmenthead^post.person.lastname').concat(
+                whsp, ctx.get('so_appointmenthead^post.person.firstname'),
+                whsp, ctx.get('so_appointmenthead^post.person.middlename'));
+                } else {
+                personName = '(Вакансия)';
+                }
+                } else {
+                personName = '';
+                }
+
+                result = name.concat(whsp, personName, whsp, shortName, whsp,fullName);
+                result.replace(/\s/g,'') == '' ?  ctx.setResult(null) : ctx.setResult(result.trim());
+            </script>
+        </indexed-field>
+
+        <indexed-field name="hrCode" search-by="substring">
+            <doel>HRCode</doel>
+        </indexed-field>
+        <indexed-field name="PersonalId" search-by="substring">
+            <script>
+                <![CDATA[
+                if (ctx.get('PersonalId') != null) {
+                    ctx.setResult(ctx.get('PersonalId'));
+                } else {
+                    var person = calcCurPers('so_appointmenthead^post');
+                    if (person == null) {
+                        person = calcCurPers('so_appointmentplain^post');
+                    }
+                    if (person != null) {
+                        var effName = person.getString('tabnum');
+                        if (effName != null) {
+                            ctx.setResult("~" + effName);
+                        }
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+    </target-domain-object>
+</search-area>

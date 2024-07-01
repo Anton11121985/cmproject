@@ -1,0 +1,401 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+
+  <enum name="KindDeal">
+    <string name="Бумажное" value="PAPER"/>
+    <string name="Электронное" value="ELECTRONIC"/>
+  </enum>
+
+  <schema name="ArchivesDocResource" extends="ArchivesCommonResource">
+    <string name="type" system="true"/>
+    <string name="pagename" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Архивный документ']]></script>
+      </calc-values>
+    </string>
+
+    <string name="$titleHeader" system="true"/>
+    <string name="showType" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Архивный документ']]></script>
+      </calc-values>
+    </string>
+    <string name="showProject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Проект']]></script>
+      </calc-values>
+    </string>
+
+    <actor name="organization" system="true" />
+    <string name="rkkORMUnid" system="true" />
+    <string name="rkkTitle" system="true" />
+    <string name="rkkUrl" system="true" />
+    <string name="mainState" system="true" createlog="true"/>
+    <string name="additionalState" system="true" createlog="true"/>
+    <string name="archiveOrg" system="true" />
+    <string name="originalType" system="true" />
+    <string name="docType" system="true" />
+    <date name="regDate" system="true" />
+    <actor name="regPlaceBeard" system="true" />
+    <actor name="createPlaceBeard" system="true" />
+    <actor name="signExecBeard" system="true" />
+    <string name="tags" system="true" array="true" />
+    <actor name="otherSignerBeards" system="true" array="true"/>
+    <actor name="corrBeards" system="true" array="true"/>
+    <actor name="addrBeards" system="true" array="true"/>
+    <string name="parentDealUnid" system="true" />
+    <string name="numberInDeal" system="true" />
+    <enum-ref ref="archivesKindDealEnum" required="true" name="kindDeal" system="true" default-value="ELECTRONIC" />
+    <string name="subject" system="true" />
+    <string name="themeDoc" system="true" />
+    <string name="kindDoc" system="true" />
+    <date name="docDate" system="true" createlog="true"/>
+    <string name="docNum" system="true" />
+    <integer name="sheetsPaper" system="true" />
+    <double name="sizeDocs" system="true" />
+    <string name="commentary" system="true" />
+    
+    <hyperlink name="onTheBasis" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[rkkUrl != null && !"".equals(rkkUrl) ? T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink((rkkTitle != null ? rkkTitle : 'РКК') + '~#' + rkkUrl) : null]]>
+        </script>
+      </calc-values>
+    </hyperlink>
+    <hyperlink name="parentDealLink" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[
+{
+    #parDoc = ( (parentDealUnid == null || parentDealUnid == "") ? null : T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(parentDealUnid) ),
+    #arcF = ( #parDoc == null ? null : #parDoc.getArcCipherF() ),
+    #arcOp = ( #parDoc == null ? null : #parDoc.getArcCipherOp() ),
+    #arcD = ( #parDoc == null ? null : #parDoc.getArcCipherD() ),
+    (#parDoc == null ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('Ф. ' + (#arcF == null || #arcF == "" ? '-' : (#arcF + '.')) + ' Оп. ' + (#arcOp == null || #arcOp == "" ? '-' : (#arcOp + '.')) + ' Д.' + (#arcD == null || #arcD == "" ? '-' : (#arcD + '.')) + '~#' + T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + parentDealUnid + '~#newTab~#local'))
+}[4]
+]]>
+        </script>
+      </calc-values>
+    </hyperlink>
+
+    <boolean name="isNew" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[#this.isNew()]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isPaper" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.kindDeal != null && (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.KindDeal).PAPER).equals(#this.kindDeal)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="IsElectronic" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.kindDeal != null && !(T(ru.intertrust.cmj.arcdocs.common.ArcDeal.KindDeal).PAPER).equals(#this.kindDeal)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isProject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && "Проект".equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isReady" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.additionalState != null && "Готов к передаче в архив".equals(#this.additionalState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isVerified" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && "Заверен".equals(#this.mainState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isRespsDelo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#root.parentDealUnid == null || #root.parentDealUnid == "") ? false :
+    {
+      #parDoc = ( T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(#root.parentDealUnid) ),
+      #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+      #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+      ((#FileRegisterApplication == null || #CurUser == null ) ? false : (#FileRegisterApplication.getRespsDeloNdpSoDepRvzByUnid(#parDoc.getDepartment().get()).contains(#CurUser)))
+    }[3]]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="manualCreate" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[rkkORMUnid == null || rkkORMUnid == ""]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <string name="showNumber" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[docNum == null || docNum == '' ? 'Б/н' : docNum]]></script>
+      </calc-values>
+    </string>
+    <string name="showDate" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[docDate == null ? 'Б/д' : docDate.toString()]]></script>
+      </calc-values>
+    </string>
+    <schema-ref ref="ContentResourceDocuments" name="contentDocuments" createlog="true"/>
+    <schema-ref ref="ContentResourceAddInformations" name="contentAddInformations" createlog="true"/>
+    <boolean name="contentDocumentsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentDocuments != null && ((contentDocuments.richtext != null && !contentDocuments.richtext.isEmpty()) || (contentDocuments.content != null && !contentDocuments.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="contentAddInformationsNotEmpty" createlog="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[contentAddInformations != null && ((contentAddInformations.richtext != null && !contentAddInformations.richtext.isEmpty()) || (contentAddInformations.content != null && !contentAddInformations.content.isEmpty()))]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="firstSave" default-value="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[true]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canRecordCheckResult" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+            mainState == "Проект" && ( isArchivist || isRespsDelo ) &&
+            (
+                (manualCreate && (additionalState != null && "Формируется".equals(additionalState)))
+                ||
+                (!manualCreate && (additionalState == "Ошибка при создании" || additionalState == "Создана автоматически"))
+            )
+        ]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canRepeatDocumentFormation" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+            {
+                #needCeck = (#this.mainState == "Проект" && #this.additionalState == "Файлы испорчены"),
+                #parDoc = ((!#needCeck || parentDealUnid == null || parentDealUnid == "") ? null : T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(parentDealUnid)),
+                #status = ( #parDoc == null ? null : #parDoc.getMainState() ),
+                #addStatus = ( #parDoc == null ? null : #parDoc.getAdditionalState() ),
+                #isAuto = ( #parDoc == null ? false : (#parDoc.getFrFile() != null && #parDoc.getFrFile().getFrFileOrmUnid() != null && #parDoc.getFrFile().getFrFileOrmUnid() != "") ),
+
+                (T(ru.intertrust.cmj.arcdocs.common.ArcDeal.ArcDealStatus).PROJECT.equals(#status) && "Ошибка при формировании".equals(#addStatus) && #isAuto)
+                && (#this.mainState == "Проект" && #this.additionalState == "Файлы испорчены")
+            }[5]
+        ]]></script>
+      </calc-values>
+    </boolean>
+
+    <boolean name="canVerify" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[isProject && isReady && (manualCreate ? isArchivist : isRespsDelo)]]></script>
+      </calc-values>
+    </boolean>
+
+    <string name="$id" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[id]]>
+        </script>
+      </calc-values>
+    </string>
+
+    <string name="showRegInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+          " № " +
+          (!T(org.springframework.util.StringUtils).hasLength(docNum) ? "б/н" : docNum) +
+          " от " +
+          (regDate == null ? "б/д" : regDate )
+          ]]></script>
+      </calc-values>
+    </string>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.mainState != null && #this.mainState.equals('Удален')]]></script>
+      </calc-values>
+    </boolean>
+
+<custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.links.AFLinksApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.emb.HistoryEmb);
+importClass(Packages.ru.intertrust.cmj.af.history.record.BasicText);
+importClass(Packages.ru.intertrust.cmj.af.history.record.NameList);
+importClass(Packages.ru.intertrust.cmj.af.history.record.TextList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.dp.DPException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMPurchaseContracts);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfo);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfoComment);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RKKSigning);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.af.prvz.AFHasHead);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.SaveListener);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFSigning);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.Helper);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity.TaskEntity.Status);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration.Operation.Recall);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importPackage(Packages.java.util.Arrays);
+importPackage(Packages.java.util.HashMap);
+importPackage(Packages.java.util.HashSet);
+importPackage(Packages.java.util.Map);
+importPackage(Packages.java.util.Set);
+importPackage(Packages.java.util.Iterator);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.org.apache.commons.lang.StringUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.java.text.SimpleDateFormat);
+importClass(Packages.org.apache.commons.lang3.tuple.Pair);
+importClass(Packages.org.apache.commons.lang3.tuple.ImmutablePair);
+importClass(Packages.ru.intertrust.cmj.af.core.AFEntityStorage);
+importClass(Packages.ru.intertrust.cmj.arcdocs.common.ArcDeal);
+
+function querySave(object, document)
+{
+    if(object.isNew()){
+        object.setMainState("Проект");
+        object.setAdditionalState("Формируется");
+
+        var parentDeal = null
+        if(object.getParentDealUnid() != null){
+            parentDeal = AFEntityStorage.getEntityByUNID(object.getParentDealUnid());
+        }
+
+        var isManualCreate = parentDeal != null && (object.getRkkORMUnid() == null || object.getRkkORMUnid() == "");
+        if (isManualCreate && !isManualCreationAvailable(parentDeal)) {
+            throw "Создание архивного документа вручную для выбранного архивного дела сейчас недоступно."
+        }
+
+        makeDealHistory(object, parentDeal);
+    }
+
+    return true;
+}
+
+function recalc(object, changedField) {
+    if(changedField == "kindDeal"){
+        object.setSubject(null);
+        object.setThemeDoc(null);
+        object.setKindDoc(null);
+        object.setDocDate(null);
+        object.setDocNum(null);
+        object.setSheetsPaper(null);
+        object.setSizeDocs(null);
+        object.setCommentary(null);
+        object.setRkkORMUnid(null);
+        object.setMainState(null);
+        object.setAdditionalState(null);
+        object.setArchiveOrg(null);
+        object.setOriginalType(null);
+        object.setRegDate(null);
+        object.setRegPlaceBeard(null);
+        object.setCreatePlaceBeard(null);
+        object.setSignExecBeard(null);
+        object.setTags(null);
+        object.setOtherSignerBeards(null);
+        object.setCorrBeards(null);
+        object.setAddrBeards(null);
+    }
+}
+
+function postSave(object, document) {
+}
+
+function isManualCreationAvailable(parentDeal) {
+    if (parentDeal == null) {
+        return false;
+    }
+    var mainState = parentDeal.getMainState();
+    var additionalState = parentDeal.getAdditionalState();
+
+    return mainState.equals(ArcDeal.ArcDealStatus.PROJECT) && ("Ошибка при формировании".equals(additionalState) || "Формируется".equals(additionalState));
+}
+
+function makeDealHistory(object, deal) {
+    if(deal == null){
+        return;
+    }
+
+    var historyRecord = deal.history().createNewRecord("arcdeal.doc.added", AFSession.get().currentUser().getBeard().toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+    var addInfo = "Документ №" + object.getDocNum() + " от " + object.getRegDate() + " " + object.getSubject();
+    historyRecord.update(addInfo, null, null);
+
+    deal.save();
+}
+
+function GetValue(object, filedName) {
+    var values;
+    if(object instanceof AFInstanceObject) {
+        values = object.getValues();
+    } else if(object instanceof HashMap) {
+        values = object;
+    } else {
+        values = object.tuning().getValues();
+    }
+
+    var tmp = values.get(filedName);
+    if(tmp == null) {
+        return null;
+    }
+
+    return tmp instanceof AFInstanceSimple ? tmp.getValue() : tmp.getValues();
+}
+
+function SetValue(doc, fileName, value) {
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function getDocByUNID(unid)
+{
+    var doc = AFSession.get().getApplication(DPApplication.class).getEntityByUNID(unid);
+
+    if(doc == null)
+    {
+        var tmpID = unid.split(":");
+        unid = tmpID[0] + "-TN:" + tmpID[1];
+        doc = AFSession.get().getApplication(TunableObjectApplication.class).getEntityByUNID(unid);
+    }
+    return doc;
+}
+]]></custom-event-handler>
+  </schema>
+</schemas>

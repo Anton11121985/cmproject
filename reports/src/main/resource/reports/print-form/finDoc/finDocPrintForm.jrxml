@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="finDoc" pageWidth="595" pageHeight="500" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="2a0791e6-e803-4e2f-80fd-00199853bc16">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="request_id" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+        rkkBase.type as docType,
+	coalesce(contractFD.RegNumber, '') as regNumber,
+	contractFD.regDate,
+	coalesce(string_agg(theme.Theme, ', '), '') as theme,
+	rkkBase.subject,
+	CASE
+		WHEN contract.id IS NOT NULL THEN 'Договор'
+		WHEN  ds.id IS NOT NULL THEN 'ДС'
+		ELSE ''
+	END AS parentDocType,
+	CASE
+		WHEN contract.id IS NOT NULL THEN CONCAT (
+			rkkContract.regnumprist,
+			rkkContract.regnumcnt,
+			rkkContract.regnumfin
+		)
+		WHEN  ds.id IS NOT NULL THEN ds.RegNumber
+		ELSE ''
+	END AS parentRegNumber,
+	CASE
+		WHEN contract.id IS NOT NULL THEN rkkContract.regDate
+		WHEN  ds.id IS NOT NULL THEN ds.regDate
+		ELSE null
+	END AS parentRegDate,
+	coalesce(signer.orig_shortname, '') as signer,
+	coalesce(vendor.orig_shortname, '') as vendor,
+	coalesce(purchaser.orig_shortname, '') as purchaser,
+	coalesce(receiver.orig_shortname, '') as receiver,
+	coalesce(contractFD.ServiceDescription, '') as serviceDescription
+
+FROM
+
+F_DP_ContractFD contractFD
+JOIN F_DP_RkkBase rkkBase on rkkBase.id = contractFD.id
+LEFT JOIN F_DP_RkkBase_Theme theme on theme.owner = rkkBase.id
+LEFT JOIN F_DP_ContractRkk contract on contract.id = contractFD.HierParent
+LEFT JOIN F_DP_Rkk rkkContract on rkkContract.id = contract.id
+LEFT JOIN F_DP_ContractDS ds on ds.id = contractFD.HierParent
+LEFT JOIN So_Beard signer on signer.id = contractFD.SignSigner
+LEFT JOIN So_Beard vendor on vendor.id = contractFD.Vendor
+LEFT JOIN So_Beard purchaser on purchaser.id = contractFD.Purchaser
+LEFT JOIN So_Beard receiver on receiver.id = contractFD.Receiver
+
+WHERE contractFD.id in (SELECT Item FROM QR_Id_List WHERE Request = $P{request_id})
+group by docType, contractFD.RegNumber, rkkBase.subject, parentDocType, parentRegNumber,
+				 parentRegDate, signer, serviceDescription, contractFD.regDate,
+				vendor.orig_shortname, purchaser.orig_shortname, receiver.orig_shortname]]>
+	</queryString>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="regnumber" class="java.lang.String"/>
+	<field name="regdate" class="java.sql.Timestamp"/>
+	<field name="theme" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="parentdoctype" class="java.lang.String"/>
+	<field name="parentregnumber" class="java.lang.String"/>
+	<field name="parentregdate" class="java.sql.Timestamp"/>
+	<field name="signer" class="java.lang.String"/>
+	<field name="vendor" class="java.lang.String"/>
+	<field name="purchaser" class="java.lang.String"/>
+	<field name="receiver" class="java.lang.String"/>
+	<field name="servicedescription" class="java.lang.String"/>
+	<title>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="202" height="40" uuid="195fe1e4-2d19-406d-90bd-c67a02bcfc6b"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doctype}!=null? $F{doctype} : ""]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="202" y="0" width="353" height="40" uuid="6b5a0b97-a2ab-452e-82bd-f8b27441bd1d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="true" isItalic="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{regnumber}.equals("") ? ""
+: $F{regnumber} + "<br/>") +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="60" splitType="Stretch">
+			<textField>
+				<reportElement x="202" y="0" width="353" height="20" uuid="254d62d6-0c03-4141-8aa9-93a149615c99"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{theme}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="202" height="20" uuid="91554625-e065-4cdd-b67e-b3175641216f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Тематика:"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="20" width="555" height="40" uuid="abf1a6a3-f6fa-4ae9-8ed3-d91e489bf0bf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="160" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="202" height="60" uuid="6ec09bf2-ab04-4a71-8aa7-c700ca858e32"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["К документу:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="0" width="353" height="60" uuid="4b00da6a-ec91-406b-9ad4-7f8f22a8c8db"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{parentdoctype}+
+"<br/>"+
+$F{parentregnumber}+
+"<br/>"+
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{parentregdate})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="60" width="353" height="20" uuid="d84049ec-a356-4c50-abd7-7a948c5fd976"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{signer}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="60" width="202" height="20" uuid="2850122c-dd45-477f-8bb4-11e923e71a25"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Подпись:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="80" width="353" height="20" uuid="00147bf3-e624-4bc0-a990-afdbefb527b3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vendor}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="80" width="202" height="20" uuid="f3e7d35d-1ec6-4225-8f25-a6e8682b35af"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Поставщик:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="100" width="353" height="20" uuid="9d374e08-8a4f-49b3-adf1-cc60132a6cb0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{purchaser}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="100" width="202" height="20" uuid="70edaf62-341f-4418-87f7-897ec822f790"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Покупатель:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="120" width="353" height="20" uuid="0f19b4da-45da-4364-aa9b-63f47b2dcb93"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{receiver}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="120" width="202" height="20" uuid="9d719115-4fd4-4462-b65b-557fd8716e79"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Получатель:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="140" width="353" height="20" uuid="ce85755f-2c0e-4bf2-831c-e317642c68c8"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{servicedescription}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="140" width="202" height="20" uuid="8df50452-a429-4924-bddb-97cdf0d46731"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Наименование товаров/услуг:"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

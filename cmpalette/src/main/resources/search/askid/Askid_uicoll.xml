@@ -1,0 +1,311 @@
+<search-area name="Askid_uicoll" replace="runtime">
+
+    <!-- Самостоятельное поручение -->
+    <target-domain-object type="F_DP_TasksResolution">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject">
+            <doel>resolution</doel>
+        </indexed-field>
+
+        <!--Дата регистрации -->
+        <indexed-field name="regDate">
+            <doel>date</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>Date</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDateSimple">
+            <doel>Date</doel>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }</script>
+
+
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <indexed-field name="reqType">
+            <script>'Поручение'</script>
+        </indexed-field>
+
+        <!-- Контрольный -->
+        <indexed-field name="isControl">
+            <doel>CtrlIsControlled</doel>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecuted">
+            <doel>CtrlDateExecution</doel>
+        </indexed-field>
+        <!-- Автор резолюции -->
+        <indexed-field name="Superior">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+        <!-- Дата резолюции -->
+        <indexed-field name="resDate">
+            <doel>Date</doel>
+        </indexed-field>
+        <indexed-field name="resDate3">
+            <doel>date:toString</doel>
+        </indexed-field>
+        <!-- Срок резолюции -->
+        <indexed-field name="resExDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+        <!-- Текст резолюции -->
+        <indexed-field name="resText">
+            <doel>Resolution</doel>
+        </indexed-field>
+        <!-- Рег. номер документа -->
+        <indexed-field name="docNumber">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }</script>
+
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Исполнитель резолюции -->
+        <linked-domain-object type="F_DP_TasksResolution_EC">
+            <indexed-field name="Executor" search-by="substring" index-boost-value="1.0" multi-valued="true">
+                <doel>ExecutorCurr.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="ExecutorIds" show-in-results="true" index-boost-value="0.1" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('ExecutorCurr');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>ExecutorCurr:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="F_DP_TasksResolution_EE">
+            <indexed-field name="Executor" search-by="substring" index-boost-value="1.0" multi-valued="true">
+                <doel>ExecutorExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="ExecutorExtIds" show-in-results="true" index-boost-value="0.1" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('ExecutorExt');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>ExecutorExt:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="F_DP_TasksResolution_EE">
+            <indexed-field name="execpeoples">
+                <doel>ExecutorExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="ORGANISATIONNAME">
+                <doel>ExecutorExt.OrgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="F_DP_TasksResolution_EDC">
+            <indexed-field name="ExecDateCurr">
+                <doel>ExecDateCurr</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+
+    <!-- Резолюция -->
+    <target-domain-object type="F_DP_Resolution">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Контрольный -->
+        <indexed-field name="isControl">
+            <doel>CtrlIsControlled</doel>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecuted">
+            <doel>CtrlDateExecution</doel>
+        </indexed-field>
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate">
+            <doel>HierRoot.regDate</doel>
+        </indexed-field>
+        <indexed-field name="rootDatee">
+            <doel>HierRoot.date</doel>
+            <filter>
+                <doel>HierRoot:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Автор резолюции -->
+        <indexed-field name="Superior">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+        <!-- Дата резолюции -->
+        <indexed-field name="resDate">
+            <doel>date</doel>
+        </indexed-field>
+        <!-- Срок резолюции -->
+        <indexed-field name="resExDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+        <!-- Текст резолюции -->
+        <indexed-field name="resText">
+            <doel>Resolution</doel>
+        </indexed-field>
+
+        <indexed-field name="reqType">
+            <doel>HierRoot.type</doel>
+        </indexed-field>
+        <indexed-field name="rootSigner" multi-valued="true">
+            <doel>HierRoot.signsigner.orig_shortname</doel>
+        </indexed-field>
+
+        <indexed-field name="rootNumber">
+            <script>
+                var contract = session.find(ctx.get('HierRoot'));
+                var rn = contract.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = contract.get('regnumprist'); if (prist == null) prist = '';
+                var fin = contract.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+        </indexed-field>
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="UserFrom" >
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Исполнитель резолюции -->
+        <linked-domain-object type="F_DP_ResltnBase_ExecCurr">
+            <indexed-field name="Executor" multi-valued="true">
+                <doel>ExecutorCurr.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="F_DP_Resolution_ExecCtrld">
+            <indexed-field name="Executor2" multi-valued="true">
+                <doel>ExecutorCurr.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="F_DP_ResltnBase_ExecExt">
+            <indexed-field name="execpeoples">
+                <doel>ExecutorExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="ORGANISATIONNAME">
+                <doel>ExecutorExt.OrgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Контролер резолюции -->
+        <linked-domain-object type="F_DP_ResltnBase_Cntrller">
+            <indexed-field name="ControlPeopleRes">
+                <doel>Controller.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Оператор -->
+        <indexed-field name="resolutionOperator">
+            <doel>Operator.orig_shortname</doel>
+        </indexed-field>
+
+        <linked-domain-object type="F_DP_Resolution_ExDateCur">
+            <indexed-field name="ExecDateCurr">
+                <doel>ExecDateCurr</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="F_DP_Resolution_(search)"/>
+
+        <filter>
+            <doel>Module.Type.Alias:in("TempStorage"):not</doel>
+        </filter>
+    </target-domain-object>
+
+    <target-domain-object type="F_DP_Report">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate">
+            <doel>HierRoot.date</doel>
+        </indexed-field>
+        <!-- Автор отчета -->
+        <indexed-field name="Author">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+        <!-- Дата исполнения -->
+        <indexed-field name="reportDate">
+            <doel>ExecDate</doel>
+        </indexed-field>
+        <!-- Текст отчета -->
+        <indexed-field name="reportText">
+            <doel>Text</doel>
+        </indexed-field>
+
+        <target-collection name="F_DP_Report_(search)" />
+    </target-domain-object>
+
+</search-area>

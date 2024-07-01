@@ -1,0 +1,1063 @@
+<collection name="Personal_(vw_cmj_favourites_wd_custom)" idField="id">
+    <prototype>
+        <![CDATA[
+                SELECT
+                    fv.id,
+                    fv.created_date,
+                    parentFolder.module,
+                    rkk.id as rkkId,
+                    rkk.created_date as rkkCreatedDate,
+                    rkk.module as rkkModule,
+                    rkk.subject,
+                    REPLACE(REPLACE(mt.alias, 'Prev', ''), 'Arc', '') as docType,
+                    '<id>' as self_1,
+					':' as self_2,
+					'</>' as self_3,
+                    (CASE
+                        WHEN mt.alias = 'JobApps' THEN 'Заявка на исполнение'
+                        WHEN mt.alias = 'JobOrders' THEN 'Заказ'
+                        WHEN rkk.form = 'AddAgr'
+                        THEN 'Дополнительное соглашение'
+                        WHEN rkk.form = 'resolution'
+                        THEN 'Поручение'
+                        WHEN NOT rkk.type IS NULL AND rkk.type <> ''
+                        THEN rkk.type
+                        WHEN rkk.form = 'DocDogovor'
+                        THEN 'Документ к договору'
+                        WHEN rkk.form = 'Dog'
+                        THEN 'Договор'
+                        ELSE ''
+                        END) as reqType,
+                    (CASE
+                        WHEN mt.alias = 'JobApps' THEN 'Корреспондент'
+                        WHEN mt.alias = 'JobOrders' THEN 'Заказчик'
+                        ELSE NULL
+                        END) as preparedBy_label,
+                    (CASE
+                        WHEN mt.alias = 'JobApps' THEN 'Исполнитель'
+                        WHEN mt.alias = 'JobOrders' THEN 'Отв. за размещение'
+                        ELSE NULL
+                        END) as preparedFor_label,
+                    (CASE
+                        WHEN mt.alias IN ('Missions', 'MissionsPrev')
+                        THEN 'ОРД'
+                        WHEN mt.alias IN ('InputDocs', 'InputDocsPrev')
+                        THEN 'ВхД'
+                        WHEN mt.alias IN ('InternalDocs', 'InternalDocsPrev')
+                        THEN 'ВнД'
+                        WHEN mt.alias IN ('OutputDocs', 'OutputDocsPrev')
+                        THEN 'ИсхД'
+                        WHEN mt.alias IN ('Requests', 'RequestsPrev')
+                        THEN 'ОГ'
+                        WHEN mt.alias IN ('Tasks', 'TasksArc')
+                        THEN 'Поручения'
+                        WHEN mt.alias IN ('ContractsLite', 'ContractsLiteArc')
+                        THEN 'Договоры'
+                        ELSE mt.name
+                        END) as type_db,
+                    'FavouriteDocument' as entityType,
+                    (CASE
+                        WHEN rkk.form = 'resolution'
+                        THEN (SELECT
+                                    (CASE
+                                        WHEN NOT t.regnumcnt IS NULL
+                                        THEN (t.regnumprist || t.regnumcnt || t.regnumfin)
+                                        WHEN t.prjnumcounter IS NULL
+                                        THEN 'Проект'
+                                        ELSE ('Проект № ' || t.prjnumprist || t.prjnumcounter || t.prjnumfin)
+                                        END) ||
+                                    (CASE
+                                        WHEN t.prjnumcounter IS NULL AND t.regnumcnt IS NULL
+                                        THEN ''
+                                        ELSE ' от ' || to_char(COALESCE(t.date, rkk.created_date), 'DD.MM.YYYY')
+                                    END)
+                               FROM
+                                    F_DP_TasksResolution t
+                               WHERE
+                                    t.id = rkk.id)
+                        WHEN rkk.form = 'DogDogovor'
+                        THEN (SELECT
+                                   (CASE
+                                        WHEN NOT doc.regNumber IS NULL
+                                        THEN (CASE WHEN c.statusDog = 'проект' THEN 'Проект № ' ELSE '' END) || doc.regNumber || ' от ' || to_char(COALESCE(doc.regDate, rkk.created_date), 'DD.MM.YYYY')
+                                        ELSE 'Проект'
+                                        END)
+                              FROM
+                                    F_DP_ContractDoc doc
+                                    NATURAL JOIN F_DP_ContractCommon c
+                              WHERE
+                                    doc.id = rkk.id)
+                        WHEN rkk.form = 'AddAgr'
+                        THEN (SELECT
+                                    (CASE
+                                        WHEN NOT doc.regNumber IS NULL
+                                        THEN (CASE WHEN c.statusDog = 'проект' THEN 'Проект № ' ELSE '' END) || doc.regNumber || ' от ' || to_char(COALESCE(doc.regDate, rkk.created_date), 'DD.MM.YYYY')
+                                        ELSE 'Проект'
+                                    END)
+                              FROM
+                                    F_DP_ContractDS doc
+                                    NATURAL JOIN F_DP_ContractCommon c
+                              WHERE
+                                    doc.id = rkk.id)
+                        WHEN rkk.form = 'Finance'
+                        THEN (SELECT
+                                    (CASE
+                                        WHEN NOT doc.regNumber IS NULL
+                                        THEN (CASE WHEN c.statusDog = 'проект' THEN 'Проект № ' ELSE '' END) || doc.regNumber || ' от ' || to_char(COALESCE(doc.regDate, rkk.created_date), 'DD.MM.YYYY')
+                                        ELSE 'Проект'
+                                    END)
+                             FROM
+                                    F_DP_ContractFD doc
+                                    NATURAL JOIN F_DP_ContractCommon c
+                             WHERE
+                                    doc.id = rkk.id)
+                        WHEN rkk.form = 'Dog'
+                        THEN (SELECT
+                                    (CASE
+                                        WHEN NOT doc.regnumcnt IS NULL
+                                        THEN ((CASE WHEN contract.statusDog = 'проект' THEN 'Проект № ' ELSE '' END) || doc.regnumprist || doc.regnumcnt || doc.regnumfin)
+                                        WHEN doc.prjnumcounter IS NULL
+                                        THEN 'Проект'
+                                        ELSE ('Проект № ' || doc.prjnumprist || doc.prjnumcounter || doc.prjnumfin)
+                                        END)
+                                    ||
+                                    (CASE
+                                        WHEN doc.prjnumcounter IS NULL AND doc.regnumcnt IS NULL
+                                        THEN ''
+                                        ELSE ' от ' || to_char(COALESCE(doc.regDate, rkk.created_date), 'DD.MM.YYYY')
+                                        END)
+                             FROM
+                                    F_DP_ContractRkk contract
+                                    NATURAL JOIN F_DP_Rkk doc
+                             WHERE
+                                    contract.id = rkk.id)
+                        ELSE (SELECT
+                                    (CASE
+                                        WHEN NOT doc.regnumcnt IS NULL
+                                        THEN (doc.regnumprist || doc.regnumcnt || doc.regnumfin)
+                                        WHEN doc.prjnumcounter IS NULL
+                                        THEN 'Проект'
+                                        ELSE ((CASE WHEN mt.alias <> 'JobApps' THEN 'Проект № ' ELSE '' END) || doc.prjnumprist || doc.prjnumcounter || doc.prjnumfin)
+                                        END)
+                                    ||
+                                    (CASE
+                                        WHEN doc.prjnumcounter IS NULL AND doc.regnumcnt IS NULL
+                                        THEN ''
+                                        ELSE ' от ' || to_char(COALESCE(doc.regDate, rkk.created_date), 'DD.MM.YYYY')
+                                        END)
+                             FROM
+                                    F_DP_Rkk doc
+                             WHERE
+                                    doc.id = rkk.id)
+                        END) as regInfo,
+                    (CASE
+                        WHEN fv.objectType = 'RKK_INPUT'
+                        THEN (SELECT
+                                '(вх.' || input.foreignNumber || (CASE WHEN input.foreignRegDate IS NULL THEN ', б/д' ELSE ' от ' || to_char(input.foreignRegDate, 'DD.MM.YYYY') END) || ')'
+                              FROM
+                                F_DP_InputRkk input
+                              WHERE
+                                input.id = rkk.id)
+                        WHEN rkk.form = 'Dog'
+                        THEN (SELECT
+                                    (CASE WHEN contract.additionalNumber IS NULL OR contract.additionalNumber = '' THEN '' ELSE '(доп.номер ' || contract.additionalNumber || ')' END)
+                              FROM
+                                    F_DP_ContractRkk contract
+                              WHERE
+                                    contract.id = rkk.id)
+                        ELSE ''
+                        END) as additionalRegInfo,
+                    '' as relationToCopy,
+                    (CASE
+                        WHEN rkk.form <> 'resolution'
+                        THEN ((SELECT COUNT(1) FROM F_ContentFiles_Rkk cf WHERE cf.f_dp_rkkbase = rkk.id)
+                                +
+                              (SELECT COUNT(1) FROM F_ContentRichText_Rkk cf WHERE cf.f_dp_rkkbase = rkk.id)
+                                +
+                              (SELECT COUNT(1) FROM F_AddFiles_Rkk cf WHERE cf.f_dp_rkkbase = rkk.id))
+                        ELSE ((SELECT COUNT(1) FROM F_ContentRichText_TaskRes tf WHERE rkk.form = 'resolution' AND tf.f_dp_tasksresolution = rkk.id)
+                                +
+                              (SELECT COUNT(1) FROM F_ContentFiles_TaskRes tf WHERE rkk.form = 'resolution' AND tf.f_dp_tasksresolution = rkk.id))
+                        END) as contentCount,
+                    (CASE
+                        WHEN fv.objectType = 'RESOLUTION_TASKS'
+                        THEN (COALESCE((SELECT
+                                             '<id>'
+                                             || substring(b.cmjunid, 1, 32)
+                                             || ':'
+                                             || substring(b.cmjunid, 33, 48)
+                                             || '</><shortName>'
+                                             ||
+                                             b.Orig_ShortName
+                                             || '</>'
+                                        FROM
+                                            SO_Beard b
+                                        WHERE
+                                            b.id = rkk.operator
+                                        ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_CONTRACTS'
+                        THEN (COALESCE((SELECT
+                                             '<id>'
+                                             || substring(b.cmjunid, 1, 32)
+                                             || ':'
+                                             || substring(b.cmjunid, 33, 48)
+                                             || '</><shortName>'
+                                             ||
+                                             b.Orig_ShortName
+                                             || '</>'
+                                        FROM
+                                            F_DP_ContractRkk contract
+                                            JOIN SO_Beard b ON contract.party1Id = b.id
+                                        WHERE
+                                            contract.id = rkk.id
+                                        ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_INPUT'
+                        THEN (COALESCE((
+                                        SELECT
+                                            '<id>' || COALESCE(NULLIF(inputrkk.fromsorepid, '$'), NULLIF('$' || (SUBSTRING(firmid.cmjunid, 1, 32)), '$')) || '</><shortName>' || firmid.orig_shortname || '</>'
+                                        FROM
+                                            F_DP_InputRkk inputrkk
+                                            JOIN SO_Beard firmid ON firmid.id = inputrkk.fromId
+                                        WHERE
+                                            inputrkk.id = rkk.id
+                                        ),
+                                        (
+                                        SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(userFromId.cmjunid, 33, 48) || ':' || SUBSTRING(userFromId.cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(userFromId.orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            f_dp_inputrkk_author inputrkk_author
+                                            JOIN SO_Beard userFromId ON userFromId.id = inputrkk_author.author
+                                        WHERE
+                                            inputrkk_author.OWNER = rkk.id
+                                        ),
+                                        (
+                                            SELECT
+                                                STRING_AGG('<id></><shortName>' || COALESCE(NULLIF(inputrkk_authorplain.authorplain, ''), '') || '</>', ';')
+                                            FROM
+                                                F_DP_InputRkk_AuthorPlain inputrkk_authorplain
+                                            WHERE
+                                                inputrkk_authorplain.owner = rkk.id
+                                        ),
+                                        '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_REQUESTS'
+                        THEN (
+                            (SELECT '<id>' ||
+                                    CASE
+                                        WHEN request.CorrLastName <> ''
+                                        THEN (COALESCE(
+                                                NULLIF((
+                                                    SELECT
+                                                        SUBSTRING(b.cmjunid, 33, 48) || ':' || SUBSTRING(b.cmjunid, 1, 32)
+                                                    FROM
+                                                        SO_Beard b
+                                                    WHERE
+                                                        b.id = request.Corr
+                                                    ), ':'),
+                                                NULLIF(NULLIF('$' || (
+                                                    SELECT
+                                                        SUBSTRING(b.cmjunid, 1, 32)
+                                                    FROM
+                                                        SO_Beard b
+                                                    WHERE
+                                                        b.id = request.Corr
+                                                   ), '$'),
+                                                ''),
+                                                NULLIF((
+                                                    SELECT
+                                                        SUBSTRING(b.cmjunid, 33, 48) || ':' || SUBSTRING(b.cmjunid, 1, 32)
+                                                    FROM
+                                                        SO_Beard b
+                                                    WHERE
+                                                        b.id = request.CorrOrganization
+                                                    ), ':'), '')
+                                                    || '</>' || '<shortName>' ||
+                                                    CASE
+                                                        WHEN request.typerequest = 2
+                                                        THEN COALESCE((
+                                                                    SELECT
+                                                                        COALESCE(orgname, orig_shortname)
+                                                                    FROM
+                                                                        SO_Beard b
+                                                                    WHERE
+                                                                        b.id = request.CorrOrganization),
+                                                                    '')
+                                                        WHEN AuthorType = '0'
+                                                        THEN TRIM(COALESCE(request.CorrLastName, '') || ' ' || COALESCE(SUBSTRING(request.CorrFirstName, 1, 1), '') || (CASE WHEN request.CorrFirstName IS NULL OR request.CorrFirstName = '' THEN '' ELSE '. ' END))
+                                                        WHEN AuthorType = '1'
+                                                        THEN coalesce(request.CorrLastName, '')
+                                                        WHEN AuthorType = '2'
+                                                        THEN 'Без ФИО и адреса'
+                                                        WHEN AuthorType = '3'
+                                                        THEN request.CorrLastName
+                                                        ELSE ''
+                                                        END)
+                                        ELSE
+                                            COALESCE(
+                                                NULLIF((
+                                                    SELECT
+                                                        SUBSTRING(b.cmjunid, 33, 48) || ':' || SUBSTRING(b.cmjunid, 1, 32)
+                                                    FROM
+                                                        SO_Beard b
+                                                    WHERE
+                                                        b.id = request.CorrOrganization
+                                                    ), ':'),
+                                                NULLIF('$' || (
+                                                    SELECT
+                                                        SUBSTRING(b.cmjunid, 1, 32)
+                                                    FROM
+                                                        SO_Beard b
+                                                    WHERE
+                                                        b.id = request.CorrOrganization
+                                                    ), '$'), '')
+                                                    || '</>' || '<shortName>'
+                                                    || COALESCE((
+                                                            SELECT
+                                                                COALESCE(orgname, orig_shortname)
+                                                            FROM
+                                                                SO_Beard b
+                                                            WHERE
+                                                                b.id = request.CorrOrganization
+                                                            ), '')
+                                        END || '</>'
+                                    FROM
+                                        F_DP_RequestRkk request
+                                    WHERE request.id = rkk.id))
+                        WHEN fv.objectType = 'RKK_INTERNAL' AND mt.alias != 'JobApps' AND mt.alias != 'JobOrders'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                            FROM
+                                                ((SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                FROM
+                                                    F_DP_Rkk_SigningInfo signingInfo
+                                                    JOIN SO_Beard b ON b.id = signingInfo.signer
+                                                WHERE
+                                                    signingInfo.owner = rkk.id
+                                                ORDER BY
+                                                    signingInfo.idx
+                                                )
+                                                UNION ALL
+                                                (SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                FROM
+                                                    F_DP_IntRkk_OtherSigner otherSigner
+                                                    JOIN SO_Beard b ON b.id = otherSigner.otherSigner
+                                                WHERE
+                                                    otherSigner.owner = rkk.id
+                                                ORDER BY
+                                                    otherSigner.idx
+                                                )) t) t
+                                            ), '<id></><shortName></>'))
+                        WHEN mt.alias = 'JobApps'
+                        THEN (SELECT coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                              FROM tn_field_string tfs
+                                 JOIN tn_field tf on tf.id = tfs.id
+                              WHERE  tf.cmjfield = 'correspondentWD'
+                                 AND tf.owner = rkk.id
+                                 AND tf.owner_type = rkk.id_type
+                              )
+                        WHEN mt.alias = 'JobOrders'
+                        THEN (SELECT coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                              FROM tn_field_string tfs
+                                 JOIN tn_field tf on tf.id = tfs.id
+                              WHERE  tf.cmjfield = 'consumer'
+                                 AND tf.owner = rkk.id
+                                 AND tf.owner_type = rkk.id_type
+                              )
+                        WHEN fv.objectType = 'RKK_ORD'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>'
+                                        , ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                                FROM
+                                                    ((SELECT
+                                                        b.cmjunid, b.orig_shortname
+                                                     FROM
+                                                        F_DP_Rkk_SigningInfo signingInfo
+                                                        JOIN SO_Beard b ON b.id = signingInfo.signer
+                                                      WHERE
+                                                        signingInfo.owner = rkk.id
+                                                      ORDER BY
+                                                        signingInfo.idx
+                                                      )
+                                                      UNION ALL
+                                                      (SELECT
+                                                        b.cmjunid, b.orig_shortname
+                                                      FROM
+                                                        F_DP_OrdRkk_OtherSigner otherSigner
+                                                        JOIN SO_Beard b ON b.id = otherSigner.otherSigner
+                                                      WHERE
+                                                        otherSigner.owner = rkk.id
+                                                      ORDER BY
+                                                        otherSigner.idx
+                                                      )) t) t
+                                        ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_OUTPUT'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>'
+                                        , ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                                FROM
+                                                    ((SELECT
+                                                        b.cmjunid, b.orig_shortname
+                                                     FROM
+                                                        F_DP_Rkk_SigningInfo signingInfo
+                                                        JOIN SO_Beard b ON b.id = signingInfo.signer
+                                                      WHERE
+                                                        signingInfo.owner = rkk.id
+                                                      ORDER BY
+                                                        signingInfo.idx
+                                                      )
+                                                      UNION ALL
+                                                      (SELECT
+                                                        b.cmjunid, b.orig_shortname
+                                                      FROM
+                                                        F_DP_OutputRkk_OtherSgnr otherSigner
+                                                        JOIN SO_Beard b ON b.id = otherSigner.otherSigner
+                                                      WHERE
+                                                        otherSigner.owner = rkk.id
+                                                      ORDER BY
+                                                        otherSigner.idx
+                                                      )) t) t
+                                        ), '<id></><shortName></>'))
+                        WHEN fv.objectType IN ('ADDAGR_CONTRACTS', 'DOC_CONTRACTS', 'FINANCE_CONTRACTS')
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>'
+                                        , ';')
+                                        FROM
+                                            (SELECT
+                                                b.cmjunid, b.orig_shortname
+                                            FROM
+                                                F_DP_Rkk_SigningInfo signingInfo
+                                                JOIN SO_Beard b ON b.id = signingInfo.signer
+                                            WHERE
+                                                signingInfo.owner = rkk.id
+                                            ORDER BY
+                                                signingInfo.idx) t
+                                        ), '<id></><shortName></>'))
+                        ELSE '<id></><shortName></>'
+                        END) as preparedBy,
+                    (CASE
+                        WHEN fv.objectType = 'RESOLUTION_TASKS'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                             FROM
+                                                ((SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_TasksResolution_ec ec
+                                                    JOIN SO_Beard b ON b.id = ec.ExecutorCurr
+                                                 WHERE
+                                                    ec.owner = rkk.id
+                                                 ORDER BY
+                                                    ec.idx
+                                                )
+                                                UNION
+                                                (SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_TasksResolution_EE ee
+                                                    JOIN SO_Beard b ON b.id = ee.ExecutorExt
+                                                 WHERE
+                                                    ee.owner = rkk.id
+                                                 ORDER BY
+                                                    ee.idx
+                                                )) t) t
+                                            ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_CONTRACTS'
+                        THEN (COALESCE((SELECT
+                                            '<id>'
+                                            || SUBSTRING(b.cmjunid, 1, 32)
+                                            || ':'
+                                            || SUBSTRING(b.cmjunid, 33, 48)
+                                            || '</><shortName>'
+                                            || b.Orig_ShortName
+                                            || '</>'
+                                        FROM
+                                            F_DP_ContractRkk contract
+                                            JOIN SO_Beard b ON (contract.Party2IdA = b.id OR contract.Party2IdB = b.id)
+                                        WHERE
+                                            contract.id = rkk.id
+                                        ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_INTERNAL' AND mt.alias != 'JobApps' AND mt.alias != 'JobOrders'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                b.cmjunid, b.orig_shortname
+                                             FROM
+                                                F_DP_IntRkk_Addressee addr
+                                                JOIN SO_Beard b ON b.id = addr.addressee
+                                             WHERE
+                                                addr.owner = rkk.id
+                                             ORDER BY
+                                                addr.idx
+                                            ) t
+                                        ), '<id></><shortName></>'))
+                        WHEN (mt.alias = 'JobApps' OR mt.alias = 'JobOrders')
+                        THEN (SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                                          FROM F_DP_IntRkk_Executor intexec
+                                          LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                                          WHERE intexec.owner = rkk.id)
+                        WHEN fv.objectType = 'RKK_REQUESTS'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                b.cmjunid, b.orig_shortname
+                                             FROM
+                                                F_DP_RequestRkk_Addressee addr
+                                                JOIN SO_Beard b ON b.id = addr.addressee
+                                             WHERE
+                                                addr.owner = rkk.id
+                                             ORDER BY
+                                                addr.idx
+                                            ) t
+                                        ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_INPUT'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                             FROM
+                                                ((SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_InputRkk_Addressee addr
+                                                    JOIN SO_Beard b ON b.id = addr.addressee
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )
+                                                UNION ALL
+                                                (SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_InputRkk_RedirTo redirected
+                                                    JOIN SO_Beard b ON b.id = redirected.RedirectedTo
+                                                 WHERE
+                                                    redirected.owner = rkk.id
+                                                 ORDER BY
+                                                    redirected.idx
+                                                )) t) t
+                                            ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'DOC_CONTRACTS'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                             FROM
+                                                ((SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_ContractDoc_Send2Cur addr
+                                                    JOIN SO_Beard b ON b.id = addr.SendToCurr
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )
+                                                UNION
+                                                (SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_ContractDoc_Send2Ext addr
+                                                    JOIN SO_Beard b ON b.id = addr.SendToExt
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )) t) t
+                                            ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'FINANCE_CONTRACTS'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                b.cmjunid, b.orig_shortname
+                                             FROM
+                                                F_DP_ContractFD_Send2Cur addr
+                                                JOIN SO_Beard b ON b.id = addr.SendToCurr
+                                             WHERE
+                                                addr.owner = rkk.id
+                                             ORDER BY
+                                                addr.idx
+                                             ) t
+                                            ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'ADDAGR_CONTRACTS'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                             FROM
+                                                ((SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_ContractDS_SendToCur addr
+                                                    JOIN SO_Beard b ON b.id = addr.SendToCurr
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )
+                                                UNION
+                                                (SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_ContractDS_SendToExt addr
+                                                    JOIN SO_Beard b ON b.id = addr.SendToExt
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )) t) t
+                                            ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_ORD'
+                        THEN (COALESCE((SELECT
+                                            STRING_AGG('<id>' ||  NULLIF(SUBSTRING(cmjunid, 33, 48) || ':' || SUBSTRING(cmjunid, 1, 32), ':') || '</>'
+                                            || '<shortName>' || COALESCE(orig_shortname, '') || '</>', ';')
+                                        FROM
+                                            (SELECT
+                                                cmjunid, orig_shortname
+                                             FROM
+                                                ((SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_OrdRkk_SendToCurr addr
+                                                    JOIN SO_Beard b ON b.id = addr.SendToCurr
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )
+                                                UNION
+                                                (SELECT
+                                                    b.cmjunid, b.orig_shortname
+                                                 FROM
+                                                    F_DP_OrdRkk_SendToExt addr
+                                                    JOIN SO_Beard b ON b.id = addr.SendToExt
+                                                 WHERE
+                                                    addr.owner = rkk.id
+                                                 ORDER BY
+                                                    addr.idx
+                                                )) t) t
+                                            ), '<id></><shortName></>'))
+                        WHEN fv.objectType = 'RKK_OUTPUT'
+                        THEN (SELECT
+                                DISTINCT
+                                    COALESCE(
+                                        STRING_AGG(
+                                            COALESCE(
+                                                 (
+                                                   '<id>' || COALESCE(SUBSTRING(orgInfAddrBeard.cmjunid, 33, 48) ||
+                                                                      ':' || SUBSTRING(orgInfAddrBeard.cmjunid, 1, 32), '')
+                                                   || '</><shortName>' || orgInfAddrBeard.Orig_ShortName || '</>'
+                                                 ),
+                                                 (
+                                                   '<id>' || COALESCE(SUBSTRING(orgInfBeard.cmjunid, 33, 48) ||
+                                                                      ':' || SUBSTRING(orgInfBeard.cmjunid, 1, 32), '')
+                                                   || '</><shortName>' || orgInfBeard.Orig_ShortName || '</>'
+                                                 )
+                                            )
+                                        , ';')
+                                    , '<id></><shortName></>')
+                              FROM
+                                F_DP_OutputRkk_OrgInf orgInf
+                                LEFT JOIN F_DP_OutputRkk_OrgInfAddr orgInfAddr ON orgInfAddr.Owner = orgInf.id
+                                LEFT JOIN SO_Beard orgInfBeard ON orgInfBeard.id = orgInf.FirmId
+                                LEFT JOIN SO_Beard orgInfAddrBeard ON orgInfAddrBeard.id = orgInfAddr.Addressee
+                              WHERE
+                                orgInf.Owner = rkk.id)
+                        ELSE '<id></><shortName></>'
+                        END) as preparedFor,
+                        (CASE
+                            WHEN fv.objectType = 'RESOLUTION_TASKS'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT t.CtrlDateExecution IS NULL
+                                            THEN 'EXECUTED'
+                                            WHEN t.IsProject = 1
+                                            THEN 'PROJECT'
+                                            ELSE 'REGISTERED'
+                                            END)
+                                  FROM
+                                        F_DP_TasksResolution t
+                                  WHERE
+                                        t.id = rkk.id)
+                            WHEN fv.objectType = 'RKK_INTERNAL'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT doc.CtrlDateExecution IS NULL
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND intrkk.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN intrkk.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN doc.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN intrkk.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN doc.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN intrkk.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT doc.RegNumCnt IS NULL
+                                            THEN 'REGISTERED'
+                                            WHEN NOT intrkk.ApprAddStatus IS NULL AND intrkk.ApprAddStatus <> '' AND intrkk.SignIsRejected = 1
+                                            THEN (CASE WHEN intrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE intrkk.ApprAddStatus END)
+                                            WHEN intrkk.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT intrkk.ApprAddStatus IS NULL AND intrkk.ApprAddStatus <> ''
+                                            THEN (CASE WHEN intrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE intrkk.ApprAddStatus END)
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_IntRkk intrkk
+                                        NATURAL JOIN F_DP_Rkk doc
+                                  WHERE
+                                        intrkk.id = rkk.id)
+                            WHEN fv.objectType = 'RKK_ORD'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT doc.CtrlDateExecution IS NULL
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND ordrkk.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN ordrkk.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN doc.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN ordrkk.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN doc.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN ordrkk.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT doc.RegNumCnt IS NULL
+                                            THEN 'REGISTERED'
+                                            WHEN NOT ordrkk.ApprAddStatus IS NULL AND ordrkk.ApprAddStatus <> '' AND ordrkk.SignIsRejected = 1
+                                            THEN (CASE WHEN ordrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE ordrkk.ApprAddStatus END)
+                                            WHEN ordrkk.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT ordrkk.ApprAddStatus IS NULL AND ordrkk.ApprAddStatus <> ''
+                                            THEN (CASE WHEN ordrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE ordrkk.ApprAddStatus END)
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_OrdRkk ordrkk
+                                        NATURAL JOIN F_DP_Rkk doc
+                                  WHERE
+                                        ordrkk.id = rkk.id)
+                            WHEN fv.objectType = 'RKK_INPUT'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT doc.CtrlDateExecution IS NULL
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN doc.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN doc.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN NOT doc.RegNumCnt IS NULL
+                                            THEN 'REGISTERED'
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_Rkk doc
+                                  WHERE
+                                        doc.id = rkk.id)
+                            WHEN fv.objectType = 'RKK_OUTPUT'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT doc.CtrlDateExecution IS NULL
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND outrkk.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN outrkk.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN doc.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN outrkk.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN doc.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN outrkk.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT doc.RegNumCnt IS NULL
+                                            THEN 'REGISTERED'
+                                            WHEN NOT outrkk.ApprAddStatus IS NULL AND outrkk.ApprAddStatus <> '' AND outrkk.SignIsRejected = 1
+                                            THEN (CASE WHEN outrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE outrkk.ApprAddStatus END)
+                                            WHEN outrkk.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT outrkk.ApprAddStatus IS NULL AND outrkk.ApprAddStatus <> ''
+                                            THEN (CASE WHEN outrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE outrkk.ApprAddStatus END)
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_OutputRkk outrkk
+                                        NATURAL JOIN F_DP_Rkk doc
+                                  WHERE
+                                        outrkk.id = rkk.id)
+                            WHEN fv.objectType = 'RKK_OUTPUT'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT doc.CtrlDateExecution IS NULL
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN doc.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN doc.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN NOT doc.RegNumCnt IS NULL
+                                            THEN 'REGISTERED'
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_RequestRkk request
+                                        NATURAL JOIN F_DP_Rkk doc
+                                  WHERE
+                                        request.id = rkk.id)
+                            WHEN fv.objectType = 'RKK_CONTRACTS'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT contractrkk.ExecutionMark IS NULL AND contractrkk.ExecutionMark <> ''
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND contractrkk.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN contractrkk.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN doc.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN contractrkk.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN doc.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN contractrkk.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT doc.RegNumCnt IS NULL AND contractrkk.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            WHEN NOT doc.RegNumCnt IS NULL AND contractrkk.statusDog <> 'проект'
+                                            THEN 'PROJECT'
+                                            WHEN NOT contractrkk.ApprAddStatus IS NULL AND contractrkk.ApprAddStatus <> '' AND contractrkk.SignIsRejected = 1
+                                            THEN (CASE WHEN contractrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE contractrkk.ApprAddStatus END)
+                                            WHEN contractrkk.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT contractrkk.ApprAddStatus IS NULL AND contractrkk.ApprAddStatus <> ''
+                                            THEN (CASE WHEN contractrkk.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE contractrkk.ApprAddStatus END)
+                                            WHEN contractrkk.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_ContractRkk contractrkk
+                                        NATURAL JOIN F_DP_Rkk doc
+                                  WHERE
+                                        contractrkk.id = rkk.id)
+                            WHEN fv.objectType = 'ADDAGR_CONTRACTS'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN NOT addagr.ExecutionMark IS NULL AND addagr.ExecutionMark <> ''
+                                            THEN 'EXECUTED'
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND doc.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN doc.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN addagr.RegIsRejected = 1
+                                            THEN 'REGISTRATION_REJECTED'
+                                            WHEN doc.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN addagr.RegIsInProcess = 1
+                                            THEN 'SENT_TO_REGISTRATION'
+                                            WHEN doc.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT addagr.RegNumber IS NULL AND addagr.RegNumber <> '' AND doc.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            WHEN NOT addagr.RegNumber IS NULL AND addagr.RegNumber <> '' AND doc.statusDog <> 'проект'
+                                            THEN 'PROJECT'
+                                            WHEN NOT doc.ApprAddStatus IS NULL AND doc.ApprAddStatus <> '' AND doc.SignIsRejected = 1
+                                            THEN (CASE WHEN doc.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE doc.ApprAddStatus END)
+                                            WHEN doc.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT doc.ApprAddStatus IS NULL AND doc.ApprAddStatus <> ''
+                                            THEN (CASE WHEN doc.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE doc.ApprAddStatus END)
+                                            WHEN doc.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_ContractDS addagr
+                                        NATURAL JOIN F_DP_ContractCommon doc
+                                  WHERE
+                                        addagr.id = rkk.id)
+                            WHEN fv.objectType = 'ADDAGR_CONTRACTS'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND doc.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN doc.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN doc.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN doc.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT contractdoc.RegNumber IS NULL AND contractdoc.RegNumber <> '' AND doc.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            WHEN NOT contractdoc.RegNumber IS NULL AND contractdoc.RegNumber <> '' AND doc.statusDog <> 'проект'
+                                            THEN 'PROJECT'
+                                            WHEN NOT doc.ApprAddStatus IS NULL AND doc.ApprAddStatus <> '' AND doc.SignIsRejected = 1
+                                            THEN (CASE WHEN doc.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE doc.ApprAddStatus END)
+                                            WHEN doc.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT doc.ApprAddStatus IS NULL AND doc.ApprAddStatus <> ''
+                                            THEN (CASE WHEN doc.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE doc.ApprAddStatus END)
+                                            WHEN doc.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_ContractDoc contractdoc
+                                        NATURAL JOIN F_DP_ContractCommon doc
+                                  WHERE
+                                        contractdoc.id = rkk.id)
+                            WHEN fv.objectType = 'FINANCE_CONTRACTS'
+                            THEN (SELECT
+                                        (CASE
+                                            WHEN doc.CertIsCertified = 1
+                                            THEN 'VERIFIED'
+                                            WHEN doc.ReviewIsUnder = 1 AND doc.SignIsSigned <> 1
+                                            THEN 'ON_REVIEW'
+                                            WHEN doc.SignIsSentTo = 1
+                                            THEN 'SENT_TO_SIGN'
+                                            WHEN doc.SignIsSigned = 1
+                                            THEN 'SIGNED'
+                                            WHEN doc.ApprIsUnder = 1
+                                            THEN 'ON_APPROVING'
+                                            WHEN NOT fin.RegNumber IS NULL AND fin.RegNumber <> '' AND doc.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            WHEN NOT fin.RegNumber IS NULL AND fin.RegNumber <> '' AND doc.statusDog <> 'проект'
+                                            THEN 'PROJECT'
+                                            WHEN NOT doc.ApprAddStatus IS NULL AND doc.ApprAddStatus <> '' AND doc.SignIsRejected = 1
+                                            THEN (CASE WHEN doc.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE doc.ApprAddStatus END)
+                                            WHEN doc.SignIsRejected = 1
+                                            THEN 'SIGNING_REJECTED'
+                                            WHEN NOT doc.ApprAddStatus IS NULL AND doc.ApprAddStatus <> ''
+                                            THEN (CASE WHEN doc.ApprAddStatus LIKE 'INTERRUPT_%' THEN 'APPROVING_INTERRUPTED' ELSE doc.ApprAddStatus END)
+                                            WHEN doc.statusDog = 'действующий'
+                                            THEN 'ACTIVE'
+                                            ELSE 'PROJECT'
+                                            END)
+                                  FROM
+                                        F_DP_ContractFD fin
+                                        NATURAL JOIN F_DP_ContractCommon doc
+                                  WHERE
+                                        fin.id = rkk.id)
+                            ELSE 'PROJECT'
+                            END) as documentStatus
+                FROM
+                    PS_Folder_Link fv
+                    JOIN PS_Folder parentFolder ON parentFolder.id = fv.owner
+                    JOIN PT_ProfileTop profileTop ON profileTop.favorities = COALESCE(parentFolder.rootFolder, parentFolder.id)
+                    JOIN PT_Profile profile ON profile.id = profileTop.id
+                    JOIN nunid2punid_map map ON map.nunid = fv.objectId
+                    JOIN F_DP_RkkBase rkk ON rkk.id = cast(substring(map.punid, 5, 12) AS int)
+                    JOIN SS_Module module ON module.id = rkk.module
+                    JOIN SS_ModuleType mt ON mt.id = module.type
+                WHERE
+                    fv.objectType IN ('RKK_INPUT', 'RKK_INTERNAL', 'RKK_ORD', 'RKK_OUTPUT', 'RKK_REQUESTS', 'RKK_CONTRACTS', 'ADDAGR_CONTRACTS',
+                                      'DOC_CONTRACTS', 'FINANCE_CONTRACTS', 'RESOLUTION_TASKS')
+                    AND rkk.isDeleted <> 1
+                    ::where-clause
+                ORDER BY
+                    fv.created_date desc
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(fv.id)
+                FROM
+                    PS_Folder_Link fv
+                    JOIN PS_Folder parentFolder ON parentFolder.id = fv.owner
+                    JOIN PT_ProfileTop profileTop ON profileTop.favorities = COALESCE(parentFolder.rootFolder, parentFolder.id)
+                    JOIN PT_Profile profile ON profile.id = profileTop.id
+                    JOIN nunid2punid_map map ON map.nunid = fv.objectId
+                    JOIN F_DP_RkkBase rkk ON rkk.id = cast(substring(map.punid, 5, 12) AS int)
+                    JOIN SS_Module module ON module.id = rkk.module
+                    JOIN SS_ModuleType mt ON mt.id = module.type
+                WHERE
+                    fv.objectType IN ('RKK_INPUT', 'RKK_INTERNAL', 'RKK_ORD', 'RKK_OUTPUT', 'RKK_REQUESTS', 'RKK_CONTRACTS', 'ADDAGR_CONTRACTS',
+                                      'DOC_CONTRACTS', 'FINANCE_CONTRACTS', 'RESOLUTION_TASKS')
+                    AND rkk.isDeleted <> 1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="CurrentPersonID">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                SO_Appointment app
+                                NATURAL JOIN SO_AppointmentPlain appPlain
+                            WHERE
+                            profile.post = appPlain.post AND
+                            app.person = {0} AND app.IsPrimary = 1
+                            UNION
+                            SELECT
+                                1
+                            FROM
+                                SO_Appointment app
+                                NATURAL JOIN SO_AppointmentHead appHead
+                            WHERE
+                                profile.post = appHead.post AND
+                                app.person = {0} AND app.IsPrimary = 1
+                    )
+                ]]>
+        </criteria>
+    </filter>
+</collection>

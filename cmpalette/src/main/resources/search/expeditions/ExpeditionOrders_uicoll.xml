@@ -1,0 +1,127 @@
+<search-area name="ExpeditionOrders_uicoll">
+
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object  type="F_DP_IntRkk">
+
+        <!-- Проектный номер -->
+        <indexed-field name="projectNumber" search-by="substring" >
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring" >
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }</script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Место регистрации -->
+        <indexed-field name="Registration" search-by="substring" >
+            <script>
+                var code = ctx.get('RegCode.orig_shortname');
+                if (code == null) code;
+                var reg = ctx.get('RegRegistrator.orig_shortname');
+                if (reg != null) code += ' (' + reg + ')';
+                code;
+            </script>
+            <filter>
+                <doel>RegCode:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <indexed-field name="type_rpo">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("valueTypeRPO")</doel>
+                </filter>
+            </indexed-field>
+
+            <indexed-field name="recepient">
+                <doel>value:split("%"):getString("1")</doel>
+                <filter>
+                    <doel>cmjfield:in("recepient")</doel>
+                </filter>
+            </indexed-field>
+            <indexed-field name="address">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("address")</doel>
+                </filter>
+            </indexed-field>
+            <indexed-field name="docNumber">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("docNumber")</doel>
+                </filter>
+            </indexed-field>
+            <!-- Исполнитель -->
+            <linked-domain-object type="F_DP_IntRkk_Executor">
+                <indexed-field name="initiator">
+                    <doel>Executor.orig_shortname</doel>
+                </indexed-field>
+                <parent-link>
+                    <doel>Owner</doel>
+                </parent-link>
+            </linked-domain-object>
+            <indexed-field name="party">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("party")</doel>
+                </filter>
+            </indexed-field>
+            <indexed-field name="SHPIcode">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("SHPIcode")</doel>
+                </filter>
+            </indexed-field>
+            <indexed-field name="stage">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("stage")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_Dateonly" nested="true">
+
+            <indexed-field name="docDate" solr-prefix="cm_dt">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("docDate")</doel>
+                </filter>
+            </indexed-field>
+            <!-- ============================== -->
+
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <filter>
+            <conditions-script>
+                <![CDATA[ctx.get('Module.Type.Alias') == 'ExpeditionOrders']]>
+            </conditions-script>
+        </filter>
+    </target-domain-object>
+</search-area>

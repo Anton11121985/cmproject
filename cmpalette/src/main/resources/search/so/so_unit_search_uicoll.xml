@@ -1,0 +1,87 @@
+<search-area name="so_unit_search_uicoll" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="structureUnitShortName" value="20.0"/>
+        <field-boost name="structureUnitFullName" value="20.0"/>
+        <field-boost name="origShortName" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_unit">
+        <indexed-field name="structureUnitShortName" search-by="substring">
+            <doel>shortname</doel>
+        </indexed-field>
+        <indexed-field name="structureUnitFullName" search-by="substring">
+            <doel>fullname</doel>
+        </indexed-field>
+        <indexed-field name="origShortName" search-by="substring">
+            <script>
+                <![CDATA[
+                var person = calcCurPers('so_appointmenthead^post');
+                if (person == null) {
+                    person = calcCurPers('so_appointmentplain^post');
+                }
+                if (person != null) {
+                  ctx.setResult(person.getString('lastname') + ' ' + person.getString('firstname') + ' ' + person.getString('middlename'));
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+
+        <indexed-field name="code" search-by="substring">
+            <doel>so_parent_su^owner</doel>
+        </indexed-field>
+
+        <indexed-field name="hrCode" search-by="substring">
+            <doel>HRCode</doel>
+        </indexed-field>
+        <indexed-field name="PersonalId" search-by="substring">
+            <script>
+                <![CDATA[
+                if (ctx.get('PersonalId') != null) {
+                    ctx.setResult(ctx.get('PersonalId'));
+                } else {
+                    var person = calcCurPers('so_appointmenthead^post');
+                    if (person == null) {
+                        person = calcCurPers('so_appointmentplain^post');
+                    }
+                    if (person != null) {
+                        var effName = person.getString('tabnum');
+                        if (effName != null) {
+                            ctx.setResult("~" + effName);
+                        }
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+    </target-domain-object>
+</search-area>

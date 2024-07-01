@@ -1,0 +1,156 @@
+<search-area name="OutputDocs_uicoll" replace="runtime">
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="20.0"/>
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object type="F_DP_OutputRkk">
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject" search-by="substring"/>
+        <!--Подпись -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="Superior" search-by="substring">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Контрольный -->
+        <indexed-field name="isControl">
+            <script>ctx.get("RkkCtrlState") > 0 ? 1 : null;</script>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecuted">
+            <doel>CtrlDateExecution</doel>
+        </indexed-field>
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate"/>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>RegDate</doel>
+        </indexed-field>
+
+        <!-- Номер проекта -->
+        <indexed-field name="PNumber_Full" search-by="substring">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер, по точному совпадению -->
+        <indexed-field name="regNumberExact" search-by="exactmatch">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Вид документа -->
+        <indexed-field name="reqType">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- Зарегистрирован -->
+        <indexed-field name="isRegistered">
+            <doel>RegNumCnt</doel>
+        </indexed-field>
+        <!-- Срок исполнения -->
+        <indexed-field name="extControlDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+        <!-- Место регистрации -->
+        <indexed-field name="Registration" search-by="substring">
+            <script>
+                var code = ctx.get('RegCode.orig_shortname');
+                if (code == null) code;
+                var reg = ctx.get('RegRegistrator.orig_shortname');
+                if (reg != null) code += ' (' + reg + ')';
+                code;
+            </script>
+            <filter>
+                <doel>RegCode.orig_shortname:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Исполнение контролируют -->
+        <linked-domain-object type="F_DP_RkkBase_Controller">
+            <indexed-field name="ControlPeople" search-by="substring">
+                <doel>Controller.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Исполнитель -->
+        <linked-domain-object type="F_DP_OutputRkk_Executor">
+            <indexed-field name="From" search-by="substring">
+                <doel>Executor.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Адресат -->
+        <linked-domain-object type="F_DP_OutputRkk_OrgInfAddr">
+            <indexed-field name="Recepient" search-by="substring">
+                <doel>Addressee.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="To" search-by="substring">
+                <doel>Addressee.orgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner.Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- SpecMark -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_SMrk">
+            <indexed-field name="specMark" search-by="substring">
+                <doel>specmark</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+
+        <filter>
+            <doel>Module.Type.Alias:in("OutputDocs", "OutputDocsPrev")</doel>
+        </filter>
+    </target-domain-object>
+
+</search-area>

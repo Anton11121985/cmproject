@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.15.0.final using JasperReports Library version 6.15.0-dd49bfb94918336b8321d5507193f0169ead4e95  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="expedition-output-register-for-send-zakaznoe-pochta-ru" pageWidth="1530" pageHeight="200" orientation="Landscape" columnWidth="1530" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="6a544a68-2845-410f-85c5-4d478e064051">
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[select
+prjnumcounter
+,docId
+,substring(files,1,50) as files
+,address
+,recepient_type
+,substring(recepient,1,147) as recepient
+,substring(docNumber,1,30) as docNumber
+,inn
+,kpp
+,expOrInitOrganizationAddress
+,substring(comments,1,200) as comments
+,withReturnReceipt
+,valueCategoryRPO
+,idreq
+,rkkbasetype
+
+FROM (
+select prjnumcounter 
+,rkk.id AS docId
+,F_DP_RkkWORegAndCtrl.comments as comments
+,(select string_agg(files.name, ', ')
+  FROM F_ContentFiles_Rkk files 
+  WHERE files.f_dp_rkkbase = rkkbase.id) as files
+	
+,(SELECT tfs.value
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'address') as address
+ 
+,(SELECT case when SO_Beard.orig_type in (10, 0) then '1' when SO_Beard.orig_type in (21) then '0' else '' end
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+    left join SO_Beard on SO_Beard.cmjunid = split_part(tfs.value, '%', 3) || split_part(tfs.value, '%', 4)
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'recepient') as recepient_type 
+
+,(SELECT tfs.value
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'docNumber') as docNumber	
+
+,(SELECT COALESCE(person.inn, SO_OrgDescription.inn)
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+    --орг
+    left join SO_Beard SO_BeardOrg on SO_BeardOrg.cmjunid = split_part(tfs.value, '%', 3) || split_part(tfs.value, '%', 4)
+    left join so_orgdescriptionnonsys on so_orgdescriptionnonsys.beard = SO_BeardOrg.id
+    left join SO_OrgDescription on SO_OrgDescription.id = so_orgdescriptionnonsys.id
+    --физ л
+    left join SO_Beard SO_Beard on SO_Beard.cmjunid = split_part(tfs.value, '%', 3) || split_part(tfs.value, '%', 4)
+    left join SO_PersonNonsys on SO_Beard.id = SO_PersonNonsys.beard
+	LEFT JOIN so_person person ON SO_PersonNonsys.id = person.id 
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'recepient') as inn 	
+
+,(SELECT SO_OrgDescription.kpp
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+    --орг
+    left join SO_Beard SO_BeardOrg on SO_BeardOrg.cmjunid = split_part(tfs.value, '%', 3) || split_part(tfs.value, '%', 4)
+    left join so_orgdescriptionnonsys on so_orgdescriptionnonsys.beard = SO_BeardOrg.id
+    left join SO_OrgDescription on SO_OrgDescription.id = so_orgdescriptionnonsys.id
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'recepient') as kpp 
+		
+,(SELECT zipcode || ', ' || country || ', г.' || city || ', ' || region || ', ул.' || street || 
+	', д.' || house || 
+	case when corp <> '' then ', ' || corp else '' end
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+    --Орг
+    join SO_Beard SO_BeardOrg on SO_BeardOrg.cmjunid = split_part(tfs.value, '%', 4) || split_part(tfs.value, '%', 5)
+    join SO_StructureUnit on SO_StructureUnit.beard = SO_BeardOrg.id
+	join SO_AddressData_SU on SO_StructureUnit.id = SO_AddressData_SU.owner
+	join SO_AddressData on SO_AddressData.id = SO_AddressData_SU.id
+	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'expOrInitOrganization'
+		AND SO_AddressData_SU.type = 'юридический' 
+	order by SO_AddressData_SU.isdefault desc, SO_AddressData_SU.idx
+	limit 1
+) as expOrInitOrganizationAddress
+
+,(SELECT tfs.value::int
+	FROM tn_field 
+    JOIN tn_field_decimal tfs ON tn_field.access_object_id = tfs.id
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'withReturnReceipt') as withReturnReceipt	
+ 
+,(SELECT tfs.value
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'valueCategoryRPO') as valueCategoryRPO 	
+
+,(SELECT case when split_part(tfs.value, '%', 1) = '$' then split_part(tfs.value, '%', 2) else split_part(tfs.value, '%', 1) end
+	FROM tn_field 
+    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+ 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'recepient') as recepient
+
+,idreq
+,rkkbase.type::text as rkkbasetype
+	
+from F_DP_IntRkk intrkk
+LEFT JOIN f_dp_rkk rkk ON rkk.id = intrkk.id
+LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id	
+LEFT JOIN ss_module module ON module.id = rkkbase.module
+LEFT JOIN ss_moduletype moduletype ON moduletype.id = module.type
+LEFT JOIN F_DP_RkkWORegAndCtrl on rkkbase.id = F_DP_RkkWORegAndCtrl.id
+	
+left join lateral (select distinct * from (
+	select
+		intrkk.id::text as idreq
+		,coalesce(CASE WHEN (rkk.regnumprist || coalesce(cast(rkk.regnumcnt AS varchar), '') || rkk.regnumfin) = '' THEN NULL
+	                ELSE (rkk.regnumprist || coalesce(cast(rkk.regnumcnt AS varchar), '') || rkk.regnumfin)
+	                END, rkk.prjnumprist || rkk.prjnumcounter || rkk.prjnumfin, '')
+		,recepient.v as recepient
+		
+		,output_rkk.id as idout
+		,rkkbaseOut.subject
+		,extSendCorr.v as extSendCorr
+		,extSendWay.v as extSendWay
+		,link.doclinktype
+	
+	FROM nunid2punid_map n2p 
+	JOIN f_dp_rkkworegandctrl_ulnk link ON link.docunid = n2p.nunid
+	join f_dp_outputrkk output_rkk on output_rkk.id = link.owner  
+	JOIN f_dp_rkkbase rkkbaseOut ON rkkbaseOut.id = output_rkk.id
+	left join lateral (SELECT case when split_part(tfs.value, '%', 1) = '$' then split_part(tfs.value, '%', 2) else split_part(tfs.value, '%', 1) end as v
+		FROM tn_field 
+	    JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+	 	WHERE tn_field.owner = intrkk.id AND tn_field.cmjfield = 'recepient') recepient on 1=1 
+	
+	left join lateral (SELECT tfs.value as v, idx
+		FROM tn_field 
+		JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+		WHERE tn_field.owner = output_rkk.id AND tn_field.cmjfield = 'extSendCorr' ) extSendCorr	on 1=1 
+		
+	left join lateral (SELECT tfs.value as v, idx
+	FROM tn_field 
+	JOIN tn_field_string tfs ON tn_field.access_object_id = tfs.id
+	 	WHERE tn_field.owner = output_rkk.id AND tn_field.cmjfield = 'extSendWay'
+	) extSendWay on extSendWay.idx = extSendCorr.idx
+		
+	where cast(substring(n2p.punid, 1, 4) AS INT) = intrkk.id_type AND
+		cast(substring(n2p.punid, 5, 12) AS INT) = intrkk.id 
+		and link.doclinktype LIKE 'RUSPOSTSENDING' 
+		and rkkbaseOut.type LIKE 'Электронное заказное письмо'
+	) s
+	where  s.extSendWay = 'Почта России (ЭЗП)' and recepient = extSendCorr
+) tmp on 1=1
+
+WHERE rkkbase.isdeleted <> 1 AND moduletype.alias = 'ExpeditionOrders'
+order by docid
+)s where valueCategoryRPO = 'Электронное заказное письмо'
+AND docid IN (SELECT Item FROM QR_Id_List WHERE Request = $P{request_id})]]>
+	</queryString>
+	<field name="files" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="recepient_type" class="java.lang.String"/>
+	<field name="recepient" class="java.lang.String"/>
+	<field name="inn" class="java.lang.String"/>
+	<field name="kpp" class="java.lang.String"/>
+	<field name="docNumber" class="java.lang.String"/>
+	<field name="expOrInitOrganizationAddress" class="java.lang.String"/>
+	<field name="comments" class="java.lang.String"/>
+	<field name="withReturnReceipt" class="java.lang.String"/>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<elementGroup>
+				<staticText>
+					<reportElement mode="Opaque" x="0" y="0" width="100" height="30" backcolor="#9C9C9C" uuid="e9ffafe5-ffb0-4fdb-bd5f-a8b0a0cc7849">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[FILE_NAME]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="100" y="0" width="130" height="30" backcolor="#9C9C9C" uuid="140f082d-8186-40f4-aa85-b812508223ff">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ADDRESSLINE_TO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="230" y="0" width="100" height="30" backcolor="#9C9C9C" uuid="5e669ffd-a7d2-438f-963e-53cbfe74f8cf">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[RECIPIENT_TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="330" y="0" width="70" height="30" backcolor="#9C9C9C" uuid="d1b03656-4879-4a64-90b7-52df2a8d74cc">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[RECIPIENT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="400" y="0" width="70" height="30" backcolor="#9C9C9C" uuid="7a47e7f7-a071-451b-b85a-786eb2abeafe">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[INN]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="470" y="0" width="70" height="30" backcolor="#9C9C9C" uuid="62dcde75-3a32-4b2d-a5d2-1cc588b9ee3b">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[KPP]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="540" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="b3566650-5737-4cac-a0fb-73dc714e86c8">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[LETTER_REG_NUMBER]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="660" y="0" width="70" height="30" backcolor="#9C9C9C" uuid="9190d38a-b84b-4dc3-adaf-32164dbf0cfa">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[LETTER_TITLE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="730" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="e0b45bdd-3306-4e5f-a188-dbef2ab8d9e5">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[MAILCATEGORY]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="850" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="3320a1fa-a177-43a1-9e58-a259179336c4">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ADDRESSLINE_RETURN]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="970" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="9eb64a76-f193-4d28-8791-e4b473c75a75">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[WOMAILRANK ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="1090" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="58cf9e54-055a-449d-bcda-04db6c2f7490">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ADDITIONAL_INFO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="1210" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="d22d84a0-1cfc-400d-bb9e-fe15b93b67a8">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[LETTER_COMMENT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="1330" y="0" width="120" height="30" backcolor="#9C9C9C" uuid="d043a29d-cec0-45f0-9c7b-2eaadf3ecf85">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[NOTIFICATIONTYPE ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="1450" y="0" width="80" height="30" backcolor="#9C9C9C" uuid="a0f74824-d35c-4eaa-8b0e-f9f1663a2faf">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Calibri" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[NO_RETURN]]></text>
+				</staticText>
+			</elementGroup>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<elementGroup>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="0" y="0" width="100" height="15" uuid="0dde6a0a-fec2-45b6-9df8-059794519ab7">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{files} != null ? $F{files} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="100" y="0" width="130" height="15" uuid="6e07e225-d237-496d-9a17-021f77192ad3">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{address} != null ? $F{address} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="230" y="0" width="100" height="15" uuid="66654486-4a7f-4d31-b390-6d26616738c5">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{recepient_type} != null ? $F{recepient_type} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="330" y="0" width="70" height="15" uuid="f2ec1bc9-7606-404c-9ea9-cb3a909e70c8">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{recepient} != null ? $F{recepient} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="400" y="0" width="70" height="15" uuid="00c45fb8-57bb-4384-b735-d4de06415314">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{inn} != null ? $F{inn} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="470" y="0" width="70" height="15" uuid="2cf2ad14-f301-4667-be2d-63f3726eb0b7">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{kpp} != null ? $F{kpp} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="540" y="0" width="120" height="15" uuid="d41da970-7af2-4f9d-8ae9-cf609b604ef4">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{docNumber} != null ? $F{docNumber} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="660" y="0" width="70" height="15" uuid="d0ccdfd2-fc39-42dd-a647-0ba0e44f8f53">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="730" y="0" width="120" height="15" uuid="e32fa7b2-91fe-4c7d-a6e8-9e88e18499ab">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["1"]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="850" y="0" width="120" height="15" uuid="e506fc7b-cdc7-495b-aa7c-f88d4110e32e">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{expOrInitOrganizationAddress} != null  ? $F{expOrInitOrganizationAddress} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="970" y="0" width="120" height="15" uuid="06b713e4-5f7c-420e-9685-928580ff7186">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="1090" y="0" width="120" height="15" uuid="a7a3f969-3a9a-42e3-bf04-7f1f4df86396">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="1210" y="0" width="120" height="15" uuid="6afdbc3d-2bff-4e90-aaca-a97ae446d0fb">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comments} != null ? $F{comments} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="1330" y="0" width="120" height="15" uuid="7b31fa15-b1aa-4b28-90a8-0d08f2f4ffd3">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{withReturnReceipt}.equals("0" ) ? "" : "E"]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" mode="Opaque" x="1450" y="0" width="80" height="15" uuid="67e2e3a7-1cbe-4fc0-bcb6-5803db431a60">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["1"]]></textFieldExpression>
+				</textField>
+			</elementGroup>
+		</band>
+	</detail>
+</jasperReport>

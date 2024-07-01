@@ -1,0 +1,83 @@
+<collection name="OrgDirectory_(vw_cmj_admin_all_name)" idField="id" replace="runtime">
+	<prototype>
+		<![CDATA[
+			SELECT
+				  temp.id,
+	                temp.id_type,
+	                '<id>' as self_1,
+		            ':' as self_2,
+		            '</>' as self_3,
+	                temp.created_date,
+	                temp.Module,
+	                temp.name
+			FROM (
+				SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+                       org.fullname as name
+                    FROM
+                        so_orgdescriptionnonsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        	and orgdesc.isdeleted!=1 and orgdesc.replacedwith is null and (orgdesc.IsLiquidated=0 or orgdesc.IsLiquidated is null)
+
+                    UNION
+                    SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+                       org.shortname as name
+                    FROM
+                        so_orgdescriptionnonsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        	and orgdesc.isdeleted!=1 and orgdesc.replacedwith is null and (orgdesc.IsLiquidated=0 or orgdesc.IsLiquidated is null)
+
+                    UNION
+                    SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+su.fullname as name
+
+                    FROM
+                        so_orgdescriptionsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        	and orgdesc.isdeleted!=1 and orgdesc.replacedwith is null and (orgdesc.IsLiquidated=0 or orgdesc.IsLiquidated is null)
+                        join so_orgsystem orgsys on org.orgsystem = orgsys.id
+                        join so_structureunit su on su.id = orgsys.id
+                    UNION
+                    SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+su.shortname as name
+
+                    FROM
+                        so_orgdescriptionsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        	and orgdesc.isdeleted!=1 and orgdesc.replacedwith is null and (orgdesc.IsLiquidated=0 or orgdesc.IsLiquidated is null)
+                        join so_orgsystem orgsys on org.orgsystem = orgsys.id
+                        join so_structureunit su on su.id = orgsys.id
+
+			) temp
+			WHERE
+				1 = 1
+				::where-clause			
+		]]>
+	</prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				Module = {0}
+			]]>
+		</criteria>
+	</filter>
+</collection>

@@ -1,0 +1,87 @@
+<collection name="SO_(vw_cmj_ndp_deps)" idField="id">
+    <prototype>
+        <![CDATA[
+  SELECT
+                  s.id,
+                  s.created_date,
+                  sm.Module,
+                  '<id>' as self_1,
+                  ':' as self_2,
+                  '</>' as self_3,
+                  s.orgsystem_id as orgsystem_id,
+                  s.unitFull unitFull,
+                  s.unitShort unitShort,
+                  s.depIndex depIndex
+              FROM
+			  (SELECT dep.hierroot  orgsystem_id,  dep.hierroot_type orgsystem_id_type, dep_u.id id, dep_u.id_type id_type, dep_u.created_date created_date,
+  dep_su.fullname unitFull, dep_su.shortName unitShort, par.code depIndex
+              FROM so_department dep
+              join so_unit dep_u ON dep_u.id = dep.id
+              join so_structureunit dep_su ON dep_su.id = dep_u.id
+              join SO_Parent_SU sopar ON sopar."owner" = dep_u.id
+			  join SO_Parent par ON par.id = sopar.id
+              join so_beard dep_beard on dep_beard.id = dep_su.beard and dep_beard.id_type = dep_su.beard_type
+              AND dep.accessRedirect is NULL and dep.IsIsolated=0
+
+              UNION
+
+              SELECT ph_post.hierroot orgsystem_id, ph_post.hierroot_type orgsystem_id_type, ph_u.id id, ph_u.id_type id_type, ph_u.created_date created_date,
+	 ph_beard.orig_shortname unitFull, ph_beard.orig_shortname unitShort, par.code depIndex
+              FROM so_posthead ph
+              join so_unit ph_u ON ph_u.id  = ph.id
+              join so_post ph_post ON ph_post.id  = ph_u.id
+              join so_appointmenthead apphead on apphead.post = ph.id and apphead.post_type = ph.id_type
+              join so_appointment ph_app on ph_app.id = apphead.id and ph_app.id_type = apphead.id_type
+              join so_beard ph_beard on ph_app.beard = ph_beard.id
+              join SO_Parent_PH sopar ON sopar."owner" = ph.id
+			  join SO_Parent par ON par.id = sopar.id
+               where COALESCE(ph_post.IsDeleted, 0) = 0 and  apphead.AccessRedirect is NULL and not ph_app.person is null
+
+                 )  s
+              ::from-clause
+              WHERE
+                1 = 1
+                ::where-clause
+       ]]>
+    </prototype>
+    <filter name="MODULE">
+        <reference placeholder="from-clause">
+            <![CDATA[
+               	join SS_ModuleOrg sm on sm.Organization = s.orgsystem_id
+               ]]>
+        </reference>
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   sm.Module = {0}
+               ]]>
+        </criteria>
+    </filter>
+    <filter name="unitFull_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    s.unitFull ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="unitShort_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    s.unitShort ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="depIndex_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    s.depIndex ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    lower(s.unitFull) like ('%' || lower({0}) || '%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

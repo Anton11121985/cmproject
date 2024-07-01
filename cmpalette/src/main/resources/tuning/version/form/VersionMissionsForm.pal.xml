@@ -1,0 +1,369 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <form schema-ref="VersionMissions" projection="default" name="${ui.form.VersionMissionsForm.name:Карточка версии ОРД}" id="VersionMissionsForm" showtabs="true">
+    <properties>
+      <hide condition-union="AND">
+        <negative-condition-ref ref="read"/>
+      </hide>
+    </properties>
+    <appearance widget="tabs"/>
+    <component>
+      <section id="Header" group="true">
+        <component>
+          <section id="column" group="true">
+            <component>
+              <section id="row11" group="true">
+                <appearance>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="horizontalSection"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <component>
+                  <field attribute-ref="showIdent">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal">
+                      <label-style field-width="15" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="showType">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal" multiline="false">
+                      <label-style field-width="15" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="securityStamp" name="${ui.form.VersionMissionsForm.section.Header.section.row11.field.securityStamp.name:Гриф доступа:}">
+                    <appearance importance="high" align="left">
+                      <label-style field-unit="symbol" field-width="27">
+                        <style id="tunBlack"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBlack"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="row12" group="true">
+                <appearance>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="horizontalSection"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <component>
+                  <field attribute-ref="title">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunFontSize14"/>
+                        <style id="tunClickableUnderline"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunFontSize14"/>
+                          <style id="tunClickableUnderline"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="row13" group="true">
+                <component>
+                  <field attribute-ref="versionText">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="RootMenu" group="true">
+        <component>
+            <button name="${ui.form.VersionDocumentsForm.section.RootMenu.button.checkECP.name:Проверить ЭП}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="islockerSingExistVer"/>
+                    </hide>
+                </properties>
+                <action position="104">
+                    <custom>
+                        <operation>
+                            <handler-ref ref="verifyVersionLockerSing"/>
+                        </operation>
+                    </custom>
+                </action>
+            </button>
+            <section id="OTHER" name="${ui.form.VersionRkkForm.section.RootMenu.button.create.OTHER.name:Другое}">
+                <component>
+                    <button name="${ui.form.VersionRkkForm.section.RootMenu.button.create.version.name:В документ}">
+                        <action position="100">
+                            <custom>
+                                <operation>
+                                    <handler-ref ref="openParentObjectFromVer"/>
+                                </operation>
+                            </custom>
+                        </action>
+                    </button>
+                </component>
+            </section>
+          <button name="${ui.form.VersionRkkForm.section.RootMenu.button.showVersion.name:Показать все версии}">
+            <action position="101">
+              <custom>
+                <operation>
+                  <handler-ref ref="showAllVersionsFromVer"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <section id="Create" name="${ui.form.VersionRkkForm.section.RootMenu.section.Create.name:Создать}">
+            <appearance>
+              <action position="103"/>
+            </appearance>
+            <component>
+              <button name="${ui.form.VersionRkkForm.section.RootMenu.button.createRkk.name:Новый документ как копию}">
+                <action position="103.1">
+                  <custom>
+                    <operation>
+                      <handler-ref ref="createNewRkkByVersion"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.VersionRkkForm.section.RootMenu.button.createActual.name:Актуальную версию}">
+                  <properties>
+                      <hide condition-union="AND">
+                          <negative-condition-ref ref="canEditParentVer"/>
+                      </hide>
+                  </properties>
+                <action position="103.2">
+                  <custom>
+                    <operation>
+                      <handler-ref ref="updateActualByOldVersion"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section name="${ui.form.VersionMissionsForm.section.Attributes.name:Реквизиты}" id="Attributes">
+        <component>
+          <section id="firstMainRow" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="type" name="${ui.form.VersionMissionsForm.section.Attributes.section.Main.section.firstMainRow.field.type.name:Вид документа:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedField"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="dateAndRegNumberGroup" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="registration.date" name="${ui.form.VersionMissionsForm.section.Attributes.section.Mainsection.firstMainRow.section.dateAndRegNumberGroup.field.registration.date.name:Дата документа:}">
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedField"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="registration.regnumber" name="${ui.form.VersionMissionsForm.section.Attributes.section.Mainsection.firstMainRow.section.dateAndRegNumberGroup.field.registration.number.name:Рег. номер:}">
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedField"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+          <field attribute-ref="signature.signer" name="${ui.form.VersionMissionsForm.section.Attributes.section.Main.field.signatire.signer.name:Подписант:}">
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBorderedField"/>
+              </label-style>
+            </appearance>
+            <properties>
+              <hide>
+                <condition-ref ref="VerMissions_hasMultipleSigners"/>
+              </hide>
+            </properties>
+          </field>
+          <section id="signersSection" group="true">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="VerMissions_hasMultipleSigners"/>
+              </hide>
+            </properties>
+            <component>
+              <section id="signUtilitySection" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="isPersonal" name="${ui.form.VersionMissionsForm.section.Attributes.section.Main.section.signPers.field.isPersonal.name:Выполнить лично}">
+                    <appearance align="right" importance="normal">
+                      <label-style field-width="2" field-unit="symbol"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="signersTableSection" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="labelSign">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="right">
+                      <label-style field-width="15" field-unit="symbol">
+                        <style id="tunGray"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="signature.signers">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance location="table" importance="normal"/>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+          <field attribute-ref="comment" name="${ui.form.VersionMissionsForm.section.Attributes.section.Main.field.comment:Примечание:}">
+            <appearance importance="normal" multiline="true">
+              <label-style>
+                <style id="tunBorderedField"/>
+              </label-style>
+            </appearance>
+          </field>
+          <section id="VersionBaseSections" group="true">
+            <component>
+              <field attribute-ref="versionBase.author" name="${ui.form.VersionMissionsForm.section.Attributes.versionInfo.author:Автор:}">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedField"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="commentGroup" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="versionBase.comment" name="${ui.form.VersionMissionsForm.section.Attributes.versionInfo.comment:Комментарий:}">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedField"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                  <button name="${ui.form.VersionMissionsForm.section.Attributes.versionInfo.comment.change:Изменить комментарий}">
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler-ref ref="changeCommentVersion"/>
+                        </operation>
+                      </custom>
+                    </action>
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isAuthorOrSubstitutor"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style>
+                        <style id="tunBtn tunBlue"/>
+                      </label-style>
+                    </appearance>
+                  </button>
+                </component>
+              </section>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+        </component>
+      </section>
+      <section id="ContentSection" name="${ui.form.VersionMissionsForm.section.ContentSection.name:Содержание}">
+        <component>
+          <field attribute-ref="content" name="${ui.form.VersionMissionsForm.section.ContentSection.content.name:Файлы:}"/>
+        </component>
+      </section>
+      <section id="DistribSection" name="${ui.form.VersionMissionsForm.section.DistribSection.name:Рассылка}">
+        <component>
+          <field attribute-ref="addressee" name="${ui.form.VersionMissionsForm.section.DistribSection.field.missDistribList.name:Список рассылки:}">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance importance="normal">
+              <label-style>
+                <style id="tunBorderedField"/>
+              </label-style>
+            </appearance>
+          </field>
+        </component>
+      </section>
+    </component>
+  </form>
+</ui>

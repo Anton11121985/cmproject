@@ -1,0 +1,1098 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<links xmlns="http://www.intertrust.ru/schema/palette/links">
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="">
+            <module ident="InternalDocs"/>
+            <module ident="InternalDocsPrev"/>
+            <module ident="Missions"/>
+            <module ident="MissionsPrev"/>
+            <module ident="InputDocs"/>
+            <module ident="InputDocsPrev"/>
+            <module ident="OutputDocs"/>
+            <module ident="OutputDocsPrev"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REASONFORPOSTP" direction="to" back-ref="REQUESPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTE" direction="to" back-ref="EXECUTED" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="Dog">
+            <module ident="ContractsLite"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REASONFORPOSTP" direction="to" back-ref="REQUESPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTE" direction="to" back-ref="EXECUTED" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="AddAgr">
+            <module ident="ContractsLite"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REASONFORPOSTP" direction="to" back-ref="REQUESPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTE" direction="to" back-ref="EXECUTED" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="DocDogovor">
+            <module ident="ContractsLite"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REASONFORPOSTP" direction="to" back-ref="REQUESPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTE" direction="to" back-ref="EXECUTED" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="DocDogovor">
+            <module ident="ContractsLite"/>
+        </source>
+        <target doc-type="">
+            <module ident="Tasks"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REQUESPOSTP" direction="from" back-ref="REASONFORPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTED" direction="from" back-ref="EXECUTE" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="AddAgr">
+            <module ident="ContractsLite"/>
+        </source>
+        <target doc-type="">
+            <module ident="Tasks"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REQUESPOSTP" direction="from" back-ref="REASONFORPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTED" direction="from" back-ref="EXECUTE" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var status = ctx.get('docStatus');
+if (status.size() > 0 && !status.get(0).isEmpty()) {
+    status = ' (' + status.get(0) + ')';
+} else {
+    status = '';
+}
+
+var result = Type + " " + Number +  " от " + Date + status;
+ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="Dog">
+            <module ident="ContractsLite"/>
+        </source>
+        <target doc-type="">
+            <module ident="Tasks"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REQUESPOSTP" direction="from" back-ref="REASONFORPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTED" direction="from" back-ref="EXECUTE" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link for-general-document="true">
+        <calc-doc-info lang="JavaScript">
+            <![CDATA[var Type;var Date;var Number = ctx.get('PNumber_Full');Date = ctx.get("Outdate");Date = Date.size() > 0 ? Date.get(0) : '';Date = Date == '' ? "" : Date.toString();Type=ctx.get('reqtype');Number = Number.size() > 0 ? Number.get(0) : '';Type = Type.size() > 0 ? Type.get(0) : '';var result = Type + " " + Number +  " от " + Date;ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="">
+            <module ident="NotRegistered"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="EXECUTE" direction="from" back-ref="EXECUTED" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1)  : '';
+var OutDate = ctx.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = ctx.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = ctx.get('ResDate');
+Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = ctx.get('Rdate');
+Date = Date.size() > 0 ? Date.get(0) : '';}
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';var OutNumber = ctx.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';var Type;
+var Number;
+    if ("spismo".equals(Form)) {
+        Type = "СП ";
+    } else if ("resolution".equals(Form)) {
+        Type = "Поручение ";
+    } else if ("Dog".equals(Form)) {
+        Type = ctx.get('dogtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    } else if ("AddAgr".equals(Form)) {
+        Type = "ДС ";
+    } else if ("DocDogovor".equals(Form)) {
+        Type = "Документ по договору ";
+    } else if ("Finance".equals(Form)) {
+        Type = "Финдокумент ";
+    } else {
+        Type = ctx.get('reqtype');
+Type = Type.size() > 0 ? Type.get(0) : '';    }
+
+if ("spismo".equals(Form)) {
+   Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}else if ("Finance".equals(Form)) {
+	Number = ctx.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+	Date = ctx.get("Date");
+	Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result = Type + " " + Number +  " от " + Date;ctx.setResult(result);]]></calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="">
+            <module ident="Tasks"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="REASONFORPOSTP" direction="from" back-ref="REQUESPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="REQUESPOSTP" direction="from" back-ref="REASONFORPOSTP" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTE" direction="from" back-ref="EXECUTED" select="true" link-on="now"/>
+            <link-type-ref ref="EXECUTED" direction="from" back-ref="EXECUTE" select="true" link-on="now"/>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" default="true" select="true" link-on="now"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+        var Form = ctx.get('form');
+        Form = Form.size() > 0 ? Form.get(0) : '';
+
+        var secStamp = ctx.get('security_stamp_name');
+        if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+            ctx.setResult('Имеется гриф ограничения доступа');
+        } else {
+			if ("Dog".equals(Form) || "Finance".equals(Form)) {
+				result = ctx.get('DocSubject');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("AddAgr".equals(Form)) {
+				result = ctx.get('SubjectA');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("DocDogovor".equals(Form)) {
+				result = ctx.get('Displayheader');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else if ("resolution".equals(Form)) {
+				result = ctx.get('resolution');
+				result = result.size() > 0 ? result.get(0) : '';
+			} else {
+				result = ctx.get('Subject');
+				result = result.size() > 0 ? result.get(0) : '';
+			}
+			var ver = 0;
+			var verFix = ctx.get('link_VersionTemp');
+			if (verFix.size() > 0) {
+				ver = verFix.get(0);
+			}
+			if (ver != 0) {
+				result = result + ' Версия ' + ver;
+			}
+			ctx.setResult(result);
+		}]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link for-general-document="true">
+        <calc-doc-info lang="JavaScript">
+            <![CDATA[
+            var Type;
+            var Date;
+            var Number = ctx.get('PNumber_Full');
+            Number = Number.size() > 0 ? Number.get(0) : '';
+            Date = ctx.get("Outdate");
+            Date = Date.size() > 0 ? Date.get(0) : '';
+            Date = Date == '' ? "" : Date.toString();
+            var result = "Заказ " + Number + " от " + Date;
+            ctx.setResult(result);
+            ]]>
+        </calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="">
+            <module ident="ExpeditionOrders"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+        </link-types>
+        <calc-name lang="JavaScript">
+            <![CDATA[ctx.setResult('Заказ на отправку Почтой России');]]>
+        </calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+    <link>
+        <calc-doc-info lang="JavaScript"><![CDATA[
+var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+var resolutionType = '';
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('Form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = context.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = context.get('ResDate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = context.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+    Type = "СП ";
+} else if ("Dog".equals(Form)) {
+    Type = context.get('dogtype');
+    Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+    Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+    Type = "Фин. документ ";
+} else {
+    Type = context.get('reqtype');
+    Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+if ("spismo".equals(Form)) {
+    Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    var rprist = context.get('rprist');
+    var RNumber = context.get('RNumber');
+    var rfin = context.get('rfin');
+    rprist = rprist.size() > 0 ? rprist.get(0) : '';
+    RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+    rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form)) {
+    Number = context.get("Number");
+    Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+    var rprist = context.get('rprist');
+    var RNumber = context.get('RNumber');
+    var rfin = context.get('rfin');
+    rprist = rprist.size() > 0 ? rprist.get(0) : '';
+    RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+    rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result = resolutionType + Type + " " + Number + " от " + Date;
+ctx.setResult(result);
+    ]]>
+        </calc-doc-info>
+        <source doc-type="">
+            <module ident="Tasks"/>
+        </source>
+        <target doc-type="Finance">
+            <module ident="ContractsLite"/>
+        </target>
+        <link-types>
+            <link-type-ref ref="EXECUTED" direction="to" back-ref="EXECUTE" select="false" link-on="now"/>
+            <link-type-ref ref="ADDED" direction="to" back-ref="ADD" select="false" link-on="now"/>
+            <link-type-ref ref="SEE_ALSO" direction="without" back-ref="SEE_ALSO" default="true" select="false" link-on="now"/>
+        </link-types>
+        <calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var secStamp = ctx.get('security_stamp_name');
+if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {
+    result = 'Имеется гриф ограничения доступа';
+} else if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('Displayheader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+        <get-doc way="byDocID"/>
+    </link>
+</links>

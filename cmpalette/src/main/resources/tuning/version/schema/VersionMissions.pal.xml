@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="VersionMissions" extends="VersionRkk">
+    <string temporal="true" name="pagename">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['ОРД']]></script>
+      </calc-values>
+    </string>
+    <schema-ref ref="SignatureInfoTun" name="signature"/>
+    <actor name="addressee" array="true"/>
+    <string name="comment"/>
+    <actor name="executor" array="true"/>
+    <string name="labelSign" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Подписант:"]]></script>
+      </calc-values>
+    </string>
+    <boolean name="hasMultipleSigners" system="true" temporal="true">
+        <calc-values>
+            <script event="open">
+                <![CDATA[signature != null && !('STD'.equals(signature.signingMode))]]>
+            </script>
+        </calc-values>
+    </boolean>
+      <boolean name="addedLockerLinks" system="true" temporal="true">
+          <calc-values>
+              <script event="open">
+                  <![CDATA[#this.hasMultipleSigners &&  T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).addLockerSignatureLinkImpl(#this, 'signature.signers', 'lockerSignatureID', T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.version.VersionApplication)), #this.id)]]>
+              </script>
+          </calc-values>
+      </boolean>
+  </schema>
+</schemas>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.19.1-867c00bf88cd4d784d404379d6c05e1b419e8a4c  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="veb-collecting-statistics" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="eb80c6dc-a384-4a94-ba4b-c482c16380a5">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+			fu.id as id,
+			fu.created_date as created_date,
+			fu.module as module,
+			fu.index as IndexF,
+			fu.branchdivision OperationF,
+			case when s.fullname is not null then s.fullname else b.orig_postname end as OwnerF,
+			case when fu.divisiontype = 'ACTIVITY' then 1 else 0 end TypeF
+		from FR_OrgRegister fo
+		join FR_OrgRegister_Ndps ndps on ndps.owner = fo.id
+		join nunid2punid_map n2p on n2p.nunid = substring(ndps.fr_unitregisterunid, 18)
+		join FR_UnitRegister fu on to_char(cast((fu.id_type * 10^12) as bigint) + fu.id, 'FM0000000000000000') = substring(n2p.punid, 1, 16)
+		left join so_beard b on b.id = ndps.sounit
+		left join SO_StructureUnit as s on s.beard = fu.sounit
+		where fo.id IN (SELECT item FROM QR_Id_List WHERE request = $P{request_id})]]>
+	</queryString>
+	<field name="id" class="java.lang.Object">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="f_dp_rkkbase"/>
+	</field>
+	<field name="IndexF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="IndexF"/>
+		<property name="com.jaspersoft.studio.field.label" value="IndexF"/>
+	</field>
+	<field name="OwnerF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="OwnerType"/>
+		<property name="com.jaspersoft.studio.field.label" value="OwnerType"/>
+	</field>
+	<field name="TypeF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="EC"/>
+		<property name="com.jaspersoft.studio.field.label" value="EC"/>
+	</field>
+	<field name="OperationF" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="AccessLevel"/>
+		<property name="com.jaspersoft.studio.field.label" value="AccessLevel"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement positionType="Float" x="0" y="0" width="151" height="30" uuid="5969ad04-2413-49ad-b116-61ae8cb96f54">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<text><![CDATA[Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="151" y="0" width="148" height="30" uuid="e7f34f72-bdb9-4f00-a6d6-b8b011d37ca9">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<text><![CDATA[Index]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="299" y="0" width="148" height="30" uuid="3ff8cfa2-ec51-4280-a753-71845daa0a48">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<text><![CDATA[Owner]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="447" y="0" width="148" height="30" uuid="d40d718b-a0ec-4ddf-bbb7-93a3eeba24f2">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<text><![CDATA[Operation]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="151" height="30" uuid="406bab29-7b63-48e9-a642-887a7250aa3a">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TypeF}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="151" y="0" width="148" height="30" uuid="30847ffe-6583-43f4-a4a3-ca11b9cbfb07">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{IndexF}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="299" y="0" width="148" height="30" uuid="1b506088-7782-41a6-8aa0-3b092dbd8b2c">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{OwnerF}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="447" y="0" width="148" height="30" uuid="cdb5a56d-a7ca-462e-8449-6b6526b423bd">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#D4D4D4"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{OperationF}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

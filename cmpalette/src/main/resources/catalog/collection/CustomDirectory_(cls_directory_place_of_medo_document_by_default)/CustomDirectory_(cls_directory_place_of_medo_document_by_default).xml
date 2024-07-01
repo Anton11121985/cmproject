@@ -1,0 +1,53 @@
+<collection name="CustomDirectory_(cls_directory_place_of_medo_document_by_default)" replace="runtime" idField="id" useClone="false">
+    <prototype>
+        <![CDATA[
+			SELECT
+				id,
+				created_date,
+				self_1,
+				self_2,
+				self_3,
+				Module,
+				byDefault
+			FROM(
+				SELECT
+					tag.id,
+					tag.created_date,
+					'<id>' as self_1,
+					':' as self_2,
+					'</>' as self_3,
+					tag.module AS Module,
+				    (SELECT
+                        tfd.value
+                    FROM tn_field tf
+                    JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                    WHERE tf.owner = tag.id AND tf.cmjfield = 'byDefault'
+                    )														as byDefault
+
+				FROM
+					clscom_tag tag
+				WHERE
+				    tag.schema = 'ComplectClassifierMedoPlaceOfDocument'
+				    AND tag.deleted <> 1
+			)s
+			WHERE
+			    byDefault = '1'
+			    ::where-clause
+		]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="byDefault">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				1=1
+			]]>
+        </criteria>
+    </filter>
+</collection>
+

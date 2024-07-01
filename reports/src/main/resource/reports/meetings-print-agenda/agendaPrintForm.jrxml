@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="agendaPrintForm" pageWidth="595" pageHeight="842" columnWidth="505" leftMargin="59" rightMargin="31" topMargin="59" bottomMargin="59" uuid="19441d5a-d384-40f5-bc44-0ce4b700f3df">
+	<property name="net.sf.jasperreports.export.docx.flexible.row.height" value="true"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="CM5"/>
+	<parameter name="request_id" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[4]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+		meet.id AS docId,
+		settings.subjectRP AS typeOfMeeting,
+		CASE
+		WHEN absentee = 1 THEN '(заочное)'
+		ELSE ''
+        END AS absenteeStr,
+		to_char(meet.meeting_date, 'DD.MM.YYYY') AS meetingDate,
+		meet.meeting_time AS meetingTime,
+		meet.place AS meetingPlace,
+        substring(chairman.firstname, 1, 1) || '.' || substring(chairman.middlename, 1, 1) || '.' || ' ' || chairman.lastname
+        AS chairmanFIO,
+        substring(secretary.firstname, 1, 1) || '.' || substring(secretary.middlename, 1, 1) || '.' || ' ' || secretary.lastname
+        AS secretaryFIO,
+        (SELECT DISTINCT 
+		string_agg(substring(firstname, 1, 1) || '.'
+			|| substring(middlename, 1, 1) || '.' || ' '
+			|| lastname, ', ')
+        	FROM (SELECT
+				Person.firstname as firstname,
+				Person.middlename as middlename,
+				Person.lastname as lastname
+                  	FROM SO_Person person
+                  	join SO_Appointment appointment on appointment.person=person.id
+                    	join f_meetings_a_ppart ppart on appointment.beard = ppart.participant
+                  	WHERE ppart.owner = meet.id
+                  	order by ppart.idx
+			 ) q
+        ) AS regularFIO,
+
+(SELECT DISTINCT 
+		string_agg(substring(firstname, 1, 1) || '.'
+			|| substring(middlename, 1, 1) || '.' || ' '
+			|| lastname || ', ' || postname, ';<br>')
+        	FROM (SELECT
+				Person.firstname as firstname,
+				Person.middlename as middlename,
+				Person.lastname as lastname,
+				post.name as postname
+                  	FROM SO_Person person
+                  	join SO_Appointment appointment on appointment.person=person.id
+                    	join f_meetings_a_invited minvited on appointment.beard = minvited.invited
+                    	LEFT JOIN SO_Appointmenthead aphead ON aphead.id = appointment.id
+                	LEFT JOIN SO_Appointmentplain applain ON applain.id = appointment.id
+                	JOIN SO_post post on post.id = coalesce(aphead.post,applain.post)
+                  	WHERE minvited.owner = meet.id
+                       UNION
+                       SELECT DISTINCT
+				Person.firstname as firstname,
+				Person.middlename as middlename,
+				Person.lastname as lastname,
+				post.name as postname
+                  	FROM SO_Person person
+                  	join SO_Appointment appointment on appointment.person=person.id
+                    	join f_point_invited pinvited on appointment.beard = pinvited.invited	
+                    	LEFT JOIN SO_Appointmenthead aphead ON aphead.id = appointment.id
+                	LEFT JOIN SO_Appointmentplain applain ON applain.id = appointment.id
+                	JOIN SO_post post on post.id = coalesce(aphead.post,applain.post)
+                    	join f_meetings_point point on point.id=pinvited.owner
+                  	WHERE point.meeting = meet.id
+			 ) q
+        ) AS invitedFIO
+    FROM
+     	f_meetings_meeting meet
+        LEFT JOIN f_meetings_settings settings ON meet.setting = settings.id
+        LEFT JOIN SO_Person chairman ON chairman.id in (SELECT appointment.person FROM SO_Appointment appointment WHERE appointment.beard = meet.a_chairman)
+        LEFT JOIN SO_Person secretary ON secretary.id in (SELECT appointment.person FROM SO_Appointment appointment WHERE appointment.beard = meet.a_secretary)
+WHERE
+meet.id in (SELECT l.Item FROM QR_Id_List l WHERE l.request = $P{request_id})]]>
+	</queryString>
+	<field name="typeOfMeeting" class="java.lang.String"/>
+	<field name="absenteeStr" class="java.lang.String"/>
+	<field name="meetingDate" class="java.lang.String"/>
+	<field name="meetingTime" class="java.lang.String"/>
+	<field name="meetingPlace" class="java.lang.String"/>
+	<field name="chairmanFIO" class="java.lang.String"/>
+	<field name="secretaryFIO" class="java.lang.String"/>
+	<field name="regularFIO" class="java.lang.String"/>
+	<field name="invitedFIO" class="java.lang.String"/>
+	<field name="docid" class="java.lang.Object"/>
+	<title>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="505" height="20" uuid="1f7fbe27-cec0-4bd2-b010-d7de9db1e49a"/>
+				<textElement textAlignment="Center" markup="html">
+					<font fontName="Times New Roman" size="14" isBold="true"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ПОВЕСТКА"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="40" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="505" height="40" uuid="4dcb07de-07f2-4cc1-9fa5-112c0b21138c"/>
+				<textElement textAlignment="Center" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25" spacingAfter="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["заседания " + ($F{typeOfMeeting} != null ? $F{typeOfMeeting} : "") +
+($F{absenteeStr} != null  ? "<br>" + $F{absenteeStr} : "")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="505" height="40" uuid="b7f53ef1-e9dd-4756-91a9-c98aeec52457"/>
+				<textElement markup="html">
+					<font fontName="Times New Roman" size="12" isBold="false"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25" spacingAfter="20"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Дата:</b> " + ($F{meetingDate} != null ? $F{meetingDate} : "") + " <b>Время:</b> " + ($F{meetingTime}!= null ? $F{meetingTime} : "") + "<br>" +
+"<b>Место:</b> " + ($F{meetingPlace} != null ? $F{meetingPlace} : "")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="40" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="" isPrintRepeatedValues="false" x="150" y="0" width="355" height="20" uuid="f7b038d3-0083-4fa2-bfcc-fd7afca7fc38"/>
+				<textElement markup="html">
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{chairmanFIO} != null ? $F{chairmanFIO} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement key="" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="150" height="20" uuid="c953cae6-d366-4e8a-a77b-634256924e51"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Председатель:"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="20" width="150" height="20" uuid="196fa16a-f110-4c99-a516-7458fa2d6b2f"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Секретарь:"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement isPrintRepeatedValues="false" x="150" y="20" width="355" height="20" uuid="a90904e6-81b7-4b9e-90a1-4c0c1d34b8b3"/>
+				<textElement markup="html">
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{secretaryFIO} != null ? $F{secretaryFIO} : ""]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="150" height="20" uuid="019a0f70-5a53-47c5-9494-995a6116a972"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Постоянные участники"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement isPrintRepeatedValues="false" x="150" y="0" width="355" height="20" uuid="4fac4599-4df3-4afa-9c73-a331a82488c8"/>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{regularFIO} != null ? $F{regularFIO} : ""]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="150" y="0" width="355" height="20" isRemoveLineWhenBlank="true" uuid="f341913b-fa92-48a2-adbb-53b550144f23"/>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invitedFIO}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="150" height="20" isRemoveLineWhenBlank="true" uuid="252f17ec-cf24-4e80-bcf9-5563ac8293da"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invitedFIO} != null ? "Приглашенные:" : null]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="40" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="0" y="10" width="505" height="30" uuid="860760dc-01f2-4be7-a56c-0b761d9f9c30"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="false"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25" spacingAfter="20"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ПОВЕСТКА ДНЯ"]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<subreport isUsingCache="false" runToBottom="false">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" mode="Opaque" x="0" y="0" width="505" height="20" uuid="7729edf1-a12e-48b4-86b6-89346016a4fc"/>
+				<subreportParameter name="ID">
+					<subreportParameterExpression><![CDATA[$F{docid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["agendaPrintForm_points.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="0" y="0" width="505" height="20" uuid="bb11af2e-585f-4fa8-b097-a32c471cc113"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

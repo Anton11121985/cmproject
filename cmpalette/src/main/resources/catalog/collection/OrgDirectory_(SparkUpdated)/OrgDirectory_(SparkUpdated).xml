@@ -1,0 +1,128 @@
+<collection name="OrgDirectory_(SparkUpdated)" idField="id">
+	<prototype>
+		<![CDATA[
+SELECT
+	        temp.id,
+	        temp.id_type,
+	        '<id>' as self_1,
+		      ':' as self_2,
+		      '</>' as self_3,
+	        temp.created_date,
+	        temp.Module,
+					CASE
+						    WHEN temp.counterparty='' THEN ''
+						    WHEN temp.counterparty='entity' THEN 'юридическое лицо'
+						    WHEN temp.counterparty='individualentrepreneur' THEN 'индивидуальный предприниматель'
+						    WHEN temp.counterparty='authority' THEN 'орган государственной (муниципальной) власти'
+						    WHEN temp.counterparty is NULL THEN ''
+					END as counterparty,
+		      temp.fullNameOrganization,
+		      temp.shortNameULIP,
+		      temp.sparkUpdEvent as sparkUpdEvent,
+		      sparkLastUpdate
+
+                FROM(
+                    SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.Module,
+                        orgdesc.edited,
+                        orgdesc.replacedWith,
+                        orgdesc.isDeleted,
+                        orgdesc.isLiquidated,
+                        orgdesc.RequestState,
+                        case when org.shortName='' then org.fullName else org.shortName end as shortNameULIP,
+                        org.fullName as fullNameOrganization,
+
+            tfs1.value as counterparty,
+            (SELECT
+            		DISTINCT coalesce(string_agg(updField, ', '), '')
+            		FROM(
+         			SELECT
+                  		tfs3.value as updField
+                  	FROM
+                  		tn_field tf3
+                  		left join tn_field_string tfs3 on tfs3.id=tf3.id
+                  	WHERE
+                  	     tf3.owner = orgdesc.id and tf3.owner_type = orgdesc.id_type and tf3.cmjfield ='sparkUpdateEvent'
+		               ) q
+            ) as sparkUpdEvent
+            ,tv2.value as sparkLastUpdate
+                    FROM
+                        so_orgdescriptionnonsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        left join so_orgdescription orgdescription on org.id = orgdescription.id
+
+left join tn_field tf1 on tf1.owner = orgdesc.id and tf1.owner_type = orgdesc.id_type and tf1.cmjfield ='counterparty'
+left join tn_field_string tfs1 on tfs1.id=tf1.id
+
+join tn_field tf2 on tf2.owner = orgdesc.id and tf2.owner_type = orgdesc.id_type and tf2.cmjfield ='sparkLastUpdateTime'
+join tn_field_datetime tv2 on tv2.id=tf2.id
+
+                )temp
+                WHERE
+                    temp.edited is null AND temp.replacedWith is null AND (temp.RequestState is null OR temp.RequestState = 0)
+                     AND temp.isDeleted <> 1 AND (temp.isLiquidated IS NULL OR temp.isLiquidated <> 1)
+                    ::where-clause
+            ]]>
+	</prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    temp.Module = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="shortNameULIP_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.shortNameULIP) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="fullNameOrganization_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.fullNameOrganization) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="counterparty_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    CASE
+						    WHEN temp.counterparty='' THEN ''
+						    WHEN temp.counterparty='entity' THEN 'юридическое лицо'
+						    WHEN temp.counterparty='individualentrepreneur' THEN 'индивидуальный предприниматель'
+						    WHEN temp.counterparty='authority' THEN 'орган государственной (муниципальной) власти'
+						    WHEN temp.counterparty is NULL THEN ''
+						END  like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="sparkUpdEvent_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+						 case
+					    when  temp.sparkUpdEvent is null then ''
+					    else  temp.sparkUpdEvent
+					 end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="sparkLastUpdate_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (sparkLastUpdate is null))
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="sparkLastUpdate">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    cast(sparkLastUpdate as date) = cast({0} as date)
+                ]]>
+		</criteria>
+	</filter>
+</collection>

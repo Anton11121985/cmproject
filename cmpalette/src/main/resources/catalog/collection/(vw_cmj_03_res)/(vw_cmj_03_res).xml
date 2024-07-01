@@ -1,0 +1,282 @@
+<collection name="(vw_cmj_03_res)" idField="id" replace="runtime">
+    <prototype><![CDATA[
+SELECT id,
+       created_date,
+       module,
+       self_1,
+       self_2,
+       self_3,
+       templateName,
+       authorVCard,
+       executors,
+       executeDuration,
+       isControlled,
+       text,
+       accessTypeColl
+FROM (SELECT resolution_template.id,
+             resolution_template.created_date,
+             resolution_template.module                      AS Module,
+             '<id>'                                          AS self_1,
+             ':'                                             AS self_2,
+             '</>'                                           AS self_3,
+             resolution_template.name                        AS templateName,
+             coalesce(
+                                             '<id>'
+                                             || substring(author.cmjunid, 33, 48)
+                                         || ':'
+                                     || substring(author.cmjunid, 1, 32)
+                                 || '</><shortName>'
+                             || author.orig_shortname
+                         || '</>'
+                 , '<id>:</><shortName></>')                 AS authorVCard,
+             (SELECT coalesce(string_agg(execs.beard, ';'),
+                           '<id></><shortName></><responsible></>')
+                      FROM (SELECT
+                           '<id>'
+                           || substring(executor.cmjunid, 33, 48)
+                           || ':'
+                           || substring(executor.cmjunid, 1, 32)
+                           || '</><shortName>'
+                           || executor.Orig_ShortName
+                           || '</><responsible></>' as beard
+                            FROM F_DP_ResolutionT_ExecCurr execres
+                            JOIN so_beard executor ON executor.id = execres.executorcurr
+                            WHERE resolution_template.id = execres.owner ORDER BY execres.idx ) as execs) AS executors,
+             coalesce(
+                         resolution_template.execduration::VARCHAR
+                         || ' дней'
+                 , '')                                       AS executeDuration,
+             CASE
+                 WHEN resolution_template.ctrliscontrolled = 1 THEN 'Да'
+                 ELSE 'Нет' END                              AS isControlled,
+             resolution_template.resolution                  AS text,
+             (CASE
+                  WHEN (SELECT count(lnfield)
+                        FROM (SELECT lnfield
+                              FROM dp_lnacc_resolutiont
+                                       natural JOIN dp_lnacc
+                              WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnacc_resolutiont.owner = resolution_template.id
+                              UNION
+                              SELECT lnfield
+                              FROM  dp_lnaccrole_resolutiont
+                                        natural JOIN dp_lnaccrole
+                              WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnaccrole_resolutiont.owner = resolution_template.id) pub) <> 0
+                 THEN 'Доступен всем'
+                 WHEN resolution_template.isfavouritesaccess is not null AND resolution_template.isfavouritesaccess <> 0
+                 THEN 'Доступен выбранным'
+                 ELSE 'Личный доступ' END)                   AS accessTypeColl
+      FROM f_dp_resolutiont resolution_template
+               LEFT JOIN so_beard author ON resolution_template.author = author.id AND
+                                            resolution_template.author_type = author.id_type
+      WHERE resolution_template.isdeleted <> 1
+     ) s
+WHERE 1 = 1
+::where-clause
+    ]]></prototype>
+    <counting-prototype><![CDATA[
+SELECT count(1)
+FROM (SELECT resolution_template.id,
+             resolution_template.created_date,
+             resolution_template.module                      AS Module,
+             '<id>'                                          AS self_1,
+             ':'                                             AS self_2,
+             '</>'                                           AS self_3,
+             resolution_template.name                        AS templateName,
+             coalesce(
+                                             '<id>'
+                                             || substring(author.cmjunid, 33, 48)
+                                         || ':'
+                                     || substring(author.cmjunid, 1, 32)
+                                 || '</><shortName>'
+                             || author.orig_shortname
+                         || '</>'
+                 , '<id>:</><shortName></>')                 AS authorVCard,
+             (SELECT string_agg(execs.beard, ';')
+                      FROM (SELECT coalesce(
+                           '<id>'
+                           || substring(executor.cmjunid, 33, 48)
+                           || ':'
+                           || substring(executor.cmjunid, 1, 32)
+                           || '</><shortName>'
+                           || executor.Orig_ShortName
+                           || '</>',
+                           '<id></><shortName></>') as beard
+                            FROM F_DP_ResolutionT_ExecCurr execres
+                            JOIN so_beard executor ON executor.id = execres.executorcurr
+                            WHERE resolution_template.id = execres.owner ORDER BY execres.idx ) as execs) AS executors,
+             coalesce(
+                         resolution_template.execduration::VARCHAR
+                         || ' дней'
+                 , '')                                       AS executeDuration,
+             CASE
+                 WHEN resolution_template.ctrliscontrolled = 1 THEN 'Да'
+                 ELSE 'Нет' END                              AS isControlled,
+             resolution_template.resolution                  AS text,
+             (CASE
+                  WHEN (SELECT count(lnfield)
+                        FROM (SELECT lnfield
+                              FROM dp_lnacc_resolutiont
+                                       natural JOIN dp_lnacc
+                              WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnacc_resolutiont.owner = resolution_template.id
+                              UNION
+                              SELECT lnfield
+                              FROM  dp_lnaccrole_resolutiont
+                                        natural JOIN dp_lnaccrole
+                              WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnaccrole_resolutiont.owner = resolution_template.id) pub) <> 0
+                 THEN 'Доступен всем'
+                 WHEN resolution_template.isfavouritesaccess is not null AND resolution_template.isfavouritesaccess <> 0
+                 THEN 'Доступен выбранным'
+                 ELSE 'Личный доступ' END)                   AS accessTypeColl
+      FROM f_dp_resolutiont resolution_template
+               LEFT JOIN so_beard author ON resolution_template.author = author.id AND
+                                            resolution_template.author_type = author.id_type
+      WHERE resolution_template.isdeleted <> 1
+     ) s
+WHERE 1 = 1
+::where-clause
+    ]]></counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	created_date < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	created_date >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	created_date LIKE {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        templateName = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        templateName ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="authorVCard">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        authorVCard = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="authorVCard_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        authorVCard ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="executors">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        executors = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="executors_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        executors ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="executeDuration">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        executeDuration = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="executeDuration_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        executeDuration ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="text">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        text = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="text_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        text ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="isControlled">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        isControlled = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="isControlled_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        isControlled ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="AddManuallyDocResource" extends="Dialog" recalc="true">
+        <meta>
+            <category name="Диалоги"/>
+            <documentation>Схема диалога добавления документов вручную</documentation>
+        </meta>
+        <string name="addManuallyDocResourceText" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA['Укажите реквизиты документа']]></script>
+            </calc-values>
+        </string>
+        <boolean name="canReceive" temporal="true"/>
+        <boolean name="canAddEntryToRegistry" temporal="true"/>
+        <string name="counter"/>
+        <string name="barCode"/>
+        <string name="documentUnid"/>
+        <string name="savedBarCode"/> <!-- чтобы сохранить не обтображая -->
+        <enum-ref name="documentType" ref="DTRDocumentType"/>
+        <enum-ref name="module" ref="DTRDocumentModule" temporal="true"/>
+        <string name="reqType"/>
+        <boolean name="isAddAgrType"/>
+        <string name="regNumber"/>
+        <date name="date" temporal="true"/>
+        <string name="subject" temporal="true"/>
+        <string name="note"/>
+        <schema-ref name="correspondentForAdd" ref="DTRCorrespondentResource"/>
+        <string name="correspondentText"/>
+        <schema-ref name="addInfoForAdd" ref="DTRAdditionalInfoResource"/>
+        <string name="addInfoText"/>
+        <enum-ref ref="DTRDocSelectionMode" name="selectionMode">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['barcode']]></script>
+            </calc-values>
+        </enum-ref>
+        <string name="ids" array="true"/>
+        <boolean name="notFoundDocByBarcode" default-value="false"/>
+        <boolean name="showAddButton" temporal="true"/>
+        <custom-event-handler lang="JavaScript" ><![CDATA[
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.dp.DPBeardList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOOrganizationDescription);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.barcode.BarcodeSearchService);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.Addagr);
+importClass(Packages.ru.intertrust.cmj.dp.DPMInput);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.java.util.Date);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.java.text);
+
+function queryCreate(object) {
+}
+
+function recalc(object, changedField){
+	var values = object.tuning().getValues();
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+
+	if (changedField == 'module') {
+        var tunapp = AFSession.get().getApplication(TuningApplication.class);
+
+		//заполняем объекты для выбора корреспондентов и доп.инфы, чтобы в них оказался выбор с учётом вида документа
+		var correspondentForAddObject = values.get('correspondentForAdd');
+		if (correspondentForAddObject == null) {
+			var schemaCorresp = tunapp.getSchemaByName("DTRCorrespondentResource");
+			correspondentForAddObject = new AFInstanceObjectImpl(schemaCorresp);
+		}
+		correspondentForAddObject.getValues().put("module", values.get("module"));
+
+		var addInfoForAddObject = values.get('addInfoForAdd');
+		if (addInfoForAddObject == null) {
+			var schemaAddInfo = tunapp.getSchemaByName("DTRAdditionalInfoResource");
+			addInfoForAddObject = new AFInstanceObjectImpl(schemaAddInfo);
+		}
+		addInfoForAddObject.getValues().put("module", values.get("module"));
+
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "isAddAgrType", false);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", "");
+	}
+
+	// --------- заполняем корреспондентов после выбора по кнопке ----------
+	if (changedField == 'correspondentForAdd') {
+		var correspondentText = values.get('correspondentText') == null ? "" : values.get('correspondentText').getValue();
+		var correspondentForAdd = values.get('correspondentForAdd').getValues();
+
+		var correspondent = correspondentForAdd.get('correspondent') == null ? null : correspondentForAdd.get('correspondent').getValue();
+		if (correspondent != null) {
+			correspondentText = correspondent.toString();
+			values.put("correspondentText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentText")));
+		}
+
+		var correspondentList = correspondentForAdd.get('correspondentList') == null ? null :correspondentForAdd.get('correspondentList').getValues();
+		if (correspondentList != null && !correspondentList.isEmpty()) {
+			for (var i = 0; i < correspondentList.size(); i++) {
+				var correspondent = correspondentList.get(i).getValue();
+				if(correspondentText == "") {
+					correspondentText = correspondent.toString();
+				} else {
+					correspondentText = correspondentText + ", \n" + correspondent.toString();
+				}
+			}
+			values.put("correspondentText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentText")));
+		}
+
+        var correspondentForAddObject = values.get('correspondentForAdd');
+		correspondentForAdd.put("correspondent", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondent")));
+		correspondentForAdd.put("correspondentList", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondentList")));
+	}
+
+	// --------  заполняем допинфо после выбора по кнопке -------
+	if (changedField == 'addInfoForAdd') {
+		var addInfoText = values.get('addInfoText') == null ? "" : values.get('addInfoText').getValue();
+		var addInfoForAdd = values.get('addInfoForAdd').getValues();
+
+		var addInfo = addInfoForAdd.get('addInfo') == null ? null : addInfoForAdd.get('addInfo').getValue();
+		if (addInfo != null) {
+			addInfoText = addInfo.toString();
+			values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+		}
+
+		var addInfoList = addInfoForAdd.get('addInfoList') == null ? null :addInfoForAdd.get('addInfoList').getValues();
+		if (addInfoList != null && !addInfoList.isEmpty()) {
+			for (var i = 0; i < addInfoList.size(); i++) {
+				var addInfo = addInfoList.get(i).getValue();
+				if(addInfoText == "") {
+					addInfoText = addInfo.toString();
+				} else {
+					addInfoText = addInfoText + ", \n" + addInfo.toString();
+				}
+			}
+			values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+		}
+
+		addInfoForAdd.put("addInfo", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfo")));
+		addInfoForAdd.put("addInfoList", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfoList")));
+	}
+
+	if (changedField == 'isAddAgrType') {
+        var isAddAgrType = values.get("isAddAgrType").getValue();
+	    if (isAddAgrType) {
+	        TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", "Дополнительное соглашение");
+	    } else {
+	        TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", "");
+	    }
+	}
+
+}
+        ]]></custom-event-handler>
+    </schema>
+</schemas>

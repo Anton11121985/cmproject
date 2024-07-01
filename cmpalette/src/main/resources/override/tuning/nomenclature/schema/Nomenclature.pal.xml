@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema extends="TNObject" name="Nomenclature">
+    <meta>
+      <category name="Система\Договора"/>
+      <documentation>основная схема "Номенклатуры"</documentation>
+    </meta>
+    <string name="pagename" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Номенклатура']]></script>
+      </calc-values>
+    </string>
+    <string name="showIdent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Номенклатура']]></script>
+      </calc-values>
+    </string>
+    <string name="code"/>
+    <string name="subject"/>
+    <double name="price" required="true"/>
+    <string name="vat" required="true"/>
+    <double name="vatPrice" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(java.lang.Math).round((price?:0.0) * (100 + T(java.lang.Double).valueOf(vat?:'0'))) / 100.0]]></script>
+      </calc-values>
+    </double>
+    <string name="unit"/>
+    <schema-ref ref="ContentResource" name="nomenclatureContent"/>
+    <schema-ref ref="ContentResourceAdditional" name="contentAdd"/>
+    <file name="sigContent"/>
+    <file name="image"/>
+    <schema-ref ref="PRVZInfo" name="head"/>
+    <boolean name="deleted">
+      <storage-field name="met"/>
+      <storage-string value="1"/>
+    </boolean>
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+function recalc(object, changedField) {
+    if (changedField == "price") {
+        SetValue(object, "price", Math.round(GetValue(object, "price") * 100.0) / 100.0);
+    }
+}
+
+function SetValue(doc, fileName, value) {
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function GetValue(doc, fileName) {
+    return TunableObjectHelper.getAFInstanceValue(doc.tuning().getValues().get(fileName));
+}
+    ]]></custom-event-handler>
+  </schema>
+</schemas>

@@ -1,0 +1,313 @@
+<collection name="InternalDocs_(ExpOrder_not_included_in_party)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[SELECT id,
+       numberWOTags,
+       created_date,
+       module,
+       module_type,
+       self_1,
+       self_2,
+       self_3,
+       docNumber,
+	   state,
+       subject,
+       subject as description,
+	   sendingDate,
+	   address,
+	   addressee,
+	   СategoryRPOName,
+	   TypeRPOName,
+	   sendingInitiator,
+	   unid,
+	   type_and_category_rpo,
+	   initiator,
+	   party,
+cast(self_1 as VARCHAR) || cast(replica as VARCHAR) || cast(self_2 as VARCHAR) || cast(unid as VARCHAR) || cast(self_3 as VARCHAR)
+     || cast(docnumber_tag as VARCHAR) || cast(docNumber as VARCHAR) ||  cast(self_3 as VARCHAR)
+     || cast(subject_tag as VARCHAR) || cast(subject as VARCHAR) || cast(self_3 as VARCHAR)
+     || cast(sendingDate_tag as VARCHAR) || cast(sendingDate as VARCHAR) ||  cast(self_3 as VARCHAR)
+     || cast(address_tag as VARCHAR) || cast(address as VARCHAR) ||  cast(self_3 as VARCHAR)
+     || cast(addressee_tag as VARCHAR) || cast(addressee as VARCHAR) ||  cast(self_3 as VARCHAR)
+     || cast(TypeRPOName_tag as VARCHAR) || cast(TypeRPOName as VARCHAR) ||  cast(self_3 as VARCHAR)
+     || cast(СategoryRPOName_tag as VARCHAR) || cast(СategoryRPOName as VARCHAR) ||  cast(self_3 as VARCHAR)
+	 || cast(sendingInitiator_tag as VARCHAR) || cast(sendingInitiator as VARCHAR) ||  cast(self_3 as VARCHAR)as order_obj
+FROM (
+         SELECT rkkbase.id                                             AS id,
+                rkkbase.created_date                                   AS created_date,
+                rkkbase."module"                                       AS module,
+                rkkbase."module_type"                                  AS module_type,
+                COALESCE(rkk.regnumprist, '') ||
+                coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') AS numberWOTags,
+                coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') as docNumber,
+                '<id>'                                                 AS self_1,
+                ':'                                                    AS self_2,
+                '</>'                                                  AS self_3,
+                '<docNumber>'                                      AS docnumber_tag,
+                '<subject>'                                        AS subject_tag,
+				'<sendingDate>'                                    AS sendingDate_tag,
+                '<address>'                                        AS address_tag,
+                '<addressee>'                                       AS addressee_tag,
+                '<TypeRPOName>'                                    AS TypeRPOName_tag,
+                '<СategoryRPOName>'                                AS СategoryRPOName_tag,
+                '<sendingInitiator>'                                AS sendingInitiator_tag,
+				nunid2punid_map.nunid as unid,
+				module.replica as replica,
+                rkkbase.subject as sub,
+				coalesce(case when ( coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') )
+						 = '' then '' else ( coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') || ' ' ) end , '') || coalesce(to_char(rkk.regdate,'DD.MM.YYYY'), '') as subject,
+                coalesce((SELECT split_part(tfs."value", '%', 1) as v
+                 FROM tn_field_string tfs
+                 JOIN tn_field on tn_field.id = tfs.id
+                 WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                 AND tn_field.cmjfield = 'address'), '')                                 as address,
+                (SELECT tfs."value" as v
+                 FROM tn_field_string tfs
+                 JOIN tn_field on tn_field.id = tfs.id
+                 WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                 AND tn_field.cmjfield = 'stage')                               as state,
+
+				COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                FROM F_DP_IntRkk_Executor intexec
+                LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                WHERE intexec.owner = rkkbase.id), '<Не указано>') as initiator,
+
+                (SELECT string_agg(split_part(tfs."value", '%', 2),  ', ')  as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'recepient' )  as addressee,
+
+				coalesce(to_char((SELECT tfd."value" as v
+                FROM tn_field_dateonly tfd
+                JOIN tn_field on tn_field.id = tfd.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'docDate' ),'DD.MM.YYYY'),'')  as sendingDate,
+
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner = rkk.id_type
+                AND tn_field.cmjfield = 'valueCategoryRPO') as СategoryRPOName,
+
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'valueTypeRPO') as TypeRPOName,
+
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'valueTypeRPO') || ' ' ||
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'valueCategoryRPO') as type_and_category_rpo,
+
+                (SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield like 'party') as party,
+
+				COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                FROM F_DP_IntRkk_Executor intexec
+                LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                WHERE intexec.owner = rkkbase.id), '<Не указано>') as sendingInitiator
+
+         FROM f_dp_intrkk intrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = intrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                  LEFT JOIN ss_module module ON module.id = rkkbase.module
+				  LEFT JOIN ss_moduletype moduletype ON moduletype.id = module.type
+				  LEFT JOIN nunid2punid_map ON left(nunid2punid_map.punid, 16) = to_char(cast((rkk.id_type * 10^12) as bigint) + rkk.id, 'FM0000000000000000')
+				  WHERE rkkbase.isdeleted <> 1) s
+ WHERE s.state IN ('Адрес нормализован', 'Стоимость определена') and ((party is null) or party='')
+    ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+                COUNT(1)
+            FROM (
+         SELECT rkkbase.id                                             AS id,
+                rkkbase.created_date                                   AS created_date,
+                rkkbase."module"                                       AS module,
+                rkkbase."module_type"                                  AS module_type,
+                COALESCE(rkk.regnumprist, '') ||
+                coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') AS numberWOTags,
+                coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') as docNumber,
+                '<id>'                                                 AS self_1,
+                ':'                                                    AS self_2,
+                '</>'                                                  AS self_3,
+
+                rkkbase.subject || '2' as subject,
+				coalesce(case when ( coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') )
+						 = '' then '' else ( coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') || ' ' ) end , '') || coalesce(to_char(rkk.regdate,'DD.MM.YYYY'), '') as subject,
+				coalesce((SELECT split_part(tfs."value", '%', 1) as v
+                 FROM tn_field_string tfs
+                 JOIN tn_field on tn_field.id = tfs.id
+                 WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                 AND tn_field.cmjfield = 'address'), '')                                 as address,
+
+                (SELECT tfs."value" as v
+                 FROM tn_field_string tfs
+                 JOIN tn_field on tn_field.id = tfs.id
+                 WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                 AND tn_field.cmjfield = 'stage')                               as state,
+
+				COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                FROM F_DP_IntRkk_Executor intexec
+                LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                WHERE intexec.owner = rkkbase.id), '<Не указано>') as initiator,
+
+                (SELECT string_agg(split_part(tfs."value", '%', 2),  ', ')  as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'recepient' )  as addressee,
+
+				coalesce(to_char((SELECT tfd."value" as v
+                FROM tn_field_dateonly tfd
+                JOIN tn_field on tn_field.id = tfd.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'docDate' ),'DD.MM.YYYY'),'')  as sendingDate,
+
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner = rkk.id_type
+                AND tn_field.cmjfield = 'valueCategoryRPO') as СategoryRPOName,
+
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'valueTypeRPO') as TypeRPOName,
+
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'valueTypeRPO') || ' ' ||
+				(SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield = 'valueCategoryRPO') as type_and_category_rpo,
+
+                (SELECT tfs."value" as v
+                FROM tn_field_string tfs
+                JOIN tn_field on tn_field.id = tfs.id
+                WHERE tn_field.owner = rkk.id AND tn_field.owner_type = rkk.id_type
+                AND tn_field.cmjfield like 'party') as party,
+
+				COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                FROM F_DP_IntRkk_Executor intexec
+                LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                WHERE intexec.owner = rkkbase.id), '<Не указано>') as sendingInitiator
+				
+         FROM f_dp_intrkk intrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = intrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                  LEFT JOIN ss_module module ON module.id = rkkbase.module
+				  LEFT JOIN ss_moduletype moduletype ON moduletype.id = module.type
+				  LEFT JOIN nunid2punid_map ON left(nunid2punid_map.punid, 16) = to_char(cast((rkk.id_type * 10^12) as bigint) + rkk.id, 'FM0000000000000000')
+				  WHERE rkkbase.isdeleted <> 1) s
+ WHERE s.state IN ('Адрес нормализован', 'Стоимость определена') and ((party is null) or party='')
+                ::where-clause
+        ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                Module = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                Module = {0} and id = {1}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                rNumber = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                rNumber iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                rNumber < {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    rNumber >= {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    rNumber LIKE {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                regNumber = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                numberWOTags iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="description">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                description = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="description_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                description iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[(lower(number) like ('%' || lower({0}) || '%') or lower(subject) like ('%' || lower({0}) || '%') )]]>
+        </criteria>
+    </filter>
+    <filter name="type_and_category_rpo">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                type_and_category_rpo = {0}
+            ]]>
+        </criteria>
+    </filter>
+</collection>

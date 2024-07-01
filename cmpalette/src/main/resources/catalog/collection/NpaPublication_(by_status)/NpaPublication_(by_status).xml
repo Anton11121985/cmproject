@@ -1,0 +1,206 @@
+<collection name="NpaPublication_(by_status)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+         SELECT
+              id,
+              Module,
+              self_1,
+              self_2,
+              self_3,
+              created_date,
+              authorName,
+              createdDateByUser,
+              npaPublishDate,
+              npaType,
+              lastModifiedDate,
+              npaPublishStateCateg,
+              ordCount,
+              npaPublishState
+             FROM (
+                SELECT
+                    np.id                               AS id,
+                    np.module                           AS MODULE,
+                    '<id>'                              AS self_1,
+                    ':'                                 AS self_2,
+                    '</>'                               AS self_3,
+                    np.created_date                     AS created_date,
+                    np.authorName         	            AS authorName,
+                    np.created_date_by_user :: date     AS createdDateByUser,
+                    np.npaPublishDate :: date           AS npaPublishDate,
+                    CASE
+                        WHEN npaType = 'PUBLISH'   THEN 'Публикация'
+                        WHEN npaType = 'UNPUBLISH' THEN 'Снятие с публикации'
+                    END                                 AS npaType,
+                    np.updated_date						AS lastModifiedDate,
+                    np.npaPublishStateCateg             AS npaPublishStateCateg,
+                    (
+                        select
+                            count(1)
+                        from
+                            EmbeddedCollSubObject ecso
+                            join nunid2punid_map n2p on n2p.nunid = split_part(ecso.parentUnid, ':', 2)
+                        where
+                            substring(n2p.punid::text, 1 , 4)::integer = np.id_type and substring(n2p.punid::text, 5 , 12)::integer = np.id
+                            and ecso.subobjecttype = 'npaDocuments'
+                    ) as ordCount,
+                    CASE
+                        WHEN np.npaPublishState = 'PROJECT'     THEN ''
+                        WHEN np.npaPublishState = 'PUBLISHED'   THEN 'Успешно опубликовано'
+                        WHEN np.npaPublishState = 'UNPUBLISHED' THEN 'Успешно снято с публикации'
+                        WHEN np.npaPublishState = 'FAILURE'     THEN 'Ошибка обработки'
+                    END                                 AS npaPublishState
+                   FROM (
+                        SELECT
+                            Npa_Publication.id                      AS id,
+                            Npa_Publication.module                  AS MODULE,
+                            Npa_Publication.created_date            AS created_date,
+                            authorBeardName.orig_shortname          AS authorName,
+                            Npa_Publication.created_date_by_user    AS created_date_by_user,
+                            Npa_Publication.publish_date            AS npaPublishDate,
+                            Npa_Publication.type                    AS npaType,
+                            Npa_Publication.updated_date 			AS updated_date,
+                            'Все' 									AS npaPublishStateCateg,
+                            Npa_Publication.publish_state           AS npaPublishState
+                        FROM Npa_Publication
+                        JOIN so_beard authorBeardName ON Npa_Publication.OPERATOR = authorBeardName.id
+                        WHERE Npa_Publication.isdeleted <> 1
+
+                        UNION ALL
+
+                        SELECT
+                            Npa_Publication.id                      AS id,
+                            Npa_Publication.module                  AS MODULE,
+                            Npa_Publication.created_date            AS created_date,
+                            authorBeardName.orig_shortname          AS authorName,
+                            Npa_Publication.created_date_by_user    AS created_date_by_user,
+                            Npa_Publication.publish_date            AS npaPublishDate,
+                            Npa_Publication.type                    AS npaType,
+                            Npa_Publication.updated_date 			AS updated_date,
+                            CASE
+                                WHEN Npa_Publication.publish_state IN ('PROJECT') THEN 'В работе'
+                                WHEN Npa_Publication.publish_state IN ('PUBLISHED', 'UNPUBLISHED') THEN 'Выполненные'
+                            END                                     AS npaPublishStateCateg,
+                            Npa_Publication.publish_state           AS npaPublishState
+                        FROM Npa_Publication
+                        JOIN so_beard authorBeardName ON Npa_Publication.OPERATOR = authorBeardName.id
+                        WHERE Npa_Publication.publish_state != 'FAILURE' AND Npa_Publication.isdeleted <> 1
+                   	) np
+                   ) s
+            WHERE
+              1 = 1
+                  ::where-clause
+            ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    authorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    authorName ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorName_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	authorName LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="createdDateByUser">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(createdDateByUser as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="createdDateByUser_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ('б/д' ilike '%'||{0}||'%' and (createdDateByUser is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaPublishDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(npaPublishDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaPublishDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ('б/д' ilike '%'||{0}||'%' and (npaPublishDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    npaType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    npaType ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaType_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	npaType LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="lastModifiedDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(lastModifiedDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="lastModifiedDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ('б/д' ilike '%'||{0}||'%' and (lastModifiedDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaPublishState">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    npaPublishState = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaPublishState_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    npaPublishState ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="npaPublishState_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	npaPublishState LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

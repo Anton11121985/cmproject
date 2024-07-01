@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<notifications xmlns="http://www.intertrust.ru/schema/palette/notifications">
+
+  <notification locale="RU" type="DTRR1_11">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Необходимо получить документы на бумажном носителе]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style>p { font-family: Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<body><p>Для: <#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list></p>
+<p>Отправитель: <#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if>,
+<#assign querySenderDep="SELECT senderdep FROM (SELECT left(field_value.value, strpos(field_value.value, CHR(92)) - 1) AS senderdep FROM tn_field_string field_value JOIN tn_field field ON field_value.id = field.id AND field_value.id_type = field.id_type AND field.cmjfield = 'senderDepHierarchy' WHERE field.owner = {0}) as tmp">
+                        <#assign collectionSenderDep=session.findByQuery(querySenderDep, document.getId())>
+                            <#if collectionSenderDep??>
+                                <#if collectionSenderDep.size() !=0>
+                                    ${collectionSenderDep.get(0).getString("senderdep")}<#else>
+                                </#if>
+                                <#else>
+                            </#if>
+</p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join f_dp_rkkbase fdr on fdr.module =sm.id left join ss_moduletype sm2 on sm2.id = sm.type WHERE fdr.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p>Краткое содержание: Поступили документы на бумажном носителе по реестру передачи от <#if document.get("created_date")??>${document.get("created_date")?date?string('dd.MM.yyyy')}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if>. Необходимо осуществить прием документов на бумажном носителе путем проставления отметки в реестре.</p>
+<p>Открыть реестр: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="DTRR1_41">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Прием документов завершен]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style>p { font-family: Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<body><p>Для: <#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list></p>
+<p>Получатель: <#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if>,
+<#assign queryReceiverDep="SELECT receiverdep FROM (SELECT left(field_value.value, strpos(field_value.value, CHR(92)) - 1) AS receiverdep FROM tn_field_string field_value JOIN tn_field field ON field_value.id = field.id AND field_value.id_type = field.id_type AND field.cmjfield = 'receiverDepHierarchy' WHERE field.owner = {0}) as tmp">
+                        <#assign collectionReceiverDep=session.findByQuery(queryReceiverDep, document.getId())>
+                            <#if collectionReceiverDep??>
+                                <#if collectionReceiverDep.size() !=0>
+                                    ${collectionReceiverDep.get(0).getString("receiverdep")}<#else>
+                                </#if>
+                                <#else>
+                            </#if>
+</p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join f_dp_rkkbase fdr on fdr.module =sm.id left join ss_moduletype sm2 on sm2.id = sm.type WHERE fdr.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p>Краткое содержание: Прием документов на бумажном носителе по реестру передачи от <#if document.get("created_date")??>${document.get("created_date")?date?string('dd.MM.yyyy')}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> завершен. Для просмотра результата приема документов откройте реестр передачи.</p>
+<p>Открыть реестр: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="DTRR1_42">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Прием документов завершен, есть расхождения по реестру]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style>p { font-family: Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<body><p>Для: <#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list></p>
+<p>Получатель: <#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if>,
+<#assign queryReceiverDep="SELECT receiverdep FROM (SELECT left(field_value.value, strpos(field_value.value, CHR(92)) - 1) AS receiverdep FROM tn_field_string field_value JOIN tn_field field ON field_value.id = field.id AND field_value.id_type = field.id_type AND field.cmjfield = 'receiverDepHierarchy' WHERE field.owner = {0}) as tmp">
+                        <#assign collectionReceiverDep=session.findByQuery(queryReceiverDep, document.getId())>
+                            <#if collectionReceiverDep??>
+                                <#if collectionReceiverDep.size() !=0>
+                                    ${collectionReceiverDep.get(0).getString("receiverdep")}<#else>
+                                </#if>
+                                <#else>
+                            </#if>
+</p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join f_dp_rkkbase fdr on fdr.module =sm.id left join ss_moduletype sm2 on sm2.id = sm.type WHERE fdr.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p>Краткое содержание: Прием документов на бумажном носителе по реестру передачи от <#if document.get("created_date")??>${document.get("created_date")?date?string('dd.MM.yyyy')}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> завершен, есть расхождения по реестру. Для просмотра результата приема документов откройте реестр передачи.</p>
+<p>Открыть реестр: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+
+</notifications>

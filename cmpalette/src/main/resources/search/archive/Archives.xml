@@ -1,0 +1,138 @@
+<search-area name="Archives" replace="runtime">
+  <boost-every-where base="2.0">
+    <field-boost name="fundNumber" value="20.0"/>
+    <field-boost name="fundName" value="10.0"/>
+  </boost-every-where>
+  <target-domain-object type="archives_fund_deals">
+    <indexed-field name="Module">
+      <doel>Module</doel>
+    </indexed-field>
+    <!-- Заголовок дела -->
+    <indexed-field name="archOrganization" search-by="exactmatch">
+      <doel>Organization.orig_shortname</doel>
+    </indexed-field>
+    <!-- Индекс дела -->
+    <indexed-field name="fundName">
+      <doel>FundName</doel>
+    </indexed-field>
+    <!-- Статус -->
+    <indexed-field name="fundNumber">
+      <doel>Fund</doel>
+    </indexed-field>
+    <!-- Срок хранения -->
+    <indexed-field name="mainStateFundDeal" search-by="exactmatch">
+      <doel>Main_state</doel>
+    </indexed-field>
+
+    <target-collection name="Archives_(search_archives_fund_deals)"/>
+  </target-domain-object>
+
+  <target-domain-object type="archives_dep_deals">
+    <indexed-field name="Module">
+      <doel>Module</doel>
+    </indexed-field>
+
+    <indexed-field name="archOrganization" search-by="exactmatch">
+      <doel>Organization.orig_shortname</doel>
+    </indexed-field>
+
+    <indexed-field name="depIndex">
+      <doel>Index</doel>
+    </indexed-field>
+
+    <indexed-field name="department">
+      <doel>Department.orig_shortname</doel>
+    </indexed-field>
+
+    <indexed-field name="directionWork">
+      <doel>Direction_Work</doel>
+    </indexed-field>
+
+    <indexed-field name="invNumber">
+      <doel>depDealNumber</doel>
+    </indexed-field>
+
+    <indexed-field name="typeInv" search-by="exactmatch">
+      <doel>Type_Inv</doel>
+    </indexed-field>
+
+    <indexed-field name="mainStateDepDeal" search-by="exactmatch">
+      <doel>Main_state</doel>
+    </indexed-field>
+
+    <indexed-field name="mainStateOnline">
+      <script>switch(ctx.get('Main_state')) {
+        case 'PROJECT':
+          result = 'Проект';
+          break;
+        case 'VERIFIED':
+          result = 'Заверено';
+          break;
+        case 'READY_TO_ARCHIVE':
+          result = 'Готово к передаче в архив';
+          break;
+        case 'ARCHIVED':
+          result = 'В архиве';
+          break;
+        case 'ABSENT':
+          result = 'Отсутствует';
+          break;
+        case 'WITHDRAW':
+          result = 'Изъято';
+          break;
+        case 'TRANSFERRED_TO_STATE_ARCHIVE':
+          result = 'Передано в госархив';
+          break;
+        case 'DESTROYED':
+          result = 'Уничтожено';
+          break;
+        case 'DELETED':
+          result = 'Удалено';
+          break;
+      }
+      ctx.setResult(result);
+      </script>
+    </indexed-field>
+
+    <linked-domain-object type="archives_ddeal_Arc_Deals" nested="true">
+      <indexed-field name="dealSubject" multi-valued="true">
+        <doel>Title</doel>
+      </indexed-field>
+      <indexed-field name="boundaryDateStart" multi-valued="true">
+        <doel>Boundary_date_beg</doel>
+      </indexed-field>
+      <indexed-field name="boundaryDateEnd" multi-valued="true">
+        <doel>Boundary_date_end</doel>
+      </indexed-field>
+      <parent-link>
+        <doel>Owner</doel>
+      </parent-link>
+    </linked-domain-object>
+
+    <target-collection name="Archives_(search_archives_dep_deals)"/>
+  </target-domain-object>
+
+  <target-domain-object type="archives_annual_inventory">
+    <indexed-field name="Module">
+      <doel>Module</doel>
+    </indexed-field>
+
+    <indexed-field name="archOrganization" search-by="exactmatch">
+      <doel>Organization.orig_shortname</doel>
+    </indexed-field>
+
+    <indexed-field name="anuallInvYears" search-by="exactmatch">
+      <doel>year:toString</doel>
+    </indexed-field>
+
+    <indexed-field name="typeInv" search-by="exactmatch">
+      <doel>Type_Inv</doel>
+    </indexed-field>
+
+    <indexed-field name="mainStateAnnualInv" search-by="exactmatch">
+      <doel>Main_state</doel>
+    </indexed-field>
+
+    <target-collection name="Archives_(search_archives_annual_inventory)"/>
+  </target-domain-object>
+</search-area>

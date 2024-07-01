@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+   <handler name="Админ. Изменить версию WF" id="WFChangeVersion">
+        <meta>
+            <documentation>Изменить версию WF</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.wf.impl.WorkflowProcessServiceImpl);
+importClass(Packages.ru.intertrust.cmj.wf.api.ProcessUserTask);
+importClass(Packages.ru.intertrust.cmj.wf.api.TaskVariables);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+
+    if (paramPackageId.equals("context")) {
+        process_dialog(paramsResource, returnResource);
+    } else if (paramPackageId.equals("answer")) {
+		process_documents(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return null;
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	if (ids.isEmpty()) {
+		return message_warn(appTNObject,returnResource,"Не выбраны документы!");
+	}
+
+	var currentVersion = "";
+	var schemaName = "";
+	var schemaNameObj ="";
+	var currentVersionObj="";
+
+	var idConverter = BeansUtils.getBean("idConverter");
+	var cs = BeansUtils.getBean("collectionsService");
+
+	for (var i = 0; i < ids.size(); i++) {
+		var cmjunid = ids.get(i);
+		var arrunid = cmjunid.split(":");
+		var id = idConverter.unid2PlatformId(arrunid[1]);
+
+		if (id != null) {
+			var query = "select s.id, SUBSTRING(task.proc_def_id_, '(\\D*):') as name, var.text_ as version FROM (select rkkbase.id, (select tfs.value as v from tn_field join tn_field_string tfs on tn_field.access_object_id = tfs.id where tn_field.owner = rkkbase.id and tn_field.owner_type = rkkbase.id_type and tn_field.cmjfield = 'task_id') as task_Id FROM f_dp_rkk rkk JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NULL) s JOIN act_ru_task task on task.id_ = s.task_Id JOIN act_ru_variable var on task.proc_inst_id_ = var.proc_inst_id_ and var.name_ = 'version' and s.id = '"+id.getId()+"' and s.id_type = '"+id.getTypeId()+"'";
+
+			schemaNameObj="";
+			currentVersionObj="";
+
+			var coll = cs.findCollectionByQuery(query);
+			if (coll.size() > 0) {
+				if (coll.get(0).getString("name") != null && !"".equals(coll.get(0).getString("name"))) {
+					var schemaNameObj = coll.get(0).getString("name");
+					var currentVersionObj = coll.get(0).getString("version");
+				}
+			}
+
+			if (schemaName == ""){
+				schemaName = schemaNameObj;
+				currentVersion = currentVersionObj;
+			} else if (schemaName != schemaNameObj || currentVersion != currentVersionObj){
+				return message_warn(appTNObject,returnResource,"У выбранных документов должна быть одна схема и версия. Изменение процессов приостановлено!");
+			}
+		}
+	}
+
+	var message = appTNObject.composeDialog("WFDialogChangeVersion", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+	TunableObjectHelper.putAFInstanceValue(message, "currentVersion", currentVersion);
+	TunableObjectHelper.putAFInstanceValue(message, "schemaName", schemaName);
+
+	returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка данных первого диалога сценария
+ * @param paramsResource
+ * @return ресурс
+ */
+function process_documents(paramsResource, returnResource) {
+
+	var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+	var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("newVersion"));
+
+	var appTNObject = AFSession.get().getApplication(DPApplication.class); //DPApplication
+	var workflowProcessService = BeansUtils.getBean("workflowProcessServiceImpl");
+
+	for (var i = 0; i < ids.size(); i++) {
+
+		var request = appTNObject.getEntityByUNID(ids.get(i));
+
+		var changeVersion = workflowProcessService.changeProcessVersion(ids.get(i), version);
+
+		if (changeVersion){
+			TunableObjectHelper.putAFInstanceValue(request.tuning(), "wf.cmj_version", version);
+			request.save();
+		} else {
+		    return message_warn(appTNObject,returnResource,"Не удалось обновить версию, смотрите логи сервера приложения. Изменение схемы приостановлено!");
+		}
+	}
+	returnResource.setResource(null);
+}
+
+/**
+ * Вывод сообщения "Предупреждения"
+ * @param
+ * 		messageTxt - текст сообщения
+ * 		appTNObject - текущий tn-объект
+ * 		returnResource - ресурс
+ * @return ресурс
+ */
+function message_warn(appTNObject,returnResource, messageTxt) {
+	 var message = appTNObject.composeDialog("SystemDialogWarn", null, null, null);
+	 TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", messageTxt);
+	 TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+	 returnResource.resource = TunableObjectREST.Resource.create(message);
+	 return returnResource.resource;
+}]]></script>
+    </handler>
+   <handler name="Админ. Вычислить реляцию" id="ComputedRelation">
+        <meta>
+            <documentation>Вычислить реляцию</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.org.apache.commons.lang.StringUtils);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.ru.intertrust.cmj.af.core.AFEntityStorage);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+
+function process(paramsResource, returnResource) {
+
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+
+	var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	if (paramPackageId.equals("context")) { // обработка первого пакета данных
+		return process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) { // submit
+		return null;
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+
+	var message = appTNObject.composeDialog("DialogRelation", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+	returnResource.resource = TunableObjectREST.Resource.create(message);
+	return returnResource.resource;
+}]]></script>
+    </handler>
+</ui>

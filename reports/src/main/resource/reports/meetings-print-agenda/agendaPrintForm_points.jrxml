@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="agendaPrintForm_points" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="19441d5a-d384-40f5-bc44-0ce4b700f3df">
+	<property name="net.sf.jasperreports.export.docx.flexible.row.height" value="true"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="CM5"/>
+	<parameter name="ID" class="java.lang.Object"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+	pointbase.id as id,
+	pointbase.point as pointText,
+	(SELECT DISTINCT 
+		string_agg(substring(firstname, 1, 1) || '.'
+			|| substring(middlename, 1, 1) || '.' || ' '
+			|| lastname, ', ')
+        	FROM (SELECT
+				Person.firstname as firstname,
+				Person.middlename as middlename,
+				Person.lastname as lastname
+                  	FROM SO_Person person
+                  	join SO_Appointment appointment on appointment.person=person.id
+                    	join f_point_reporters reporter on appointment.beard = reporter.reporter
+                  	WHERE reporter.owner = point.id
+                  	order by reporter.idx
+			 ) q
+        ) as reporterFIO,
+
+	(SELECT DISTINCT 
+		string_agg(substring(firstname, 1, 1) || '.'
+			|| substring(middlename, 1, 1) || '.' || ' '
+			|| lastname, ', ')
+        	FROM (SELECT
+				Person.firstname as firstname,
+				Person.middlename as middlename,
+				Person.lastname as lastname
+                  	FROM SO_Person person
+                  	join SO_Appointment appointment on appointment.person=person.id
+                    	join f_point_invited invited on appointment.beard = invited.invited
+                  	WHERE invited.owner = point.id
+                  	order by invited.idx
+			 ) q
+        )	AS invitedFIO
+FROM
+	f_meetings_meeting meet
+	LEFT JOIN f_meetings_point point ON point.meeting = meet.id
+	JOIN f_meetings_pointbase pointbase ON point.id = pointbase.id
+WHERE
+	meet.id = $P{ID} and point.fromagenda=1
+	order by id]]>
+	</queryString>
+	<field name="pointText" class="java.lang.String"/>
+	<field name="reporterFIO" class="java.lang.String"/>
+	<field name="invitedFIO" class="java.lang.String"/>
+	<detail>
+		<band height="27" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="-1" y="0" width="501" height="20" forecolor="#000000" uuid="00d2a55a-6ef4-4db5-9d16-d9629c88a98d">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="false"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25" spacingBefore="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + ". " + ($F{pointText} != null ? $F{pointText} : "") +
+($F{reporterFIO} != null ? ("<br>" + "Докладчик: " + $F{reporterFIO}) : "") + 
+($F{invitedFIO} != null ? ("<br>" + "Приглашенные по вопросу: " + $F{invitedFIO}) : "")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

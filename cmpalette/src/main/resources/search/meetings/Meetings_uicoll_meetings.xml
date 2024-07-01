@@ -1,0 +1,117 @@
+<search-area name="Meetings_uicoll_meetings" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="minutesNumber" value="10.0"/>
+    </boost-every-where>
+
+    <!-- Заседания -->
+    <target-domain-object type="F_Meetings_meeting">
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRT_a_meet"/>
+        <indexed-content type="F_ContentFiles_a_meet"/>
+        <indexed-content type="F_ContentRT_p_meet"/>
+        <indexed-content type="F_ContentFiles_p_meet"/>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting_date</doel>
+        </indexed-field>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>Subject</doel>
+        </indexed-field>
+
+        <!-- Статус повестки -->
+        <indexed-field name="agendaStatus">
+            <doel>a_affirmState</doel>
+        </indexed-field>
+
+        <!-- Председатель -->
+        <indexed-field name="agendaChairman" search-by="substring">
+            <doel>a_chairman.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Секретарь -->
+        <indexed-field name="agendaSecretary" search-by="substring">
+            <doel>a_secretary.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Приглашенные (повестка) -->
+        <linked-domain-object type="F_Meetings_a_invited">
+            <indexed-field name="agendaInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Приглашенные - на заседание (протокол) -->
+        <linked-domain-object type="F_Meetings_p_invited">
+            <indexed-field name="minutesInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Приглашенные - по вопросам (протокол) -->
+        <linked-domain-object type="F_Meetings_p_qinvited">
+            <indexed-field name="minutesQInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Приглашенные (вопрос) -->
+        <linked-domain-object type="f_point_invited">
+            <indexed-field name="pointInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner.meeting</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Постоянные участники (повестка) -->
+        <linked-domain-object type="F_Meetings_a_ppart">
+            <indexed-field name="agendaParticipants" search-by="substring">
+                <doel>participant.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Номер протокола -->
+        <indexed-field name="minutesNumber" search-by="substring">
+            <doel>ord_fullnumber</doel>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_Meetings_meeting_ULnk">
+            <indexed-field name="linkedDocs">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="F_Meetings_point">
+            <indexed-field name="questionText" search-by="substring">
+                <doel>point</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Meeting</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+
+</search-area>

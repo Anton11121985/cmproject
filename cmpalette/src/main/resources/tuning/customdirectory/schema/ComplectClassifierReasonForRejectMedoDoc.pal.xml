@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="ComplectClassifierMedoExchange" name="ComplectClassifierReasonForRejectMedoDoc">
+        <meta>
+            <category name="Причины отказа в получении МЭДО"/>
+        </meta>
+        <string name="pagename" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[typeOfDirectory == null ? 'Справочник МЭДО' : typeOfDirectory]]></script>
+            </calc-values>
+        </string>
+        <string name="type" temporal="true"  tunable="true">
+            <default-values>
+                <default-value>Причина отказа в получении документа МЭДО</default-value>
+            </default-values>
+        </string>
+        <string name="showIdent" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Справочник МЭДО']]></script>
+            </calc-values>
+        </string>
+        <enum-ref ref="typeOfDirectory" default-value="Причина отказа в получении документа МЭДО" name="typeOfDirectory"/>
+        <string name="parentGroupValue" tunable="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        #this.tuning().getValues().get("code") + " " + #this.tuning().getValues().get("value")]]>
+                </script>
+            </calc-values>
+        </string>
+        <string name="KeyUnique">
+            <calc-values>
+                <script event="save" lang="SPEL"><![CDATA['code']]></script>
+            </calc-values>
+        </string>
+
+        <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+
+function querySave(object, document) {
+    checkUnique(object, document);
+
+    if (object.isNew()) {
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "isActual", true);
+    }
+
+    var codeValue = TunableObjectHelper.getStringValue(object.tuning(), "code");
+    var value = TunableObjectHelper.getStringValue(object.tuning(), "value");
+    var title = codeValue == null || codeValue.isEmpty() ? value : (codeValue + ": " + value);
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "title", title);
+
+    writeHistory(object, document);
+
+    return true;
+}
+
+function checkUnique(object, document) {
+    var docUnique = null;
+    var docDefault = null;
+    var codeValue = TunableObjectHelper.getStringValue(object.tuning(), "code");
+    var value = TunableObjectHelper.getStringValue(object.tuning(), "value");
+    var byDefault = TunableObjectHelper.getBooleanValue(object.tuning(), "byDefault");
+
+    if (codeValue != null) {
+        docUnique = findDirectoryByKey("CustomDirectory", "", "CustomDirectory_(cls_directory_reason_for_reject)", codeValue, object.getUNID());
+       
+    }
+
+    if (docUnique != null && codeValue != null && !codeValue.isEmpty()) {
+        throw "Запись с кодом " + codeValue + " уже создана для справочника " + TunableObjectHelper.getStringValue(object.tuning(), "type");
+    }
+ 	if (byDefault) {
+        docDefault = findDirectoryByKey("CustomDirectory", "", "CustomDirectory_(cls_directory_reason_for_reject_by_deafult_directory)", byDefault, object.getUNID());        
+	    if (docDefault != null) {
+	    	var tmpv = docDefault.getItemValueString("title");
+	        throw "Для справочника " + TunableObjectHelper.getStringValue(object.tuning(), "type") + " уже задано значение по умолчанию: "
+	                + tmpv;
+	    }
+    }
+}
+
+function findDirectoryByKey(ident, complect, view, key, curUnid) {
+    var db = AFCMDomino.getDbByIdent(ident, complect);
+    if (db == null) {
+        return null;
+    }
+    var coll = null;
+    var vw = db.getView(view);
+    if (vw != null) {
+        try {
+            vw.refresh();
+            if (key != null) {
+                coll = vw.getAllDocumentsByKey(key, true);
+                var doc = coll.getFirstDocument();
+                while (doc != null) {
+                    if (!doc.getUniversalID().equals(curUnid.replace("-TN","").substring(17))) {
+                        return doc;
+                    }
+
+                    doc = coll.getNextDocument(doc);
+                }
+            }
+        } finally {
+            DominoUtils.recycle(coll);
+            DominoUtils.recycle(vw);
+        }
+    }
+    return null;
+}
+
+function writeHistory(object, document) {
+    if (document == null) {
+        return;
+    }
+    var hist = object.history();
+    if (object.isNew()) {
+        var dx = hist.getRecord("complect.classifier.created");
+        dx.setUseHibernateData(false);
+        dx.setUpdated(true);
+    }
+
+    var oldObject = AFSession.get().getApplication(TunableObjectApplication.class).getEntityByUNID(object.getUNID());
+    if (oldObject != null) {
+        var tuningNew = object.tuning();
+        var tuningOld = oldObject.tuning();
+        TunableHistoryHelper.hist_addTextOneFromBoolean(hist, "complect.classifier.not.using.changed", "notUsing", tuningOld, tuningNew);
+        TunableHistoryHelper.hist_addTextOneFromBoolean(hist, "complect.classifier.by.default.changed", "byDefault", tuningOld, tuningNew);
+        TunableHistoryHelper.hist_addTextOne(hist, "complect.classifier.type.of.directory.changed", "typeOfDirectory", tuningOld, tuningNew);
+        TunableHistoryHelper.hist_addTextOne(hist, "complect.classifier.medo.directory.schema.changed", "medoDirectorySchema", tuningOld, tuningNew);
+        TunableHistoryHelper.hist_addTextOne(hist, "complect.classifier.code.changed", "code", tuningOld, tuningNew);
+        TunableHistoryHelper.hist_addTextOne(hist, "complect.classifier.value.changed", "value", tuningOld, tuningNew);
+        TunableHistoryHelper.hist_addTextOne(hist, "complect.classifier.comment.changed", "comment", tuningOld, tuningNew);
+    }
+
+   object.history = hist;
+}
+    ]]></custom-event-handler>
+    </schema>
+</schemas>

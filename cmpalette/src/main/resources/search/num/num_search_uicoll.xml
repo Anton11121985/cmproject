@@ -1,0 +1,51 @@
+<search-area name="num_search_uicoll" replace="runtime">
+    <target-domain-object type="num_counter">
+        <indexed-field name="description">
+            <doel>description</doel>
+        </indexed-field>
+        <indexed-field name="moduleType">
+            <doel>usedformodule.title</doel>
+        </indexed-field>
+        <indexed-field name="moduleName">
+            <doel>module.type.name</doel>
+        </indexed-field>
+
+        <indexed-field name="moduleTitle">
+            <doel>module.title</doel>
+        </indexed-field>
+        <indexed-field name="complect">
+            <doel>module.complect</doel>
+        </indexed-field>
+        <indexed-field name="TypeName">
+            <doel>docType</doel>
+        </indexed-field>
+        <indexed-field name="counterFormula" search-by="substring">
+            <doel>keyFormula</doel>
+        </indexed-field>
+        <indexed-field name="lastNumber">
+            <doel>lastRegNumber</doel>
+        </indexed-field>
+        <indexed-field name="addresseeOrganizaton" search-by="substring">
+            <script>
+                var module = session.find(ctx.get('module'));
+                ctx.setResult(module.get('ss_moduleorg^module.organization.shortname'));
+            </script>
+        </indexed-field>
+
+        <linked-domain-object type="num_soObject">
+            <indexed-field name="depName" search-by="substring">
+                <script>
+                    var unit = session.find(ctx.get('object.owner'));
+                    if (unit.get('so_appointmenthead^post') != null) {
+                    ctx.setResult(unit.get('so_appointmenthead^post.beard.orig_shortname'));
+                    } else {
+                    ctx.setResult(unit.get('shortname'));
+                    }
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+</search-area>

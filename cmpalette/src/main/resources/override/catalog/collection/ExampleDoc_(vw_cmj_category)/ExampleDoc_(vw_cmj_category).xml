@@ -1,0 +1,219 @@
+<collection name="ExampleDoc_(vw_cmj_category)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[SELECT
+                  id,
+                  created_date, --Дата создания документа
+                  updated_date,
+                  Module,
+                  open_id_tag,
+                  separate,
+                  close_id_tag,
+                  subject, -- Заголовок документа
+                  hasAttachments, -- Содержание
+                  exampleStr, -- Строка
+                  exampleInt, -- Число
+                  exampleDbl, -- Число, с плавающей точкой
+                  exampleBln, -- Логическое,
+                  exampleDT, -- Дата и время,
+                  exampleDate, -- Дата
+                  exampleTime, -- Время
+                  exampleDTR, -- Диапазон дат
+                  exampleEmail, -- E-mail
+                  exampleHyperLink, -- Ссылка
+                  exampleIconID, -- Иконка
+                  exampleIconHint, -- Подсказка иконки
+                  exampleEnumStr, -- Перечисление
+                  exampleActor -- Субъект СО
+                FROM (
+                       select
+	rkkbase.id,
+    rkkbase.created_date,
+    rkkbase.updated_date,
+    rkkbase.module                                   AS module,
+    '<id>'                                           AS open_id_tag,
+    ':'                                              AS separate,
+    '</>'                                            AS close_id_tag,
+    rkkbase.subject                                  AS subject,
+    'Пример иконки'                                  AS exampleIconHint,
+    (select coalesce(max(a), cast(0 as smallint)) from (
+        SELECT cast(1 as smallint) a FROM f_ContentFiles_Rkk CF WHERE  CF.f_dp_rkkbase = rkk.id
+        union SELECT cast(1 as smallint) FROM f_ContentRichText_Rkk CRT WHERE  CRT.f_dp_rkkbase = rkk.id
+        union SELECT cast(1 as smallint) FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = rkk.id
+        ) t
+    ) AS hasAttachments,
+    (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleIcon'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleIconID,
+    (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleStr'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleStr,
+    (select tfs."value" as v
+        from tn_field_decimal tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleInt'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleInt,
+    (select tfs."value" as v
+        from tn_field_decimal tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDbl'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDbl,
+    (select tfs."value" as v
+        from tn_field_decimal tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleBln'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleBln,
+    (select tfs."value" as v
+        from tn_field_datetime tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDT'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDT,
+    (select tfs."value" as v
+        from tn_field_dateonly tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDate'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDate,
+    (select coalesce(substring(tfs."value",'(.*)#') || '-' || substring(tfs."value",'#(.*)')) as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDTR'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDTR,
+   (select tfs."value" as v
+        from tn_field_timeonly tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleTime'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleTime,
+   (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleEmail'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleEmail,
+   (select substring(tfs."value",'~#(.*)') as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleHyperLink'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleHyperLink,
+   (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleEnumStr'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleEnumStr,
+   (select distinct
+		coalesce(string_agg('<id>' || cmjunid || '</><shortName>' || CASE  WHEN (shortname like '%дела принял от:%') THEN replace(substring(shortname,'дела принял от: (.*)'),')','') ELSE shortname END  || '</>',';'), '<id></><shortName></>') as v
+        from (select
+		    substr(tfs."value", 1, strpos(tfs."value", '%') - 1) as shortname,
+		    coalesce(substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'%(.*)')
+    	    || ':' || substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'(.*)%')) as cmjunid
+    	    from tn_field_string tfs
+            join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleActor'
+            where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as tmpActor)  as exampleActor
+	FROM f_dp_rkk rkk
+    JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+    WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NULL
+		   ) s
+    WHERE 1=1
+    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+				COUNT(1)
+                FROM (
+                       select
+	rkkbase.id,
+    rkkbase.created_date,
+    rkkbase.updated_date,
+    rkkbase.module                                   AS module,
+    '<id>'                                           AS open_id_tag,
+    ':'                                              AS separate,
+    '</>'                                            AS close_id_tag,
+    rkkbase.subject                                  AS subject,
+    'Пример иконки'                                  AS exampleIconHint,
+    (select coalesce(max(a), cast(0 as smallint)) from (
+        SELECT cast(1 as smallint) a FROM f_ContentFiles_Rkk CF WHERE  CF.f_dp_rkkbase = rkk.id
+        union SELECT cast(1 as smallint) FROM f_ContentRichText_Rkk CRT WHERE  CRT.f_dp_rkkbase = rkk.id
+        union SELECT cast(1 as smallint) FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = rkk.id
+        ) t
+    ) AS hasAttachments,
+   (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleIcon'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleIconID,
+    (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleStr'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleStr,
+    (select tfs."value" as v
+        from tn_field_decimal tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleInt'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleInt,
+    (select tfs."value" as v
+        from tn_field_decimal tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDbl'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDbl,
+    (select tfs."value" as v
+        from tn_field_decimal tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleBln'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleBln,
+    (select tfs."value" as v
+        from tn_field_datetime tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDT'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDT,
+    (select tfs."value" as v
+        from tn_field_dateonly tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDate'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDate,
+    (select coalesce(substring(tfs."value",'(.*)#') || '-' || substring(tfs."value",'#(.*)')) as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleDTR'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleDTR,
+   (select tfs."value" as v
+        from tn_field_timeonly tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleTime'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleTime,
+   (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleEmail'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleEmail,
+   (select substring(tfs."value",'~#(.*)') as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleHyperLink'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleHyperLink,
+   (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleEnumStr'
+        where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as exampleEnumStr,
+   (select distinct
+		coalesce(string_agg('<id>' || cmjunid || '</><shortName>' || CASE  WHEN (shortname like '%дела принял от:%') THEN replace(substring(shortname,'дела принял от: (.*)'),')','') ELSE shortname END  || '</>',';'), '<id></><shortName></>') as v
+        from (select
+		    substr(tfs."value", 1, strpos(tfs."value", '%') - 1) as shortname,
+		    coalesce(substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'%(.*)')
+    	    || ':' || substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'(.*)%')) as cmjunid
+    	    from tn_field_string tfs
+            join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'exampleActor'
+            where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as tmpActor)  as exampleActor
+	FROM f_dp_rkk rkk
+    JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+    WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NULL
+		   ) s
+    WHERE 1=1
+    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause"><![CDATA[ Module = {0} and id = {1} ]]></criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+</collection>

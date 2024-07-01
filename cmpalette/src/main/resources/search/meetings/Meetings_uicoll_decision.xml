@@ -1,0 +1,63 @@
+<search-area name="Meetings_uicoll_decision" replace="runtime">
+    <boost-every-where base="2.0">
+        <field-boost name="minutesNumber" value="10.0"/>
+    </boost-every-where>
+    <!-- Решение -->
+    <target-domain-object type="f_meetings_decision">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentFiles_Des"/>
+        <indexed-content type="F_ContentRT_Dec"/>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>meeting.Subject</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting.meeting_date</doel>
+        </indexed-field>
+
+        <!-- Номер протокола -->
+        <indexed-field name="minutesNumber" search-by="substring">
+            <doel>meeting.ord_fullnumber</doel>
+        </indexed-field>
+
+        <!-- Вопрос -->
+        <indexed-field name="questionText">
+            <doel>pointText</doel>
+        </indexed-field>
+
+        <!-- Докладчики -->
+        <linked-domain-object type="f_decision_reporters">
+            <indexed-field name="reporter" search-by="substring">
+                <doel>reporter.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Решение -->
+        <indexed-field name="decision">
+            <doel>text</doel>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_Meetings_pr_ULnk">
+            <indexed-field name="linkedDocs">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+
+</search-area>

@@ -1,0 +1,426 @@
+<collection name="NotRegistered_(projectsByCorr)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+                 SELECT
+                  id,
+                  Module,
+                  reqType,
+                  self_1,
+                  self_2,
+                  self_3,
+                  created_date,
+                  hasAttachments,
+                  prjNumber,
+                  docNumber,
+                  docDate,
+                  addressees,
+                  resp,
+                  subject,
+                  receiveWay,
+                  branchId,
+                  receiveDate,
+                  correspondentName
+                FROM (
+                       SELECT
+rkkbase.id,
+                         rkkbase.created_date,
+                         rkkbase.module                   AS Module,
+                         rkkbase.type AS reqType,
+                         '<id>'                           AS self_1,
+                         ':'                              AS self_2,
+                         '</>'                            AS self_3,
+                         (select coalesce(max(a), cast(0 as smallint)) from (
+                            SELECT cast(1 as smallint) a FROM f_ContentFiles_Rkk CF WHERE  CF.f_dp_rkkbase = rkk.id
+                            union SELECT cast(1 as smallint) FROM f_ContentRichText_Rkk CRT WHERE  CRT.f_dp_rkkbase = rkk.id
+                            union SELECT cast(1 as smallint) FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = rkk.id
+                        ) t
+                        ) AS hasAttachments,
+
+                         inputrkk.foreignnumber           AS docNumber,
+
+			             case
+                          when inputrkk.foreignregdate  is null then date('1900-01-01')
+                          else inputrkk.foreignregdate
+                          end AS docDate,
+
+                        coalesce((
+                                SELECT firmid.orig_shortname  --Корреспондент Организация
+                                FROM so_beard firmid
+                                WHERE firmid.id = inputrkk.fromid
+                            ),
+                            (
+                                SELECT string_agg(coalesce(userFromId.orig_shortname, ''), '')
+                                FROM f_dp_inputrkk_author inputrkk_author
+                                JOIN so_beard userFromId ON userFromId.id = inputrkk_author.author
+                                WHERE inputrkk_author.OWNER = inputrkk.id
+                                --Корреспондент физическое лицо
+                            ),
+                            (
+                                SELECT string_agg(coalesce(nullif(inputrkk_authorplain.authorplain, ''), 'Не указан'), '')
+                                FROM F_DP_InputRkk_AuthorPlain inputrkk_authorplain
+                                WHERE inputrkk_authorplain.OWNER = inputrkk.id
+                                --Корреспондент физическое лицо(Автор из справочника физических лиц) или не указан(Вводим в ручную)
+                            ),
+                            'Не указан'
+                        ) AS correspondentName,
+
+                        coalesce(coalesce(prjnumprist, '') || prjnumcounter || coalesce(prjnumfin, ''), '') as prjNumber,
+
+                         (SELECT
+                            DISTINCT
+                         coalesce(
+                             string_agg(
+                                 '<id>'
+                                 || substring(cmjunid, 1, 32)
+                                 || ':'
+                                 || substring(cmjunid, 33, 48)
+                                 || '</><shortName>'
+                                 ||
+                                 or_shName
+                                 || '</>'
+                                 , ';')
+                             , '<id></><shortName></>'
+                         )
+                          FROM
+                          (select beardaddress.cmjunid as cmjunid, beardaddress.orig_shortname as or_shName
+                          from
+                            f_dp_inputrkk_addressee addressee
+                            LEFT JOIN so_beard beardaddress ON beardaddress.id = addressee.addressee
+                          WHERE addressee.owner = inputrkk.id
+                          ORDER BY addressee.idx
+                          )t
+                         )   AS addressees,
+                        (select coalesce(tfs.value, '<Не указано>')
+                               from tn_field_string tfs
+                               join tn_field tf on tf.id = tfs.id
+                               where tf.cmjfield ='Tn$_receiptTables.type' and tf.idx = 0 and (tf.owner = rkk.id and tf.owner_type = rkk.id_type)) as receiveWay,
+                        (select tfd.value
+                                from tn_field_dateonly tfd
+								join tn_field tf on tf.id = tfd.id
+								where tf.cmjfield ='Tn$_receiptTables.date' and tf.idx = 0 and (tf.owner = rkk.id and tf.owner_type = rkk.id_type)) AS receiveDate,
+						(select split_part(tfs."value",'%',4) as unid
+                                from tn_field_string tfs
+                                join tn_field tf ON tf.id = tfs.id
+                                where tf.cmjfield = 'initBranch' and (tf.owner = rkk.id and tf.owner_type = rkk.id_type)) as branchId,
+                         rkkbase.subject AS subject,
+						(select case
+                          when count (*) = 0 then 'Не указан'
+                          else string_agg(v,',')
+                          end
+                          from
+                          (select SPLIT_PART(tfs.value, '%', 1) as v
+                            FROM tn_field_string tfs
+                            JOIN tn_field tf ON tf.id = tfs.id
+                            WHERE tf."owner" = rkkbase.id AND tf.cmjfield = 'responsible'
+                          )t1
+                         ) AS resp
+                       FROM
+                         f_dp_inputrkk inputrkk
+                         JOIN f_dp_rkk rkk ON rkk.id = inputrkk.id
+                         JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                   WHERE
+                        rkk.regnumcnt IS NULL AND rkkbase.isdeleted <> 1
+                     ) s
+                where 1=1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                  COUNT(1)
+                                FROM (
+                       SELECT
+rkkbase.id,
+                         rkkbase.created_date,
+                         rkkbase.module                   AS Module,
+                         rkkbase.type AS reqType,
+                         '<id>'                           AS self_1,
+                         ':'                              AS self_2,
+                         '</>'                            AS self_3,
+                         (select coalesce(max(a), cast(0 as smallint)) from (
+                            SELECT cast(1 as smallint) a FROM f_ContentFiles_Rkk CF WHERE  CF.f_dp_rkkbase = rkk.id
+                            union SELECT cast(1 as smallint) FROM f_ContentRichText_Rkk CRT WHERE  CRT.f_dp_rkkbase = rkk.id
+                            union SELECT cast(1 as smallint) FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = rkk.id
+                        ) t
+                        ) AS hasAttachments,
+
+                         inputrkk.foreignnumber           AS docNumber,
+
+			             case
+                          when inputrkk.foreignregdate  is null then date('1900-01-01')
+                          else inputrkk.foreignregdate
+                          end AS docDate,
+
+                        coalesce((
+                                SELECT firmid.orig_shortname  --Корреспондент Организация
+                                FROM so_beard firmid
+                                WHERE firmid.id = inputrkk.fromid
+                            ),
+                            (
+                                SELECT string_agg(coalesce(userFromId.orig_shortname, ''), '')
+                                FROM f_dp_inputrkk_author inputrkk_author
+                                JOIN so_beard userFromId ON userFromId.id = inputrkk_author.author
+                                WHERE inputrkk_author.OWNER = inputrkk.id
+                                --Корреспондент физическое лицо
+                            ),
+                            (
+                                SELECT string_agg(coalesce(nullif(inputrkk_authorplain.authorplain, ''), 'Не указан'), '')
+                                FROM F_DP_InputRkk_AuthorPlain inputrkk_authorplain
+                                WHERE inputrkk_authorplain.OWNER = inputrkk.id
+                                --Корреспондент физическое лицо(Автор из справочника физических лиц) или не указан(Вводим в ручную)
+                            ),
+                            'Не указан'
+                        ) AS correspondentName,
+
+                        coalesce(coalesce(prjnumprist, '') || prjnumcounter || coalesce(prjnumfin, ''), '') as prjNumber,
+
+                         (SELECT
+                            DISTINCT
+                         coalesce(
+                             string_agg(
+                                 '<id>'
+                                 || substring(cmjunid, 1, 32)
+                                 || ':'
+                                 || substring(cmjunid, 33, 48)
+                                 || '</><shortName>'
+                                 ||
+                                 or_shName
+                                 || '</>'
+                                 , ';')
+                             , '<id></><shortName></>'
+                         )
+                          FROM
+                          (select beardaddress.cmjunid as cmjunid, beardaddress.orig_shortname as or_shName
+                          from
+                            f_dp_inputrkk_addressee addressee
+                            LEFT JOIN so_beard beardaddress ON beardaddress.id = addressee.addressee
+                          WHERE addressee.owner = inputrkk.id
+                          ORDER BY addressee.idx
+                          )t
+                         )   AS addressees,
+                        (select coalesce(tfs.value, '<Не указано>')
+                               from tn_field_string tfs
+                               join tn_field tf on tf.id = tfs.id
+                               where tf.cmjfield ='Tn$_receiptTables.type' and tf.idx = 0 and (tf.owner = rkk.id and tf.owner_type = rkk.id_type)) as receiveWay,
+                        (select tfd.value
+                                from tn_field_dateonly tfd
+								join tn_field tf on tf.id = tfd.id
+								where tf.cmjfield ='Tn$_receiptTables.date' and tf.idx = 0 and (tf.owner = rkk.id and tf.owner_type = rkk.id_type)) AS receiveDate,
+						(select split_part(tfs."value",'%',4) as unid
+                                from tn_field_string tfs
+                                join tn_field tf ON tf.id = tfs.id
+                                where tf.cmjfield = 'initBranch' and (tf.owner = rkk.id and tf.owner_type = rkk.id_type)) as branchId,
+                         rkkbase.subject AS subject,
+						(select case
+                          when count (*) = 0 then 'Не указан'
+                          else string_agg(v,',')
+                          end
+                          from
+                          (select SPLIT_PART(tfs.value, '%', 1) as v
+                            FROM tn_field_string tfs
+                            JOIN tn_field tf ON tf.id = tfs.id
+                            WHERE tf."owner" = rkkbase.id AND tf.cmjfield = 'responsible'
+                          )t1
+                         ) AS resp
+                       FROM
+                         f_dp_inputrkk inputrkk
+                         JOIN f_dp_rkk rkk ON rkk.id = inputrkk.id
+                         JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                   WHERE
+                        rkk.regnumcnt IS NULL AND rkkbase.isdeleted <> 1
+                     ) s
+                where 1=1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(docDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ('б/д' ilike '%'||{0}||'%' and (docDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	reqType LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentName ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	correspondentName LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    docNumber iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addressees">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addressees = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addressees_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addressees ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addressees_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	addressees LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="receiveWay">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    receiveWay = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="receiveWay_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    receiveWay ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="receiveWay_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    receiveWay LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="resp">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    resp = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="resp_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    resp ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="resp_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    resp LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="prjNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   prjNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="prjNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    prjNumber LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="receiveDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(receiveDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="receiveDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ('б/д' ilike '%'||{0}||'%' and (receiveDate is null))
+                ]]>
+        </criteria>
+    </filter>
+</collection>

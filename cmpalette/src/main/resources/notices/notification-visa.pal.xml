@@ -1,0 +1,1480 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<notifications xmlns="http://www.intertrust.ru/schema/palette/notifications">
+  <notification locale="RU" type="VISA1_31">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование приостановлено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок<#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')} <br>
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString('orig_shortname')}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??>  <#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??>  <#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get('DocType') == 'ARCHIVES_DEP_DEAL'>
+  <br>Опись дел подразделения
+  <#if document.get('hierparent.isdepartment')>
+    <#if document.get('hierparent.department')??>${document.get('hierparent.department.orig_postname')}
+    </#if>
+  </#if>
+  <#if !document.get('hierparent.isdepartment')>${document.get('hierparent.direction_work')}</#if>
+  <#if document.get('hierparent.Type_Inv')??>
+    <#if document.get('hierparent.Type_Inv') == 'PERMANENTLY'>Опись дел постоянного срокахранения</#if>
+    <#if document.get('hierparent.Type_Inv') == 'LESS_TEN_YEAR'>Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get('hierparent.Type_Inv') == 'OVER_TEN_YEAR'>Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get('hierparent.Type_Inv') == 'PERSONAL_COMPLECT'>Опись дел по личному составу</#if>
+  </#if>
+<br>№<#if document.get('hierparent.depdealnumber')??> ${document.get('hierparent.depdealnumber')}</#if>
+<#else>
+  <#if document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'><br>
+    Годовой раздел описи дел ${document.get('hierparent.organization.orgname')} на ${document.get('hierparent.year')} год
+<#else>
+    <#if document.get('DocType')??>${document.get('DocType')}<#else></#if> от <#if document.get('RDate')??>${document.get('RDate')}<#else></#if><br>
+    Заголовок: <#if document.get('Subject')??>${document.get('Subject')}<#else>
+    </#if>
+  </#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl('cm-sochi', addressee.getId(), document.getId())}
+]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование приостановлено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок<#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')} <br>
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString('orig_shortname')}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??>  <#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??>  <#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get('DocType') == 'ARCHIVES_DEP_DEAL'>
+  <br>Опись дел подразделения
+  <#if document.get('hierparent.isdepartment')>
+    <#if document.get('hierparent.department')??>${document.get('hierparent.department.orig_postname')}
+    </#if>
+  </#if>
+  <#if !document.get('hierparent.isdepartment')>${document.get('hierparent.direction_work')}</#if>
+  <#if document.get('hierparent.Type_Inv')??>
+    <#if document.get('hierparent.Type_Inv') == 'PERMANENTLY'>Опись дел постоянного срокахранения</#if>
+    <#if document.get('hierparent.Type_Inv') == 'LESS_TEN_YEAR'>Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get('hierparent.Type_Inv') == 'OVER_TEN_YEAR'>Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get('hierparent.Type_Inv') == 'PERSONAL_COMPLECT'>Опись дел по личному составу</#if>
+  </#if>
+<br>№<#if document.get('hierparent.depdealnumber')??> ${document.get('hierparent.depdealnumber')}</#if>
+<#else>
+  <#if document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'><br>
+    Годовой раздел описи дел ${document.get('hierparent.organization.orgname')} на ${document.get('hierparent.year')} год
+<#else>
+    <#if document.get('DocType')??>${document.get('DocType')}<#else></#if> от <#if document.get('RDate')??>${document.get('RDate')}<#else></#if><br>
+    Заголовок: <#if document.get('Subject')??>${document.get('Subject')}<#else>
+    </#if>
+  </#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl('cm-sochi', addressee.getId(), document.getId())}
+]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA2_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Вынесена положительная виза: <#if document.get("hierparent.DocType") == 'ARCHIVES_DEP_DEAL'> Опись дел подразделения <#if document.get('hierparent.hierparent.isdepartment')><#if document.get("hierparent.hierparent.department")??>${document.get('hierparent.hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.hierparent.direction_work")}</#if><#else><#if document.get("hierparent.DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.hierparent.year")} год<#else><#if document.get("parentid")??><#assign plunid = document.get("parentid")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString("subject")}<#else></#if><#else></#if><#else></#if> (от ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")})</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')} <br>
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString('orig_shortname')}<#if beard_has_next >, <#else></#if></#list>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get('hierparent.DocType') == 'ARCHIVES_DEP_DEAL'>
+  <br>Опись дел подразделения
+  <#if document.get('hierparent.hierparent.isdepartment')>
+    <#if document.get('hierparent.hierparent.department')??>${document.get('hierparent.hierparent.department.orig_postname')}
+    </#if>
+  </#if>
+  <#if !document.get('hierparent.hierparent.isdepartment')>${document.get('hierparent.hierparent.direction_work')}</#if>
+  <#if document.get('hierparent.hierparent.Type_Inv')??>
+    <#if document.get('hierparent.hierparent.Type_Inv') == 'PERMANENTLY'>Опись дел постоянного срокахранения</#if>
+    <#if document.get('hierparent.hierparent.Type_Inv') == 'LESS_TEN_YEAR'>Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get('hierparent.hierparent.Type_Inv') == 'OVER_TEN_YEAR'>Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get('hierparent.hierparent.Type_Inv') == 'PERSONAL_COMPLECT'>Опись дел по личному составу</#if>
+  </#if>
+<br>№<#if document.get('hierparent.hierparent.depdealnumber')??> ${document.get('hierparent.hierparent.depdealnumber')}</#if>
+<br>Вынесена виза ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")} ${document.get("answertext")}
+<#else>
+  <#if document.get('hierparent.DocType') == 'ARCHIVES_ANNUAL_INVENTORY'> <br>
+    Годовой раздел описи дел ${document.get('hierparent.hierparent.organization.orgname')} на ${document.get('hierparent.hierparent.year')} год
+    <br>Вынесена виза ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")} ${document.get("answertext")}
+  <#else>
+    <#if document.get('DocType')??>${document.get('DocType')}<#else></#if> от <#if document.get('RDate')??>${document.get('RDate')}<#else></#if><br>
+    Заголовок: <#if document.get('Subject')??>${document.get('Subject')}<#else>
+    </#if>
+  </#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl('cm-sochi', addressee.getId(), document.getId())}
+]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Вынесена положительная виза: <#if document.get("hierparent.DocType") == 'ARCHIVES_DEP_DEAL'> Опись дел подразделения <#if document.get('hierparent.hierparent.isdepartment')><#if document.get("hierparent.hierparent.department")??>${document.get('hierparent.hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.hierparent.direction_work")}</#if><#else><#if document.get("hierparent.DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.hierparent.year")} год<#else><#if document.get("parentid")??><#assign plunid = document.get("parentid")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString("subject")}<#else></#if><#else></#if><#else></#if> (от ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")})</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("hierparent.DocType") == 'ARCHIVES_DEP_DEAL'>
+    <br>Опись дел подразделения
+    <#if document.get('hierparent.hierparent.isdepartment')>
+        <#if document.get("hierparent.hierparent.department")??>${document.get('hierparent.hierparent.department.orig_postname')}<#else></#if>
+    <#else>
+        ${document.get("hierparent.hierparent.direction_work")}
+    </#if>
+    <#if document.get("hierparent.hierparent.Type_Inv")??>
+        <#if document.get("hierparent.hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+        <#if document.get("hierparent.hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+        <#if document.get("hierparent.hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+        <#if document.get("hierparent.hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+    </#if><br>
+    №<#if document.get("hierparent.hierparent.depdealnumber")??> ${document.get("hierparent.hierparent.depdealnumber")}
+    <br>Вынесена виза ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")} ${document.get("answertext")}
+    <#else><#if document.get("hierparent.DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+        <br> Годовой раздел описи дел ${document.get("hierparent.hierparent.organization.orgname")} на ${document.get("hierparent.hierparent.year")} год
+        <br>Вынесена виза ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")} ${document.get("answertext")}
+    <#else>
+<#if document.get("parentid")??><#assign plunid = document.get("parentid")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString("doctype")}<#else></#if><#else></#if><#else></#if> от <#if document.get("parentid")??><#assign plunid = document.get("parentid")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString("rdate")}<#else></#if><#else></#if><#else></#if>
+Заголовок: <#if document.get("parentid")??><#assign plunid = document.get("parentid")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString("subject")}<#else></#if><#else></#if><#else></#if>
+    </#if>
+    </#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_21">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено администратором: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if><#else> ${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br><br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA2_13">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Виза отозвана <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if> срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)> <#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length> <#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+<br>Опись дел подразделения
+<#if document.get('hierparent.isdepartment')>
+<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+</#if>
+<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+<#if document.get("hierparent.Type_Inv")??>
+<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+</#if><br>
+№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else><#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if><br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if></#if></#if><br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+
+      <subject lang="FreeMarker"><![CDATA[Виза отозвана
+       <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>
+			${document.get('hierparent.department.orig_postname')}
+		<#else></#if>
+	<#else>
+		${document.get("hierparent.direction_work")}
+	</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	Годового раздела описи дел на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if> срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)> <#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)
+</#if>
+</#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length> <#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if><br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA2_12">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Не согласен, <#if document.get('hierparent.DocType') == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.hierparent.isdepartment')> <#if document.get('hierparent.hierparent.department')??>${document.get('hierparent.hierparent.department.orig_postname')} <#else></#if> <#else>${document.get('hierparent.hierparent.direction_work')} </#if> <#else> <#if document.get('hierparent.DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get('hierparent.hierparent.year')} год <#else> <#if document.get('parentid')??><#assign plunid = document.get('parentid')?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString('subject')}<#else></#if><#else></#if><#else></#if> (от ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')})</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString('orig_shortname')}<#if beard_has_next >, <#else></#if></#list>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+    <#if document.get('hierparent.DocType') == 'ARCHIVES_DEP_DEAL'>
+    <br>Опись дел подразделения
+    <#if document.get('hierparent.hierparent.isdepartment')>
+        <#if document.get('hierparent.hierparent.department')??>
+          ${document.get('hierparent.hierparent.department.orig_postname')}
+        </#if></#if>
+        <#if !document.get('hierparent.hierparent.isdepartment')>
+          ${document.get('hierparent.hierparent.direction_work')}
+        </#if>
+        <#if document.get('hierparent.hierparent.Type_Inv')??>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'PERMANENTLY'>Опись дел постоянного срокахранения</#if>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'LESS_TEN_YEAR'>Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'OVER_TEN_YEAR'>Опись дел временных (свыше 10 лет) сроков хранения</#if>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'PERSONAL_COMPLECT'>Опись дел по личному составу</#if>
+        </#if>
+        <br>№<#if document.get('hierparent.hierparent.depdealnumber')??>
+          ${document.get('hierparent.hierparent.depdealnumber')}
+        </#if> <#else>
+        <#if document.get('hierparent.DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>
+        <br>Годовой раздел описи дел ${document.get('hierparent.hierparent.organization.orgname')} на ${document.get('hierparent.hierparent.year')} год <#else> <#if document.get('DocType')??>${document.get('DocType')}<#else></#if>
+         от <#if document.get('RDate')??>${document.get('RDate')}<#else></#if>
+         <br>Заголовок: <#if document.get('Subject')??>${document.get('Subject')}<#else> </#if> </#if> </#if> <br>Открыть документ: ${urlFormer.getUrl('cm-sochi', addressee.getId(), document.getId())}
+]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Не согласен, <#if document.get('hierparent.DocType') == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.hierparent.isdepartment')> <#if document.get('hierparent.hierparent.department')??>${document.get('hierparent.hierparent.department.orig_postname')} <#else></#if> <#else>${document.get('hierparent.hierparent.direction_work')} </#if> <#else> <#if document.get('hierparent.DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get('hierparent.hierparent.year')} год <#else> <#if document.get('parentid')??><#assign plunid = document.get('parentid')?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??>${crudService.find(d1).getString('subject')}<#else></#if><#else></#if><#else></#if> (от ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')})</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString('orig_shortname')}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString('orig_shortname')}<#if beard_has_next >, <#else></#if></#list>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+    <#if document.get('hierparent.DocType') == 'ARCHIVES_DEP_DEAL'>
+    <br>Опись дел подразделения
+    <#if document.get('hierparent.hierparent.isdepartment')>
+        <#if document.get('hierparent.hierparent.department')??>
+          ${document.get('hierparent.hierparent.department.orig_postname')}
+        </#if></#if>
+        <#if !document.get('hierparent.hierparent.isdepartment')>
+          ${document.get('hierparent.hierparent.direction_work')}
+        </#if>
+        <#if document.get('hierparent.hierparent.Type_Inv')??>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'PERMANENTLY'>Опись дел постоянного срокахранения</#if>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'LESS_TEN_YEAR'>Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'OVER_TEN_YEAR'>Опись дел временных (свыше 10 лет) сроков хранения</#if>
+          <#if document.get('hierparent.hierparent.Type_Inv') == 'PERSONAL_COMPLECT'>Опись дел по личному составу</#if>
+        </#if>
+        <br>№<#if document.get('hierparent.hierparent.depdealnumber')??>
+          ${document.get('hierparent.hierparent.depdealnumber')}
+        </#if> <#else>
+        <#if document.get('hierparent.DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>
+        <br>Годовой раздел описи дел ${document.get('hierparent.hierparent.organization.orgname')} на ${document.get('hierparent.hierparent.year')} год <#else> <#if document.get('DocType')??>${document.get('DocType')}<#else></#if>
+         от <#if document.get('RDate')??>${document.get('RDate')}<#else></#if>
+         <br>Заголовок: <#if document.get('Subject')??>${document.get('Subject')}<#else> </#if> </#if> </#if> <br>Открыть документ: ${urlFormer.getUrl('cm-sochi', addressee.getId(), document.getId())}
+]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_51">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование заканчивается:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от<#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if><#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next>, </#if></#list>
+<br>Срок: <#if document.get("ControlDate")??>
+	<#assign d2 = document.get("ControlDate")?index_of("-")>
+	<#assign d0 = document.get("ControlDate")?last_index_of("-")>
+	<#assign dy = document.get("ControlDate")?substring(0, d2)>
+	<#assign dd = document.get("ControlDate")?substring(d0 + 1)>
+	<#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)>
+	<#assign ddl = dd?length>
+	<#assign dml = dm?length>
+	<#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.
+	<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.
+	<#if dy??>${dy}<#else></#if>
+<#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if>
+	<#else>
+		${document.get("hierparent.direction_work")}
+	</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+	<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+	<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}
+]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование заканчивается:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от<#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if><#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next>, </#if></#list>
+<br>Срок: <#if document.get("ControlDate")??>
+	<#assign d2 = document.get("ControlDate")?index_of("-")>
+	<#assign d0 = document.get("ControlDate")?last_index_of("-")>
+	<#assign dy = document.get("ControlDate")?substring(0, d2)>
+	<#assign dd = document.get("ControlDate")?substring(d0 + 1)>
+	<#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)>
+	<#assign ddl = dd?length>
+	<#assign dml = dm?length>
+	<#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.
+	<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.
+	<#if dy??>${dy}<#else></#if>
+<#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if>
+	<#else>
+		${document.get("hierparent.direction_work")}
+	</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+	<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+	<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}
+]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_41">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование завершено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование завершено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_52">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование просрочено:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if> <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next>, </#if></#list>
+<br>Срок: <#if document.get("ControlDate")??>
+	<#assign d2 = document.get("ControlDate")?index_of("-")>
+	<#assign d0 = document.get("ControlDate")?last_index_of("-")>
+	<#assign dy = document.get("ControlDate")?substring(0, d2)>
+	<#assign dd = document.get("ControlDate")?substring(d0 + 1)>
+	<#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)>
+	<#assign ddl = dd?length>
+	<#assign dml = dm?length>
+	<#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if></#if>.
+	<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if></#if>.
+	<#if dy??>${dy}</#if>
+<#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}</#if> от <#if document.get("RDate")??>${document.get("RDate")}</#if>
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}</#if>
+</#if>
+</#if>
+
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}
+]]></body-html>
+
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование просрочено:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if> <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next>, </#if></#list>
+<br>Срок: <#if document.get("ControlDate")??>
+	<#assign d2 = document.get("ControlDate")?index_of("-")>
+	<#assign d0 = document.get("ControlDate")?last_index_of("-")>
+	<#assign dy = document.get("ControlDate")?substring(0, d2)>
+	<#assign dd = document.get("ControlDate")?substring(d0 + 1)>
+	<#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)>
+	<#assign ddl = dd?length>
+	<#assign dml = dm?length>
+	<#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if></#if>.
+	<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if></#if>.
+	<#if dy??>${dy}</#if>
+<#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}</#if> от <#if document.get("RDate")??>${document.get("RDate")}</#if>
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}</#if>
+</#if>
+</#if>
+
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}
+]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_27">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено подписывающим <#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+
+
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Краткое содержание:
+
+
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>}
+
+
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено подписывающим <#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+
+
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Краткое содержание:
+
+
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+
+
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_71">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[<#if document.get('DocType') == 'ARCHIVES_DEP_DEAL' || document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'> Изменен срок согласования Старый срок: ${document.get('prevcontroldate')} Новый срок: ${document.get('controldate')} <#if document.get('DocType') == 'ARCHIVES_DEP_DEAL'> Опись дел подразделения <#if document.get('hierparent.isdepartment')??> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if> </#if></#if> <#if document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get('hierparent.year')} </#if> <#else> <#-- Проектный номер --> <#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin from apr_list JOIN nunid2punid_map n2p on apr_list.idrealdoc = n2p.nunid join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id where apr_list.id = {0}"> <#assign projectNumber = session.findByQuery(formula, document.getId())> <#if projectNumber??> <#if projectNumber.get(0)??> <#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if> <#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if> <#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if> <#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin> </#if> </#if> <#if document.get("Subject")??><#assign subjectName = document.get("Subject")><#else><#assign subjectName = ''></#if> Изменен срок согласования. <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("created_date")??>${document.get("created_date")?date?string('dd.MM.yyyy')}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if>  "<#if subjectName?length &lt; 60>${subjectName}<#else> ${subjectName?substring(0,60)} ...</#if> </#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style>p { font-family:sans-serif;font-size: 10pt;}</style></head>
+<#if document.get('DocType') == 'ARCHIVES_DEP_DEAL' || document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>
+От: <#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')??>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год</#if>
+</#if>
+
+<#else>
+<#-- Проектный номер -->
+	<#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin
+	from apr_list
+	JOIN nunid2punid_map n2p on apr_list.idrealdoc = n2p.nunid
+	join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id
+	where apr_list.id = {0}">
+	  <#assign projectNumber = session.findByQuery(formula, document.getId())>
+	      <#if projectNumber.get(0)??>
+            <#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if>
+            <#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if>
+            <#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if>
+            <#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin>
+      </#if>
+<#-- /Проектный номер -->
+<body><p>Для: <#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list></p>
+<p></p>
+<p>Старый срок: <#if document.get("prevcontroldate")??><#assign d2 = document.get("prevcontroldate")?index_of("-")><#assign d0 = document.get("prevcontroldate")?last_index_of("-")><#assign dy = document.get("prevcontroldate")?substring(0,d2)> <#assign dd = document.get("prevcontroldate")?substring(d0+1)><#assign dm = document.get("prevcontroldate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if></p>
+<p></p>
+<p>Новый срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)> <#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if></p>
+<p></p>
+<p>Инициатор согласования: <#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></p>
+<p></p>
+<p>Модуль: <#assign formula = "select title from ss_module join apr_list on substring(apr_list.rkkid,34,49) = ss_module.replica where apr_list.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> <#if  collection??>${collection.get(0).getString("title")}<#else></#if></p>
+<p></p>
+<p>Заголовок: <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("created_date")??>${document.get("created_date")?date?string('dd.MM.yyyy')}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if>  "<#if document.get("Subject")??>${document.get("Subject")}<#else></#if>" </p>
+<p></p>
+<p>Краткое содержание:  Срок согласования документа изменен.</p>
+<p></p>
+</#if>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="VISA1_26">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[<#if document.get('DocType') == 'ARCHIVES_DEP_DEAL' || document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'> Изменен срок согласования Старый срок: ${document.get('prevcontroldate')} Новый срок: ${document.get('controldate')} <#if document.get('DocType') == 'ARCHIVES_DEP_DEAL'> Опись дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if> </#if></#if> <#if document.get('DocType') == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get('hierparent.year')} </#if> <#else> <#-- Проектный номер --> <#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin from apr_list JOIN nunid2punid_map n2p on apr_list.idrealdoc = n2p.nunid join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id where apr_list.id = {0}"> <#assign projectNumber = session.findByQuery(formula, document.getId())> <#if projectNumber??> <#if projectNumber.get(0)??> <#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if> <#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if> <#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if> <#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin> </#if> </#if> <#if document.get("Subject")??><#assign subjectName = document.get("Subject")><#else><#assign subjectName = ''></#if> Изменен срок согласования. <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("created_date")??>${document.get("created_date")?date?string('dd.MM.yyyy')}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if>  "<#if subjectName?length &lt; 60>${subjectName}<#else> ${subjectName?substring(0,60)} ...</#if>" </#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if></#if><#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_61">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Опись дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годовой раздел описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_28">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено из-за истечения максимально допустимого времени: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if></#if><#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено из-за истечения максимально допустимого времени: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if></#if><#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения <#if document.get('hierparent.isdepartment')> ${document.get('hierparent.department.orig_postname')} <#else> ${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else> документа<#if document.get("Subject")??>${document.get("Subject")}</#if>(от<#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}</#if>срок<#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if></#if></#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next>, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType")??>
+  <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+    <br>Опись дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if> <#else> ${document.get("hierparent.direction_work")}</#if>
+    <#if document.get("hierparent.Type_Inv")??>
+      <#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+      <#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+      <#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+      <#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+    </#if><br>
+    №<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+  <#else>
+    <#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+      <br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+    <#else>
+      <#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+      <br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+    </#if>
+  </#if>
+   <br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}
+</#if>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения <#if document.get('hierparent.isdepartment')> ${document.get('hierparent.department.orig_postname')} <#else> ${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else> документа<#if document.get("Subject")??>${document.get("Subject")}</#if>(от<#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}</#if>срок<#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if></#if></#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next>, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0, d2)><#assign dd = document.get("ControlDate")?substring(d0 + 1)><#assign dm = document.get("ControlDate")?substring(d2 + 1, d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl == 2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml == 2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType")??>
+  <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+    <br>Опись дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if> <#else> ${document.get("hierparent.direction_work")}</#if>
+    <#if document.get("hierparent.Type_Inv")??>
+      <#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+      <#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+      <#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+      <#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+    </#if><br>
+    №<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+  <#else>
+    <#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+      <br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+    <#else>
+      <#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+      <br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+    </#if>
+  </#if>
+   <br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}
+</#if>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_23">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено в связи с подписанием документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+Краткое содержание:
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено в связи с подписанием документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+Краткое содержание:
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_22">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено инициатором: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if></#if><#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get('IdAuthor.Orig_ShortName')??>${document.get('IdAuthor.Orig_ShortName')}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if></#if><#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get('IdAuthor.Orig_ShortName')??>${document.get('IdAuthor.Orig_ShortName')}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_13">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[
+Согласование
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+  Описи дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if> <#else>${document.get("hierparent.direction_work")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+  Годового раздела описи дел на ${document.get("hierparent.year")} год
+<#else>
+  документа
+  <#if document.get("Subject")??>${document.get("Subject")}</#if>
+  (от
+  <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}</#if>
+  срок
+  <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>)
+  </#if>
+</#if>
+</#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+  <br>Опись дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if> <#else>${document.get("hierparent.direction_work")}</#if>
+  <#if document.get("hierparent.Type_Inv")??>
+    <#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+    <#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+  </#if><br>
+  №<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}
+  <#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+    <br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+  <#else>
+    <#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+    <br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+  </#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[
+Согласование
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+  Описи дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if> <#else>${document.get("hierparent.direction_work")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+  Годового раздела описи дел на ${document.get("hierparent.year")} год
+<#else>
+  документа
+  <#if document.get("Subject")??>${document.get("Subject")}</#if>
+  (от
+  <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}</#if>
+  срок
+  <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>)
+  </#if>
+</#if>
+</#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if></#if>.<#if dy??>${dy}</#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+  <br>Опись дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if> <#else>${document.get("hierparent.direction_work")}</#if>
+  <#if document.get("hierparent.Type_Inv")??>
+    <#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+    <#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+  </#if><br>
+  №<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}
+  <#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+    <br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+  <#else>
+    <#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+    <br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+  </#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_25">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено по вышестоящему листу:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length> <#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От:  ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+
+Ссылка на документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено по вышестоящему листу:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length> <#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От:  ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+
+Ссылка на документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_24">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено по отрицательной визе: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения<#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено по отрицательной визе: <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'> Описи дел подразделения <#if document.get('hierparent.isdepartment')>			<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_30">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено в связи с истечением срока:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Согласование прекращено в связи с истечением срока:<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>Описи дел подразделения <#if document.get('hierparent.isdepartment')><#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}<#else></#if><#else>${document.get("hierparent.direction_work")}</#if><#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>Годового раздела описи дел на ${document.get("hierparent.year")} год<#else><#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)</#if></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[От: Система
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		 <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br> Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="VISA1_12">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Продолжено согласование
+       <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+  Описи дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if> <#else>${document.get("hierparent.direction_work")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+  Годового раздела описи дел на ${document.get("hierparent.year")} год
+<#else>
+документа: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if> срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)> <#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)
+	</#if>
+</#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Продолжено согласование
+       <#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+  Описи дел подразделения <#if document.get('hierparent.isdepartment')> <#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if> <#else>${document.get("hierparent.direction_work")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+  Годового раздела описи дел на ${document.get("hierparent.year")} год
+<#else>
+документа: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if> (от <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if> срок <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)> <#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)
+	</#if>
+</#if>
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+От: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if>
+<br>Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+<br>Срок: <#if document.get("ControlDate")??><#assign d2 = document.get("ControlDate")?index_of("-")><#assign d0 = document.get("ControlDate")?last_index_of("-")><#assign dy = document.get("ControlDate")?substring(0,d2)><#assign dd = document.get("ControlDate")?substring(d0+1)><#assign dm = document.get("ControlDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<#if document.get("DocType") == 'ARCHIVES_DEP_DEAL'>
+	<br>Опись дел подразделения
+	<#if document.get('hierparent.isdepartment')>
+		<#if document.get("hierparent.department")??>${document.get('hierparent.department.orig_postname')}</#if>
+	</#if>
+	<#if !document.get("hierparent.isdepartment")>${document.get("hierparent.direction_work")}</#if>
+	<#if document.get("hierparent.Type_Inv")??>
+		<#if document.get("hierparent.Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+		<#if document.get("hierparent.Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+	</#if><br>
+	№<#if document.get("hierparent.depdealnumber")??> ${document.get("hierparent.depdealnumber")}</#if>
+<#else><#if document.get("DocType") == 'ARCHIVES_ANNUAL_INVENTORY'>
+	<br>Годовой раздел описи дел ${document.get("hierparent.organization.orgname")} на ${document.get("hierparent.year")} год
+<#else>
+<#if document.get("DocType")??>${document.get("DocType")}<#else></#if> от <#if document.get("RDate")??>${document.get("RDate")}<#else></#if>
+<br>Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+</#if>
+</#if>
+<br>Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="AFAP1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[<#-- Проектный номер -->
+	<#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin
+	from apr_list
+	JOIN nunid2punid_map n2p on substring(apr_list.RKKId, 1, 32) = n2p.nunid
+	join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id
+	where apr_list.id = {0}">
+	  <#assign projectNumber = session.findByQuery(formula, document.getId())>
+		<#if projectNumber.size()!=0>
+		<#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if>
+		<#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin>
+		<#else><#if document.get("IdRealDoc")??><#assign plunid = document.get("IdRealDoc")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??><#if crudService.find(d1).getString("RegNumber")??><#assign projectNumberValue = crudService.find(d1).getString("RegNumber")><#else></#if><#else></#if><#else></#if><#else></#if></#if>
+<#-- /Проектный номер -->
+<#if document.get("Subject")??><#assign subjectName = document.get("Subject")><#else><#assign subjectName = ''></#if> Обработка согласования. <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("rdate")??>${document.get("rdate")}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if>  «<#if subjectName?length &lt; 61>${subjectName}<#else>${subjectName?substring(0,60)}...</#if>»
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+<head><style>p {font-family:Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<#-- Проектный номер -->
+	<#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin
+	from apr_list
+	JOIN nunid2punid_map n2p on substring(apr_list.RKKId, 1, 32) = n2p.nunid
+	join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id
+	where apr_list.id = {0}">
+	  <#assign projectNumber = session.findByQuery(formula, document.getId())>
+		<#if projectNumber.size()!=0>
+		<#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if>
+		<#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin>
+		<#else><#if document.get("IdRealDoc")??><#assign plunid = document.get("IdRealDoc")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??><#if crudService.find(d1).getString("RegNumber")??><#assign projectNumberValue = crudService.find(d1).getString("RegNumber")><#else></#if><#else></#if><#else></#if><#else></#if></#if>
+<#-- /Проектный номер -->
+<body><p>Для: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if></p>
+<p></p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join apr_list on substring(apr_list.rkkid,34,49) = sm.replica left join ss_moduletype sm2 on sm2.id = sm.type WHERE apr_list.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p></p>
+<p>Заголовок: <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("rdate")??>${document.get("rdate")}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if> «<#if document.get("Subject")??>${document.get("Subject")}<#else></#if>» </p>
+<p></p>
+<#assign formula = "select coalesce(avr.text, '') as text from apr_voresult_reply as avr
+  join Apr_VOResult as aprres on avr.owner = aprres.id
+  left join apr_listortempl as aprlist on aprlist.id = (select substr(npm.punid, 5, 12)::int from nunid2punid_map as npm where nunid = aprres.RefVisaDocId)
+  left join apr_list apr ON apr.id = aprlist.id where apr.id = {0}">
+    <#assign aprRes = session.findByQuery(formula, document.getId())>
+<p>Краткое содержание: Документ поступил на обработку согласования, примите решение о дальнейших действиях по документу</p>
+<p></p>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[<#-- Проектный номер -->
+	<#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin
+	from apr_list
+	JOIN nunid2punid_map n2p on substring(apr_list.RKKId, 1, 32) = n2p.nunid
+	join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id
+	where apr_list.id = {0}">
+	  <#assign projectNumber = session.findByQuery(formula, document.getId())>
+		<#if projectNumber.size()!=0>
+		<#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if>
+		<#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin>
+		<#else><#if document.get("IdRealDoc")??><#assign plunid = document.get("IdRealDoc")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??><#if crudService.find(d1).getString("RegNumber")??><#assign projectNumberValue = crudService.find(d1).getString("RegNumber")><#else></#if><#else></#if><#else></#if><#else></#if></#if>
+<#-- /Проектный номер -->
+<#if document.get("Subject")??><#assign subjectName = document.get("Subject")><#else><#assign subjectName = ''></#if> Обработка согласования. <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("rdate")??>${document.get("rdate")}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if>  «<#if subjectName?length &lt; 61>${subjectName}<#else>${subjectName?substring(0,60)}...</#if>»
+]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+<head><style>p {font-family:Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<#-- Проектный номер -->
+	<#assign formula = "select coalesce(prjnumprist, '') as prjnumprist,coalesce(prjnumcounter::text, '') as prjnumcounter,coalesce(prjnumfin, '') as prjnumfin
+	from apr_list
+	JOIN nunid2punid_map n2p on substring(apr_list.RKKId, 1, 32) = n2p.nunid
+	join f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id
+	where apr_list.id = {0}">
+	  <#assign projectNumber = session.findByQuery(formula, document.getId())>
+		<#if projectNumber.size()!=0>
+		<#if projectNumber.get(0).getString("prjnumprist")??><#assign projectNumberValueprist = projectNumber.get(0).getString("prjnumprist")><#else><#assign projectNumberValueprist = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumcounter")??><#assign projectNumberValuecounter = projectNumber.get(0).getString("prjnumcounter")><#else><#assign projectNumberValuecounter = ''></#if>
+		<#if projectNumber.get(0).getString("prjnumfin")??><#assign projectNumberValuefin = projectNumber.get(0).getString("prjnumfin")><#else><#assign projectNumberValuefin = ''></#if>
+		<#assign projectNumberValue = projectNumberValueprist + projectNumberValuecounter + projectNumberValuefin>
+		<#else><#if document.get("IdRealDoc")??><#assign plunid = document.get("IdRealDoc")?substring(0,32)><#if plunid??><#assign d1 = idConverter.unid2PlatformId(plunid)><#if d1??><#if crudService.find(d1).getString("RegNumber")??><#assign projectNumberValue = crudService.find(d1).getString("RegNumber")><#else></#if><#else></#if><#else></#if><#else></#if></#if>
+<#-- /Проектный номер -->
+<body><p>Для: <#if document.get("IdAuthor.Orig_ShortName")??>${document.get("IdAuthor.Orig_ShortName")}<#else></#if></p>
+<p></p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join apr_list on substring(apr_list.rkkid,34,49) = sm.replica left join ss_moduletype sm2 on sm2.id = sm.type WHERE apr_list.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p></p>
+<p>Заголовок: <#if document.get("doctype")??>${document.get("doctype")}<#else></#if> от <#if document.get("rdate")??>${document.get("rdate")}<#else></#if> проект № <#if projectNumberValue??>${projectNumberValue}<#else></#if> «<#if document.get("Subject")??>${document.get("Subject")}<#else></#if>» </p>
+<p></p>
+<#assign formula = "select coalesce(avr.text, '') as text from apr_voresult_reply as avr
+  join Apr_VOResult as aprres on avr.owner = aprres.id
+  left join apr_listortempl as aprlist on aprlist.id = (select substr(npm.punid, 5, 12)::int from nunid2punid_map as npm where nunid = aprres.RefVisaDocId)
+  left join apr_list apr ON apr.id = aprlist.id where apr.id = {0}">
+    <#assign aprRes = session.findByQuery(formula, document.getId())>
+<p>Краткое содержание: Документ поступил на обработку согласования, примите решение о дальнейших действиях по документу</p>
+<p></p>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+]]></body-html>
+    </inputbox-channel>
+  </notification>
+</notifications>

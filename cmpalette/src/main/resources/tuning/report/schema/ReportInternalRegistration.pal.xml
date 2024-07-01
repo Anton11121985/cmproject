@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema recalc="true" name="ReportInternalRegistration">
+        <meta>
+            <category name="Отчеты"/>
+        </meta>
+
+        <schema-ref ref="ReporterSubDialogEmployeeListOwn" name="Reg_Place_List" temporal="true"/>
+        <schema-ref ref="DateInterval" name="DATE_EXEC" temporal="true"/>
+
+        <string name="documentSubtype" array="true"/>
+        <string name="securityStamp" array="true"/>
+        <string name="DocumentType" default-value="Внутренние документы"/>
+
+        <boolean name="withoutSecurityStamp" default-value="true"/>
+
+        <daterange name="period"/>
+
+        <string array="true" temporal="true" name="personGrifs">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getPerson().getPersonStampGrifs()]]></script>
+            </calc-values>
+        </string>
+
+        <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateRange);
+
+    function queryCreate(object) {
+        var c = Calendar.getInstance();
+        var endday = AFDate.fromJavaDate(c.getTime(), false);
+        c.add(Calendar.MONTH, -1);
+        var firstday = AFDate.fromJavaDate(c.getTime(), false);
+        var daterange = AFDateRange.createDateRange(firstday, endday);
+        TunableObjectHelper.putAFInstanceValue(object, "period", daterange);
+    }
+
+    function querySave(object, document) {
+      var period = object.tuning().getValues().get("period").getValue();
+      TunableObjectHelper.putAFInstanceValue(object, "DATE_EXEC.Start", period.getDateBegin());
+      TunableObjectHelper.putAFInstanceValue(object, "DATE_EXEC.End", period.getDateEnd());
+      return true;
+}]]></custom-event-handler>
+    </schema>
+</schemas>

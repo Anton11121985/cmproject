@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema recalc="true" name="OtherPartiesTable">
+    <actor createlog="true" name="organization" system="true"/>
+    <actor createlog="true" name="signatory" system="true"/>
+    <string temporal="true" createlog="true" name="selectOtherPartiesIsOrg">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[organization == null || (organization.getUNID()).equals(T(ru.intertrust.cmj.af.core.AFSession).get().getCurrentOrganization().getBeard().getUNID()) ? "1" : (organization != null && (T(ru.intertrust.cmj.af.so.SOBeard.Type).PRIVATE_HUMAN).equals(organization.originalData().getType())) ? "3" : "2"]]></script>
+      </calc-values>
+    </string>
+    <boolean default-value="false" temporal="true" name="hideOtherParties_all">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[organization != null]]></script>
+      </calc-values>
+    </boolean>
+    <custom-event-handler lang="JavaScript"><![CDATA[function recalc(object, changedField) {
+    if (changedField === 'organization') {}
+}]]></custom-event-handler>
+  </schema>
+</schemas>

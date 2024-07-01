@@ -1,0 +1,186 @@
+<collection name="PersonDirectory_(vw_cmj_employees_by_name)" idField="id">
+    <prototype>
+        <![CDATA[
+ SELECT
+                    pers.id,
+                    pers.id_type as id_type,
+                    '<id>' as self_1,
+		        	':' as self_2,
+		        	'</>' as self_3,
+                    pers.created_date,
+                    persnonsys.Module,
+                    pers.isDeleted,
+                    persnonsys.edited,
+                    persnonsys.isRequest,
+                    persnonsys.replacedWith,
+                    persnonsys.RequestState,
+phonew.phone as origPhone,
+phonem.phone as mobilePhone,
+phoneh.phone as homePhone,
+email.email as vcardEmail,
+                    adrs.region as region,
+                    case
+					    when persnonsys.isRequest = 1 then '41'
+					    else ''
+					end as iconId,
+					case
+					    when persnonsys.isRequest = 1 then 'Заявка'
+					    else ''
+					end as iconHint,
+                    pers.lastName || (case when length(pers.firstname) > 0 then ' ' || pers.firstname else '' end) ||
+							(case when length(pers.middlename) > 0 then ' ' || pers.middlename else '' end) as origShortName,
+                    case
+					    when  orgdescnonsys.shortName is null then ''
+					    else  orgdescnonsys.shortName
+					end as shortNameOrganization,
+                    case
+					    when  persnonsy_sorg.postName is null then ''
+					    else  persnonsy_sorg.postName
+					end as soPost,
+                    pers.updated_date as updated_date,
+                    case
+						when persnonsys.isRequest = 1 then 'Заявка'
+						else 'Досье' end as Form,
+                    	adrs.streettype,
+                    	adrs.street,
+                    	adrs.house,
+		    			adrs.corp,
+		    			adrs.building,
+		    			adrs.office,
+				    	adrs.settlement,
+				    	adrs.city,
+				    	adrs.locality,
+				    	adrs.country,
+				    	adrs.zipcode,
+						case
+							when (adrs.street IS NOT NULL AND adrs.street <> '')
+							then coalesce(NULLIF(adrs.streettype, ''), 'ул.') || ' ' || adrs.street
+							else ''
+						end
+						|| coalesce(' д. ' || NULLIF(adrs.house, ''), '')
+						|| coalesce(' корп. ' || NULLIF(adrs.corp, ''), '')
+						|| coalesce(' стр. ' || NULLIF(adrs.building, ''), '')
+						|| coalesce(' офис ' || NULLIF(adrs.office, ''), '')
+						|| coalesce(' н/п ' || NULLIF(adrs.settlement, ''), '')
+						|| coalesce(' г. ' || NULLIF(adrs.city, ''), '')
+						|| coalesce(' р-н. ' || NULLIF(adrs.locality, ''), '')
+						|| coalesce(' ' || NULLIF(adrs.region, ''), '')
+						|| coalesce(' ' || NULLIF(adrs.country, ''), '')
+						|| coalesce(' ' || NULLIF(adrs.zipcode, ''), '') as soAddress
+                FROM
+(SELECT
+persnonsysorg.id
+from
+  so_personnonsysorg persnonsysorg
+UNION
+SELECT
+persnonsysorg.id
+from
+  so_personnonsysprivate persnonsysorg
+) as persnonsysorg
+
+                    inner join so_personnonsys persnonsys on persnonsysorg.id = persnonsys.id
+                    inner join so_person pers on persnonsys.id = pers.id
+                    left join  so_personnonsysorg persnonsy_sorg on persnonsy_sorg.id = persnonsysorg.id
+                    left  join so_orgdescriptionnonsys orgdescnonsys on persnonsy_sorg.organization = orgdescnonsys.id
+                    left join so_addressdata_person adrsper on adrsper.owner = pers.id
+                    left join so_addressdata adrs on adrs.id = adrsper.id
+                    left join so_phone_person_h hphone on hphone.owner = pers.id
+                    left join so_phone_person_m mphone on mphone.owner = pers.id
+                    left join so_phone_person_w wphone on wphone.owner = pers.id
+                    left join  so_phone phonew on phonew.id = wphone.id
+                    left join  so_phone phonem on phonem.id = mphone.id
+                    left join  so_phone phoneh on phoneh.id = hphone.id
+                    left join so_email_person email_person on email_person.owner = pers.id
+                    left join so_email email on email.id = email_person.id
+                WHERE
+                    persnonsys.edited is null AND persnonsys.replacedWith is null
+                    AND (persnonsys.RequestState is null OR persnonsys.RequestState <> 3) AND pers.isDeleted <> 1
+                    AND (persnonsys.isLiquidated is null OR persnonsys.isLiquidated <> 1)
+                    ::where-clause
+            ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    persnonsys.Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="origShortName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     lower(pers.lastName) || ' ' ||  lower(pers.firstName) || ' ' ||  lower(pers.middleName) like  lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="shortNameOrganization_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+						case
+					    when  orgdescnonsys.shortName is null then ''
+					    else  lower(orgdescnonsys.shortName) end like lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="region_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   lower(adrs.region) like  lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soAddress_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                  						case
+							when ( adrs.street IS NOT NULL AND adrs.street <> '')
+							then coalesce(NULLIF( lower(adrs.streettype), ''), 'ул.') || ' ' ||  lower(adrs.street)
+							else ''
+						end
+						|| coalesce(' д. ' || NULLIF( lower(adrs.house), ''), '')
+						|| coalesce(' корп. ' || NULLIF(lower(adrs.corp), ''), '')
+						|| coalesce(' стр. ' || NULLIF(lower(adrs.building), ''), '')
+						|| coalesce(' офис ' || NULLIF(lower(adrs.office), ''), '')
+						|| coalesce(' н/п ' || NULLIF(lower(adrs.settlement), ''), '')
+						|| coalesce(' г. ' || NULLIF(lower(adrs.city), ''), '')
+						|| coalesce(' р-н. ' || NULLIF(lower(adrs.locality), ''), '')
+						|| coalesce(' ' || NULLIF(lower(adrs.region), ''), '')
+						|| coalesce(' ' || NULLIF(lower(adrs.country), ''), '')
+						|| coalesce(' ' || NULLIF(lower(adrs.zipcode), ''), '') like lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="origPhone_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                 lower(phonew.phone) like lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="vcardEmail_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                  lower(email.email) like lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soPost_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                  case
+					    when  persnonsy_sorg.postName is null then ''
+					    else  lower(persnonsy_sorg.postName) end like lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="Form_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    case
+						when persnonsys.isRequest = 1 then 'заявка'
+						else 'досье' end like lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

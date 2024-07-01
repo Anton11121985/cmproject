@@ -1,0 +1,78 @@
+<collection name="OrgDirectory_(vw_cmj_admin_all_inn)" idField="id" replace="runtime">
+	<prototype>
+		<![CDATA[
+			SELECT
+				  temp.id,
+	                temp.id_type,
+	                '<id>' as self_1,
+		            ':' as self_2,
+		            '</>' as self_3,
+	                temp.created_date,
+	                temp.Module,
+	                temp.inn,
+	                temp.kpp,
+	                '<shortName>' || temp.Orig_ShortName || '</><id>'
+			   		             || RIGHT(temp.cmjunid, 16) || ':' || LEFT(temp.cmjunid, 32) || '</>' AS correspondent
+			FROM (
+				SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+                       orgdesc.inn,
+                       orgdesc.kpp,
+                       b.cmjunid,
+                       b.Orig_ShortName
+                    FROM
+                        so_orgdescriptionnonsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        	and orgdesc.isdeleted!=1 and orgdesc.replacedwith is null and orgdesc.IsLiquidated!=1
+                        join so_beard b on b.id=org.beard
+
+                    UNION
+                    SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+												orgdesc.inn,
+												orgdesc.kpp,
+                        b.cmjunid,
+                        b.Orig_ShortName
+                    FROM
+                        so_orgdescriptionsys org
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        	and orgdesc.isdeleted!=1 and orgdesc.replacedwith is null and orgdesc.IsLiquidated!=1
+                        join so_orgsystem orgsys on org.orgsystem = orgsys.id
+                        join so_structureunit su on su.id = orgsys.id
+                        join so_beard b on b.id=su.beard
+			) temp
+			WHERE
+				1 = 1
+				::where-clause
+		]]>
+	</prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				Module = {0}
+			]]>
+		</criteria>
+	</filter>
+	<filter name="inn">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				inn = {0}
+			]]>
+		</criteria>
+	</filter>
+	<filter name="kpp">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				inn = {0}
+			]]>
+		</criteria>
+	</filter>
+</collection>

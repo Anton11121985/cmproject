@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.16.0-48579d909b7943b64690c65c71e07e0b80981928  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="apr-visa-list" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="483" leftMargin="70" rightMargin="42" topMargin="56" bottomMargin="56" uuid="e95e6c47-e7d7-44cb-96a2-2c55c48026a1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="rel-62.xml"/>
+	<property name="net.sf.jasperreports.export.docx.frames.as.nested.tables" value="false"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[with
+listid as (
+  select qrid.item v, qrid.item_type t
+  from qr_id_list qrid
+    join qr_request req on qrid.request = req.id
+  where req.id = $P{request_id}
+)
+/*часть запроса для поиска хардкодных согласований по РКК*/
+select
+    case when aprres.id is null then list.id else aprres.id end as lid, /*в параметр lid передаётся идентификатор результата согласования*/
+    substring(list.rkkid, 0, 33) as rid
+from Apr_List AS list
+join Apr_ApprList on Apr_ApprList.id = list.id
+left join Apr_VOResult as aprres on list.id = (select substr(npm.punid, 5, 12)::int
+                                                    from nunid2punid_map as npm where nunid = aprres.RefVisaDocId)
+WHERE list.id = (select v from listid) and list.id_type = (select t from listid)
+union all
+/*часть запроса для поиска хардкодных согласований по заседаниям*/
+select
+    aprres.id as lid, /*в параметр lid передаётся идентификатор результата согласования*/
+    substring(list.rkkid, 0, 33) as rid
+from Apr_ApprList AS ApprList
+join Apr_List as list on list.id = ApprList.id
+join AprMeet_VORes_Meet as aprres on list.id = (select substr(npm.punid, 5, 12)::int
+                                                    from nunid2punid_map as npm where nunid = aprres.RefVisaDocId)
+WHERE list.id = (select v from listid) and list.id_type = (select t from listid)
+union all
+/*часть запроса для поиска WF согласований по РКК*/
+select 
+    wfd.id as lid,
+	substring(wfd.parent, 24, 32) as rid
+from wf_document wfd
+WHERE wfd.id = (select v from listid) and wfd.id_type = (select t from listid)
+UNION
+-- часть запроса для дочерних (вложенных) листов
+SELECT
+    -- в параметр lid передаётся идентификатор дочернего (вложенного) листа согласования
+    al.id                        AS lid,
+    -- nunid корневого документа
+    split_part(al.rkkid, '%', 1) AS rid
+FROM apr_apprlist aal
+         INNER JOIN apr_list al ON aal.id = al.id
+         INNER JOIN apr_listortempl alot ON alot.id = al.id
+WHERE 1 = 1
+  -- есть родительский лист - признак листа дочернего (вложенного)
+  AND al.parlistunid IS NOT NULL
+  AND al.parlistunid <> ''
+  -- фильтр по Id выбранного листа
+  AND al.id IN (SELECT v FROM listid)
+  AND al.id_type IN (SELECT t FROM listid)
+		]]>
+	</queryString>
+	<field name="lid" class="java.lang.Object"/>
+	<field name="rid" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="40">
+			<staticText>
+				<reportElement x="0" y="0" width="483" height="20" uuid="292348b3-4606-487e-b62d-01bf2f752fe0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="12"/>
+				</textElement>
+				<text><![CDATA[Лист согласования]]></text>
+			</staticText>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="20" width="483" height="20" uuid="688158e8-2d92-43d3-a25c-1e6a7435ffbb"/>
+				<subreportParameter name="rid">
+					<subreportParameterExpression><![CDATA[$F{rid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="lid">
+					<subreportParameterExpression><![CDATA[$F{lid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="headerType">
+					<subreportParameterExpression><![CDATA["one"]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["apr-list-dochead.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="32" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="483" height="32" uuid="b2685930-87c1-4a06-88ea-651798ad666a"/>
+				<subreportParameter name="listType">
+					<subreportParameterExpression><![CDATA["one"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="lid">
+					<subreportParameterExpression><![CDATA[$F{lid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["apr-one-list.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

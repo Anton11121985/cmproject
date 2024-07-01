@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" targetNamespace="http://www.intertrust.ru/schema/palette/notifications"
+           elementFormDefault="qualified" xmlns="http://www.intertrust.ru/schema/palette/notifications" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="pkd-notices-1.0.xsd">
+    <xs:annotation>
+      <xs:documentation><![CDATA[ПКД тип уведомление]]></xs:documentation>
+    </xs:annotation>
+  </xs:include>
+
+  <xs:include schemaLocation="pkd-notices-override-1.0.xsd">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Web-уведомления для модуля]]></xs:documentation>
+    </xs:annotation>
+  </xs:include>
+
+  <xs:complexType name="freemarkerType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[FreeMarker]]></xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="lang" fixed="FreeMarker"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- Почтовое сообщение -->
+  <xs:complexType name="noticeType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Почтовое сообщение]]></xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="email-channel" type="channelTypeEmail" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Почтовое уведомление]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="inputbox-channel" type="channelTypeInputbox" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Уведомление МРМ]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+    <xs:attribute name="type" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation><![CDATA[Тип уведомления af5]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="locale" type="xs:string" use="optional" default="default">
+      <xs:annotation>
+        <xs:documentation><![CDATA[Используется в мультиязычной инсталляции системы. Указывает, какое вычисление будет применено для выбранного языка. Учитывается локализация пользователя. Если выражения для локали пользователя нет, то выражение с local="default" или без local]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <!-- Тип сообщения -->
+  <xs:complexType name="channelTypeEmail">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Почтовое сообщение]]></xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="subject" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Заголовок]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="body-html" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Сообщение в формате HTML]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="body" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Сообщение в формате Plain-Text]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="attachment" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Вложение.Вычисляется строка в формате: имя_файла;идентификатор_объекта_с_вложением;имя_вложения]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="richText" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Сообщение в формате RichText]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <!-- Тип сообщения -->
+  <xs:complexType name="channelTypeInputbox">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Почтовое сообщение]]></xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="subject" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Заголовок]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="body-html" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Сообщение в формате HTML]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="body" type="freemarkerType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Сообщение в формате Plain-Text]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <!--Уведомления-->
+  <xs:element name="notifications">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="notification" type="noticeType"/>
+        <xs:element name="pkd-notice" type="pkdNoticeType"/>
+        <xs:element name="pkd-notice-override" type="pkdNoticeOverrideType"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

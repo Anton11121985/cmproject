@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 5.5.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ndpFiles" pageWidth="439" pageHeight="180" columnWidth="439" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bfc96021-aea6-47ba-9d3a-29da06c1fed3">
+	<parameter name="ndoChange" class="java.lang.Object" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select f.id as id, 
+	coalesce(f.indexFile, '') as indexFile,
+	coalesce(f.titleFile, '') as titleFile,
+	coalesce(nullif(f.StoragePeriod, ''),
+					(select p.period from SPD_Period p where f.ShelfLife = p.id), '') as StoragePeriod,
+	coalesce(nullif(f.SpDescription, ''),
+					(select concat(p.NormDocShortName, ' ', p.ArticleNum) from SPD_Period p where f.ShelfLife = p.id), '') as SpDescription,
+	coalesce(concat(ur.index, ' - ' ||
+				   coalesce(nullif(ur.branchDivision, ''), (select FullName from SO_StructureUnit s where s.beard = ur.sounit), '')
+				   ), '') as soUnit
+from FR_OrgRegisterChange_Ndps ndps
+join nunid2punid_map on nunid = split_part(ndps.fr_unitRegisterUnid, ':', 2)
+join FR_UnitRegister ur on substring(punid::text, 1 , 4)::integer = ur.id_type and substring(punid::text, 5 , 12)::integer = ur.id
+join FR_UR_File_Register fr on fr.owner = ur.id
+join FR_File f on fr.file = f.id
+join FR_File_Extended f_ex on f_ex.parent = f.id
+where ndps.owner IN (SELECT item FROM QR_Id_List WHERE request = $P{ndoChange});]]>
+	</queryString>
+	<field name="indexFile" class="java.lang.String"/>
+	<field name="titleFile" class="java.lang.String"/>
+	<field name="StoragePeriod" class="java.lang.String"/>
+	<field name="SpDescription" class="java.lang.String"/>
+	<field name="soUnit" class="java.lang.String"/>
+	<group name="Group">
+		<groupExpression><![CDATA[$F{soUnit}]]></groupExpression>
+		<groupHeader>
+			<band height="15" splitType="Stretch">
+				<textField>
+					<reportElement x="0" y="0" width="439" height="15" uuid="6a38ee6d-1502-446a-819e-cafb34d12182"/>
+					<box>
+						<pen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="Times New Roman" size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{soUnit}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="50" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="388" height="40" uuid="a177352a-f3e2-45c6-a568-322d762efddb"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA["Добавление НД подразделений" ]]></text>
+			</staticText>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="55" splitType="Stretch">
+			<staticText>
+				<reportElement x="60" y="0" width="211" height="40" uuid="fc30bc33-52f3-4e93-ba4d-7569481e699b"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Заголовок дела]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="60" height="40" uuid="8bf587a4-2b82-43f9-865d-67c55537a0b3"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Индекс дела]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="351" y="0" width="88" height="40" uuid="8cc9d7cb-82db-47f8-895b-2cc97308465e"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Комментарий]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="40" width="60" height="15" uuid="f28f9fa9-0ab5-44a8-8b91-6375df85d109"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="60" y="40" width="211" height="15" uuid="caf61ca5-4116-482d-8bd9-1b9ae8a2e473"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="271" y="40" width="80" height="15" uuid="936d2102-5739-4a0b-b7a5-eca4cd2d9870"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[3]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="351" y="40" width="88" height="15" uuid="3f6d1a6c-5c5f-4825-a015-7ca82edf690d"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[4]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="271" y="0" width="80" height="40" uuid="bd2e789a-bb79-4532-af34-71d0cb88cdbf"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Срок\nхранения,\n№ статьи"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="50">
+			<textField>
+				<reportElement x="0" y="0" width="60" height="50" uuid="324a5581-8b85-4a8a-8c7a-27e6fd6a4131"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Justified">
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indexFile}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="60" y="0" width="211" height="50" uuid="58c058e2-00a9-4889-a0bb-378297c59e19"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Justified">
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{titleFile}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="271" y="0" width="80" height="50" uuid="ed434510-8e13-4ac0-bce0-0e4f103cd52d"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{StoragePeriod} + ($F{SpDescription}.equals( "" )  ? "" : ",\n" + $F{SpDescription})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="351" y="0" width="88" height="50" uuid="b6410c0b-dd61-4c2b-831c-dd3b199ddb26"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Justified">
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="Dialog" name="DialogRelation" recalc="true">
+        <meta>
+            <category name="Системное"/>
+        </meta>
+        <string name="counter"/>
+        <string name="relation"/>
+        <string name="allRelation" temporal="true" computed="true" array="true"/>
+        <actor name="actor"/>
+        <string name="result"/>
+        <custom-event-handler><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.org.apache.commons.lang.StringUtils);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.ru.intertrust.cmj.af.core.AFEntityStorage);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+
+function queryCreate(object) {
+
+	var query ="select distinct name from so_relations";
+
+	var cs = BeansUtils.getBean("collectionsService");
+	var coll = cs.findCollectionByQuery(query);
+	var allRelation = new ArrayList();
+
+	for(var i = 0 ;i < coll.size();i++) {
+        if (coll.get(i).getString("name") != null && !"".equals(coll.get(i).getString("name"))) {
+			allRelation.add(coll.get(i).getString("name"));
+		}
+    }
+
+    if (!allRelation.isEmpty()) {
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "relation", allRelation.get(0));
+	    TunableObjectHelper.putAFInstanceValue(object.tuning(), "allRelation", allRelation);
+    }
+}
+
+function recalc(object, changedField) {
+
+    var result = "";
+
+	if (changedField == "actor") {
+		if (object.tuning().getValues().get('actor') != null &&  object.tuning().getValues().get('actor').getValue() != null){
+			var actor = object.tuning().getValues().get('actor').getValue();
+			var nameRelation = object.tuning().getValues().get('relation').getValue();
+			var relationUsers = BeansUtils.getBean("relationUsers");
+			var relBeards = relationUsers.getBeardsByFormula(nameRelation, actor);
+			if (relBeards.size() > 0) {
+				beard = relBeards.get(0);
+				if (beard.originalData().getType().toString().equals("SYS_ROLE")){
+					var substitutes = beard.originalData().getParty().getSubstitutes();
+					if (substitutes.size() > 0) {
+						var SUnit = substitutes.get(0);
+						var sobeard;
+
+						if (SUnit instanceof SOUnitPost) {
+							sobeard = SUnit.appointments().getCurrent().getBeard();
+						} else {
+							sobeard = SUnit.getBeard();
+						}
+
+						if (sobeard != null && sobeard != "") {
+							result = beard.toString() + ". Первый участник :  "+sobeard.toString();
+						} else {
+							result = beard.toString();
+						}
+					} else {
+						result = beard.toString();
+					}
+				} else {
+					result = beard.toString();
+				}
+			} else {
+				result = "Не удалось вычислить";
+			}
+		}
+		TuningHelper.processProperty(object.tuning().getValues(), "result", result , object.tuning().getSchema().getProperty("result"));
+	}
+}]]></custom-event-handler>
+    </schema>
+</schemas>

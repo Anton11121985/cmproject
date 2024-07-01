@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="FrReadersCollection">
+        <meta>
+            <category name="Система\Делопроизводство"/>
+        </meta>
+        <boolean name="IsUseArchiveModule" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(T(ru.intertrust.cmj.af.core.AFCMDomino).getDbReplicaIdNamedAny("FileRegister"))?.useArchiveModule]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="isDP" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[{
+                            #FileRegisterApplication = (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.fileregister.FileRegisterApplication))),
+                            #CurUser = (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()),
+                            ((#FileRegisterApplication == null || #CurUser == null ) ? false : !(#FileRegisterApplication.getRespsDeloSoDepRvzByUnid(#CurUser).isEmpty))
+                        }[2]]]>
+                </script>
+            </calc-values>
+        </boolean>
+    </schema>
+</schemas>

@@ -1,0 +1,224 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <form schema-ref="NpaPublication" id="NpaPublishForm" projection="default" showtabs="true">
+    <properties>
+      <hide condition-union="AND">
+        <negative-condition-ref ref="edit"/>
+        <negative-condition-ref ref="read"/>
+      </hide>
+    </properties>
+    <appearance widget="tabs"/>
+    <component>
+      <section id="RootMenu" name="${ui.form.NpaPublishForm.section.RootMenu.name:NpaPublishFormMenu}">
+        <component>
+          <button name="${ui.form.NpaPublishForm.section.RootMenu.button.Выполнить.name:Выполнить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="canPublishNpa"/>
+              </hide>
+            </properties>
+            <hint-pop-up>${ui.form.NpaPublishForm.section.RootMenu.button.Выполнить.hintPopUp:Выполнить}</hint-pop-up>
+            <action>
+              <custom>
+                <operation save-context="true">
+                  <handler>
+                    <script lang="JavaBean">NpaPublishUnpublishAction</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.NpaPublishForm.button.Save.name:Скрыть кнопку Сохранить}">
+            <properties>
+              <hide>
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <action>
+              <system name="SAVE"/>
+            </action>
+          </button>
+          <button name="${ui.form.NpaPublishForm.section.RootMenu.button.В корзину.name:Удалить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="CanTrash"/>
+              </hide>
+            </properties>
+            <hint-pop-up>${ui.form.NpaPublishForm.section.RootMenu.button.В корзину.hintPopUp:Удалить}</hint-pop-up>
+            <action>
+              <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.SavePost.name:Сохранить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="isNewEditNpaPublication"/>
+              </hide>
+            </properties>
+            <action position="9">
+              <custom>
+                <save/>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.SavePut.name:Сохранить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="isNotNewEditNpaPublication"/>
+              </hide>
+            </properties>
+            <action position="9">
+              <custom>
+                <save-existing/>
+              </custom>
+            </action>
+          </button>
+        </component>
+      </section>
+      <section id="Header">
+        <component>
+          <section id="row1" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="showIdent">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <label-style field-width="4" field-unit="symbol"/>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+              </field>
+              <field attribute-ref="publishState">
+                <appearance align="right"/>
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <condition-ref ref="publishStateIsProjectOrIsFailure"/>
+                  </hide>
+                </properties>
+                <directories>
+                  <directory-ref ref="publishStateNpaPublication"/>
+                </directories>
+              </field>
+              <field attribute-ref="publishState">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <condition-ref ref="publishStateIsProjectOrIsPublishedOrIsUnpublished"/>
+                  </hide>
+                </properties>
+                <directories>
+                  <directory-ref ref="publishStateNpaPublication"/>
+                </directories>
+                <appearance align="right">
+                  <label-style>
+                    <style id="tunRed"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunRed"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="type">
+            <properties>
+              <require>
+                <condition>true</condition>
+              </require>
+              <read-only>
+                <condition-ref ref="isSentToPublishOrUnpublish"/>
+              </read-only>
+            </properties>
+            <directories>
+              <directory-ref ref="typeNpaPublication"/>
+            </directories>
+          </field>
+        </component>
+      </section>
+      <section id="Attributes" name="${ui.form.NpaPublishForm.section.Attributes.name:Реквизиты}">
+        <component>
+          <section id="Main" name="${ui.form.NpaPublishForm.section.Attributes.section.Main.name:Основные}" group="true">
+            <component>
+              <field attribute-ref="labelMain">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="author" name="${ui.form.NpaPublishForm.section.Attributes.section.Main.field.author.name:Автор:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                </properties>
+                <appearance importance="normal"/>
+                <directories limit-livesearch="sys-current">
+                  <directory-ref ref="CURRENT_SYS_HUMAN"/>
+                </directories>
+              </field>
+              <field attribute-ref="portal" name="${ui.form.NpaPublishForm.section.Attributes.section.Main.field.portal.name:Портал:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                </properties>
+                <appearance importance="normal"/>
+                <directories limit-livesearch="sys-current">
+                  <directory-ref ref="npa-publication-portal-settings"/>
+                </directories>
+              </field>
+              <field attribute-ref="createdDate" name="${ui.form.NpaPublishForm.section.Attributes.section.Main.field.createdDate.name:Дата создания:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <field attribute-ref="publishDate" name="${ui.form.NpaPublishForm.section.Attributes.section.Main.field.publishDate.name:Дата публикации:}">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal"/>
+              </field>
+              <section group="true" name="${ui.form.NpaPublishForm.section.Attributes.section.Document.name:Документ}" id="Document">
+                <component>
+                  <field attribute-ref="documentsView" name="${ui.form.NpaPublishForm.section.Attributes.section.Document.name:Документ:}">
+                    <appearance location="table" open-mode="EmbeddedView" digest-mode="EmbeddedView" importance="normal" clickable="true" widget="EmbeddedView"/>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="History" name="${ui.form.NpaPublishForm.section.History.name:История}"/>
+    </component>
+  </form>
+</ui>

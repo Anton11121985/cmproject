@@ -1,0 +1,39 @@
+<collection name="ApprovingDocs_(vw_cmj_corp_not_completed)" idField="id">
+    <prototype>
+        <![CDATA[
+        SELECT  id,
+                created_date,
+                Module,
+                self_1,
+                self_2,
+                self_3
+            FROM (
+                SELECT
+                    al.id																	    AS id,
+                    lstOrTmpl.created_date														AS created_date,
+                lstOrTmpl.module																AS Module,
+                    '<id>'																		AS self_1,
+                    ':'																			AS self_2,
+                    '</>'																		AS self_3
+				FROM apr_list al
+				    JOIN nunid2punid_map n2p on substring(al.RKKId, 1, 32) = n2p.nunid
+				    JOIN f_dp_rkk rkk on cast(substring(n2p.punid, 1, 4) as int) = rkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = rkk.id
+				    JOIN Apr_ListOrTempl lstOrTmpl ON lstOrTmpl.id = al.id
+                    LEFT JOIN so_beard sb on sb.id = lstOrTmpl.idauthor
+
+                WHERE (al.end is null and al."begin" < (now() - interval '1 month') and al.inProcess = '1'
+                and al.integrationId is not null and al.integrationId <> '' and substring(sb.cmjunid, 33, 48) = split_part(al.integrationId, ':', 3)
+                )
+            ) s
+            WHERE 1=1
+                ::where-clause
+            ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:complexType name="searchSettingType">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Описание области поиска]]></xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="target-types" minOccurs="1">
+                <xs:complexType>
+                    <xs:choice maxOccurs="unbounded">
+                        <xs:element name="target-type" type="xs:string" minOccurs="1"/>
+                    </xs:choice>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="modules-info" minOccurs="1">
+                <xs:complexType>
+                    <xs:choice maxOccurs="unbounded">
+                        <xs:element name="module-info" type="searchModuleInfo" minOccurs="1"/>
+                    </xs:choice>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="fields" minOccurs="0">
+                <xs:complexType>
+                    <xs:choice maxOccurs="unbounded">
+                        <xs:element name="field" type="searchFieldsInfo" minOccurs="1"/>
+                    </xs:choice>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+        <xs:attribute name="alias" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Алиас]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="collection" type="xs:string" default="(search)">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Коллекция поиска]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="area" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Область поиска]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="schema-ref" type="xs:string" use="required">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Имя схемы]]></xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="searchTargetTypes">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Список ДОП-ов, по которым идёт поиск]]></xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="target-type" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+
+    </xs:complexType>
+
+    <xs:complexType name="searchModuleInfo">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Список модулей, по которым идёт поиск]]></xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="ident" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Тип модуля]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="complect" type="xs:string">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Комплект модуля]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="named" type="xs:boolean" default="true">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Именной модуль]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+    </xs:complexType>
+
+    <xs:complexType name="searchFieldsInfo">
+        <xs:annotation>
+            <xs:documentation><![CDATA[Описание маппинга полей для поиска]]></xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="property" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Имя поля]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="index-name" type="xs:string">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Имя поля в индексе]]></xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="field-type">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Тип, согласно которому нужно маппить поиск]]></xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="string"/>
+                    <xs:enumeration value="date"/>
+                    <xs:enumeration value="int"/>
+                    <xs:enumeration value="bool"/>
+                    <xs:enumeration value="double"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="operation" default="equals">
+            <xs:annotation>
+                <xs:documentation><![CDATA[Операция поиска для данного поля]]></xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="equals"/>
+                    <xs:enumeration value="lt"/>
+                    <xs:enumeration value="lt_inc"/>
+                    <xs:enumeration value="between"/>
+                    <xs:enumeration value="between_inc"/>
+                    <xs:enumeration value="gt"/>
+                    <xs:enumeration value="gt_inc"/>
+                    <xs:enumeration value="intersect"/>
+                    <xs:enumeration value="every_where"/>
+                    <xs:enumeration value="content"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+    </xs:complexType>
+
+</xs:schema>

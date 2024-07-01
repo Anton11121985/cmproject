@@ -1,0 +1,33 @@
+<search-area name="so_structureunit_search_uicoll" replace="runtime">
+
+    <boost-every-where>
+        <field-boost name="fullname" value="20.0"/>
+        <field-boost name="shortname" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_structureunit">
+        <indexed-field name="shortname"/>
+
+        <indexed-field name="fullname"/>
+
+        <indexed-field name="depParent" search-by="substring">
+            <script>
+                var effName = ctx.get('beard.eff_departmentname');
+                var origName = ctx.get('beard.orig_departmentname');
+                if (effName != null) {
+                ctx.setResult(effName);
+                } else {
+                ctx.setResult(origName);
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="code" search-by="substring">
+            <doel>so_parent_su^owner.code</doel>
+        </indexed-field>
+
+        <indexed-field name="hrCode" search-by="substring">
+            <doel>HRCode</doel>
+        </indexed-field>
+        <indexed-field name="PersonalId" search-by="substring"/>
+    </target-domain-object>
+</search-area>

@@ -1,0 +1,409 @@
+<collection name="Missions_(project_by_executor)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+    id,
+    Module,
+    self_1,
+    self_2,
+    self_3,
+    created_date,
+    hasAttachments,
+    misProjectNumber,
+    misProjectNumberCounter,
+    documentDateWN,
+    reqType,
+    signerName,
+    signername_sort,
+    subject,
+    linkedDoc,
+    regPlace,
+    department,
+    hierDepartment,
+    executorName,
+    theme
+FROM ( SELECT
+           rkkbase.id                                             AS id,
+           rkkbase.created_date                                   AS created_date,
+           rkkbase.module                                         AS Module,
+           '<id>'                                                 AS self_1,
+           ':'                                                    AS self_2,
+           '</>'                                                  AS self_3,
+           rkk.regdate                                            AS documentDateWN,
+           rkkbase.type                                           AS reqType,
+           rkkbase.subject                                        AS subject,
+
+           (SELECT
+                coalesce(max(a), cast(0 AS SMALLINT))
+            FROM (
+                     SELECT
+                         cast(1 AS SMALLINT) a
+                     FROM f_ContentFiles_Rkk CF
+                     WHERE CF.f_dp_rkkbase = rkk.id
+                     UNION SELECT
+                         cast(1 AS SMALLINT)
+                     FROM f_ContentRichText_Rkk CRT
+                     WHERE CRT.f_dp_rkkbase = rkk.id
+                     UNION SELECT
+                         cast(1 AS SMALLINT)
+                     FROM f_VerifyImage_Rkk VI
+                     WHERE VI.f_dp_rkk = rkk.id
+                 ) t
+           )                                                AS hasAttachments,
+
+           coalesce(cast(rkk.prjnumcounter as varchar), '') as misProjectNumber,
+
+           rkk.prjnumcounter AS misProjectNumberCounter,
+
+           CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                         (SELECT ARRAY_TO_STRING(ARRAY_AGG(orig_shortname), ', ', '')
+                          FROM (SELECT *
+                                       FROM so_beard
+                                       LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                       WHERE ordrkk.id = F_DP_Rkk_SigningInfo.owner
+                                       LIMIT 4) f) ||
+                                      (CASE
+                                            WHEN (SELECT COUNT(*)
+                                                          FROM so_beard
+                                                          LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                                          WHERE ordrkk.id = F_DP_Rkk_SigningInfo.owner) > 4 THEN ', ...'
+                                     ELSE ''
+                                     END)
+                 END AS signername,
+    CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                      (SELECT ARRAY_TO_STRING(ARRAY_AGG(orig_shortname), ', ', '')
+                      FROM (SELECT *
+                                   FROM so_beard
+                                   LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                   WHERE ordrkk.id = F_DP_Rkk_SigningInfo.owner) f)
+              END  AS signername_sort,
+
+           (SELECT COALESCE(string_agg((CASE
+                                            WHEN link.doclinktype = '' THEN '<id></>'
+                                            ELSE (COALESCE(
+                                                                    '<id>' || link.docreplid || ':' || link.docunid || '</>',
+                                                                    '<id>' || to_char(
+                                                                                cast((module.id_type * 10 ^ 12) as bigint) + module.id,
+                                                                                'FM0000000000000000') ||
+                                                                    ':00000000000000000000000000000000' || '</>')) END), ';'),
+                            '<id></>')
+            FROM F_DP_RkkWORegAndCtrl_ULnk link
+                     LEFT JOIN ss_module module ON module.id = rkkbase.module
+            WHERE link.owner = rkk.id)                                         AS linkedDoc,
+
+           coalesce(
+                   (SELECT
+                        CASE WHEN regplace.orig_shortname IS NULL THEN 'Не указано'
+                             ELSE regplace.orig_shortname
+                            END
+                    FROM so_beard RegPlace
+                    WHERE RegPlace.id = rkkbase.RegCode),
+                   CASE WHEN rkkbase.RegCode IS NULL THEN 'Не указано' END
+               )  AS regPlace,
+
+           rkkbase.execDep AS department,
+
+           rkkbase.execParentDep AS hierDepartment,
+
+           COALESCE(beardExec.Orig_ShortName, '<Не указано>') AS executorName,
+
+            CASE
+                WHEN themes.theme IS NULL THEN '<Не указано>'
+                ELSE themes.theme
+                END                                                                as theme
+
+       FROM f_dp_ordrkk ordrkk
+                JOIN f_dp_rkk rkk ON rkk.id = ordrkk.id
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                LEFT JOIN So_BEARD signerName ON signerName.id = ordrkk.SignSigner
+                LEFT JOIN f_dp_ordrkk_executor ordexec ON ordexec.owner = rkkbase.id
+                LEFT JOIN so_beard beardExec ON beardExec.id = ordexec.Executor
+                LEFT JOIN f_dp_rkkbase_theme themes ON themes.owner = rkkbase.id
+       WHERE rkkbase.isdeleted = 0 and rkk.regnumcnt is null
+     ) s
+       WHERE 1=1 ::where-clause
+]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+SELECT count(*)
+FROM ( SELECT
+           rkkbase.id                                             AS id,
+           rkkbase.created_date                                   AS created_date,
+           rkkbase.module                                         AS Module,
+           '<id>'                                                 AS self_1,
+           ':'                                                    AS self_2,
+           '</>'                                                  AS self_3,
+           rkk.regdate                                            AS documentDateWN,
+           rkkbase.type                                           AS reqType,
+           rkkbase.subject                                        AS subject,
+
+           (SELECT
+                coalesce(max(a), cast(0 AS SMALLINT))
+            FROM (
+                     SELECT
+                         cast(1 AS SMALLINT) a
+                     FROM f_ContentFiles_Rkk CF
+                     WHERE CF.f_dp_rkkbase = rkk.id
+                     UNION SELECT
+                         cast(1 AS SMALLINT)
+                     FROM f_ContentRichText_Rkk CRT
+                     WHERE CRT.f_dp_rkkbase = rkk.id
+                     UNION SELECT
+                         cast(1 AS SMALLINT)
+                     FROM f_VerifyImage_Rkk VI
+                     WHERE VI.f_dp_rkk = rkk.id
+                 ) t
+           )                                                AS hasAttachments,
+
+           coalesce(cast(rkk.prjnumcounter as varchar), '') as misProjectNumber,
+
+           rkk.prjnumcounter AS misProjectNumberCounter,
+
+           CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                         (SELECT ARRAY_TO_STRING(ARRAY_AGG(orig_shortname), ', ', '')
+                          FROM (SELECT *
+                                       FROM so_beard
+                                       LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                       WHERE ordrkk.id = F_DP_Rkk_SigningInfo.owner
+                                       LIMIT 4) f) ||
+                                      (CASE
+                                            WHEN (SELECT COUNT(*)
+                                                          FROM so_beard
+                                                          LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                                          WHERE ordrkk.id = F_DP_Rkk_SigningInfo.owner) > 4 THEN ', ...'
+                                     ELSE ''
+                                     END)
+                 END AS signername,
+    CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                      (SELECT ARRAY_TO_STRING(ARRAY_AGG(orig_shortname), ', ', '')
+                      FROM (SELECT *
+                                   FROM so_beard
+                                   LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                   WHERE ordrkk.id = F_DP_Rkk_SigningInfo.owner) f)
+              END  AS signername_sort,
+
+           coalesce(
+                   (SELECT
+                        CASE WHEN regplace.orig_shortname IS NULL THEN 'Не указано'
+                             ELSE regplace.orig_shortname
+                            END
+                    FROM so_beard RegPlace
+                    WHERE RegPlace.id = rkkbase.RegCode),
+                   CASE WHEN rkkbase.RegCode IS NULL THEN 'Не указано' END
+               )  AS regPlace,
+
+           rkkbase.execDep AS department,
+
+           rkkbase.execParentDep AS hierDepartment,
+
+           COALESCE(beardExec.Orig_ShortName, '<Не указано>') AS executorName,
+
+            CASE
+                WHEN themes.theme IS NULL THEN '<Не указано>'
+                ELSE themes.theme
+                END                                                                as theme
+
+       FROM f_dp_ordrkk ordrkk
+                JOIN f_dp_rkk rkk ON rkk.id = ordrkk.id
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                LEFT JOIN So_BEARD signerName ON signerName.id = ordrkk.SignSigner
+                LEFT JOIN f_dp_ordrkk_executor ordexec ON ordexec.owner = rkkbase.id
+                LEFT JOIN so_beard beardExec ON beardExec.id = ordexec.Executor
+                LEFT JOIN f_dp_rkkbase_theme themes ON themes.owner = rkkbase.id
+       WHERE rkkbase.isdeleted = 0 and rkk.regnumcnt is null
+     ) s
+       WHERE 1=1 ::where-clause
+]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="documentDateWN">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(documentDateWN as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="documentDateWN_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (documentDateWN is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="documentDateWN_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(documentDateWN as date) >= cast({0} as date) and cast(documentDateWN as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	reqType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        reqType ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signername_sort = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                signername_sort iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="misProjectNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                misProjectNumber = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="department">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    department = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="department_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    department iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="hierDepartment">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hierDepartment = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="hierDepartment_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hierDepartment iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signername_sort = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                signername_sort iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="linkedDoc">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    linkedDoc = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regPlace">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regPlace = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regPlace_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regplace iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                executorName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="theme">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    theme = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="theme_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    theme iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

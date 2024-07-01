@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="DTRReceiveDocsSelectDocFromRegister" extends="Dialog" recalc="true">
+        <meta>
+            <category name="Система\Делопроизводство\Реестр передачи документов"/>
+            <documentation>Схема для заполнения вложенного объекта "Передаваемый документ" чере диалог</documentation>
+        </meta>
+        <string temporal="true" name="mode">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['dialog']]></script>
+            </calc-values>
+        </string>
+        <schema-ref name="entriesForSelect" ref="DTREntryForSelect" array="true" null-empty="true"/>
+        <string name="registryUnid"/>
+        <schema-ref ref="ResourceLink" array="true" name="link"/>
+        <boolean name="$addEntriesLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                link.?[rel=='http://intertrust.ru/cmj/relations#dtr.transmitted.entries.for.select'].size() > 0 ? true :
+#this.link.add(new ru.intertrust.cmj.rest.core.ResourceLink('http://intertrust.ru/cmj/relations#dtr.transmitted.entries.for.select',
+T(ru.intertrust.cmj.rest.core.ReferenceFactory).get().getReference("NodeListByAlias.ForProgrammed",
+"dp-DTR-select-transmitted-entries", registryUnid, false, true, "Записи реестра")))
+                ]]></script>
+            </calc-values>
+        </boolean>
+    </schema>
+</schemas>

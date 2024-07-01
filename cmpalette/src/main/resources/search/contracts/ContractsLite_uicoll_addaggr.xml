@@ -1,0 +1,107 @@
+<search-area name="ContractsLite_uicoll_addaggr" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="docNumber" value="20.0"/>
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <!-- Доп. соглашения -->
+    <target-domain-object type="F_DP_ContractDS">
+
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject" />
+        <!-- Дата договора -->
+        <indexed-field name="contractDate">
+            <doel>HierRoot.regDate</doel>
+        </indexed-field>
+        <!-- Состояние договора -->
+        <indexed-field name="DogDst">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Номер документа -->
+        <indexed-field name="docNumber">
+            <doel>regnumber</doel>
+        </indexed-field>
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>RegDate</doel>
+        </indexed-field>
+        <!-- Дата начала работ -->
+        <indexed-field name="beginDate">
+            <doel>JobStartDate</doel>
+        </indexed-field>
+        <!-- Дата завершения -->
+        <indexed-field name="finishDate"/>
+        <!-- Подпись (1-я сторона) -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="signing1" search-by="substring" language="">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Ответственные -->
+        <linked-domain-object type="F_DP_ContractDS_Resp">
+            <indexed-field name="otv" search-by="substring" language="">
+                <doel>Responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подготовили -->
+        <linked-domain-object type="F_DP_ContractDS_PrepBy">
+            <indexed-field name="Executor" search-by="substring" language="">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подразделение отв.за подготовку -->
+        <linked-domain-object type="F_DP_ContractDS_PrepBy">
+            <indexed-field name="DepResp" search-by="substring" language="">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Первая сторона -->
+        <indexed-field name="COurName" search-by="substring" language="">
+            <doel>HierParent.Party1Id.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- 2-я сторона -->
+        <indexed-field name="CFullName" search-by="substring" language="">
+            <doel>HierParent.Party2IdA.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- Номер договора -->
+        <indexed-field name="regFullNumber" search-by="substring" language="">
+            <script>
+                var contract = session.find(ctx.get('HierRoot'));
+                var rn = contract.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = contract.get('regnumprist'); if (prist == null) prist = '';
+                var fin = contract.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>HierRoot.regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+    </target-domain-object>
+
+</search-area>
+    

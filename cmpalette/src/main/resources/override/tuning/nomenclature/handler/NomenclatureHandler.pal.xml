@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <handler name="Nomenclature_Delete" id="Nomenclature_Delete">
+    <meta>
+      <documentation>Удаление объекта номенклатуры</documentation>
+    </meta>
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("answer1")) {
+        return process_dialog1(paramsResource, returnResource);
+    }
+
+
+    return null;
+}
+
+/**
+ * Уточнение у пользователя
+ */
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class); //TunableObjectApplication
+    var ids = appTNObject.getClientContextResourceId(paramsResource.tuning()); //String
+    if (ids == null) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+
+    var message = appTNObject.composeDialog("DialogYesNo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "empunid", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Вы уверены, что хотите удалить документ? ");
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer1");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+
+    /**
+     * Обработка первого пакета данных с клиента.
+     */
+    function process_dialog1(paramsResource, returnResource) {
+        var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class); //TunableObjectApplication
+        var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("empunid"));
+        if (id == null) {
+            throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+        }
+
+        var obj = appTNObject.getEntityByUNID(id);
+
+        if(obj.tuning().getValues().get('deleted') == null) {
+            obj.tuning().getValues().put("deleted",null);
+        }
+        TuningHelper.processProperty(obj.tuning().getValues(), "deleted", true , obj.tuning().getSchema().getProperty("deleted"));
+
+        obj.save();
+
+        //переоткрываем документ
+        returnResource.setResource(TunableObjectREST.Resource.create(obj));
+
+    }]]></script>
+  </handler>
+</ui>

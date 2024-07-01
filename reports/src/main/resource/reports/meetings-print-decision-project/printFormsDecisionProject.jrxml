@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="printFormsDecisionProject" pageWidth="595" pageHeight="842" columnWidth="509" leftMargin="57" rightMargin="29" topMargin="57" bottomMargin="57" uuid="19441d5a-d384-40f5-bc44-0ce4b700f3ff">
+	<property name="net.sf.jasperreports.export.docx.flexible.row.height" value="true"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="CM5"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+	settings.subjectRP AS typeOfMeeting,
+	meet.ord_fullnumber AS protocolNum,
+	CASE WHEN point.meeting IS NOT NULL THEN
+		EXTRACT(DAY FROM meet.meeting_date)
+	ELSE
+		null
+	END
+	AS meetingDate_day,
+	CASE WHEN point.meeting IS NOT NULL THEN
+		CASE 
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 1 THEN 'Января'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 2 THEN 'Февраля'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 3 THEN 'Марта'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 4 THEN 'Апреля'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 5 THEN 'Мая'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 6 THEN 'Июня'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 7 THEN 'Июля'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 8 THEN 'Августа'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 9 THEN 'Сентября'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 10 THEN 'Октября'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 11 THEN 'Ноября'
+		WHEN EXTRACT(MONTH FROM meet.meeting_date) = 12 THEN 'Декабря'
+		ELSE null
+		END
+	ELSE
+		null
+	END
+	AS meetingDate_month,
+	CASE WHEN point.meeting IS NOT NULL THEN
+		EXTRACT(YEAR FROM meet.meeting_date)
+	ELSE
+		null
+	END
+	AS meetingDate_year,
+	point.number as pointNum,
+	pointbase."point" as pointFormula,
+	decisionpr.id as docid
+FROM	
+	f_meetings_decisionpr decisionpr
+	LEFT JOIN f_meetings_point point ON decisionpr.point = point.id
+	LEFT JOIN f_meetings_pointbase pointbase ON point.id = pointbase.id
+	LEFT JOIN f_meetings_meeting meet ON point.meeting = meet.id
+	LEFT JOIN f_meetings_settings settings ON meet.setting = settings.id
+WHERE
+	decisionpr.id in (SELECT l.Item FROM QR_Id_List l WHERE l.request = $P{request_id})]]>
+	</queryString>
+	<field name="typeOfMeeting" class="java.lang.String"/>
+	<field name="protocolNum" class="java.lang.String"/>
+	<field name="meetingDate_day" class="java.lang.String"/>
+	<field name="meetingDate_month" class="java.lang.String"/>
+	<field name="meetingDate_year" class="java.lang.String"/>
+	<field name="pointNum" class="java.lang.String"/>
+	<field name="pointFormula" class="java.lang.String"/>
+	<field name="docid" class="java.lang.Object"/>
+	<detail>
+		<band height="90" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<textField>
+				<reportElement x="0" y="0" width="510" height="20" forecolor="#000000" uuid="6d4e5099-9a7a-47ca-a08a-1288f0749490">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ПРОЕКТ"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="60" width="250" height="30" forecolor="#000000" uuid="0acbcf7d-b5b3-42ad-9afe-e533899cda0d">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Протокол №"+ ($F{protocolNum} != null ? $F{protocolNum} : " ________")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="20" width="510" height="40" forecolor="#000000" uuid="fe874ae5-2431-462c-98a9-45a9562cce3f">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Решение"+ ($F{typeOfMeeting} != null ? " " + $F{typeOfMeeting} : "")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="250" y="60" width="260" height="30" forecolor="#000000" uuid="191f0531-8a9c-4d99-b628-2dbeb1183474">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="false" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["«" +($F{meetingDate_day} != null ? $F{meetingDate_day} :  "___") + "»" +
+" " + ($F{meetingDate_month} != null ? $F{meetingDate_month} : "_____________") +
+($F{meetingDate_year} != null ? " " + $F{meetingDate_year} : "") + " года"]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="44" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="510" height="44" forecolor="#000000" uuid="5ec6d33f-37ef-42c0-885a-fc38c0889919">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Вопрос №" + ($F{pointNum} != null ? " " + $F{pointNum} : "___") + ". " + 
+($F{pointFormula} != null ? " " + $F{pointFormula} : "")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="40" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="510" height="20" forecolor="#000000" uuid="68bf20af-4aa9-4c48-a67b-804340a2c3b7">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Вопросы, поставленные на голосование:"]]></textFieldExpression>
+			</textField>
+			<subreport isUsingCache="false" runToBottom="false">
+				<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="20" width="510" height="20" uuid="3b9c6038-77e4-4700-8701-18dbfa9a4a70"/>
+				<subreportParameter name="ID">
+					<subreportParameterExpression><![CDATA[$F{docid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["printFormsDecisionProject_projectDecision.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="20">
+			<subreport isUsingCache="false" runToBottom="false">
+				<reportElement key="" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="510" height="20" uuid="68c9fc18-fb91-43f5-b642-aed0f2ce507e"/>
+				<subreportParameter name="ID">
+					<subreportParameterExpression><![CDATA[$F{docid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["printFormsDecisionProject_result.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

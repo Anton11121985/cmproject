@@ -1,0 +1,4285 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<links xmlns="http://www.intertrust.ru/schema/palette/links">
+	<link>
+		<source doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</source>
+		<target doc-type="">
+			<module ident="InternalDocs" />
+			<module ident="InternalDocsPrev" />
+			<module ident="InputDocs" />
+			<module ident="InputDocsPrev" />
+			<module ident="OutputDocs" />
+			<module ident="OutputDocsPrev" />
+			<module ident="Missions" />
+			<module ident="MissionsPrev" />
+			<module ident="Tasks" />
+			<module ident="Meetings" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="">
+			<module ident="InternalDocs" />
+			<module ident="InternalDocsPrev" />
+			<module ident="InputDocs" />
+			<module ident="InputDocsPrev" />
+			<module ident="OutputDocs" />
+			<module ident="OutputDocsPrev" />
+			<module ident="Missions" />
+			<module ident="MissionsPrev" />
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+			<module ident="Tasks" />
+			<module ident="Meetings" />
+		</source>
+		<target doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="REPEATED" direction="from" ref="PRIMARY"/>
+			<link-type-ref link-on="now" select="true" back-ref="PRIMARY" direction="to" ref="REPEATED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<meta>
+			<documentation>Тип "Исполнение" является системным.</documentation>
+		</meta>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="">
+			<module ident="InputDocsPrev"/>
+			<module ident="InputDocs"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" ref="EXECUTE" direction="to" back-ref="EXECUTED" select="false"/>
+			<link-type-ref link-on="now" select="false" ref="AT" direction="from" back-ref="FROM"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<meta>
+			<documentation>Тип "Исполнение" является системным.</documentation>
+		</meta>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="">
+			<module ident="InputDocsPrev"/>
+			<module ident="InputDocs"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" back-ref="EXECUTE" direction="to" ref="EXECUTED" select="true"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="AddAgr">
+			<module ident="ContractsLite"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="Dog">
+			<module ident="ContractsLite"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="DocDogovor">
+			<module ident="ContractsLite"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="Finance">
+			<module ident="ContractsLite"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="">
+			<module ident="Tasks"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="OutputDocsPrev"/>
+			<module ident="OutputDocs"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var result;var Reqtype = ctx.get('Reqtype');var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');var RDate = ctx.get('RDate');Reqtype = Reqtype.size() > 0 ? Reqtype.get(0) : '';rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';RDate = RDate.size() > 0 ? RDate.get(0).toString() : '';var result = Reqtype + " №" + rprist + RNumber + rfin + " от " + RDate;ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="OutputDocs"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SLATTERTO" direction="from" ref="SLATTERFROM"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<meta>
+			<documentation>Тип "В исполнение" является системным.</documentation>
+		</meta>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="InputDocsPrev"/>
+			<module ident="InputDocs"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" back-ref="EXECUTED" direction="from" ref="EXECUTE" select="true" />
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<meta>
+			<documentation>Тип "В исполнение" является системным.</documentation>
+		</meta>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="InputDocsPrev"/>
+			<module ident="InputDocs"/>
+		</source>
+		<target doc-type="">
+			<module ident="Requests"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" back-ref="FROM" direction="to" ref="AT"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var result;var rprist = ctx.get('rprist');var RNumber = ctx.get('RNumber');var rfin = ctx.get('rfin');var RDate = ctx.get('RDate');rprist = rprist.size() > 0 ? rprist.get(0) : '';RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';rfin = rfin.size() > 0 ? rfin.get(0) : '';RDate = RDate.size() > 0 ? RDate.get(0).toString() : '';result = rprist + RNumber + rfin + " от " + RDate;ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+		</source>
+		<target doc-type="">
+			<module ident="OutputDocs"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SLATTERFROM" direction="to" ref="SLATTERTO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="">
+			<module ident="InternalDocs"/>
+			<module ident="InternalDocsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+		</source>
+		<target doc-type="">
+			<module ident="OutputDocsPrev"/>
+			<module ident="OutputDocs"/>
+			<module ident="InternalDocs"/>
+			<module ident="InternalDocsPrev"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    if("DocDogovor".equals(Form) || "Finance".equals(Form)){
+      Date = context.get('Date');
+    } else {
+      Date = context.get('RDate');
+    }
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="AddAgr">
+			<module ident="ContractsLite"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    if("DocDogovor".equals(Form) || "Finance".equals(Form)){
+      Date = context.get('Date');
+    } else {
+      Date = context.get('RDate');
+    }
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="Dog">
+			<module ident="ContractsLite"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    if("DocDogovor".equals(Form) || "Finance".equals(Form)){
+      Date = context.get('Date');
+    } else {
+      Date = context.get('RDate');
+    }
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="DocDogovor">
+			<module ident="ContractsLite"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link for-general-document="true">
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    if("DocDogovor".equals(Form) || "Finance".equals(Form)){
+      Date = context.get('Date');
+    } else {
+      Date = context.get('RDate');
+    }
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<source doc-type="">
+			<module ident="Requests"/>
+			<module ident="RequestsPrev"/>
+		</source>
+		<target doc-type="Finance">
+			<module ident="ContractsLite"/>
+		</target>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTED" direction="from" ref="EXECUTE"/>
+			<link-type-ref link-on="now" select="true" back-ref="EXECUTE" direction="to" ref="EXECUTED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADD" direction="to" ref="ADDED"/>
+			<link-type-ref link-on="now" select="true" back-ref="ADDED" direction="from" ref="ADD"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCEL" direction="to" ref="CANCELED"/>
+			<link-type-ref link-on="now" select="true" back-ref="CANCELED" direction="from" ref="CANCEL"/>
+			<link-type-ref link-on="now" select="true" back-ref="BEFORE" direction="to" ref="AFTER"/>
+			<link-type-ref link-on="now" select="true" back-ref="AFTER" direction="from" ref="BEFORE"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONGED" direction="from" ref="PROLONG"/>
+			<link-type-ref link-on="now" select="true" back-ref="PROLONG" direction="to" ref="PROLONGED"/>
+			<link-type-ref link-on="now" select="true" back-ref="LINK_WITH" direction="without" ref="LINK_WITH"/>
+			<link-type-ref link-on="now" select="true" back-ref="AT" direction="from" ref="FROM"/>
+			<link-type-ref link-on="now" select="true" back-ref="FROM" direction="to" ref="AT"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGED" direction="from" ref="CHANGE"/>
+			<link-type-ref link-on="now" select="true" back-ref="CHANGE" direction="to" ref="CHANGED"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+		<get-doc way="byDocID"/>
+	</link>
+	<link>
+		<source doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</source>
+		<target doc-type="Dog">
+			<module ident="ContractsLite" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</source>
+		<target doc-type="AddAgr">
+			<module ident="ContractsLite" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</source>
+		<target doc-type="DocDogovor">
+			<module ident="ContractsLite" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</source>
+		<target doc-type="Finance">
+			<module ident="ContractsLite" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="Dog">
+			<module ident="ContractsLite" />
+		</source>
+		<target doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="AddAgr">
+			<module ident="ContractsLite" />
+		</source>
+		<target doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="DocDogovor">
+			<module ident="ContractsLite" />
+		</source>
+		<target doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+	<link>
+		<source doc-type="Finance">
+			<module ident="ContractsLite" />
+		</source>
+		<target doc-type="">
+			<module ident="Requests" />
+			<module ident="RequestsPrev" />
+		</target>
+		<calc-doc-info lang="JavaScript"><![CDATA[var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx; var resolutionType = '';
+
+if ("resolution".equals(Form)) {
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId'); rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') { context = session.findByStrId(rkkDocId);
+		Form = context.get('Form'); Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "InputDocs", "InputDocsPrev"))) {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Missions", "MissionsPrev", "InternalDocs", "InternalDocsPrev"))) {
+	Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+	Date = context.get('ResDate'); Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("ContractsLite", "ContractsLitePrev"))) {
+    Date = context.get('RDate');
+    Date = Date.size() > 0 ? Date.get(0) : RegistrationD;
+} else {
+	Date = context.get('Rdate'); Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+	Type = "СП ";
+} else if ("Dog".equals(Form)) {
+	Type = context.get('dogtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+	Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+	Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+	Type = "Фин. документ ";
+} else {
+	Type = context.get('reqtype');
+	Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+
+if ("spismo".equals(Form)) {
+	Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form) || "DocDogovor".equals(Form)) {
+	var parentUnid = ctx.get("RkkDocId");
+	var parent = ctx.getContextObject().getParentDatabase().getDocumentByID(parentUnid.get(0));
+	Number = parent.getItemValue('RNumber_Full');
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else if("DocDogovor".equals(Form)) {
+	Number = context.get("Number");
+	Number = Number.size() > 0 ? Number.get(0) : '';
+} else {
+	var rprist = context.get('rprist');
+	var RNumber = context.get('RNumber');
+	var rfin = context.get('rfin');
+	rprist = rprist.size() > 0 ? rprist.get(0) : '';
+	RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+	rfin = rfin.size() > 0 ? rfin.get(0) : '';
+	Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result;
+
+if("Finance".equals(Form)) {
+	result = "Финдокумент " + Number;
+} else if("DocDogovor".equals(Form)) {
+	result = "Документ по договору " + Number;
+} else if ("meeting".equals(Form)) {
+	var eventDate=ctx.get('EventDate');
+	result = 'Заседание от ' + (eventDate.size() > 0 ? eventDate.get(0) : '');
+} else {
+	result = resolutionType + Type + " " + Number + " от " + Date;
+}
+ctx.setResult(result);]]></calc-doc-info>
+		<link-types>
+			<link-type-ref link-on="now" select="true" back-ref="SEE_ALSO" direction="without" ref="SEE_ALSO"/>
+		</link-types>
+		<calc-name lang="JavaScript"><![CDATA[var result;
+
+var Form = ctx.get('form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+if ("resolution".equals(Form)) {
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+if ("Dog".equals(Form) || "Finance".equals(Form)) {
+    result = context.get('DocSubject');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    result = context.get('SubjectA');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("DocDogovor".equals(Form)) {
+    result = context.get('DisplayHeader');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("resolution".equals(Form)) {
+    result = context.get('resolution');
+    result = result.size() > 0 ? result.get(0) : '';
+} else if ("meeting".equals(Form)) {
+    result = context.get('Type');
+    result = result.size() > 0 ? result.get(0) : '';
+} else {
+    result = context.get('Subject');
+    result = result.size() > 0 ? result.get(0) : '';
+}
+
+ctx.setResult(result);]]></calc-name>
+	</link>
+</links>

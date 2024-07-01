@@ -1,0 +1,60 @@
+<search-area name="InputDocs_uicoll_template" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object type="F_DP_InputRkkT">
+        <!-- Имя шаблона -->
+        <indexed-field name="Name"/>
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Вид документа -->
+        <indexed-field name="Type"/>
+        <!-- Заголовок -->
+        <indexed-field name="Subject"/>
+        <!-- Корреспондент -->
+        <linked-domain-object type="F_DP_InputRkkT_Author">
+            <indexed-field name="authorPlain" search-by="substring">
+                <doel>Author.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="authorOrgNamePlain" search-by="substring">
+                <doel>Author.orgname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Исполнители -->
+        <linked-domain-object type="F_DP_InputRkkT_ExecPlain">
+            <indexed-field name="corrExecutor" search-by="substring">
+                <doel>executorplain</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Адресаты -->
+        <linked-domain-object type="F_DP_InputRkkT_Addressee">
+            <indexed-field name="Addressee" search-by="substring">
+                <doel>Addressee.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+
+        <filter>
+            <doel>Module.Type.Alias:in("InputDocs", "InputDocsPrev")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

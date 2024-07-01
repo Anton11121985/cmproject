@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <form schema-ref="SendRusPostTable" projection="default" name="${ui.form.SendRusPostTableForm.name:Таблица корреспондентов}" id="SendRusPostTableForm">
+        <properties>
+            <hide condition-union="AND">
+                <negative-condition-ref ref="edit"/>
+                <negative-condition-ref ref="table"/>
+            </hide>
+        </properties>
+        <appearance field-layout="horizontal" style="tunLowerBorder">
+            <table column-edit="true"/>
+        </appearance>
+        <component>
+            <section id="CheckBox">
+                <appearance field-layout="horizontal" style="tunRightBorder"/>
+                <component>
+                    <field recalc="true" attribute-ref="postCheckBox">
+                        <appearance importance="normal">
+                           <label-style field-width="3" field-unit="symbol">
+                               <style id="tunSelectAll"/>
+                           </label-style>
+                        </appearance>
+                    </field>
+                </component>
+            </section>
+            <section id="SelectCorr" name="${ui.form.SendRusPostTableForm.section.SelectCorr.name:Корреспондент}">
+                <appearance>
+                    <dialog-mode width="23" unit="percent"/>
+                </appearance>
+                <component>
+                    <field attribute-ref="postSelectCorr">
+                        <properties>
+                            <require condition-union="AND">
+                                <condition>true</condition>
+                            </require>
+                            <read-only condition-union="AND">
+                                <condition>true</condition>
+                            </read-only>
+                        </properties>
+                        <appearance importance="normal" />
+                        <directories limit-livesearch="no-restrictions">
+                            <directory-ref ref="AlienBeards"/>
+                            <directory-ref ref="current_all_with_org"/>
+                            <directory-ref ref="current_all_with_org_hier"/>
+                            <directory-ref ref="PrivatePeople"/>
+                            <directory-ref ref="sendlist"/>
+                            <directory-ref ref="FV_CURR_ALL_FOREIGN_SYS_ORG"/>
+                        </directories>
+                    </field>
+                </component>
+            </section>
+            <section id="SelectWayRPO" name="${ui.form.SendRusPostTableForm.section.SelectWayRPO.name:Вид РПО}">
+                <appearance>
+                    <dialog-mode width="23" unit="percent"/>
+                </appearance>
+                <component>
+                    <field attribute-ref="postSelectWayRPO" recalc="true">
+                        <properties>
+                            <require condition-union="AND">
+                                <condition-ref ref="postCheckBox"/>
+                            </require>
+                            <read-only>
+                                <condition-ref ref="postCheckBoxEdit"/>
+                            </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="true"/>
+                        <directories>
+                            <directory-complex ref="valueTypeRPO"/>
+                        </directories>
+                    </field>
+                </component>
+            </section>
+            <section id="SelectCatRPO" name="${ui.form.SendRusPostTableForm.section.SelectCatRPO.name:Категория РПО}">
+                <appearance>
+                    <dialog-mode width="23" unit="percent"/>
+                </appearance>
+                <component>
+                    <field attribute-ref="postSelectCatRPO" recalc="true">
+                        <properties>
+                            <require condition-union="AND">
+                                <condition-ref ref="postCheckBox"/>
+                            </require>
+                            <read-only>
+                                <condition-ref ref="postCheckBoxEdit"/>
+                            </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="true"/>
+                        <directories>
+                            <directory-complex ref="valueCategoryRPO">
+                                <union attribute-ref="postSelectWayRPO" dir-attribute-ref="valueTypeRPO"/>
+                            </directory-complex>
+                        </directories>
+                    </field>
+                    <field attribute-ref="postDeliveryNotice" name="${ui.form.SendRusPostTableForm.section.SelectCatRP.field.postDeliveryNotice.name:С уведомлением о вручении:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="postNotHideDelivNotBox"/>
+                            </hide>
+                        </properties>
+                        <appearance align="right" multiline="false"  importance="normal">
+                            <label-style label-width="24" label-unit="symbol" field-width="3" field-unit="symbol"/>
+                        </appearance>
+                    </field>
+                    <field attribute-ref="postHideDelivNotBox" recalc="true">
+                        <properties>
+                            <hide condition-union="AND">
+                                <condition>true</condition>
+                            </hide>
+                        </properties>
+                        <appearance align="right" multiline="false"  importance="normal">
+                            <label-style field-width="3" field-unit="symbol"/>
+                        </appearance>
+                    </field>
+                </component>
+            </section>
+            <section id="SelectAddress" name="${ui.form.SendRusPostTableForm.section.SelectAddress.name:Адрес}">
+                <appearance>
+                    <dialog-mode width="23" unit="percent"/>
+                </appearance>
+                <component>
+                    <field attribute-ref="postSelectAddress">
+                        <appearance importance="normal" multiline="true"/>
+                        <properties>
+                            <read-only>
+                                <condition-ref ref="postCheckBoxEdit"/>
+                            </read-only>
+                        </properties>
+                    </field>
+                </component>
+            </section>
+        </component>
+    </form>
+</ui>

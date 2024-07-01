@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="TransmittedDoc">
+    <meta>
+      <category name="Система\Делопроизводство\Реестр передачи документов" />
+      <documentation>Вложенный объект "Передаваемый документ"</documentation>
+    </meta>
+    <string name="id">
+      <storage-field name="transmittedDocUnid" />
+    </string>
+    <string name="description" computed="true">
+      <storage-field name="transmittedDocDescription" />
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[docNumber + ', ' + regDate + ', ' + subject]]></script>
+      </calc-values>
+    </string>
+    <string name="subject">
+      <storage-field name="transmittedDocSubject" />
+    </string>
+    <string name="docNumber">
+      <storage-field name="IntroducedDocNumber" />
+    </string>
+    <string name="regDate">
+      <storage-field name="IntroducedDocRegDate" />
+    </string>
+    <hyperlink computed="true" name="Link">
+      <storage-field name="transmittedDocLink" />
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[id == null ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink(docNumber + ', ' + regDate + ', ' + subject +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + id +'~#newTab~#local')]]></script>
+      </calc-values>
+    </hyperlink>
+    <!-- свойство для ID записи доукмента втекущем реестре. Если ID указан то не нужно переподбирать документ -->
+    <string name="entryId" temporal="true"/>
+  </schema>
+</schemas>

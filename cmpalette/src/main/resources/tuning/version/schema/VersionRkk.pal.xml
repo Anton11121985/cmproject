@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="VersionRkk" extends="VersionAbstract">
+        <schema-ref ref="RegistrationInfoNotes" name="registration"/>
+        <string name="title">
+            <storage-field name="title"/>
+        </string>
+        <schema-ref ref="ContentResource" name="$content" temporal="true"/>
+        <string name="versionText" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Версия № ' + #this.versionBase.numberString + ' от ' + T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).dateToStandardDateTime(#this.versionBase.createdDate)]]></script>
+            </calc-values>
+        </string>
+
+        <string name="appType">
+            <storage-field name="appType"/>
+        </string>
+        <string name="showIdent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Версия']]></script>
+            </calc-values>
+        </string>
+        <boolean name="canEditParent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).hasEditRoles(#this.parentUnid)]]></script>
+            </calc-values>
+        </boolean>
+
+        <string name="showType" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'showTypeName') ? showTypeName : #this.dbIdent.startsWith('InternalDocs') ? 'Внутренний документ' : #this.dbIdent.startsWith('Documents') ? 'Проект документа' : #this.dbIdent.startsWith('Missions') ? 'ОРД' : #this.dbIdent.startsWith('OutputDocs') ? 'Исходящий документ' : #this.dbIdent.startsWith('Directives') ? 'Директива' : #this.dbIdent.startsWith('NormDocs') ? 'НСИ' : #this.dbIdent.startsWith('MeetingsPacks') ? 'Пакет материалов для УОБ' : '']]></script>
+            </calc-values>
+        </string>
+
+        <string temporal="true" name="$id">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.id]]></script>
+            </calc-values>
+        </string>
+
+        <boolean name="$isProject" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[registration==null || registration.number==null]]></script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="$isAuthor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.versionBase.author != null && T( ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID().equalsIgnoreCase(#this.versionBase.author.id)]]></script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="$isAuthorOrSubstitutor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.versionBase.author != null && ( T( ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID().equalsIgnoreCase(#this.versionBase.author.id) || T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getSubstituteOf().contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.versionBase.author)) )]]></script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="formCalc" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[''.equals(#this.tuning().getValues().put('form', T(ru.intertrust.cmj.rest.tuning.TuningHelper).createPropertyValue("VersionRkk", #this.tuning().getSchema().getProperty('form'))))]]></script>
+            </calc-values>
+        </boolean>
+        <file name="content">
+            <storage-field name="Appendix"/>
+        </file>
+        <richtext name="richtext">
+            <storage-field name="Body"/>
+        </richtext>
+
+        <schema-ref ref="ProjectNumberInfoNotes" name="projectNumber" temporal="true"/>
+        <string name="type" >
+            <storage-field name="type"/>
+        </string>
+        <string name="securityStamp">
+            <storage-field name="securityStamp"/>
+        </string>
+        <boolean name="isPersonal" />
+        <boolean name="$lockerSignExist" system="true" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#locker.signature.exists'].size() > 0]]>
+                </script>
+            </calc-values>
+        </boolean>
+    </schema>
+</schemas>

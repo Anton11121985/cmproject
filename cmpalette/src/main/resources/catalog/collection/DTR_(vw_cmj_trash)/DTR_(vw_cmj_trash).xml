@@ -1,0 +1,183 @@
+<collection name="DTR_(vw_cmj_trash)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT *
+            FROM(
+                SELECT
+                  id,
+                  created_date,
+                  updated_date,
+                  Module,
+                  self_1,
+                  self_2,
+                  self_3,
+				  CASE
+				    WHEN state = 'Project' THEN date(created_date)
+				    WHEN sendingDate isnull AND state <> 'Project' AND not regDate isnull THEN date(regDate)
+				    WHEN not sendingDate isnull THEN date(sendingDate)
+				    ELSE null
+				  END as sendingDate,
+				  senderDep,
+                  sender,
+                  deletedate,
+                  beardDelete
+                FROM (
+                       select
+	rkkbase.id,
+    rkkbase.created_date,
+    rkkbase.updated_date,
+    rkkbase.module                                   AS Module,
+    '<id>'                                           AS self_1,
+    ':'                                              AS self_2,
+    '</>'                                            AS self_3,
+    rkkbase.isdeleted as isdeleted,
+    rkkbase.deletewho_type                           AS deletewho_type,
+    rkkbase.deletedate                               AS deletedate,
+    (select so_beard.orig_shortname as v
+        from so_beard
+        where so_beard.id = rkkbase.deletewho
+        and so_beard.id_type = rkkbase.deletewho_type
+	)                                                AS beardDelete,
+
+    (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field on tn_field.id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'state') as state,
+
+    rkk.regdate AS regDate,
+    (select tfdt."value" as v
+        from tn_field_datetime tfdt
+        join tn_field on tn_field.id = tfdt.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'sendingDateTime') as sendingDate,
+    (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field on tn_field.id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'senderDepHierarchy') as senderDep,
+    (select tfs."value" as v
+        from tn_field_string tfs
+        join tn_field on tn_field.id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'sender') as sender
+
+	FROM F_DP_Intrkk internalrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = internalrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+		   ) s
+		   ) r
+                WHERE 1 = 1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+				COUNT(1)
+			FROM (
+				SELECT
+					rkkbase.id
+				FROM F_DP_Intrkk internalrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = internalrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+				WHERE rkkbase.isdeleted = 1
+			) s
+			 WHERE 1 = 1
+            ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause"><![CDATA[ Module = {0} and id = {1} ]]></criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="sender">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                lower(sender) = lower({0})
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="sender_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                sender ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="senderDep">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                lower(senderDep) = lower({0})
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="senderDep_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                senderDep ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="sendingDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     cast(sendingDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="sendingDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     cast(sendingDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="beardDelete">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    beardDelete = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="beardDelete_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                beardDelete ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     cast(deletedate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     cast(deletedate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

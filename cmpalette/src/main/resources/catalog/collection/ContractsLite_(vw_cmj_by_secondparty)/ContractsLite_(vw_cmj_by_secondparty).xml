@@ -1,0 +1,301 @@
+<collection name="ContractsLite_(vw_cmj_by_secondparty)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+	id,
+	created_date,
+	Module,
+	self_1,
+	self_2,
+	self_3,
+	jobFinishDate,
+	contractStatus,
+	regNumber,
+	rNumber,
+	numberWOTags,
+	dateOfConclusion,
+	dogKind,
+	secondParty,
+	otherParties,
+	execResp,
+	hasLinkedDocuments,
+	subject
+FROM (
+	WITH contractStatus(indb, incolumn) AS (
+		SELECT 'действующий', 'Действ.'
+		UNION
+		SELECT 'недействующий', 'Недейств.'
+		UNION
+		SELECT 'проект', 'Проект'
+	)
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(TO_CHAR(dogRkk.finishDate,'YYYY-MM-DD'), 'Не указано')							AS jobFinishDate,
+		(SELECT incolumn FROM contractStatus WHERE contractStatus.indb = dogRkk.StatusDog)		AS contractStatus,
+        '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+         || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+         || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>' 						AS regNumber,
+        coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as VARCHAR), '')
+        || coalesce(rkk.regnumfin, '')                                                          AS numberWOTags,
+        rkk.regnumcnt					                                                        AS rNumber,
+		rkkBase.type																			AS dogKind,
+		rkk.regDate																				AS dateOfConclusion,
+		COALESCE(
+		        (SELECT STRING_AGG( orig_shortname, ', ')
+		 FROM F_DP_ContractRkk_OthPrts op
+		 JOIN so_beard ON op.organization = so_beard.id
+		 WHERE op.OWNER = dogRkk.id
+		 ), '')                                                                                 AS otherParties,
+		COALESCE(
+			(SELECT sb.Orig_ShortName FROM SO_Beard sb
+			 WHERE sb.id = COALESCE(CASE WHEN dogRkk.party2type = 0 THEN dogRkk.party2ida
+			 				ELSE dogRkk.party2idb END, dogRkk.party2idext)),
+			'<Не указано>')							                                            AS secondParty,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT)
+			 FROM F_DP_RkkWORegAndCtrl_ULnk ulnk
+			 LEFT JOIN SS_Module mdl ON mdl.id = rkkbase.module
+			 WHERE ulnk.owner = rkk.id LIMIT 1),
+			CAST(0 AS SMALLINT))																AS hasLinkedDocuments,
+		rkkbase.subject																			AS subject,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT
+			   		'<shortName>' || sb.Orig_ShortName || '</><id>'
+			   		|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>' AS s
+			   FROM F_DP_ContractRkk_Resp resp
+			   JOIN SO_Beard sb ON sb.id = resp.responsible
+			   WHERE resp.owner = dogRkk.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS execResp
+	FROM F_DP_ContractRkk dogRkk
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkk.id
+	WHERE rkkbase.IsDeleted <> 1
+) s
+WHERE
+	1 = 1
+	::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+SELECT
+	COUNT(*)
+FROM (
+	WITH contractStatus(indb, incolumn) AS (
+		SELECT 'действующий', 'Действ.'
+		UNION
+		SELECT 'недействующий', 'Недейств.'
+		UNION
+		SELECT 'проект', 'Проект'
+	)
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(TO_CHAR(dogRkk.finishDate,'YYYY-MM-DD'), 'Не указано')							AS jobFinishDate,
+		(SELECT incolumn FROM contractStatus WHERE contractStatus.indb = dogRkk.StatusDog)		AS contractStatus,
+		         '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+         || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+         || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>' 						AS regNumber,
+        coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as VARCHAR), '') || coalesce(rkk.regnumfin, '') as numberWOTags,
+		rkkBase.type																			AS dogKind,
+		rkk.regDate																				AS dateOfConclusion,
+		COALESCE(
+		        (SELECT STRING_AGG( orig_shortname, ', ')
+		 FROM F_DP_ContractRkk_OthPrts op
+		 JOIN so_beard ON op.organization = so_beard.id
+		 WHERE op.OWNER = dogRkk.id
+		 ), '')                                                                                 AS otherParties,
+		COALESCE(
+			(SELECT sb.Orig_ShortName FROM SO_Beard sb
+			 WHERE sb.id = COALESCE(CASE WHEN dogRkk.party2type = 0 THEN dogRkk.party2ida
+			 				ELSE dogRkk.party2idb END, dogRkk.party2idext)),
+			'<Не указано>')							                                            AS secondParty,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT)
+			 FROM F_DP_RkkWORegAndCtrl_ULnk ulnk
+			 LEFT JOIN SS_Module mdl ON mdl.id = rkkbase.module
+			 WHERE ulnk.owner = rkk.id LIMIT 1),
+			CAST(0 AS SMALLINT))																AS hasLinkedDocuments,
+		rkkbase.subject																			AS subject,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT
+			   		'<shortName>' || sb.Orig_ShortName || '</><id>'
+			   		|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>' AS s
+			   FROM F_DP_ContractRkk_Resp resp
+			   JOIN SO_Beard sb ON sb.id = resp.responsible
+			   WHERE resp.owner = dogRkk.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS execResp
+	FROM F_DP_ContractRkk dogRkk
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkk.id
+	WHERE rkkbase.IsDeleted <> 1
+) s
+WHERE
+	1 = 1
+	::where-clause
+        ]]>
+    </counting-prototype>
+
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="jobFinishDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    jobFinishDate = (CASE WHEN {0} = 'Не указано' THEN 'Не указано' ELSE TO_CHAR(DATE({0}), 'YYYY-MM-DD') END)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="jobFinishDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    jobFinishDate IS NULL
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="contractStatus_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(contractStatus) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogKind">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogKind = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogKind_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(dogKind) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dateOfConclusion">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(dateOfConclusion, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dateOfConclusion_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dateOfConclusion IS NULL
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="secondParty_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(secondParty) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="otherParties">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    otherParties = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="otherParties_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(otherParties) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="hasLinkedDocuments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasLinkedDocuments = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(subject) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="execResp_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(execResp) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="regNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    numberWOTags ~* ('(^|\W)*'||trim({0}))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    numberWOTags ~* ('(^|\W)*'||trim({0}))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="jobFinishDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(jobFinishDate as date) >= cast({0} as date) and cast(jobFinishDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dateOfConclusion_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(dateOfConclusion as date) >= cast({0} as date) and cast(dateOfConclusion as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

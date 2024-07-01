@@ -1,0 +1,1285 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="RkkResourceDTR" extends="RkkResource" >
+        <meta>
+            <category name="Система\Делопроизводство\Реестр передачи документов"/>
+            <documentation>Основная схема РКК "Реестра передачи документов"</documentation>
+        </meta>
+        <string temporal="true" createlog="true" name="pagename">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Реестр передачи документов']]></script>
+            </calc-values>
+        </string>
+        <string temporal="true" createlog="true" name="showIdent">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Реестр передачи документов']]></script>
+            </calc-values>
+        </string>
+        <boolean name="isDeleted" temporal="true">
+            <calc-values>
+                <script event="open">
+                    <![CDATA[status != null && status.deleted != null && status.deleted]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <string name="deletedLabel" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Удален']]></script>
+            </calc-values>
+        </string>
+        <boolean name="isSupervisor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#hasRole(#this, 'Supervisor')]]></script>
+            </calc-values>
+        </boolean>
+
+        <string name="getDocByBarcode" temporal="true"/>
+        <boolean name="canReceive" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[#isClerk(#this, "receiverDep") && state!=null && state == "Transmitted"]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canAddEntryToRegistry" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[#isClerk(#this, "registration.place") && state!=null && state == "Project"]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="wasTransferred" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[!isNew && state == "Transmitted"]]></script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="notGetDocByBarcode" default-value="false" temporal="true"/>
+        <string name="notGetDocByBarcodeLabel" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Документ по штрихкоду не найден']]></script>
+            </calc-values>
+        </string>
+        <string name="LabelFixingReceiptDoc" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Фиксация получения документов']]></script>
+            </calc-values>
+        </string>
+        <string temporal="true" name="registryUnid">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.id]]></script>
+            </calc-values>
+        </string>
+        <schema-ref name="entriesForSelect" ref="DTREntryForSelect" array="true"/>
+        <schema-ref name="receiveAddManuallyDocResource" ref="AddManuallyDocResource" temporal="true"/>
+        <schema-ref name="addManuallyDocResource" ref="AddManuallyDocResource" temporal="true"/>
+
+        <schema-ref name="transmittedDoc" ref="TransmittedDoc" null-empty="true" array="true"/>
+        <string name="addDocByBarcode" temporal="true"/>
+        <boolean name="notFoundDocByBarcode" default-value="false" temporal="true"/>
+        <string name="notFoundDocByBarcodeLabel" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Документ по штрихкоду не найден']]></script>
+            </calc-values>
+        </string>
+        <string name="emptyLabel" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['']]></script>
+            </calc-values>
+        </string>
+
+        <string name="LabelAddDocToDTR" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Добавление документов в Реестр']]></script>
+            </calc-values>
+        </string>
+        <enum-ref name="state" ref="DocumentTransferRegistryState">
+            <storage-field name="state"/>
+        </enum-ref>
+        <datetime name="createdate" temporal="true">
+            <storage-field name="createdate"/>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.creationDate != null ? T(ru.intertrust.cmj.af.misc.AFDateTime).convertFromDate(T(java.util.Date).from(#this.creationDate.toInstant())) : null]]></script>
+            </calc-values>
+        </datetime>
+        <actor name="sender">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()]]></script>
+            </calc-values>
+            <storage-field display="sender" name="senderBeard" substituties="AF$A_Sender" auditors="AF$R_SenderAuditors"/>
+        </actor>
+        <actor name="senderDep">
+            <storage-field display="senderDep" name="senderDepBeard"/>
+        </actor>
+        <string name="senderDepHierarchy">
+            <storage-field name="senderDepHierarchy"/>
+        </string>
+        <actor name="receiver">
+            <storage-field display="receiver" name="receiverBeard" substituties="AF$A_Receiver" auditors="AF$R_ReceiverAuditors"/>
+        </actor>
+        <actor name="receiverDep">
+            <storage-field display="receiverDep" name="receiverDepBeard" substituties="AF$A_ReceiverDep" auditors="AF$R_ReceiverDepAuditors"/>
+        </actor>
+        <string name="receiverDepHierarchy">
+            <storage-field name="receiverDepHierarchy"/>
+        </string>
+        <datetime name="registrationDateTime">
+            <storage-field name="RegistrationD"/>
+        </datetime>
+        <schema-ref name="showRegInfo" ref="ShowRegInfoDTR" temporal="true"/>
+        <datetime name="sendingDateTime">
+            <storage-field name="sendingDateTime"/>
+        </datetime>
+        <datetime name="receivingDateTime">
+            <storage-field name="receivingDateTime"/>
+        </datetime>
+        <schema-ref name="documents" ref="EmbeddedViewDTREntry"/>
+        <integer name="totalCount" default-value="0" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                   T(ru.intertrust.cmj.tunable.object.TunableObjectConnector).getEmbeddedCollectionSubObjects(id, "documents").size()
+                ]]></script>
+            </calc-values>
+        </integer>
+        <integer name="totalSent" default-value="0" >
+            <storage-field name="totalSent"/>
+        </integer>
+        <integer name="totalReceived" default-value="0" >
+            <storage-field name="totalReceived"/>
+        </integer>
+        <integer name="totalReceivedByFact" default-value="0" >
+            <storage-field name="totalReceivedByFact"/>
+        </integer>
+        <integer name="totalNotReceived" default-value="0" >
+            <storage-field name="totalNotReceived"/>
+        </integer>
+        <string name="totalLabel" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['ИТОГО:']]></script>
+            </calc-values>
+        </string>
+        <boolean name="isSender" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    #isClerk(#this, "registration.place")
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isReceiver" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    #isClerk(#this, "receiverDep")
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isReceiverDepNotEmpty" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    receiverDep != null
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isAuthor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    {
+                        #session = T(ru.intertrust.cmj.af.core.AFSession).get(),
+	                    #curUser = #session.currentUser(),
+	                    #author = #session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)?.getAuthor()?.getUNID(),
+	                    #author != null && #author.equals(#curUser.getBeard()?.getUNID())
+                    }[3]]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="curUserIsAuthor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                    {
+                        #session = T(ru.intertrust.cmj.af.core.AFSession).get(),
+	                    #curUser = #session.currentUser(),
+	                    #author = #session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)?.getAuthor()?.getUNID(),
+	                    #author != null && (#author.equals(#curUser.getBeard()?.getUNID()) || #curUser.isSubstituteOf(#author))
+                    }[3]]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="canEdit" temporal="true" access-edit="override">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                  isDeleted ? false
+                  : state == "Project"
+                  ? (isAuthor || #isClerkCustom(#this, id, "registration.place"))
+                  : (state == "Transmitted" ? #isClerkCustom(#this, id, "receiverDep") : false)
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canDelete" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        isDeleted == true ? false :
+                        (#hasRole(#this, 'Supervisor') || (state == "Project" && canEdit) )
+                    ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="$isOnEditing" temporal="true"/>
+        <boolean name="$showEditButton" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                   (!isNew && !canEdit) ?
+                   (link.?[rel=='edit'].size()>0 ? link.remove(link.?[rel=='edit'].get(0)) : true) :
+                   (link.?[rel=='edit'].size()>0 ? true : #this.link.add(new ru.intertrust.cmj.rest.core.ResourceLink('edit', #this)))
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <integer name="documentsCount" default-value="0">
+            <storage-field name="documentsCount"/>
+        </integer>
+        <boolean name="hasReceivedDocuments" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                ((state != "Transmitted") || !#isClerkCustom(#this, id, "receiverDep")) ? false :
+                #getEmbeddedCollElemByStringField(id, "documents", "deliveryStatus", {"Received","ReceivedByFact"}).size()>0
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canFinishReceiving" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    !isDeleted && (state == "Transmitted") && #isClerkCustom(#this, id, "receiverDep")
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$hideUnusedActions" temporal="true">
+            <meta>
+                <documentation>Управление видимостью системных кнопок</documentation>
+            </meta>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+(link.?[rel=='http://intertrust.ru/cmj/relations#applyTemplateButton'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#applyTemplateButton'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#compose-template-by-obj'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#compose-template-by-obj'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#sign.sent'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#sign.sent'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#sign'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#sign'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#sign.reject'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#sign.reject'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#register.sent'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#register.sent'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#review.start'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#review.start'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#review.start.sendlist'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#review.start.sendlist'].get(0)) : true)
+&&
+(link.?[rel=='http://intertrust.ru/cmj/relations#change.links'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#change.links'].get(0)) : true)
+&&
+((!isNew && ((state == "Project" && canEdit) || isSupervisor))
+? (link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].size()==0 ?
+(#this.link.add(new ru.intertrust.cmj.rest.core.ResourceLink('http://intertrust.ru/cmj/relations#move.to.trash',
+new ru.intertrust.cmj.rest.trash.TrashAction.Reference(
+(T(ru.intertrust.cmj.af.core.AFSession).get()).getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)))))
+  : true)
+: (link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].get(0)) : true))
+]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canEditSenderDep" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    isNew() ? true : (canEdit && state == "Project")
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <actor name="senderRegPlaces" array="true" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    {
+                        #session = T(ru.intertrust.cmj.af.core.AFSession).get(),
+                        #dpModule = #session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).internal(),
+                        #dpModule.getRegplaces("DTR")
+                    }[2]
+                ]]></script>
+            </calc-values>
+        </actor>
+        <schema-ref name="addLinkedDoc" ref="SelectLinkedDocDialogResource"/>
+        <schema-ref name="addLinkedDocReceive" ref="SelectLinkedDocDialogResource"/>
+        <custom-event-handler lang="JavaScript" ><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput.RKK.AddresseeOrganization);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+//importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOPartyAuthoritiesSenderRegplace);
+
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.af.so.impl);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+
+importClass(Packages.org.apache.commons.lang.StringUtils);
+
+function queryCreate(object) {
+    TunableObjectHelper.putAFInstanceValue(object, "state", "Project")
+    object.setType("Реестр передачи документов");
+
+    var sender = AFSession.get().currentUser().getBeard();
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "sender", sender);
+
+    var regPlace = object.registration().getPlace();
+    if (regPlace == null) {
+        var app = AFSession.get().getApplication(DPApplication.class); //DPApplication
+        var dpModule = app.internal();
+        var regplaces = dpModule.getRegplaces(object.getDbIdent()); //Collection<SOBeard>
+        if (regplaces.size() > 0) {
+            object.registration().setPlace(regplaces.iterator().next());
+        }
+    }
+}
+
+function querySave(object, document) {
+    var values = object.tuning().getValues();
+
+    //даём доступ делопроизводителям подразделения-получателя. поле "AF$A_AddRegPlaces" - зашито в Маппере для записи дополнительных МР.
+    if (values.containsKey("receiverDep")) {
+        var receiverDepBeard = values.get("receiverDep").getValue();
+        var receiverDepParty = receiverDepBeard.originalData().getParty();
+        var rpRc = (receiverDepParty instanceof SOPartyAuthoritiesSenderRegplace) ? receiverDepParty.getAuthoritiesReceiverRegplace() : receiverDepParty;
+        AFCMDomino.replaceItemValue(document, "AF$A_AddRegPlaces", getRegplaceNames(rpRc, object.app, object.getDbIdent()));
+    } else {
+        AFCMDomino.replaceItemValue(document, "AF$A_AddRegPlaces", "");
+    }
+
+    var state = values.get("state").getValue();
+    if ("Project".equalsIgnoreCase(state)) {
+        //перезаписываем отправителя текущим пользователем
+        var currentBeard = AFSession.get().currentUser().getBeard();
+        TunableObjectHelper.putAFInstanceValue(object, "sender", currentBeard)
+    }
+    //формируем иерархию подразделения-отправителя для отображения
+    var senderDepBeard = object.registration.place;
+    var senderDepHierarchy = "";
+    if (senderDepBeard != null) {
+        var senderDepHierarchy = getDepartmentHierarchyString(senderDepBeard);
+    }
+    TunableObjectHelper.putAFInstanceValue(object, "senderDepHierarchy", senderDepHierarchy)
+}
+
+function getRegplaceNames(rpu, app, ident) {
+    return AFCMDomino.convertSetToVector(app.internal().getRegplaceNamesAsSet(rpu.cmAccess().regplace(), ident));
+}
+
+function postSave(object, document) {
+}
+
+function recalc(object, changedField) {
+
+    TunableObjectHelper.putAFInstanceValue(object, "$isOnEditing", true)
+
+    var values = object.tuning().getValues();
+   	var state = object.tuning().getValues().get("state").getValue();
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    if (changedField == 'receiverDep') {
+        var receiverDepBeard = null;
+        var receiverDepHierarchy = "";
+        if (values.get("receiverDep") != null) {
+            var receiverDepBeard = values.get("receiverDep").getValue();
+            var receiverDepHierarchy = getDepartmentHierarchyString(receiverDepBeard);
+        }
+        //values.put("receiverDepHierarchy", TuningHelper.createPropertyValue(receiverDepHierarchy, object.tuning().getSchema().getProperty("receiverDepHierarchy")));
+        TunableObjectHelper.putAFInstanceValue(object, "receiverDepHierarchy", receiverDepHierarchy)
+    }
+
+    /*Добавление документов в Реестр*/
+    if (changedField == 'addDocByBarcode') {
+        if (values.get('addDocByBarcode') != null && values.get('addDocByBarcode').getValue() != null && !values.get('addDocByBarcode').getValue().equals("")) {
+            var barcode = values.get('addDocByBarcode').getValue();
+			barcode = replaceCyrillicToLatinByKeyboard(barcode);
+
+            var rkk = findDocumentByBarCode(barcode);
+            if (rkk == null) {
+                //TunableObjectHelper.putAFInstanceValue(object.tuning(), "addDocByBarcode", "");
+                TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", true);
+                return;
+            }
+            addToRegisry(object, rkk, barcode);
+            TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", false);
+            TunableObjectHelper.putAFInstanceValue(object.tuning(), "addDocByBarcode", "");
+            //object.save();
+
+        } else {
+            TunableObjectHelper.putAFInstanceValue(object.tuning(), "addDocByBarcode", "");
+            TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", false);
+        }
+    }
+    // --------- заполнение данными на основании выбранного документа --------------
+    /*if (changedField == 'transmittedDoc' && values.get('canAddEntryToRegistry').getValue()) {
+		var transmittedDoc = values.get('transmittedDoc');
+        //var selectTransmittedDocValues = values.get('selectTransmittedDoc').getValues();
+        //var transmittedDoc = selectTransmittedDocValues.get("transmittedDoc");
+        //values.put("transmittedDoc", transmittedDoc);
+
+        for (var i = 0; i < transmittedDoc.getValues().size(); i++) {
+            var unid = transmittedDoc.getValues()[i].getValues().get("id").getValue();
+            var rkk = appdp.getEntityByUNID(unid);
+            addToRegisry(object, rkk, null);
+			//TunableObjectHelper.putAFInstanceValue(object.tuning(), "selectTransmittedDoc", null);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "transmittedDoc", null);
+        }
+    }*/
+	if (changedField == 'addLinkedDoc' && values.get('canAddEntryToRegistry').getValue()) {
+		var addLinkedDoc = values.get('addLinkedDoc');
+		if (addLinkedDoc.getValues().get("ids") != null) {
+			var ids = addLinkedDoc.getValues().get("ids").getValues();
+			for (var i = 0; i < ids.size(); i++) {
+				/*var href = ids.get(i);
+				var resourceReference = ReferenceFactory.get().getReference(href);
+				var unid = resourceReference.getId();*/
+				var unid = getIdFromHref(ids.get(i).getValue());
+				if (!unid.equals("")) {
+					var rkk = appdp.getEntityByUNID(unid);
+					addToRegisry(object, rkk, null);
+				}
+			}
+		}
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "addLinkedDoc", null);
+    }
+    // --------------------------------------------------------
+    if (changedField == 'addManuallyDocResource') {
+		var addManuallyDocResource = values.get('addManuallyDocResource').getValues();
+        addToRegisryManually(object, addManuallyDocResource);
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "addManuallyDocResource", null);
+    }
+
+    /*Фиксация получения документов*/
+    if (changedField == 'getDocByBarcode') {
+        if (values.get('getDocByBarcode') != null && values.get('getDocByBarcode').getValue() != null && !values.get('getDocByBarcode').getValue().equals("")) {
+            var barcode = values.get('getDocByBarcode').getValue();
+			barcode = replaceCyrillicToLatinByKeyboard(barcode);
+
+            //ищем подходящую запись в реестре
+            var registryEntry = findRegistryEntryByBarCode(object, barcode);
+            if (registryEntry != null) {
+                TunableObjectHelper.putAFInstanceValue(registryEntry.tuning(), "deliveryStatus", "Received");
+                registryEntry.save();
+				updateRegistry(object);
+				TunableObjectHelper.putAFInstanceValue(object.tuning(), "getDocByBarcode", "");
+                TunableObjectHelper.putAFInstanceValue(object.tuning(), "notGetDocByBarcode", false);
+            } else { /*Добавление документов в Реестр*/
+                var rkk = findDocumentByBarCode(barcode);
+                if (rkk == null) {
+                    //не нашли ни записи ни документа по штрихкоду, очищаем все поля, скрываем кнопку, выходим.
+                    //TunableObjectHelper.putAFInstanceValue(object.tuning(), "getDocByBarcode", "");
+                    TunableObjectHelper.putAFInstanceValue(object.tuning(), "notGetDocByBarcode", true);
+                    return;
+                } else {
+                    var newEntry = addToRegisry(object, rkk, barcode);
+                    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", "ReceivedByFact");
+                    newEntry.save();
+                    updateRegistry(object);
+                    TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", false);
+                    TunableObjectHelper.putAFInstanceValue(object.tuning(), "getDocByBarcode", "");
+                }
+            }
+
+        } else {
+            TunableObjectHelper.putAFInstanceValue(object.tuning(), "getDocByBarcode", "");
+            TunableObjectHelper.putAFInstanceValue(object.tuning(), "notGetDocByBarcode", false);
+        }
+    }
+
+	/*Добавить документ вручную*/
+	if (changedField == 'receiveAddManuallyDocResource') {
+		var receiveAddManuallyDocResource = values.get('receiveAddManuallyDocResource').getValues();
+		var newEntry = addToRegisryManually(object, receiveAddManuallyDocResource);
+        TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", "ReceivedByFact");
+        newEntry.save();
+		updateRegistry(object);
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "receiveAddManuallyDocResource", null);
+	}
+
+	/*Добавить документ из системы*/
+	/*if (changedField == 'transmittedDoc' && values.get('canReceive').getValue()) { //if (changedField == 'receiveSelectTransmittedDoc') {
+		var transmittedDoc = values.get('transmittedDoc');
+		//var receiveSelectTransmittedDoc = values.get('receiveSelectTransmittedDoc').getValues();
+        //var transmittedDoc = receiveSelectTransmittedDoc.get("transmittedDoc");
+        //values.put("transmittedDoc", transmittedDoc);
+
+        for (var i = 0; i < transmittedDoc.getValues().size(); i++) {
+            var unid = transmittedDoc.getValues()[i].getValues().get("id").getValue();
+            var rkk = appdp.getEntityByUNID(unid);
+			var registryEntry = findRegistryEntryByВocumentUnid(object, unid);
+			//если запись будет найдена и она имеет статус «Передано», то Система устанавливает статус «Получено»
+			if (registryEntry != null && registryEntry.tuning().getValues().get("deliveryStatus").getValue().equals("Transferred")) {
+                TunableObjectHelper.putAFInstanceValue(registryEntry.tuning(), "deliveryStatus", "Received");
+                registryEntry.save();
+            } else if (registryEntry == null) {
+				var newEntry = addToRegisry(object, rkk, null);
+				TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", "ReceivedByFact");
+                newEntry.save();
+                //updateRegistry(object);
+			}
+        }
+		updateRegistry(object);
+		//TunableObjectHelper.putAFInstanceValue(object.tuning(), "receiveSelectTransmittedDoc", null);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "transmittedDoc", null);
+	}*/
+	/*Добавить документ из системы*/
+	if (changedField == 'addLinkedDocReceive' && values.get('canReceive').getValue()) {
+		var addLinkedDocReceive = values.get('addLinkedDocReceive');
+		if (addLinkedDocReceive.getValues().get("ids") != null) {
+			var ids = addLinkedDocReceive.getValues().get("ids").getValues();
+			for (var i = 0; i < ids.size(); i++) {
+				var unid = getIdFromHref(ids.get(i).getValue());
+				if (!unid.equals("")) {
+					var rkk = appdp.getEntityByUNID(unid);
+					var registryEntry = findRegistryEntryByВocumentUnid(object, unid);
+					/*если запись будет найдена и она имеет статус «Передано», то Система устанавливает статус «Получено»*/
+					if (registryEntry != null && registryEntry.tuning().getValues().get("deliveryStatus").getValue().equals("Transferred")) {
+						TunableObjectHelper.putAFInstanceValue(registryEntry.tuning(), "deliveryStatus", "Received");
+						registryEntry.save();
+					} else if (registryEntry == null) {
+						var newEntry = addToRegisry(object, rkk, null);
+						TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", "ReceivedByFact");
+						newEntry.save();
+					}
+				}
+			}
+		}
+		updateRegistry(object);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "addLinkedDocReceive", null);
+	}
+
+	/*Выбрать документы из Реестра*/
+	if (changedField == 'entriesForSelect') {
+		var entriesForSelect = values.get('entriesForSelect');
+		//var receiveDocsSelectDocFromRegister = values.get('receiveDocsSelectDocFromRegister').getValues();
+        //var entriesForSelect = receiveDocsSelectDocFromRegister.get("entriesForSelect");
+		if (entriesForSelect == null) {
+			return;
+		}
+        for (var i = 0; i < entriesForSelect.getValues().size(); i++) {
+			var selectedEntry = entriesForSelect.getValues().get(i);
+            var entryId = selectedEntry.getValues().get("id").getValue();
+			var entryObject = appTNObject.getEntityByUNID(entryId);
+
+			TunableObjectHelper.putAFInstanceValue(entryObject.tuning(), "deliveryStatus", "Received");
+			entryObject.save();
+		}
+		updateRegistry(object);
+		//TunableObjectHelper.putAFInstanceValue(object.tuning(), "receiveDocsSelectDocFromRegister", null);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "entriesForSelect", null);
+	}
+
+	/*Удалить запись в реестре*/
+	if (state == 'Transmitted' && changedField == 'documents') {
+		updateRegistry(object);
+	}
+}
+
+/* Поиск в текущем реестре записи с указанным унидом */
+function findRegistryEntryByВocumentUnid(object, documentUnid) {
+	var entries = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+	for (var i=0; i<entries.size(); i++) {
+		var entryValues = entries.get(i).tuning().getValues();
+		if (entryValues.get("documentUnid") != null && documentUnid.equals(entryValues.get("documentUnid").getValue())) {
+			return entries.get(i);
+		}
+	}
+	return null;
+}
+
+/*
+    Вычисление штрихкода документа
+*/
+function getFullBarcode(rkk) {
+    var barcode = "";
+    var barcodeInstance = rkk.tuning().getValues().get("barCode");
+    if (barcodeInstance != null && barcodeInstance.getValue() != null) {
+        barcode = TunableObjectHelper.getAFInstanceValue(barcodeInstance)
+    }
+    return barcode;
+}
+
+/*
+	Записывает в поле «Получатель» карточки Рпд значение ФИО текущего пользователя
+ */
+function updateRegistry(rkk) {
+    var curReceiver = AFSession.get().currentUser().getBeard();
+    var registryReceiver = rkk.tuning().getValues().get("receiver") == null ? null : rkk.tuning().getValues().get("receiver").getValue();
+    if (registryReceiver == null || !curReceiver.getUNID().equals(registryReceiver.getUNID())) {
+        TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "receiver", curReceiver);
+    }
+
+	fillResultAmounts(rkk);
+    rkk.save();
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	rkk = appdp.getEntityByUNID(rkk.getUNID());
+}
+
+
+/* Обновляем итоговые поля с количеством записей по статусам */
+function fillResultAmounts(object) {
+	var values = object.tuning().getValues();
+
+	var transferredAmount = 0;
+    var receivedAmount = 0;
+    var notReceivedAmount = 0;
+    var receivedByFactAmount = 0;
+
+    //transferredAmount = TunableObjectHelper.getAFInstanceValue(values.get("totalSent"));
+
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+
+	for (var i=0; i<subObjects.size(); i++) {
+        var subObject = subObjects.get(i);
+        var deliveryStatus = TunableObjectHelper.getAFInstanceTypedValue(subObject.tuning(), "deliveryStatus");
+        if ("Received".equals(deliveryStatus)) {
+            receivedAmount = receivedAmount + 1;
+			transferredAmount =  transferredAmount + 1;
+        }
+        if ("ReceivedByFact".equals(deliveryStatus)) {
+            receivedByFactAmount = receivedByFactAmount + 1;
+        }
+        if ("Transferred".equals(deliveryStatus)) {
+            notReceivedAmount = notReceivedAmount + 1;
+			transferredAmount =  transferredAmount + 1;
+        }
+    }
+	transferredAmount = transferredAmount + receivedByFactAmount;
+
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalSent", Integer.valueOf(transferredAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalReceived", Integer.valueOf(receivedAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalReceivedByFact", Integer.valueOf(receivedByFactAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalNotReceived", Integer.valueOf(notReceivedAmount));
+}
+
+/* Поиск в текущем реестре записи с указанным штрихкодом */
+function findRegistryEntryByBarCode(object, barcode) {
+    var entries = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+    for (var i = 0; i < entries.size(); i++) {
+        var entryValues = entries.get(i).tuning().getValues();
+        if (entryValues.get("barcode") != null && barcode.equals(entryValues.get("barcode").getValue())) {
+            return entries.get(i);
+        }
+    }
+    return null;
+}
+
+function addToRegisryManually(object, addManuallyDocResource) {
+    var values = object.tuning().getValues();
+    // параметры для создания
+    //var addManuallyDocResource = values.get('addManuallyDocResource').getValues();
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+    /*var documentsCount = subObjects.size();
+    if (documentsCount >= 100) {
+        throw ("Достигнуто предельное число записей в Реестре передачи документов!");
+    }*/
+
+    var byHand = true;
+    var documentModule = addManuallyDocResource.get("module").getValue();
+	var reqType = "";
+	if (addManuallyDocResource.get("reqType") != null) {
+		reqType = addManuallyDocResource.get("reqType").getValue();
+	}
+    var regNumber = addManuallyDocResource.get("regNumber") == null ? "" : addManuallyDocResource.get("regNumber").getValue();
+    var regDate = addManuallyDocResource.get("date") == null ? null : addManuallyDocResource.get("date").getValue();
+
+    var subject = addManuallyDocResource.get("subject") == null ? "" : addManuallyDocResource.get("subject").getValue();
+    var comment = addManuallyDocResource.get("note") == null ? "" : addManuallyDocResource.get("note").getValue();
+    var correspondentContractorText = addManuallyDocResource.get("correspondentText") == null ? "" : addManuallyDocResource.get("correspondentText").getValue();
+    var addInfoText = addManuallyDocResource.get("addInfoText") == null ? "" : addManuallyDocResource.get("addInfoText").getValue();
+    var savedBarCode = addManuallyDocResource.get("savedBarCode") == null ? "" : addManuallyDocResource.get("savedBarCode").getValue();
+
+    //создание и заполнение новой записи в реестре
+    var newEntry = createNewRegistryEntry(object, subObjects);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "module", documentModule);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "correspondentForAdd.module", documentModule);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "addInfoForAdd.module", documentModule);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "reqType", reqType);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "regNumber", regNumber);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "regDate", regDate);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "subject", subject);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "comment", comment);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "correspondentContractorText", correspondentContractorText);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "addInfoText", addInfoText);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "barcode", savedBarCode);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "byHand", byHand);
+    newEntry.save();
+
+	return newEntry;
+}
+
+function addToRegisry(object, rkk, barCode) {
+    var values = object.tuning().getValues();
+    var byHand = false;
+	if (barCode == null) {
+		barCode = getFullBarcode(rkk);
+	}
+    // параметры для создания
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+    /*var documentsCount = subObjects.size();
+    if (documentsCount >= 100) {
+        throw ("Достигнуто предельное число записей в Реестре передачи документов!");
+    }*/
+    var documentModule = rkk.getDbIdent();
+    var reqType = getReqType(rkk);
+    var regNumber = getRegNumber(rkk, documentModule);
+    var regDate = getRegDate(rkk, documentModule);
+	var isProject = getIsProject(rkk, documentModule);
+
+    var subject = rkk.getSubject() != null ? rkk.getSubject() : "";
+    var documentUnid = rkk.getUNID();
+    var documentLink = null; //пока нет ссылки. считаем что она формируется только для отображения
+    var deliveryStatus = null;
+    var comment = getComment(rkk, documentModule);
+    var correspondentContractorText = getCorrespondentText(rkk, documentModule);
+    var addInfoText = getAddInfoText(rkk, documentModule);
+
+    //создание и заполнение новой записи в реестре
+    var newEntry = createNewRegistryEntry(object, subObjects);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "module", documentModule);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "correspondentForAdd.module", documentModule);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "addInfoForAdd.module", documentModule);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "reqType", reqType);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "regNumber", regNumber);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "regDate", (regDate == null ? null : AFDate.fromJavaDate(regDate, false)));
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "subject", subject);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "documentUnid", documentUnid);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", deliveryStatus);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "comment", comment);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "correspondentContractorText", correspondentContractorText);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "addInfoText", addInfoText);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "barcode", barCode);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "byHand", byHand);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "isProject", isProject);
+    newEntry.save();
+    return newEntry;
+}
+
+/*
+	Поиск в системе документа с указанным штрихкодом
+*/
+function findDocumentByBarCode(barcode) {
+    var barcodeSearchService = BeansUtils.getBean("BarcodeSearchService");
+    //var isBarcodeUnid = barcodeSearchService.support(barcode);
+    //if (isBarcodeUnid) {
+
+    var doc = null;
+    try {
+        doc = barcodeSearchService.search(barcode);
+    } catch (e) {
+        return null;
+    }
+
+    if (doc == null) {
+        return null;
+    }
+    var replicaID = doc.getParentDatabase().getReplicaID();
+    var unid = doc.getUniversalID();
+    var fullUnid = AFCMDomino.cmUNIDToORMUNID(unid, replicaID);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var documentEntity = appdp.getEntityByUNID(fullUnid);
+    return documentEntity;
+    //} else {
+    //    return null;
+    //}
+}
+
+/*
+	Вычисляем вид документа
+*/
+function getReqType(document) {
+    if (document instanceof DPMContracts.Addagr) {
+        return "Дополнительное соглашение";
+    }
+    if (document instanceof DPM.RKK) {
+        return document.getType();
+    }
+    return "";
+}
+
+/*
+	Вычисляем инфу о корреспондентах/контрагентах
+*/
+function getCorrespondentText(rkk, documentModule) {
+    var correspondentText = "";
+    if (documentModule.equals("InputDocs") || documentModule.equals("NotRegistered")) {
+        if (rkk.correspondent() != null) {
+            if (rkk.correspondent().getType() != null) {
+                if (rkk.correspondent().getType().toString().equals("NOT_SPECIFIED")) {
+                    correspondentText = "Не указан";
+                } else if (rkk.correspondent().getType().toString().equals("ORGANIZATION")) {
+                    correspondentText = rkk.correspondent().getOrganization().getOrganization().getFullName().toString();
+                } else {
+                    if (!rkk.correspondent().getAuthors().getList().isEmpty()) {
+                        correspondentText = rkk.correspondent().getAuthors().getList().get(0).toString();
+                    }
+                }
+            }
+        }
+    } else if (documentModule.equals("OutputDocs")) {
+        if (rkk.addressees() != null) {
+            correspondentText = "";
+            /*var addresseesBeardList = rkk.addressees().getBeardList().getList();
+            if (!addresseesBeardList.isEmpty()) { //DPMOutput.RKK.AddresseeOrganization
+                for (var i = 0; i < addresseesBeardList.size(); i++) {
+                    correspondentText += "\n" + addresseesBeardList.get(i).toString();
+                }
+            }*/
+
+			var listOfAddressee = new ArrayList(); //List<SOBeard>
+			var addresseeOrganizationList = rkk.addressees().getList();
+            if (!addresseeOrganizationList.isEmpty()) { //DPMOutput.RKK.AddresseeOrganization
+                for (var i = 0; i < addresseeOrganizationList.size(); i++) {
+					var a = addresseeOrganizationList.get(i);
+					var addressee = a.orgAddressees().getList();
+					if (addressee.isEmpty()) {
+						listOfAddressee.add(a.getOrganization());
+					} else {
+						listOfAddressee.addAll(addressee);
+					}
+                }
+            }
+			for (var j = 0; j < listOfAddressee.size(); j++) {
+				//корректно сформировать имя для внешних адресатов
+
+				if (correspondentText.equals("")) {
+					correspondentText = sobeardToString(listOfAddressee.get(j));
+				} else {
+					correspondentText += "\n" + sobeardToString(listOfAddressee.get(j));
+				}
+			}
+
+        }
+    } else if (documentModule.equals("ContractsLite")) {
+        if (rkk instanceof DPMContracts.RKK) {
+            var party2 = rkk.getParty2();
+            if (party2 != null) {
+                correspondentText = party2.toString();
+            } else {
+                var party2Manual = rkk.getParty2Other();
+                if (party2Manual != null) {
+                    correspondentText = party2Manual.getName();
+                }
+            }
+        } else {
+            var partiesInstance = rkk.tuning().getValues().get("parties");
+            if (partiesInstance != null) {
+                var partySecondInstance = partiesInstance.getValues().get("second");
+                if (partySecondInstance != null) {
+                    correspondentText = partySecondInstance.getValue().toString();
+                }
+            }
+        }
+    }
+    return correspondentText;
+}
+
+/*
+	Вычисляем допинфо
+*/
+function getAddInfoText(rkk, documentModule) {
+    var addInfoText = "";
+    if (documentModule.equals("InputDocs") || documentModule.equals("NotRegistered")) {
+        if (rkk.addressees() != null) {
+            addInfoText = "";
+            for (var i = 0; i < rkk.addressees().getList().size(); i++) {
+                if (!addInfoText.equals("")) {
+                    addInfoText += "\n";
+                }
+                addInfoText += rkk.addressees().getList().get(i).toString();
+            }
+        }
+    } else if (documentModule.equals("ContractsLite")) {
+
+        var rkkWithAddInfo = rkk;
+        //для допсоглашений берем из корневого договора
+        if (rkk instanceof DPMContracts.Addagr) {
+            rkkWithAddInfo = rkk.parents().getRoot();
+        }
+        var spOwnerInstance = rkkWithAddInfo.tuning().getValues().get("dep");
+        if (spOwnerInstance != null) {
+            var spOwnerList = spOwnerInstance.getValues();
+            for (var i = 0; i < spOwnerList.size(); i++) {
+                var spOwner = spOwnerList.get(i);
+                if (spOwner != null && spOwner.getValue() != null) {
+                    if (!addInfoText.equals("")) {
+                        addInfoText += "\n";
+                    }
+                    addInfoText += spOwner.getValue().toString();
+                }
+            }
+        }
+    }
+    return addInfoText;
+}
+
+/*
+	Вычисляем комметарий к документу
+*/
+function getComment(rkk, documentModule) {
+    var comment = "";
+    if (documentModule.equals("WorkplaceRequests")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("wpComments"));
+    } else if (documentModule.equals("ServiceRequests")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("servComments"));
+    } else if (documentModule.equals("SendDocRequests")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("comment"));
+    } else if (documentModule.equals("ProcessRegistry")) {
+        if (TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")) != null) {
+            for (var i = 0; i < TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")).size(); i++) {
+                comment += "\n" + TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")).get(i);
+            }
+        }
+    } else if (documentModule.equals("ProductRegistry")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("ProdComments"));
+    } else if (documentModule.equals("OutputDocs")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("outMainNote"));
+    } else if (documentModule.equals("ContractsLite") && rkk instanceof DPMContracts.Addagr) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("agrComment"));
+    } else {
+        comment = rkk.getComment() != null ? rkk.getComment() : "";
+    }
+    return comment;
+}
+
+/*
+	Вычисляем номер документа
+*/
+function getRegNumber(rkk, documentModule) {
+    var regNumber = "";
+    var numberInstance = null;
+    if (documentModule.equals("WorkplaceRequests") || documentModule.equals("ServiceRequests") || documentModule.equals("SendDocRequests") || documentModule.equals("NotRegistered")) {
+        regNumber = rkk.projectNumber();
+    } else if (documentModule.equals("ProcessRegistry")) {
+        numberInstance = rkk.tuning().getValues().get("Number");
+        if (numberInstance != null || numberInstance.getValue() != null) {
+            regNumber = TunableObjectHelper.getAFInstanceValue(numberInstance);
+        }
+    } else if (documentModule.equals("ProductRegistry")) {
+        numberInstance = rkk.tuning().getValues().get("Number");
+        if (numberInstance != null || numberInstance.getValue() != null) {
+            regNumber = TunableObjectHelper.getAFInstanceValue(numberInstance);
+        }
+    } else if (documentModule.equals("ContractsLite") && rkk instanceof DPMContracts.Addagr) {
+        regNumber = rkk.registrationSimple().getNumber();
+    } else {
+		if (rkk.registration().getState() == DPM.RKK.Registration.State.REGISTERED) {
+			regNumber = rkk.registration().getRegisteredInfo() != null ? rkk.registration().getRegisteredInfo().getNumber().toString() : "";
+		} else {
+			regNumber = rkk.projectNumber();
+		}
+    }
+    if (regNumber == null) {
+        regNumber = "";
+    }
+    return regNumber;
+}
+
+/*
+	Вычисляем дату документа
+*/
+function getRegDate(rkk, documentModule) {
+	var regDate = null;
+
+    if (documentModule.equals("NotRegistered")) {
+        regDate = rkk.correspondent().getRegDate();
+    } else if (documentModule.equals("ContractsLite") && rkk instanceof DPMContracts.Addagr) {
+        regDate = rkk.registrationSimple().getDate();
+    } else {
+		regDate = rkk.registration().getDate();
+	}
+    return regDate;
+}
+
+/*
+	Вычисляем статус документа. Является ли документ проектом.
+*/
+function getIsProject(rkk, documentModule) {
+	var isProject = false;
+
+    if (documentModule.equals("NotRegistered")) {
+        isProject = true;
+    } else if (rkk.registration().getState() != DPM.RKK.Registration.State.REGISTERED) {
+		if (rkk.projectNumber() != null && !rkk.projectNumber().equals("")) {
+			isProject = true;
+		}
+	}
+    return isProject;
+}
+
+
+/*
+	Создание записи в текущем реестре
+*/
+function createNewRegistryEntry(parent, subObjList) {
+    var tuneApp = AFSession.get().getApplication(TuningApplication.class);
+    var schema = tuneApp.getSchemaByName("DTREntrySubObject");
+    if (schema == null) {
+        throw new RuntimeException("Schema  " + this.scheme + " not found");
+    }
+    var rkkUnid = parent.getUNID();
+    var replicaId = AFCMDomino.getReplicaIdFromUNID(rkkUnid);
+    replicaId = AFCMDomino.getReplicaFromTNReplica(replicaId);
+    var ident = AFCMDomino.getIdent(replicaId);
+    var complect = AFCMDomino.getComplectByDbReplicaId(replicaId);
+    var tunObjApp = AFSession.get().getApplication(TunableObjectApplication.class);
+
+    var subObject = tunObjApp.composeApplicationTunableObject(schema, ident, complect, replicaId);
+
+    TunableObjectHelper.putAFInstanceValue(subObject, "type", "documents");
+    TunableObjectHelper.putAFInstanceValue(subObject, "parentUnid", parent.getUNID());
+    TunableObjectHelper.putAFInstanceValue(subObject, "$Ref", parent.getUNID().split(":")[1]);
+    TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "author", AFSession.get().currentUser().getBeard());
+
+    var senderDepUnid = parent.registration().getPlace().getUNID();
+    var soApp = AFSession.get().getApplication(SOApplication.class);
+    var senderDep = soApp.getBeard(senderDepUnid);
+    TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "senderDep", senderDep);
+    subObject.tuning().getValues().put("receiverDep", parent.tuning().getValues().get("receiverDep"));
+    subObject.tuning().getValues().put("parentState", parent.tuning().getValues().get("state"));
+	TunableObjectHelper.putAFInstanceValue(subObject, "isProject", false);
+
+
+	//вычисляем индекс созадваемого объекта
+    var lastIndex = 0;
+    if(!subObjList.isEmpty()) {
+        var subObj = subObjList.get(subObjList.size() - 1); //AnyTunableObject
+        if(subObj != null) {
+            var index = subObj.tuning().getValues().get("index");
+            if(index != null && index.getValue() != null) {
+                lastIndex = index.getValue();
+            }
+        }
+    }
+
+	var newIndex = Integer.valueOf(lastIndex + 1);
+	TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "number", newIndex);
+    TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "index", newIndex);
+
+    return subObject;
+}
+
+
+/**
+ Вычисление иерархии подразделений в виде строки
+ */
+function getDepartmentHierarchyString(beard) {
+    var namesList = new ArrayList();
+	var curOrgIsRSHB = isRSHB();
+
+    namesList = getDepartmentHierarchy(beard, namesList, curOrgIsRSHB);
+
+    //преобразуем в строку
+    //var result = beards.stream()
+    //    .map(name -> name.length()>50 ? (StringUtils.left(name,47)+"...") : name)
+    //    .collect(Collectors.joining("\n\\"));
+
+    var result = "";
+    for (var i = 0; i < namesList.size(); i++) {
+        var name = namesList.get(i);
+        var shortName = name.length() > 100 ? (StringUtils.left(name, 97) + "...") : name;
+        if (result.equals("")) {
+            result = shortName;
+        } else {
+            result = result + "\n\\" + shortName;
+        }
+    }
+
+    return result;
+}
+
+/**
+ Вычисление иерархии подразделений вплоть до самостоятельного подразделения
+ */
+function getDepartmentHierarchy(beard, namesList, curOrgIsRSHB) {
+
+    var party = beard.originalData().getParty();
+    var parent = getParent(beard);
+
+    if (party instanceof SOUnitDepartment) {
+
+        namesList.add(party.getFullName());
+		if (curOrgIsRSHB && party.isIndependent()) {
+			var parentParty = parent.originalData().getParty();
+			if (parentParty instanceof SOUnitDepartment && parentParty.isSeparate() && isRF(parent)) {
+				namesList.add(parentParty.getFullName());
+			}
+			return namesList;
+		} else {
+            return getDepartmentHierarchy(parent, namesList, curOrgIsRSHB);
+        }
+    } else if (party instanceof SOUnitOrganization) {
+        namesList.add(party.getFullName());
+        return namesList;
+    } else if (party instanceof AppointmentHead) {
+	    namesList.add(party.getBeard().originalData().getShortName());
+        return getDepartmentHierarchy(parent, namesList, curOrgIsRSHB);
+    }
+    return namesList;
+}
+
+function getParent(beard) {
+    var parent = beard.getParent();
+    if (parent != null) {
+        return parent;
+    }
+    //возможно это вакансия, там parent == null, поэтому проверим в tn-объекте
+    var parentDocId = null;
+	var unit = beard.getAccessUnit();
+	if (unit == null) {
+		throw("Ошибка при поиске accessUnit для бороды " + beard.getUNID());
+	}
+    var unidArr = unit.getUNID().split(":");
+    var tnUnid = unidArr[0] + "-TN:" + unidArr[1];
+    var tunApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tnObj = tunApp.getEntityByUNID(tnUnid);
+    if (tnObj != null) {
+        var parentUnit = tnObj.tuning().getValues().get("parentUnit");
+        if (parentUnit != null && parentUnit.getValues().get("basedocid") != null) {
+            parentDocId = parentUnit.getValues().get("basedocid").getValue();
+        }
+    }
+    if (parentDocId != null) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var soObj = soApp.getEntityByUNID(unidArr[0] + ":" + parentDocId);
+        if (soObj != null) {
+            if (soObj instanceof SOParty) {
+		        return soObj.getBeard();
+		    } else if (soObj instanceof SOUnitPost && soObj.appointments().getCurrent() != null) {
+		        return soObj.appointments().getCurrent().getBeard();
+            } else {
+                throw("Ошибка при поиске родительского элемента - soObj " + soObj.getClass().getName());
+            }
+        }
+    }
+    return null;
+}
+
+/**
+	является ли подразделение региональным филиалом
+*/
+function isRF(beard) {
+    var unidArr = beard.getUNID().split(":");
+    var tnUnid = unidArr[0] + "-TN:" + unidArr[1];
+    var tunApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tnObj = tunApp.getEntityByUNID(tnUnid);
+    if (tnObj != null) {
+        var depType = TunableObjectHelper.getAFInstanceValue(tnObj.tuning().getValues().get("depType"));
+		if ('рф: региональный филиал'.equalsIgnoreCase(depType)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+	является ли текущая организация банком РСХБ
+*/
+function isRSHB() {
+	var orgName = AFSession.get().getCurrentOrganization().getFullName();
+	return  StringUtils.containsIgnoreCase(orgName, "Акционерное общество") && StringUtils.containsIgnoreCase(orgName, "Российский Сельскохозяйственный банк");
+}
+
+/*
+	Заменяем в тексте символы кириллицы на латинрицу в соответствии с раскладкой клавиатуры
+	(ЙЦУкен -> QWErty)
+*/
+function replaceCyrillicToLatinByKeyboard(inputText) {
+	if (inputText == null || inputText.equals("")) {
+		return inputText;
+	}
+
+    var builder = new StringBuilder();
+
+    var cyrillicSymbols      = "йцукенгшщзфывапролдячсмить";
+    var cyrillicSymbolsUpper = "ЙЦУКЕНГШЩЗФЫВАПРОЛДЯЧСМИТЬ";
+    var latinSymbols         = "qwertyuiopasdfghjklzxcvbnm";
+    var latinSymbolsUpper    = "QWERTYUIOPASDFGHJKLZXCVBNM";
+
+    var inputArray = inputText.split("");
+
+    for (var i = 0; i < inputArray.length; i++) {
+        var symbol = inputArray[i];
+
+        if (cyrillicSymbols.contains(symbol)) {
+            var index = cyrillicSymbols.indexOf(symbol);
+            builder.append(latinSymbols.substring(index, index + 1));
+        } else if (cyrillicSymbolsUpper.contains(symbol)) {
+            var index = cyrillicSymbolsUpper.indexOf(symbol);
+            builder.append(latinSymbolsUpper.substring(index, index + 1));
+        } else {
+            builder.append(symbol);
+        }
+    }
+    return builder.toString();
+}
+
+/*
+	Вычисление имени бороды для отображения
+*/
+function sobeardToString(beard) {
+    var res = new StringBuilder();
+    if (beard.originalData().getType() == SOBeard.Type.NONSYS_HUMAN) {
+        res.append(beard.getOrganizationName());
+        res.append(": ");
+        res.append(beard.originalData().getShortName());
+    } else if (beard.originalData().getType() == SOBeard.Type.PRIVATE_HUMAN) {
+        res.append("Физические лица: ");
+        res.append(beard.originalData().getShortName());
+        res.append(" (");
+        res.append(beard.getAddress());
+        res.append(")");
+    } else if (beard.originalData().getType() == SOBeard.Type.SYS_ORGANIZATION || beard.originalData().getType() == SOBeard.Type.NONSYS_ORGANIZATION) {
+		res.append(beard.getOrganizationName());
+	} else {
+		res.append(beard.originalData().getShortName());
+		res.append(", ");
+		res.append(beard.originalData().getPostName());
+		res.append(" (");
+		res.append(beard.originalData().getDepartmentName());
+		res.append(")");
+	}
+    return res.toString();
+}
+
+function getIdFromHref(href) {
+    var index = href.lastIndexOf("/", href.length())+1;
+	if (index < 0) {
+		return href;
+	} else {
+		return href.substring(index);
+	}
+}
+        ]]></custom-event-handler>
+    </schema>
+</schemas>
+

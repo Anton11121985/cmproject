@@ -1,0 +1,59 @@
+<collection name="CustomDirectory_(vw_cmj_directory_13)" replace="runtime" idField="id" useClone="false">
+	<prototype>
+		<![CDATA[
+			SELECT
+				id,
+				created_date,
+				self_1,
+				self_2,
+				self_3,
+				Module,
+				TypeEnvelope
+			FROM(
+				SELECT
+					tag.id,
+					tag.created_date,
+					'<id>' as self_1,
+					':' as self_2,
+					'</>' as self_3,
+					tag.module AS Module,
+					complex.title as TypeEnvelope
+				FROM
+					clscom_tag tag
+					left join clscom_to_tag to_tag on to_tag.tag = tag.id
+					left join classifier_complex complex on complex.id = to_tag.classifier
+					left join cls_typeComp typecom on typecom.id = complex.owner
+					where tag.schema = 'ComplectClassifierTypeEnvelope' and typecom.alias = 'valueTypeEnvelope' and tag.deleted = '0'
+			)s
+			WHERE
+				1=1
+				::where-clause
+		]]>
+	</prototype>
+	<counting-prototype>
+		<![CDATA[
+			SELECT
+				count(1)
+            FROM(
+				SELECT
+					tag.id
+				FROM
+					clscom_tag tag
+					left join clscom_to_tag to_tag on to_tag.tag = tag.id
+					left join classifier_complex complex on complex.id = to_tag.classifier
+					left join cls_typeComp typecom on typecom.id = complex.owner
+					where tag.schema = 'ComplectClassifierTypeEnvelope' and typecom.alias = 'name' and tag.deleted = '0'
+            )s
+            WHERE
+				1=1
+				::where-clause
+		]]>
+	</counting-prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				Module = {0}
+			]]>
+		</criteria>
+	</filter>
+</collection>

@@ -1,0 +1,635 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <condition name="signStateStatusSentAndDialogueCommentNotIsEmpty">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="Actions" condition-union="AND">
+            <boolean-ref value="true" ref="isOnSign"/>
+            <boolean-ref value="true" ref="dialogueCommentNotIsEmpty"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Проект" -->
+    <condition name="RkkResource_stateProject">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- Отказано в регистрации -->
+            <boolean-ref value="false" ref="regStateStatusRejected"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- Результат согласования -->
+            <boolean-ref value="false" ref="approveAddStateTextNotIsEmpty"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="false" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="false" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На доработке" -->
+    <condition name="RkkResource_stateRework">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResourceContracts" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На доработке -->
+            <boolean-ref value="true" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Удален" -->
+    <condition name="RkkResource_stateDelete">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResourceContracts" condition-union="OR">
+            <!-- Удаление -->
+            <boolean-ref value="true" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На согласование" -->
+    <condition name="RkkResource_stateOnApprove">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- На согласовании -->
+            <boolean-ref value="true" ref="$sendApproving"/>
+            <!-- Результат согласования  -->
+            <boolean-ref value="false" ref="approveAddStateTextNotIsEmpty"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "<Результат согласования>" -->
+    <condition name="RkkResource_stateResultApprove">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- Результат согласования -->
+            <boolean-ref value="true" ref="approveAddStateTextNotIsEmpty"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="false" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="false" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На подписании" -->
+    <condition name="RkkResource_stateOnSign">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- Состояние подписания -->
+            <boolean-ref value="true" ref="isOnSign"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Подписано" -->
+    <condition name="RkkResource_stateSign">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="false" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="true" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Дата отказа в регистрации меньше даты подписании/даты отказа в подписании -->
+            <boolean-ref value="true" ref="isDTSignMoreDTReg"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Отказа в подписано" -->
+    <condition name="RkkResource_stateSignReject">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="true" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="false" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Дата отказа в регистрации меньше даты подписании/даты отказа в подписании -->
+            <boolean-ref value="true" ref="isDTSignMoreDTReg"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На подписании на бумаге" -->
+    <condition name="RkkResource_stateOnSignPaper">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- Отказано в регистрации -->
+            <boolean-ref value="false" ref="regStateStatusRejected"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="true" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="false" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="false" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="false" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Отозван с подписания" -->
+    <condition name="RkkResource_stateSignIsRecalled">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="false" ref="regStateStatusSent"/>
+            <!-- Отказано в регистрации -->
+            <boolean-ref value="false" ref="regStateStatusRejected"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На согласовании -->
+            <boolean-ref value="false" ref="$sendApproving"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="false" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="false" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="false" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="true" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На регистрацию" -->
+    <condition name="RkkResource_stateOnReg">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- На регистрации-->
+            <boolean-ref value="true" ref="regStateStatusSent"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Отказано в регистрации" -->
+    <condition name="RkkResource_stateRejectReg">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="false" ref="regStateStatusRegistered"/>
+            <!-- Отказано в регистрации-->
+            <boolean-ref value="true" ref="regStateStatusRejected"/>
+            <!-- На доработке -->
+            <boolean-ref value="false" ref="isOnRework"/>
+            <!-- На подписании -->
+            <boolean-ref value="false" ref="isOnSign"/>
+            <!-- Дата отказа в регистрации больше даты подписании/даты отказа в подписании -->
+            <boolean-ref value="false" ref="isDTSignMoreDTReg"/>
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Зарегистрирован" -->
+    <condition name="RkkResource_stateReg">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="true" ref="regStateStatusRegistered"/>
+
+            <!-- На ознакомление -->
+            <boolean-ref value="false" ref="$showStateReview"/>
+
+            <!-- Заверен -->
+            <boolean-ref value="false" ref="certified"/>
+
+            <!-- Идет формирование образа документа -->
+            <boolean-ref value="false" ref="isInStamp"/>
+
+            <!-- Исполнен -->
+            <boolean-ref value="false" ref="$isCompleted"/>
+
+            <!-- На исполнение -->
+            <boolean-ref value="true" ref="$isAllResolutionCompleted"/>
+
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Идет формирование образа документа" -->
+    <condition name="RkkResource_stateStamp">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="true" ref="regStateStatusRegistered"/>
+
+            <!-- Идет формирование образа документа -->
+            <boolean-ref value="true" ref="isInStamp"/>
+
+            <!-- На ознакомление -->
+            <boolean-ref value="false" ref="$showStateReview"/>
+
+            <!-- Заверен -->
+            <boolean-ref value="false" ref="certified"/>
+
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Заверен" -->
+    <condition name="RkkResource_stateCertified">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="true" ref="regStateStatusRegistered"/>
+
+            <!-- На ознакомление -->
+            <boolean-ref value="false" ref="$showStateReview"/>
+
+            <!-- Заверен -->
+            <boolean-ref value="true" ref="certified"/>
+
+            <!-- Идет формирование образа документа -->
+            <boolean-ref value="false" ref="isInStamp"/>
+
+            <!-- На исполнение -->
+            <boolean-ref value="true" ref="$isAllResolutionCompleted"/>
+
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На ознакомлении" -->
+    <condition name="RkkResource_stateReview">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- На ознакомление -->
+            <boolean-ref value="true" ref="$showStateReview"/>
+
+            <!-- На исполнении -->
+            <boolean-ref value="true" ref="$isAllResolutionCompleted"/>
+
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "На исполнении" -->
+    <condition name="RkkResource_stateOnExec">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="true" ref="regStateStatusRegistered"/>
+
+            <!-- Исполнен -->
+            <boolean-ref value="false" ref="$isAllResolutionCompleted"/>
+
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Статус "Исполнен" -->
+    <condition name="RkkResource_stateComplete">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="true" ref="regStateStatusRegistered"/>
+
+            <!-- Исполнен -->
+            <boolean-ref value="true" ref="$isCompleted"/>
+
+            <!-- Удаление -->
+            <boolean-ref value="false" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Доп. Статус "Результат согласования" -->
+    <condition name="RkkResource_infoStateApprove">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="OR">
+            <!-- Зарегистрирован -->
+            <boolean-ref value="true" ref="regStateStatusRegistered"/>
+            <!-- На регистрации -->
+            <boolean-ref value="true" ref="regStateStatusSent"/>
+            <!-- Отказано в регистрации -->
+            <boolean-ref value="true" ref="regStateStatusRejected"/>
+            <!-- На доработке -->
+            <boolean-ref value="true" ref="isOnRework"/>
+            <!-- На подписании на бумаге -->
+            <boolean-ref value="true" ref="sendToSignOnPaper"/>
+            <!-- На подписании -->
+            <boolean-ref value="true" ref="isOnSign"/>
+            <!-- Отказано в подписании -->
+            <boolean-ref value="true" ref="isSignRejected"/>
+            <!-- Подписано -->
+            <boolean-ref value="true" ref="isSigned"/>
+            <!-- Отозван с подписания -->
+            <boolean-ref value="true" ref="SignIsRecalled"/>
+            <!-- Удаление -->
+            <boolean-ref value="true" ref="isDeleted"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Доп. Статус "Изменено содержание после согласования" -->
+    <condition name="RkkResource_infoStateChangeContent">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="$showInfoStateChangeContent"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Доп. Статус "Подписано\Отказано в подписи" -->
+    <condition name="RkkResource_infoStateSign">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="$showInfoStateSign"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Доп. Статус "Отказано в регистрации" -->
+    <condition name="RkkResource_infoStateReg">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="$showInfoStateReg"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Доп. Статус "Заверено" -->
+    <condition name="RkkResource_infoStateCertified">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="$showInfoStateCertified"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Доп. Статус "Ознакомление" -->
+    <condition name="RkkResource_infoStateReview">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="$showInfoStateReview"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Комментарии к повторной отправки -->
+    <condition name="RkkResource_stateCommentInfo">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="showStateCommentInfo"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Комментарии к отказам -->
+    <condition name="RkkResource_stateCommentWarn">
+        <modes>
+            <mode name="read"/>
+            <mode name="edit"/>
+        </modes>
+        <schema-ref ref="RkkResource" condition-union="AND">
+            <boolean-ref value="true" ref="showStateCommentWarn"/>
+        </schema-ref>
+    </condition>
+
+    <!-- Переопределение условий для отображения полей в поиске WD -->
+    <condition name="WDSearchParameterForm_IsParamWithoutClassifiersSelected">
+        <schema-ref ref="WDSearchParameter" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.id != null && (resource.id === 'subject' || resource.id === 'resText' || resource.id === 'parentDocNumber' || resource.id === 'docNumber'
+        || resource.id === 'dogNumber' || resource.id === 'AgrNumber' || resource.id === 'contractNumber' || resource.id === 'question_cl_code'
+        || resource.id === 'SP_RegNumber' || resource.id === 'regFullNumber' || resource.id === 'house' || resource.id === 'street' || resource.id === 'city'
+        || resource.id === 'locality' || resource.id === 'region' || resource.id === 'linkedDocs' || resource.id === 'CorrespondentAddress'
+        || resource.id === 'foreignDocNumber' || resource.id === 'serviceDescription'
+        || resource.id === 'projectNumber' || resource.id === 'cancelReason'|| resource.id === 'searchInContent' || resource.id === 'searchOnEverywhere'
+        || resource.id === 'numberRequest' || resource.id === 'jaOutputNumber' || resource.id === 'projectNumberStrWD' || resource.id === 'regFullNum');
+    ]]></expression>
+    </condition>
+    <condition name="WDSearchParameterValueForm_IsParamWithFetchedValues">
+        <schema-ref ref="WDSearchParameterValue" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return environment.parentResource.id != null && (environment.parentResource.id === 'receptionPlace' || environment.parentResource.id === 'solution' || environment.parentResource.id === 'reviewResults' || environment.parentResource.id === 'currencyType'
+      || environment.parentResource.id === 'reqType' || environment.parentResource.id === 'theme' || environment.parentResource.id === 'specMark' || environment.parentResource.id === 'appealWay' || environment.parentResource.id === 'referenceObject'
+        || environment.parentResource.id === 'incomingSign' || environment.parentResource.id === 'reqTypeRequests' || environment.parentResource.id === 'mainTypeRequest' || environment.parentResource.id === 'correspondentType'
+        || environment.parentResource.id === 'deliveryInfo' || environment.parentResource.id === 'receiveWay' || environment.parentResource.id === 'benefitGroups' || environment.parentResource.id === 'contractType'
+        || environment.parentResource.id === 'contractStatus' || environment.parentResource.id === 'parentDocType' || environment.parentResource.id === 'typeRequestWD' || environment.parentResource.id === 'typeOrderWD');
+    ]]></expression>
+    </condition>
+    <condition name="WDSearchParameterForm_IsParamWithVCardForeignSelected">
+        <schema-ref ref="WDSearchParameter" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.id != null && (resource.id === 'correspondent' || resource.id === 'additionalCorrespondent' || resource.id === 'jaСorrespondent');
+    ]]></expression>
+    </condition>
+    <condition name="WDSearchParameterForm_IsParamWithFetchedValues">
+        <schema-ref ref="WDSearchParameter" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.id != null && (resource.id === 'receptionPlace' || resource.id === 'solution' || resource.id === 'reviewResults' || resource.id === 'currencyType'
+      || resource.id === 'reqType' || resource.id === 'theme' || resource.id === 'specMark' || resource.id === 'appealWay' || resource.id === 'referenceObject'
+        || resource.id === 'incomingSign' || resource.id === 'reqTypeRequests' || resource.id === 'mainTypeRequest' || resource.id === 'correspondentType'
+        || resource.id === 'deliveryInfo' || resource.id === 'receiveWay' || resource.id === 'benefitGroups' || resource.id === 'contractType'
+        || resource.id === 'contractStatus' || resource.id === 'parentDocType' || resource.id === 'typeRequestWD' || resource.id === 'typeOrderWD');
+    ]]></expression>
+    </condition>
+    <condition name="WDSearchParameterForm_IsParamWithVCardOrgOnly">
+        <schema-ref ref="WDSearchParameter" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.id != null && (resource.id === 'consumer');
+    ]]></expression>
+    </condition>
+    <condition name="WDSearchParameterForm_IsParamWithVCardFromSOSelected_EH">
+        <schema-ref ref="WDSearchParameter" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.id != null && (resource.id === 'signer' || resource.id === 'initiator' || resource.id === 'joExecutorWD' || resource.id === 'execManager'
+        || resource.id === 'affirmingWD' || resource.id === 'jaSigner');
+    ]]></expression>
+    </condition>
+    <condition name="RkkResourceInTaskContext_HasContentAdd">
+        <schema-ref ref="RkkResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && (resource.relatedDocument.object.contentAddCount > 0)
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && (resource.rootDocument.object.contentAddCount > 0);
+    ]]></expression>
+    </condition>
+</ui>

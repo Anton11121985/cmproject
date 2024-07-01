@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="NpaPublication">
+    <meta>
+      <documentation>основная схема "Публикация НПА"</documentation>
+    </meta>
+    <string name="labelMain" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Основные"]]></script>
+      </calc-values>
+    </string>
+    <string name="showIdent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Карточка публикации']]></script>
+      </calc-values>
+    </string>
+    <enum-ref ref="Type" name="type" system="true"/>
+    <date name="createdDate" system="true"/>
+    <date name="publishDate" system="true"/>
+    <enum-ref ref="PublishState" name="publishState" system="true"/>
+    <actor name="author" system="true"/>
+    <boolean name="$canTrash" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <schema-ref ref="npaPublicationPortalSettings" name="portal" null-empty="true" system="true"/>
+    <schema-ref name="documentsView" ref="NpaPublicationDocumentView" temporal="true"/>
+    <string name="$id" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.id]]></script>
+      </calc-values>
+    </string>
+    <boolean name="isSupervisor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Supervisor')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isPublisher" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Publisher')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canPublishNpa" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+                    isSupervisor || isPublisher
+                ]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <boolean name="isNew" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isNew==true]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isSentToPublishOrUnpublish" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[publishDate != null]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isHasDocuments" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.tunable.object.TunableObjectApplication)).getEmbeddedCollectionSubObjects(#this.id, "npaDocuments").size() >= 1]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="publishStateIsProjectOrIsPublishedOrIsUnpublished" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["PROJECT".equals(publishState) || "PUBLISHED".equals(publishState) || "UNPUBLISHED".equals(publishState)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="publishStateIsProjectOrIsFailure" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["PROJECT".equals(publishState) || "FAILURE".equals(publishState)]]></script>
+      </calc-values>
+    </boolean>
+  </schema>
+</schemas>

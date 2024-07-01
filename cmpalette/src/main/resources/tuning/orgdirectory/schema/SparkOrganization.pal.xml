@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="OrgSparkSearch" recalc="true">
+    <schema-ref null-empty="true" ref="SparkOrganization" temporal="true" name="quickSearchSpark" />
+    <actor name="orgFromSpark" temporal="true" />
+    <string name="$refreshOrganizationSpark" system="true" temporal="true" >
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[#parentnode.sparkId==null || #parentnode.sparkId==0?"":
+        #parentnode.counterparty=='individualentrepreneur'?"inn"+#parentnode.inn:"sparkid"+#parentnode.sparkId]]></script>
+      </calc-values>
+    </string>
+    <boolean name="showRefresh" default-value="false" temporal="true">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[(#parentnode.new==null || #parentnode.new==false) && #parentnode.sparkId!=null && (#this.getValues().get("quickSearchSpark")==null)]]></script>
+      </calc-values>
+    </boolean>
+  </schema>
+
+  <schema name="SparkOrganization">
+    <meta>
+      <category name="РМ Администратора" />
+    </meta>
+    <string temporal="true" name="name" />
+    <string temporal="true" name="inn" />
+    <string temporal="true" name="ogrn" />
+    <string temporal="true" name="address" />
+    <integer temporal="true" name="sparkId" />
+    <boolean default-value="false" temporal="true" name="isCompany" />
+  </schema>
+
+  <schema name="OrgSparkSearchResult" recalc="true">
+    <string name="$describedBy" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[(T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + T(ru.intertrust.cmj.rest.tuning.TuningHelper).getBaseSchemaPath("OrgSparkSearchResult", "OrgDirectory", "dedfault"))]]></script>
+      </calc-values>
+    </string>
+    <schema-ref name="link" ref="ResourceLink" array="true" temporal="true"/>
+    <string name="fn"/>
+    <string name="id" temporal="true"/>
+    <string name="shortName" temporal="true"/>
+    <string name="shortNameEn" temporal="true"/>
+    <string name="fullName" temporal="true"/>
+    <string name="bik" temporal="true"/>
+    <integer name="sparkId" temporal="true"/>
+    <boolean name="isEnterpreneur" temporal="true"/>
+    <enum-ref ref="CounterpartyType" name="counterparty" temporal="true"/>
+    <schema-ref name="bank" ref="BankProperties" temporal="true"/>
+    <schema-ref ref="OrgAdmin" name="org" temporal="true"/>
+    <schema-ref name="adrLegal" ref="AddressValueAdmin" temporal="true"/>
+    <schema-ref name="adrPostal" ref="AddressValueAdmin" temporal="true"/>
+    <schema-ref ref="TelValueAdmin" name="tel" temporal="true"/>
+    <schema-ref name="organizationDirector" ref="OrgSparkLeader" temporal="true"/>
+    <string name="mainindustry" temporal="true"/>
+    <string name="Surname" temporal="true"/>
+    <string name="name" temporal="true"/>
+    <string name="patronymic" temporal="true"/>
+    <string name="okato" temporal="true"/>
+    <string name="nationality" temporal="true"/>
+    <string name="OKOPF" temporal="true"/>
+    <string name="OKOPFname" temporal="true"/>
+  </schema>
+
+  <schema name="OrgSparkLeader" recalc="true">
+    <string name="fio" temporal="true"/>
+    <string name="inn" temporal="true"/>
+    <string name="post" temporal="true"/>
+  </schema>
+  
+  <schema name="SparkUpdateInfo">
+    <string name="event">
+      <storage-field name="sparkUpdateEvent"/>
+    </string>
+    <date name="date">
+      <storage-field name="sparkUpdateDate"/>
+    </date>
+  </schema>
+</schemas>

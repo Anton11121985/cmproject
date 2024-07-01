@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="NomenclatureTable" recalc="true">
+    <schema-ref ref="NomenclatureLink" name="nomenclature" null-empty="true"/>
+
+    <string name="code"/>
+    <string name="subject"/>
+    <double name="vatPrice"/>
+    <string name="unit"/>
+
+    <double name="value"/>
+    <actor name="executor"/>
+    <string name="comment"/>
+
+    <double name="vatSum" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[vatPrice == null || value == null ? null : (T(java.lang.Math).round(100.0 * vatPrice * value) / 100.0)]]></script>
+      </calc-values>
+    </double>
+
+    <string name="$emptyString" temporal="true" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[" "]]></script>
+      </calc-values>
+    </string>
+    
+    <boolean name="curUserIsExecutor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[{
+	#curUsr = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser(),
+	#parentnode?.executor != null && (#parentnode.executor.contains(#curUsr.getBeard()) || #parentnode.executor.?[T(com.google.common.collect.Lists).transform(#this, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSubstituteOf(#this)].size() > 0].size() > 0)
+}[1]]]>
+        </script>
+      </calc-values>
+    </boolean>
+
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importPackage(Packages.java.lang);
+
+function querySave(object, document) {
+  if (getValue(object, "value") != null && getValue(object, "vatPrice") != null) {
+    setValue(object, "vatSum", Math.round(100.0 * getValue(object, "vatPrice") * getValue(object, "value")) / 100.0);
+  } else {
+    setValue(object, "vatSum", null);
+  }
+  return true
+}
+
+function recalc(object, changedField) {
+  if (changedField === "nomenclature") {
+    if (getValue(object, "nomenclature") != null) {
+      var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+      var nomenclature = appTNObject.getEntityByUNID(TunableObjectHelper.getAFInstanceValue(object.tuning().getValues().get("nomenclature").getValues().get("tnUnid")));
+      TunableObjectHelper.putAFInstanceValue(object.tuning().getValues().get("nomenclature"), "code", getValue(nomenclature, "code"));
+      setValue(object, "code", getValue(nomenclature, "code"));
+      setValue(object, "subject", getValue(nomenclature, "subject"));
+      setValue(object, "unit", getValue(nomenclature, "unit"));
+      setValue(object, "vatPrice", Math.round(getValue(nomenclature, "price") * (100.0 + Double.valueOf(getValue(nomenclature, "vat")))) / 100.0);
+      //if (getValue(object, "value") != null) setValue(object, "vatSum", Math.round(100.0 * getValue(object, "vatPrice") * getValue(object, "value")) / 100.0);
+    } else {
+      setValue(object, "code", null);
+      setValue(object, "subject", null);
+      setValue(object, "unit", null);
+      setValue(object, "vatPrice", null);
+      setValue(object, "vatSum", null);
+    }
+//  } else if (changedField === "value") {
+//    if (getValue(object, "value") != null && getValue(object, "vatPrice") != null) {
+//      setValue(object, "vatSum", Math.round(100.0 * getValue(object, "vatPrice") * getValue(object, "value")) / 100.0);
+//    } else {
+//      setValue(object, "vatSum", null);
+//    }
+  }
+}
+
+function getValue(doc, fileName) {
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+    return TunableObjectHelper.getAFInstanceValue(tmp);
+}
+
+function setValue(doc, fileName, value) {
+      return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+    ]]></custom-event-handler>
+  </schema>
+</schemas>

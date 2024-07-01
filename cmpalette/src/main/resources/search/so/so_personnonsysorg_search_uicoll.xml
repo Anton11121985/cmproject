@@ -1,0 +1,125 @@
+<search-area name="so_personnonsysorg_search_uicoll" replace="runtime">
+    <boost-every-where>
+        <field-boost name="personName" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_personnonsysorg">
+        <!-- Должность -->
+        <indexed-field name="postname"/>
+        <!-- ФИО -->
+        <indexed-field name="personName" search-by="substring">
+            <compound-field delimiter=" ">
+                <field-part>
+                    <doel>lastname</doel>
+                </field-part>
+                <field-part>
+                    <doel>firstname</doel>
+                </field-part>
+                <field-part>
+                    <doel>middlename</doel>
+                </field-part>
+            </compound-field>
+        </indexed-field>
+        <!-- Организация краткое имя -->
+        <indexed-field name="orgShortName" search-by="substring">
+            <doel>organization.shortname</doel>
+        </indexed-field>
+        <!-- Организация полное имя -->
+        <indexed-field name="orgFullName" search-by="substring">
+            <doel>organization.fullname</doel>
+        </indexed-field>
+        <!-- Тип должности -->
+        <indexed-field name="postRole" search-by="substring">
+            <script>
+                switch(ctx.get('PostRole')) {
+                case 1:
+                result = 'Руководитель организации';
+                break;
+                case 2:
+                result = 'Зам. руководителя организации';
+                break;
+                case 3:
+                result = 'Руководитель подразделения';
+                break;
+                case 4:
+                result = 'Работник';
+                break;
+                }
+                ctx.setResult(result);
+            </script>
+            <filter>
+                <doel>PostRole:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Подразделение -->
+        <indexed-field name="DepartmentName"/>
+
+        <!-- Гражданство-->
+        <linked-domain-object type="SO_Citizenship_Person">
+            <indexed-field name="Citizenship"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Здание и комната -->
+        <linked-domain-object type="SO_AddressData_Person">
+            <indexed-field name="Building"/>
+            <indexed-field name="Office"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Мобильный телефон -->
+        <linked-domain-object type="SO_Phone_Person_M">
+            <indexed-field name="Phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Рабочий телефон -->
+        <linked-domain-object type="SO_Phone_Person_W">
+            <indexed-field name="Phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Внутренний телефон -->
+        <linked-domain-object type="SO_Phone_Person_Local">
+            <indexed-field name="Phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- ИНН -->
+        <indexed-field name="INN" />
+        <!-- СНИЛС-->
+        <indexed-field name="SNILS" />
+        <!-- Рабочий email -->
+        <linked-domain-object type="SO_Email_Person">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Факс -->
+        <linked-domain-object type="SO_Fax_Person">
+            <indexed-field name="fax"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Аккаунт в службах мгновенного обмена сообщениями -->
+        <linked-domain-object type="SO_IM_Person">
+            <indexed-field name="IM"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+</search-area>

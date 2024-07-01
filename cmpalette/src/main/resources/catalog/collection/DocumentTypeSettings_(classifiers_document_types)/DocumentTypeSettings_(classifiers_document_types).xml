@@ -1,0 +1,42 @@
+<collection name="DocumentTypeSettings_(classifiers_document_types)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+            SELECT
+                id,
+                Module,
+                created_date,
+                self_1,
+                self_2,
+                self_3,
+                schema
+            FROM
+                (SELECT
+                    kvid.id                 AS id,
+                    kvid.Module             AS Module,
+                    kvid.created_date       AS created_date,
+                    '<id>'                  AS self_1,
+                    '-TN:'                  AS self_2,
+                    '</>'                   AS self_3,
+                    CASE
+                        WHEN ss.alias = 'InputDocs' THEN 'InputDocTypeSettingResource'
+                        WHEN ss.alias = 'OutputDocs' THEN 'OutputDocTypeSettingResource'
+                    END as schema
+                FROM Kvid_DocTypeSetting kvid
+                     left join SS_ModuleType ss on ss.id = kvid.DeloModuleType
+                WHERE
+                     kvid.DeleteWho is null
+                     and kvid.DeleteDate is null
+                     and ss.alias in ('InputDocs', 'OutputDocs')) s
+            WHERE
+                1 = 1
+                ::where-clause
+            ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+</collection>

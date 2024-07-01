@@ -1,0 +1,143 @@
+<search-area name="EDM-Docs_ISS_uicoll" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object type="ISS_Document">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_IssDoc_RichText"/>
+        <indexed-content type="F_IssDoc_Files"/>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject" search-by="substring">
+            <doel>Subject</doel>
+        </indexed-field>
+
+        <!-- Статус -->
+        <indexed-field name="statusEDMISS" search-by="substring">
+            <doel>DocStatus.Name</doel>
+        </indexed-field>
+
+        <!-- Вид документа -->
+        <indexed-field name="docTypeEDMISS" search-by="substring">
+            <doel>DocType.Name</doel>
+        </indexed-field>
+
+        <!-- Категория документа -->
+        <indexed-field name="docCategoryEDMISS" search-by="substring">
+            <doel>DocType.Category</doel>
+        </indexed-field>
+
+        <!-- № документа -->
+        <indexed-field name="regFullNumberISS" search-by="substring">
+            <doel>DocNumber</doel>
+        </indexed-field>
+
+        <!-- Папки -->
+        <linked-domain-object type="Abstract_Doc_Folder">
+            <indexed-field name="foldersISS" multi-valued="true">
+                <doel>value:toString</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Дата документа -->
+        <indexed-field name="regDateISS" search-by="substring">
+            <script return-type="string">
+                var date = ctx.get('DocDate');
+                var DateTimeFormatter = Java.type('java.time.format.DateTimeFormatter');
+                var ZoneId = Java.type('java.time.ZoneId');
+                var localDate = date.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                ctx.setResult(localDate.format(formatter));
+            </script>
+            <filter>
+                <doel>DocDate:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Дата начала действия -->
+        <indexed-field name="validityPeriodStart" search-by="substring">
+            <script return-type="string">
+                var date = ctx.get('BeginDate');
+                var DateTimeFormatter = Java.type('java.time.format.DateTimeFormatter');
+                var ZoneId = Java.type('java.time.ZoneId');
+                var localDate = date.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                ctx.setResult(localDate.format(formatter));
+            </script>
+            <filter>
+                <doel>BeginDate:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Дата окончания действия -->
+        <indexed-field name="validityPeriodEnd" search-by="substring">
+            <script return-type="string">
+                var date = ctx.get('EndDate');
+                var DateTimeFormatter = Java.type('java.time.format.DateTimeFormatter');
+                var ZoneId = Java.type('java.time.ZoneId');
+                var localDate = date.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                ctx.setResult(localDate.format(formatter));
+            </script>
+            <filter>
+                <doel>EndDate:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Подписавший -->
+        <indexed-field name="signerISS" search-by="substring">
+            <doel>SignerName</doel>
+        </indexed-field>
+
+        <!-- Подразделение-исполнитель -->
+        <indexed-field name="department" search-by="substring">
+            <doel>ExecDepartment.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Подразделение-владелец -->
+        <indexed-field name="departmentOwner" search-by="substring">
+            <doel>OwnerDepartment.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Ответственный за подготовку -->
+        <indexed-field name="responsibleForPrepare" search-by="substring">
+            <doel>ResponsibleForPrepare.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- кол-во листов -->
+        <indexed-field name="pagesAmount">
+            <doel>PagesAmount</doel>
+        </indexed-field>
+
+        <!-- Дата публикации -->
+        <indexed-field name="publicationDate" search-by="substring">
+            <script return-type="string">
+                var date = ctx.get('PublicationDate');
+                var DateTimeFormatter = Java.type('java.time.format.DateTimeFormatter');
+                var ZoneId = Java.type('java.time.ZoneId');
+                var localDate = date.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                ctx.setResult(localDate.format(formatter));
+            </script>
+            <filter>
+                <doel>PublicationDate:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Версия -->
+        <indexed-field name="versionNumber" search-by="exactmatch">
+            <doel>VersionNumber</doel>
+        </indexed-field>
+
+
+    </target-domain-object>
+</search-area>

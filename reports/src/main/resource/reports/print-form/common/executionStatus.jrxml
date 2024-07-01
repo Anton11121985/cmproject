@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="executionStatus" pageWidth="271" pageHeight="40" columnWidth="271" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5d0b0afa-0408-47c3-bdf2-f4f9e76c9e19">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ID" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[select
+			 lastname || ' ' || left(firstname, 1) || '.' || left(middlename, 1) || '.' as whoexec,
+			 wrapper.rkkExecutionStatus,
+			 wrapper.ctrldateexecution
+		from
+	(select to_number(coalesce(substring(NULLIF(rkk.ctrlwhoexecpid,''),5,12),null),'999999999999') id,
+	 CASE
+		WHEN (rkk.CtrlDateExecution IS NOT NULL) THEN 'Полностью исполнен'
+		WHEN (rkk.CtrlDeadline IS NOT NULL and Date(rkk.CtrlDeadline) < Date(now())) THEN 'Просрочен'
+		ELSE 'На исполнении'
+        END AS rkkExecutionStatus,
+        rkk.ctrldateexecution
+	 from f_dp_rkk rkk
+	where rkk.id = $P{ID}) wrapper
+	  left join so_personsys personSys on personSys.id = wrapper.id
+	  left join so_person person on person.id = personSys.id]]>
+	</queryString>
+	<field name="whoexec" class="java.lang.String"/>
+	<field name="rkkexecutionstatus" class="java.lang.String"/>
+	<field name="ctrldateexecution" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="271" height="40" uuid="07e7db2b-2b1e-480b-b4d0-13ba73600077"/>
+				<box topPadding="2" leftPadding="0" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rkkexecutionstatus} +
+($F{ctrldateexecution}!=null
+?", "+
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{ctrldateexecution})+
+($F{whoexec}!=null
+?" ("+$F{whoexec}+")"
+:""
+)
+:""
+)]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="ClientContextRequest" recalc="true" name="SendCourierOperAction">
+        <meta>
+            <category name="Система\Делопроизводство\Отправка" />
+        </meta>
+
+        <schema-ref name="SendCourierOperTable" ref="SendCourierOperTable" array="true" null-empty="true"/>
+        <string temporal="true" name="mode">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['dialog']]></script>
+            </calc-values>
+        </string>
+        <string array="true" name="idsAll"  temporal="true"/>
+        <string name="deliveryWay"/>
+        <string name="courCompany"/>
+        <string name="courier"/>
+        <datetime name="deliveredDate"/>
+        <string name="applyChng" temporal="true"/>
+        <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.java.util.HashSet);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function querySave(object, document) {
+    return true;
+}
+function postSave(object) {}
+function recalc(object, changedField) {
+	if (changedField == 'applyChng'){
+		var apl = AFSession.get().getApplication(TuningApplication.class);
+		var corrList = object.tuning().getValues().get('SendCourierOperTable').getValues();
+		var deliveryWay = object.tuning().getValues().get('deliveryWay').getValue().toString();
+		var cour = "";
+		var delWayStr = "";
+		if (deliveryWay == null) {
+			throw ("Не указан способ отправки");
+		}
+		if (deliveryWay.equals("courCompany")) {
+			cour = object.tuning().getValues().get('courCompany').getValue();
+			delWayStr = "Курьерская компания";
+		} else if (deliveryWay.equals("courier")) {
+			cour = object.tuning().getValues().get('courier').getValue();
+			delWayStr = "Курьер организации";
+		}
+		for(var i=0; i<corrList.size();i++) {
+			var selected = corrList.get(i).getValues().get("courCheckBox").getValue();
+            if (selected) {
+                var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendCourierOperTable"));
+                newr.put("courCheckBox", new AFInstanceSimpleImpl(newr.getSchema().getProperty("courCheckBox").getSchema(), corrList.get(i).getValues().get("courCheckBox").getValue()));
+				newr.put("courSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("courSelectCorr").getSchema(), corrList.get(i).getValues().get("courSelectCorr").getValue()));
+				newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"),  corrList.get(i).getValues().get("courAddress").getValue()));
+				newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrList.get(i).getValues().get("courIndex").getValue()));
+				newr.put("courFIO", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrList.get(i).getValues().get("courFIO").getValue()));
+				newr.put("courPhone", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrList.get(i).getValues().get("courPhone").getValue()));
+				newr.put("courCompany", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), delWayStr));
+				newr.put("courPosition", new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), corrList.get(i).getValues().get("courPosition").getValue()));
+				if (cour!=null && !cour.equals("")) {
+					newr.put("courCourier", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), cour));
+				} else {
+					newr.put("courCourier", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), ""));
+				}
+
+				corrList.set(i, newr);
+            }
+		}
+
+		object.tuning().getValues().put("SendCourierOperTable",TuningHelper.createPropertyValue(corrList, object.tuning().getSchema().getProperty("SendCourierOperTable")));
+	}
+}
+]]></custom-event-handler>
+    </schema>
+</schemas>

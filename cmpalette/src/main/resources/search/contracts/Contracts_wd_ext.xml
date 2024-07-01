@@ -1,0 +1,866 @@
+<search-area name="Contracts_wd_ext" replace="runtime">
+
+    <solr-server-url>search.wd.solr.server</solr-server-url>
+    <content-search-by>words</content-search-by>
+    <target-filter-name>CNTX_ID_FILTER</target-filter-name>
+
+    <!--   TODO скорее всего <b></b> заменится на что-то другое + не ясно, как должно отображаться пока      -->
+    <highlighting-config hl-require-match="true"  hl-frag-size="255" hl-post-tag="&lt;/b&gt;" hl-pre-tag="&lt;b&gt;">
+    </highlighting-config>
+
+    <target-domain-object type="F_DP_ContractRkk">
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="rt1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt1_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt1_length" type="length"/>
+            <content-field target-field-name="rt1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt1_description" type="description"/>
+            <content-field target-field-name="rt1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf1_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf1_length" type="length"/>
+            <content-field target-field-name="cf1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf1_description" type="description"/>
+            <content-field target-field-name="cf1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_AddFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf2_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf2_length" type="length"/>
+            <content-field target-field-name="cf2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf2_description" type="description"/>
+            <content-field target-field-name="cf2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <!-- Количество вложений (с учетом ричтекста) -->
+        <indexed-field name="contentCount" show-in-results="true" language="">
+            <script return-type="long">session.findByQuery('select id from F_ContentRichText_Rkk where f_dp_rkkbase = {0} union select id from F_ContentFiles_Rkk where f_dp_rkkbase = {0} union select id from F_AddFiles_Rkk where f_dp_rkkbase = {0} union all select id from F_VerifyImage_Rkk where f_dp_rkk = {0}', ctx.getId()).size()</script>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject" show-in-results="true"/>
+
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate" show-in-results="true"/>
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" language="" show-in-results="true">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Место регистрации -->
+        <indexed-field name="Registration" search-by="substring" language="">
+            <doel>RegCode.orig_shortname</doel>
+        </indexed-field>
+        <!-- Состояние договора -->
+        <indexed-field name="contractStatus">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Тип договора -->
+        <indexed-field name="contractType" search-by="substring">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- Дата начала работ -->
+        <indexed-field name="beginDate">
+            <doel>JobStartDate</doel>
+        </indexed-field>
+        <!-- Дата завершения -->
+        <indexed-field name="finishDate">
+            <doel>FinishDate</doel>
+        </indexed-field>
+        <!-- Подпись (Основной документ)-->
+        <!-- Подпись (1-я сторона) -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="SignName" search-by="substring" language="" multi-valued="true">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- номер договора -->
+        <indexed-field name="dogNumber" language="">
+            <doel>AdditionalNumber</doel>
+        </indexed-field>
+        <!-- Тип валюты -->
+        <indexed-field name="currencyType"/>
+        <!-- Тип договора -->
+        <indexed-field name="reqType" show-in-results="true">
+            <script return-type="string">ctx.get('Type') == null ? 'Договор' : ctx.get('Type')</script>
+        </indexed-field>
+        <!-- Доп. номер -->
+        <indexed-field name="appnum">
+            <doel>AdditionalNumber</doel>
+        </indexed-field>
+
+        <!-- 1-я сторона -->
+        <indexed-field name="COurName" search-by="substring" language="">
+            <doel>Party1Id.Orig_ShortName</doel>
+        </indexed-field>
+        <indexed-field name="fromId" language="" show-in-results="true" multi-valued="false">
+            <doel>Party1Id:toString</doel>
+            <filter>
+                <doel>Party1Id:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- 2-я сторона -->
+        <indexed-field name="CFullName" search-by="substring" language="">
+            <script return-type="string">
+                var result = ctx.get('party2idext');
+                if (result != null) {
+                result = ctx.get('party2idext.Orig_ShortName');
+                } else if (ctx.get('Party2IdA') != null) {
+                result = ctx.get('Party2IdA.Orig_ShortName');
+                } else if (ctx.get('Party2IdB') != null) {
+                result = ctx.get('Party2IdB.Orig_ShortName');
+                }
+                result;
+            </script>
+            <filter>
+                <doel>party2idext:isNotEmpty</doel>
+                <doel>Party2IdA:isNotEmpty</doel>
+                <doel>Party2IdB:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <indexed-field name="toId" multi-valued="false" show-in-results="true" index-boost-value="0.1">
+            <script return-type="string">
+                var result = ctx.get('party2idext');
+                if (result != null) {
+                result = ctx.get('party2idext').toStringRepresentation();
+                } else if (ctx.get('Party2IdA') != null) {
+                result = ctx.get('Party2IdA').toStringRepresentation();
+                } else if (ctx.get('Party2IdB') != null) {
+                result = ctx.get('Party2IdB').toStringRepresentation();
+                }
+                result;
+            </script>
+            <filter>
+                <doel>party2idext:isNotEmpty</doel>
+                <doel>Party2IdA:isNotEmpty</doel>
+                <doel>Party2IdB:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Другие стороны -->
+        <linked-domain-object type="F_DP_ContractRkk_PtOthIdA">
+            <indexed-field name="ExtPersonNames" search-by="substring" language="" multi-valued="true">
+                <doel>PartyOtherIdA.Orig_ShortName</doel>
+            </indexed-field>
+            <indexed-field name="OrgNames" search-by="substring" language="" multi-valued="true">
+                <doel>PartyOtherIdA.OrgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Сумма -->
+        <indexed-field name="sum">
+            <doel>TotalValue</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate" show-in-results="true">
+            <doel>created_date</doel>
+        </indexed-field>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring" multi-valued="true"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Ответственные -->
+        <linked-domain-object type="F_DP_ContractRkk_Resp">
+            <indexed-field name="otv" search-by="substring" language="" multi-valued="true">
+                <doel>Responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подготовили -->
+        <linked-domain-object type="F_DP_ContractRkk_PrepBy">
+            <indexed-field name="Executor" search-by="substring" language="" multi-valued="true">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подразделение-исполнитель -->
+        <indexed-field name="DepExec" search-by="substring" language="" multi-valued="true">
+            <doel>F_DP_ContractRkk_ExUnits^Owner.ExUnits.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" multi-valued="true">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- SpecMark -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_SMrk">
+            <indexed-field name="specMark" multi-valued="true">
+                <doel>specmark</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Номер проекта -->
+        <indexed-field name="projectNumber" language="" show-in-results="true">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <target-collection name="ContractsLite_(searchContextual)"/>
+    </target-domain-object>
+
+    <!-- Доп. соглашения -->
+    <target-domain-object type="F_DP_ContractDS">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="rt1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt1_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt1_length" type="length"/>
+            <content-field target-field-name="rt1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt1_description" type="description"/>
+            <content-field target-field-name="rt1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf1_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf1_length" type="length"/>
+            <content-field target-field-name="cf1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf1_description" type="description"/>
+            <content-field target-field-name="cf1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_AddFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf2_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf2_length" type="length"/>
+            <content-field target-field-name="cf2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf2_description" type="description"/>
+            <content-field target-field-name="cf2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <!-- Количество вложений (с учетом ричтекста) -->
+        <indexed-field name="contentCount" show-in-results="true" language="">
+            <script return-type="long">session.findByQuery('select id from F_ContentRichText_Rkk where f_dp_rkkbase = {0} union select id from F_ContentFiles_Rkk where f_dp_rkkbase = {0} union select id from F_AddFiles_Rkk where f_dp_rkkbase = {0} union all select id from F_VerifyImage_Rkk where f_dp_rkk = {0}', ctx.getId()).size()</script>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject" show-in-results="true"/>
+        <!-- Дата договора -->
+        <indexed-field name="contractDate">
+            <doel>HierRoot.regDate</doel>
+        </indexed-field>
+        <!-- Состояние договора -->
+        <indexed-field name="contractStatus" show-in-results="true">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Номер документа -->
+        <indexed-field name="docNumber" show-in-results="true">
+            <doel>regnumber</doel>
+        </indexed-field>
+        <!-- Дата документа -->
+        <indexed-field name="regDate" show-in-results="true">
+            <script return-type="date">
+                ctx.get('RegDate') == null ? ctx.get('created_date') : ctx.get('RegDate');
+            </script>
+        </indexed-field>
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" multi-valued="true">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Дата ДС -->
+        <indexed-field name="docDate" show-in-results="true">
+            <doel>RegDate</doel>
+        </indexed-field>
+        <!-- Номер договора -->
+        <indexed-field name="contractNumber" language="">
+            <script>
+                var contract = session.find(ctx.get('HierRoot'));
+                var rn = contract.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = contract.get('regnumprist'); if (prist == null) prist = '';
+                var fin = contract.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>HierRoot.regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring" index-boost-value="4.0" multi-valued="true"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Первая сторона -->
+        <indexed-field name="COurName" search-by="substring" language="">
+            <doel>HierParent.Party1Id.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- 2-я сторона -->
+        <indexed-field name="CFullName" search-by="substring" language="">
+            <script return-type="string">
+                var result = ctx.get('HierParent.party2idext');
+                if (result != null) {
+                result = ctx.get('HierParent.party2idext.Orig_ShortName');
+                } else if (ctx.get('HierParent.Party2IdA') != null) {
+                result = ctx.get('HierParent.Party2IdA.Orig_ShortName');
+                } else if (ctx.get('HierParent.Party2IdB') != null) {
+                result = ctx.get('HierParent.Party2IdB.Orig_ShortName');
+                }
+                result;
+            </script>
+            <filter>
+                <doel>HierParent.party2idext:isNotEmpty</doel>
+                <doel>HierParent.Party2IdA:isNotEmpty</doel>
+                <doel>HierParent.Party2IdB:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Список рассылки -->
+        <linked-domain-object type="F_DP_ContractDS_SendToCur">
+            <indexed-field name="SendToCurr" search-by="substring" language="" multi-valued="true">
+                <doel>SendToCurr.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="toIds" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('SendToCurr');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>SendToCurr:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Список рассылки -->
+        <linked-domain-object type="F_DP_ContractDS_SendToExt">
+            <indexed-field name="SendToExt" search-by="substring" language="" multi-valued="true">
+                <doel>SendToExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="toIdsExt" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('SendToExt');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>SendToExt:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Дата начала работ -->
+        <indexed-field name="beginDate">
+            <doel>JobStartDate</doel>
+        </indexed-field>
+        <!-- Дата завершения -->
+        <indexed-field name="finishDate"/>
+        <!-- Подпись (1-я сторона) -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="SignName" search-by="substring" language="" multi-valued="true">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="fromIds" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('Signer');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>Signer:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Подразделение-исполнитель -->
+        <indexed-field name="DepExec" search-by="substring" language="" multi-valued="true">
+            <doel>HierRoot.F_DP_ContractRkk_ExUnits^Owner.ExUnits.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Ответственные -->
+        <linked-domain-object type="F_DP_ContractDS_Resp">
+            <indexed-field name="otv" search-by="substring" language="" multi-valued="true">
+                <doel>Responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подготовили -->
+        <linked-domain-object type="F_DP_ContractDS_PrepBy">
+            <indexed-field name="Executor" search-by="substring" language="" multi-valued="true">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- SpecMark -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_SMrk">
+            <indexed-field name="specMark" multi-valued="true">
+                <doel>specmark</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Тип документа -->
+        <indexed-field name="reqType" show-in-results="true">
+            <script return-type="string">'Дополнительное соглашение'</script>
+        </indexed-field>
+
+        <target-collection name="F_DP_ContractDS_(searchContextual)"/>
+    </target-domain-object>
+
+    <!-- Финансовые документы-->
+    <target-domain-object type="F_DP_ContractFD">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Заголовок -->
+        <indexed-field name="Subject" index-boost-value="4.0" show-in-results="true"/>
+
+        <!-- Вид документа -->
+        <indexed-field name="reqType" show-in-results="true">
+            <doel>Type</doel>
+        </indexed-field>
+
+        <!-- Вид родительского документа -->
+        <indexed-field name="parentDocType" search-by="substring" language="">
+            <doel>HierParent.Form</doel>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" multi-valued="true">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Номер родительского документа -->
+        <indexed-field name="parentDocNumber" language="">
+            <script>
+                var contract = session.find(ctx.get('HierParent'));
+                var rn = contract.get('regnumcnt');
+                if (rn == null) {
+                rn = contract.get('regnumber');
+                rn;
+                } else {
+                var prist = contract.get('regnumprist'); if (prist == null) prist = '';
+                var fin = contract.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin
+                }
+            </script>
+            <filter>
+                <doel>HierRoot.regnumcnt:isNotEmpty</doel>
+                <doel>HierRoot.regnumber:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Дата родительского документа -->
+        <indexed-field name="parentDocDate">
+            <doel>HierParent.RegDate</doel>
+        </indexed-field>
+
+        <!-- Наименование товара/услуг -->
+        <indexed-field name="ServiceDescription"/>
+        <!-- Поставшик -->
+        <indexed-field name="Vendor_FIO" search-by="substring" language="">
+            <doel>Vendor.orig_shortname</doel>
+        </indexed-field>
+        <!-- Покупатель -->
+        <indexed-field name="Purchaser_FIO" search-by="substring" language="">
+            <doel>Purchaser.orig_shortname</doel>
+        </indexed-field>
+        <!-- Получатель -->
+        <indexed-field name="Receiver_FIO" search-by="substring" language="">
+            <doel>Receiver.orig_shortname</doel>
+        </indexed-field>
+        <!-- Подпись -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="SignName" search-by="substring" language="" multi-valued="true">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="fromIds" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('Signer');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>Signer:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Состояние договора -->
+        <indexed-field name="contractStatus" show-in-results="true">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Номер документа -->
+        <indexed-field name="docNumber" show-in-results="true">
+            <doel>regnumber</doel>
+        </indexed-field>
+        <!-- Дата документа -->
+        <indexed-field name="regDate" show-in-results="true">
+            <script return-type="date">
+                ctx.get('RegDate') == null ? ctx.get('created_date') : ctx.get('RegDate');
+            </script>
+        </indexed-field>
+        <!-- Дата документа -->
+        <indexed-field name="docDate" show-in-results="true">
+            <script return-type="date">
+                ctx.get('RegDate') == null ? ctx.get('created_date') : ctx.get('RegDate');
+            </script>
+        </indexed-field>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring" index-boost-value="4.0" multi-valued="true"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- SpecMark -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_SMrk">
+            <indexed-field name="specMark" multi-valued="true">
+                <doel>specmark</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Список рассылки -->
+        <linked-domain-object type="F_DP_ContractFD_Send2Cur">
+            <indexed-field name="toIds" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('SendToCurr');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>SendToCurr:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Содержание -->
+        <indexed-content type="F_ContentRichText_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="rt1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt1_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt1_length" type="length"/>
+            <content-field target-field-name="rt1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt1_description" type="description"/>
+            <content-field target-field-name="rt1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf1_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf1_length" type="length"/>
+            <content-field target-field-name="cf1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf1_description" type="description"/>
+            <content-field target-field-name="cf1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_AddFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf2_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf2_length" type="length"/>
+            <content-field target-field-name="cf2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf2_description" type="description"/>
+            <content-field target-field-name="cf2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <!-- Количество вложений (с учетом ричтекста) -->
+        <indexed-field name="contentCount" show-in-results="true" language="">
+            <script return-type="long">session.findByQuery('select id from F_ContentRichText_Rkk where f_dp_rkkbase = {0} union select id from F_ContentFiles_Rkk where f_dp_rkkbase = {0} union select id from F_AddFiles_Rkk where f_dp_rkkbase = {0} union all select id from F_VerifyImage_Rkk where f_dp_rkk = {0}', ctx.getId()).size()</script>
+        </indexed-field>
+
+        <target-collection name="F_DP_ContractFD_(searchContextual)"/>
+    </target-domain-object>
+
+    <!-- Документы к договору -->
+    <target-domain-object type="F_DP_ContractDoc">
+
+        <indexed-content type="F_ContentRichText_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="rt1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt1_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt1_length" type="length"/>
+            <content-field target-field-name="rt1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt1_description" type="description"/>
+            <content-field target-field-name="rt1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf1_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf1_length" type="length"/>
+            <content-field target-field-name="cf1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf1_description" type="description"/>
+            <content-field target-field-name="cf1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_AddFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf2_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf2_length" type="length"/>
+            <content-field target-field-name="cf2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf2_description" type="description"/>
+            <content-field target-field-name="cf2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <!-- Количество вложений (с учетом ричтекста) -->
+        <indexed-field name="contentCount" language="" index-boost-value="0.1">
+            <script return-type="long">session.findByQuery('select id from F_ContentRichText_Rkk where f_dp_rkkbase = {0} union select id from F_ContentFiles_Rkk where f_dp_rkkbase = {0} union select id from F_AddFiles_Rkk where f_dp_rkkbase = {0} union all select id from F_VerifyImage_Rkk where f_dp_rkk = {0}', ctx.getId()).size()</script>
+        </indexed-field>
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject" show-in-results="true"/>
+
+        <!-- Вид родительского документа -->
+        <indexed-field name="parentDocType" search-by="substring" language="">
+            <doel>HierParent.Form</doel>
+        </indexed-field>
+        <!-- Вид документа -->
+        <indexed-field name="reqType" show-in-results="true">
+            <script return-type="string">ctx.get('Type') == null ? 'Документ к договору' : ctx.get('Type')</script>
+        </indexed-field>
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" multi-valued="true">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Номер родительского документа -->
+        <indexed-field name="parentDocNumber" language="">
+            <script>
+                var contract = session.find(ctx.get('HierParent'));
+                var rn = contract.get('regnumcnt');
+                if (rn == null) {
+                rn = contract.get('regnumber');
+                rn;
+                } else {
+                var prist = contract.get('regnumprist'); if (prist == null) prist = '';
+                var fin = contract.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin
+                }
+            </script>
+            <filter>
+                <doel>HierParent.regnumcnt:isNotEmpty</doel>
+                <doel>HierParent.regnumber:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Дата родительского документа -->
+        <indexed-field name="parentDocDate">
+            <doel>HierParent.RegDate</doel>
+        </indexed-field>
+        <!-- Вторая сторона -->
+        <indexed-field name="CFullName" search-by="substring" language="">
+            <script return-type="string">
+                var result = ctx.get('Hierroot.party2idext');
+                if (result != null) {
+                result = ctx.get('Hierroot.party2idext.Orig_ShortName');
+                } else if (ctx.get('Hierroot.Party2IdA') != null) {
+                result = ctx.get('Hierroot.Party2IdA.Orig_ShortName');
+                } else if (ctx.get('Hierroot.Party2IdB') != null) {
+                result = ctx.get('Hierroot.Party2IdB.Orig_ShortName');
+                }
+                result;
+            </script>
+            <filter>
+                <doel>Hierroot.party2idext:isNotEmpty</doel>
+                <doel>Hierroot.Party2IdA:isNotEmpty</doel>
+                <doel>Hierroot.Party2IdB:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Состояние договора -->
+        <indexed-field name="contractStatus" show-in-results="true">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Номер документа -->
+        <indexed-field name="docNumber" show-in-results="true">
+            <doel>regnumber</doel>
+        </indexed-field>
+        <!-- Дата документа -->
+        <indexed-field name="regDate" show-in-results="true">
+            <script return-type="date">
+                ctx.get('RegDate') == null ? ctx.get('created_date') : ctx.get('RegDate');
+            </script>
+        </indexed-field>
+        <!-- Дата документа -->
+        <!-- Дата документа -->
+        <indexed-field name="docDate" show-in-results="true">
+            <script return-type="date">
+                ctx.get('RegDate') == null ? ctx.get('created_date') : ctx.get('RegDate');
+            </script>
+        </indexed-field>
+        <!-- Подпись -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="SignName" search-by="substring" language="" multi-valued="true">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="fromIds" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('Signer');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>Signer:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring" multi-valued="true"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подготовили -->
+        <linked-domain-object type="F_DP_ContractDoc_PrepBy">
+            <indexed-field name="Executor" search-by="substring" language="" multi-valued="true">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+
+        <!-- Список рассылки -->
+        <linked-domain-object type="F_DP_ContractDoc_Send2Cur">
+            <indexed-field name="SendToCurr" search-by="substring" language="" multi-valued="true">
+                <doel>SendToCurr.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="toIds" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('SendToCurr');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>SendToCurr:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Список рассылки -->
+        <linked-domain-object type="F_DP_ContractDoc_Send2Ext">
+            <indexed-field name="SendToExt" search-by="substring" language="" multi-valued="true">
+                <doel>SendToExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="toIdsExt" language="" show-in-results="true" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('SendToExt');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>SendToExt:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="F_DP_ContractDoc_(searchContextual)"/>
+    </target-domain-object>
+</search-area>

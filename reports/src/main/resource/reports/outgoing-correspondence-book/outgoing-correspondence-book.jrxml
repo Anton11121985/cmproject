@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.18.1.final using JasperReports Library version 6.18.1-9d75d1969e774d4f179fb3be8401e98a0e6d1611  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+			  name="outgoing-correspondence-book" pageWidth="842" pageHeight="904" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+			  isIgnorePagination="true" scriptletClass="GetIdsList" uuid="05a8cac2-38db-4cc3-921e-0f6012b826a3">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<subDataset name="LinkedDocs" whenResourceMissingType="Empty" uuid="9db4fc08-e2ba-4b17-b631-6d5c786c66ed">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+		<parameter name="outputId" class="java.lang.Object"/>
+		<queryString>
+			<![CDATA[SELECT
+	ul.docsubjects AS DocSubject,
+	ul.docname AS DocName
+FROM
+	F_DP_RkkWORegAndCtrl_ULnk ul
+WHERE
+	ul.doclinktype = 'FROM'
+	AND ul.owner = $P{outputId}]]>
+		</queryString>
+		<field name="DocSubject" class="java.lang.String"/>
+		<field name="DocName" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="Date.Start" class="java.util.Date"/>
+	<parameter name="Date.End" class="java.util.Date"/>
+	<parameter name="REG_PLACE_LIST.Value" class="java.lang.Object"/>
+	<parameter name="regPlaceFlag" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[$P{REPORT_SCRIPTLET}.getIdsListEmpty($P{REG_PLACE_LIST.Value})]]></defaultValueExpression>
+	</parameter>
+	<parameter name="idsList" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[$P{REPORT_SCRIPTLET}.getIdsList($P{REG_PLACE_LIST.Value})]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[SELECT DISTINCT rkkbase.type AS reqType,
+		 rkk.regnumprist,
+		 rkk.regnumcnt,
+		 rkk.regnumfin,
+		 rkk.regdate AS regDate,
+
+	(SELECT string_agg(CASE
+		WHEN beard.orig_shortname IS NULL THEN
+		'Физическое лицо'
+		ELSE beard.orig_shortname
+		END ||'->'||
+		CASE
+			WHEN beardOrg.orig_type=10 THEN
+			'Нет адресатов'
+			ELSE beardOrg.orig_shortname END, CHR(10))
+		FROM F_DP_OutputRkk_OrgInf org
+		LEFT JOIN F_DP_OutputRkk_OrgInfAddr addr
+			ON addr.owner = org.id
+		LEFT JOIN So_Beard beardOrg
+			ON beardOrg.id = addr.Addressee
+		LEFT JOIN So_Beard beard
+			ON beard.id = org.firmid
+		WHERE org.owner = outputrkk.id ) AS corr, rkkbase.subject AS subject, signer.orig_shortname AS signer, '' AS linkedDoc, rkk.id AS docId, rkkw.exemplarspagescount AS pageNumber,
+	(SELECT string_agg(executor.orig_shortname,
+		 ', ')
+	FROM
+		(SELECT executor.orig_shortname
+		FROM F_DP_OutputRkk_Executor outrkkexec
+		JOIN so_beard executor
+			ON executor.id = outrkkexec.executor
+		WHERE outrkkexec.owner = outputrkk.id
+			ORDER BY  executor.orig_shortname) executor ) AS initiator,
+		 coalesce( (SELECT
+				CASE
+				WHEN execParentDep.orig_shortname IS NULL THEN
+				'Не указано'
+				ELSE execParentDep.orig_shortname
+				END
+			FROM so_beard execParentDep
+			WHERE execParentDep.id = rkkbase.execParentDep),
+				CASE
+				WHEN rkkbase.execParentDep IS NULL THEN
+				'Не указано'
+				END ) AS initiatorDep, coalesce ((Case
+				WHEN (SO_Parent.IsCodeNumIndex = 1) THEN
+				SO_Parent.Code || '-' || fileCard.Number || '.' || fileCard.title
+				ELSE fileCard.Code || '-' || fileCard.Number || '.' || fileCard.title end), 'Не указан') AS fdFileNumber
+		FROM F_DP_OutputRkk outputrkk
+	JOIN f_dp_rkk rkk
+	ON rkk.id = outputrkk.id
+JOIN f_dp_rkkbase rkkbase
+	ON rkkbase.id = rkk.id
+JOIN f_dp_rkkworegandctrl rkkw
+	ON rkkw.id = outputrkk.id
+LEFT JOIN So_BEARD signer
+	ON signer.id = outputrkk.SignSigner
+LEFT JOIN FD_Rkk_BelongToFile inventory
+	ON outputrkk.id = inventory.owner
+LEFT JOIN fd_filecard fileCard
+	ON inventory.card = fileCard.id
+LEFT JOIN SO_Parent
+	ON SO_Parent.id = fileCard.soobject
+WHERE rkkbase.isdeleted <> 1
+		AND rkk.regnumcnt IS NOT NULL
+		AND (regDate
+	BETWEEN $P{Date.Start}
+		AND $P{Date.End})
+		AND ( rkkbase.regcode IN ($P!{idsList})
+		OR ( $P{regPlaceFlag} = -1) )
+ORDER BY  reqType, rkk.regnumcnt]]>
+	</queryString>
+	<field name="reqtype" class="java.lang.String"/>
+	<field name="regnumprist" class="java.lang.String"/>
+	<field name="regnumcnt" class="java.lang.Long"/>
+	<field name="regnumfin" class="java.lang.String"/>
+	<field name="regdate" class="java.sql.Timestamp"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="signer" class="java.lang.String"/>
+	<field name="linkeddoc" class="java.lang.String"/>
+	<field name="docId" class="java.lang.Object"/>
+	<field name="pageNumber" class="java.lang.Object"/>
+	<field name="corr" class="java.lang.Object"/>
+	<field name="initiator" class="java.lang.Object"/>
+	<field name="initiatorDep" class="java.lang.Object"/>
+	<field name="fdFileNumber" class="java.lang.Object"/>
+	<group name="Group1">
+		<groupExpression><![CDATA[$F{reqtype}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<printWhenExpression><![CDATA[$F{reqtype} != null]]></printWhenExpression>
+				<textField>
+					<reportElement x="0" y="0" width="1160" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="Group1" uuid="5db274b4-2d92-4ce0-8ff2-d0ef87bdcb67">
+						<property name="local_mesure_unitheight" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{reqtype} != null ? $F{reqtype} : ""]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="80" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="0" y="0" width="1160" height="60" isPrintWhenDetailOverflows="true" uuid="95627549-2411-4447-ac2c-3f10cc248af7">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ЖУРНАЛ учета исходящей корреспонденции (за период c "+
+new java.text.SimpleDateFormat("dd.MM").format($P{Date.Start}) +
+" по " +
+new java.text.SimpleDateFormat("dd.MM").format($P{Date.End}) +
+" " + new java.text.SimpleDateFormat(new java.text.SimpleDateFormat("yyyy").format($P{Date.End})).format(new java.util.Date()) + ") года"]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Transparent" x="0" y="60" width="1160" height="20" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="3e42b1c9-7a5e-4add-9f55-c09a8526b2ca">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="regPlace">
+					<subreportParameterExpression><![CDATA[$P{idsList}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["regPlaceName.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="0" width="40" height="30" forecolor="#000000" backcolor="#BFBFBF" uuid="8ee83d26-5581-43d0-b72d-67488cd6ab10">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[№ п/п]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="0" width="100" height="30" backcolor="#B3B3B3" uuid="19723244-2f47-4df8-a6b8-294b28b9497d">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Рег. номер]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="140" y="0" width="70" height="30" backcolor="#B3B3B3" uuid="feefe3d6-5bf9-4cb7-ae56-6a9b21f69fde">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Дата документа]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="210" y="0" width="202" height="30" backcolor="#B3B3B3" uuid="30372c56-2a9e-48b7-bd4a-2b26c22c4357">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Заголовок]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="412" y="0" width="118" height="30" backcolor="#B3B3B3" uuid="815b4ac7-63b9-44fc-b2a1-3289669329bc">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Подписант]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="530" y="0" width="118" height="30" backcolor="#B3B3B3" uuid="f39f3d1d-2316-4e18-be77-7cbb58db3bdb">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Инициатор]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="648" y="0" width="118" height="30" backcolor="#B3B3B3" uuid="3fa6c76a-70a1-49ea-bc7f-b4774cf78075">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[СП Инициатора]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="766" y="0" width="118" height="30" backcolor="#B3B3B3" uuid="550d5e99-5417-4bfc-950c-cd152769102c">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Корреспондент]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="884" y="0" width="50" height="30" backcolor="#B3B3B3" uuid="b28d2fbf-8deb-4e56-9f57-9a0e0ec2d834">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Кол-во листов]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="934" y="0" width="100" height="30" backcolor="#B3B3B3" uuid="890e62bf-dd77-49c0-a152-431adec3c25d">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Номер дела]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1034" y="0" width="126" height="30" backcolor="#B3B3B3" uuid="6753f4b8-ef42-4f06-8245-cdd3602ae2d5">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[В ответ на]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="30" splitType="Prevent">
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="40" height="30" uuid="42e3d51a-455d-4c0c-9723-0b035183e413"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="40" y="0" width="100" height="30" uuid="2b9c44d2-20aa-4bff-9bd9-140e3be7c0e0">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{regnumprist} != null ? $F{regnumprist} : "") +
+($F{regnumcnt} != null ? $F{regnumcnt} : "")+
+($F{regnumfin} != null ? $F{regnumfin} : "")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="140" y="0" width="70" height="30" uuid="2ad123a1-4c2e-4d8a-b2e9-6dd15b9273c9">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new SimpleDateFormat("dd.MM.YYYY").format($F{regdate})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="210" y="0" width="202" height="30" isPrintWhenDetailOverflows="true" uuid="62e499b6-acd7-4a1a-82c5-ac754df0fcd0"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Justified">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="412" y="0" width="118" height="30" isPrintWhenDetailOverflows="true" uuid="ccf1c4e2-6cc3-4277-8bf1-e3913f6ee818"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{signer}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="530" y="0" width="118" height="30" isPrintWhenDetailOverflows="true" uuid="25fcf3be-8baf-4ce1-9b71-f82fa30abcde"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{initiator}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="648" y="0" width="118" height="30" isPrintWhenDetailOverflows="true" uuid="9af101fa-aec0-4f90-9e46-6a19a02f717e"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{initiatorDep}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="766" y="0" width="118" height="30" isPrintWhenDetailOverflows="true" uuid="df9ef067-e0e8-4da9-a6da-c3377b2e31b3"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{corr}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="884" y="0" width="50" height="30" isPrintWhenDetailOverflows="true" uuid="d3ee2805-4470-4c9d-922c-04b49da8c3d8"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pageNumber}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="934" y="0" width="100" height="30" isPrintWhenDetailOverflows="true" uuid="0f630df7-fe99-4fc8-951c-f9091cd2d15d"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph leftIndent="0" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fdFileNumber}]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement stretchType="RelativeToTallestObject" x="1035" y="0" width="125" height="30" isPrintWhenDetailOverflows="true" uuid="07baf62a-c8fb-4e1d-9f41-0369e54fa927">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<componentElement>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="125" height="30" isPrintWhenDetailOverflows="true" uuid="0dd71e39-424a-405c-8317-7348f0026911">
+						<property name="com.jaspersoft.studio.unit.CONTENTS.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="net.sf.jasperreports.export.headertoolbar.table.name" value=""/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+						<datasetRun subDataset="LinkedDocs" uuid="a8108dd3-d555-485b-a821-b574d9ad01ef">
+							<datasetParameter name="outputId">
+								<datasetParameterExpression><![CDATA[$F{docId}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:listContents height="30" width="125">
+							<textField>
+								<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="125" height="30" isPrintWhenDetailOverflows="true" uuid="7f4cd21c-9bc9-41b9-aa9d-96b0e5652970">
+									<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+									<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+								</reportElement>
+								<textElement>
+									<font pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{DocName} + "\n" + $F{DocSubject}]]></textFieldExpression>
+							</textField>
+						</jr:listContents>
+					</jr:list>
+				</componentElement>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

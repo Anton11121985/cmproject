@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema extends="PersonTaskResource" name="FinanceResourceAsRootInTaskContext">
+    <meta>
+      <category name="Схема Доп соглашений в контексте задачи ПКД в WD"/>
+    </meta>
+    <param-specification>
+      <string-ref value="FinanceResource_AsRoot" ref="contextType"/>
+    </param-specification>
+    <schema-ref name="rootDocument" ref="FinanceResourceWrapper" system="true"/>
+    <string name="contentFields" temporal="true" array="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(java.util.Arrays).asList('/rootDocument/object/contentContainer/richtext', '/rootDocument/object/contentContainer/content')]]></script>
+      </calc-values>
+    </string>
+    <string name="resolutionSubject" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) ? (#this.getRelatedDocument().getResource().parentResolutionAttributes == null ? #this.getRelatedDocument().getResource().text : #this.getRelatedDocument().getResource().parentResolutionAttributes.subject) : '']]></script>
+      </calc-values>
+    </string>
+    <boolean name="resolutionIsControlled" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) && (#this.getRelatedDocument().getResource().parentResolutionAttributes == null ? (#this.getRelatedDocument().getResource().control == null ? false : #this.getRelatedDocument().getResource().control.isControlled()) : #this.getRelatedDocument().getResource().parentResolutionAttributes.isControlled)]]></script>
+      </calc-values>
+    </boolean>
+    <date name="resolutionDeadline" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) ? (#this.getRelatedDocument().getResource().parentResolutionAttributes == null ? (#this.getRelatedDocument().getResource().control == null ? null : #this.getRelatedDocument().getResource().control.getDeadline()) : #this.getRelatedDocument().getResource().parentResolutionAttributes.deadline) : null]]></script>
+      </calc-values>
+    </date>
+    <string name="resolutionDate" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) ? ('от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.getRelatedDocument().getResource().parentResolutionAttributes == null ? #this.getRelatedDocument().getResource().date : T(ru.intertrust.cmj.af.json.DateOnly).valueOf(#this.getRelatedDocument().getResource().parentResolutionAttributes.date))) : '']]></script>
+      </calc-values>
+    </string>
+    <actor name="resolutionAuthor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) ? (#this.getRelatedDocument().getResource().parentResolutionAttributes == null ? #this.getRelatedDocument().getResource().author : #this.getRelatedDocument().getResource().parentResolutionAttributes.author) : null]]></script>
+      </calc-values>
+    </actor>
+    <string name="resolutionDeadlineStatus" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) ? (#this.getRelatedDocument().getResource().parentResolutionAttributes == null ? (#this.getRelatedDocument().getResource().control == null ? 'NONE' : #this.getRelatedDocument().getResource().control.getDeadlineStatus().name()) : #this.getRelatedDocument().getResource().parentResolutionAttributes.deadlineStatus.name()) : null]]></script>
+      </calc-values>
+    </string>
+    <string name="resolutionType" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.getRelatedDocument().getResource() instanceof T(ru.intertrust.cmj.rest.resolution.ResolutionResource) ? #this.getRelatedDocument().getResource().showIdent : null]]></script>
+      </calc-values>
+    </string>
+  </schema>
+</schemas>

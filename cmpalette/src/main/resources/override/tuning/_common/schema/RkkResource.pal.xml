@@ -1,0 +1,1103 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="Actions" name="RkkResource">
+        <meta>
+            <category name="Общее"/>
+        </meta>
+        <schema-ref name="signature" ref="SignatureInfo" system="true"/>
+        <schema-ref name="deadlineDefer" ref="DeadlineDeferHistoryResource" system="true"/>
+        <schema-ref name="registration" ref="RegistrationInfo" system="true"/>
+        <schema-ref name="relations" ref="CmjLinkResource" system="true" array="true"/>
+        <schema-ref name="documentStatus" ref="DocumentStatus" system="true"/>
+        <schema-ref name="projectNumber" ref="ProjectNumberInfo" system="true" temporal="true"/>
+        <schema-ref name="showRegInfo"  ref="ShowRegInfo" temporal="true"/>
+        <schema-ref name="control" ref="ControlCardResource" system="true"/>
+        <schema-ref name="versionInfo" ref="VersionBase" system="true"/>
+        <schema-ref name="head" ref="PRVZInfo" system="true"/>
+        <schema-ref name="$content" ref="ContentResource" system="true"/>
+        <schema-ref name="contentContainer"  ref="ContentResource" system="true"/>
+        <schema-ref name="contentAdd" ref="ContentResourceAdditional"/>
+        <schema-ref name="complete" ref="CompletionResource" system="true" createlog="true"/>
+        <schema-ref name="docReasonWithdrawlObj" null-empty="true" ref="ReasonDoc" createlog="true" />
+        <schema-ref name="addLinkedDocGrif" ref="SelectGrifLinkedDocDialogResource" temporal="true"/>
+        <schema-ref name="frFile" null-empty="true" ref="FrFileSelectSchema" system="true"/>
+        <enum-ref name="signingModeTypes" ref="signingModeTypesEnum">
+            <calc-values>
+                <script event="open">
+                    <![CDATA[signature == null ? "Недоступно" :
+                   signature.signingMode == null ? "Недоступно" :
+                   signature.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD ? "Недоступно" :
+                   signature.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).PARALLEL ? "Параллельно" : "Последовательно"]]>
+                </script>
+            </calc-values>
+            <storage-field name="signingModeTypes"/>
+        </enum-ref>
+        <string temporal="true" name="deloLinkLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['См. на вкладке "Связанные\Дела"']]></script>
+            </calc-values>
+        </string>
+        <string name="$MEDO" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[isNew?'':(((#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput)))&& (!(isMedoDocument)))?'':(((#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))) && (MedoGateState==null))?'':(((#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))) && (MedoGateState==0))?'':(((#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))) && (MedoGateState==1))?'Системная организация':(((#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))) && (MedoGateState==2))?'МЭДО':(((#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)) || (#root instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))) && (MedoGateState==3))?'Системная организация + МЭДО':'']]></script>
+            </calc-values>
+        </string>
+        <boolean name="tagsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[tags==null || tags.isEmpty()]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canModifyContent" system="true" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#modify.content'].size() > 0]]></script>
+            </calc-values>
+        </boolean>
+        <string name="$deleteStatusInfo" system="true" temporal="true"/>
+        <actor name="regPlaceParentDep" system="true"/>
+        <actor name="registrar" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[registration==null || registration.number==null ? null : registration.state.changedBy]]></script>
+            </calc-values>
+        </actor>
+        <string name="title" system="true"/>
+        <string name="type" system="true"/>
+        <string name="pages" system="true"/>
+        <string name="copies" system="true"/>
+        <boolean name="isAccessFromLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='self'].size() > 0 && T(org.springframework.web.util.UriComponentsBuilder).fromUriString(link.?[rel=='self'].get(0).getHref()).build().getQueryParams().get( 'access') != null]]></script>
+            </calc-values>
+        </boolean>
+        <string array="true" name="tags" system="true"/>
+        <string name="comment" system="true"/>
+        <string name="appendices" system="true"/>
+        <string name="appendicesPages" system="true"/>
+        <string array="true" name="category" system="true"/>
+        <actor name="idauthorRegT">
+            <storage-field name="idauthorRegF"/>
+        </actor>
+        <string name="showProject" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Проект']]></script>
+            </calc-values>
+        </string>
+        <string name="$controlAction" system="true" temporal="true"/>
+        <string name="$executionAction" system="true" temporal="true"/>
+        <boolean name="certified" system="true" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#hasLink(#this,'verification')]]></script>
+            </calc-values>
+        </boolean>
+        <string name="showType" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[type]]></script>
+            </calc-values>
+        </string>
+        <string name="$approvStatusInfo" system="true"/>
+        <string name="$signStatusInfo" system="true"/>
+        <boolean name="isPersonal" system="true" createlog="true"/>
+        <string name="$regStatusInfo" system="true"/>
+        <string name="$tagsHeader" system="true"/>
+        <string name="$reviewStatusInfo" system="true"/>
+        <string name="$certifiedStatusInfo" system="true" temporal="true"/>
+        <boolean name="certifiedStatusInfoNotIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+            link.?[rel=='http://intertrust.ru/cmj/relations#verification'].size() > 0
+          ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <string name="$titleHeader" system="true"/>
+        <boolean name="isNew" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[isNew==true]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isStub" temporal="true"/>
+        <string temporal="true" name="sendToHeadLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA["На утверждении"]]></script>
+            </calc-values>
+        </string>
+        <boolean system="true" name="isSendToHead"/>
+        <file name="content" system="true"/>
+        <richtext name="richtext" system="true"/>
+        <file name="sigContent" system="true"/>
+        <file name="image" system="true"/>
+        <string name="wdHelpLabel" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['* обязательно для заполнения']]></script>
+            </calc-values>
+        </string>
+        <string name="wdProjectNumber" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[projectNumber == null || projectNumber.numberCharacter == null ? null : ('Проект № ' + projectNumber.projectNumber)]]></script>
+            </calc-values>
+        </string>
+        <integer name="imagesCount" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[image != null ? image.size() : 0]]></script>
+            </calc-values>
+        </integer>
+        <boolean name="canSeeImage" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA["signed".equals(signature?.state?.status) && !#this?.image?.isEmpty()]]></script>
+            </calc-values>
+        </boolean>
+        <integer name="contentCount" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(richtext != null ? 1 : 0) + (content != null ? content.size() : 0)]]></script>
+            </calc-values>
+        </integer>
+        <string name="contentFields" temporal="true" array="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(java.util.Arrays).asList('/contentContainer/richtext', '/contentContainer/content')]]></script>
+            </calc-values>
+        </string>
+        <integer name="contentAddCount" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[contentAdd != null ? (contentAdd.richtext != null && !contentAdd.richtext.isEmpty() ? 1 : 0) + (contentAdd.content != null ? contentAdd.content.size() : 0) : 0]]></script>
+            </calc-values>
+        </integer>
+        <integer name="contentCountCommon">
+            <storage-field name="contentCountCommon"/>
+            <calc-values>
+                <script event="save" lang="SPEL"><![CDATA[(richtext != null ? 1 : 0) + (content != null ? content.size() : 0) + (contentAdd != null ? (contentAdd.richtext != null ? 1 : 0) + (contentAdd.content != null ? contentAdd.content.size() : 0) : 0)]]></script>
+            </calc-values>
+        </integer>
+        <boolean name="hasSigContent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[!#this.sigContent?.isEmpty()]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="contentAddNotEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[contentAdd != null && ((contentAdd.richtext != null && !contentAdd.richtext.isEmpty()) || (contentAdd.content != null && !contentAdd.content.isEmpty()))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="contentNotEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(#this.content != null && !(#this.content.isEmpty())) || #this.richtext != null]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="contentSectionNotEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[contentNotEmpty || contentAddNotEmpty || canSeeImage]]></script>
+            </calc-values>
+        </boolean>
+        <string name="contentEmptyLabel" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[""]]></script>
+            </calc-values>
+        </string>
+        <string name="oldFileName">
+            <storage-field name="oldFileName"/>
+        </string>
+        <datetime name="migrationTime" system="true"/>
+        <boolean name="isMigratedDocument" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[migrationTime != null]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="hasLidChangeFiles" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'head') && #this.head?.changedFiles != null && !#this.head?.changedFiles?.isEmpty()]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isDeleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(status == null || status['deleted'] == null) ? false : status['deleted']]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="tDeleted" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#root.isDeleted==true]]></script>
+            </calc-values>
+        </boolean>
+        <string name="showState" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#root.isDeleted == true ? 'Удален' : (registration==null || registration.number==null)? 'Проект' : 'Зарегистрирован']]></script>
+            </calc-values>
+        </string>
+        <boolean name="allowManualHuman" system="true"/>
+        <boolean name="regStateStatusSent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[registration != null && registration.state != null && "sent".equals(registration.state.status)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isMedoDocument" system="true"/>
+        <boolean name="isInventoryEditor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#hasRole(#this, 'InventoryEditor')]]></script>
+            </calc-values>
+        </boolean>
+        <string name="regInfoDigest" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[!(#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP)) ? '' : ((#this.registration.number == null ?
+(#this.projectNumber.numberCharacter == null ? 'Проект' : 'Проект № ' + (#this.projectNumber.projectNumber)) :
+(#this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix)) +
+((#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceInput)) ? ('(вх.' + (#this.correspondent.withoutNumber == true ? 'б/н' :
+#this.correspondent.regNumber) + (#this.correspondent.withoutDate == true ? ', б/д' :
+' от ' + T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.correspondent.regDate)) + ')') : '')
++ ' от ' + (#this.registration.number == null ?
+T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.creationDate.toInstant())) :
+T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date)))]]></script>
+            </calc-values>
+        </string>
+        <boolean name="canNotEditDelo" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(registration!=null && registration.number!=null)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canFillFiles" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(ident.startsWith('ContractsLite') ? (signatureContracts.ours.state == null || !'sent'.equals(signatureContracts.ours.state.status) && !'signed'.equals(signatureContracts.ours.state.status)) : ((signature == null || signature.state == null || (!'sent'.equals(signature.state.status) && !'signed'.equals(signature.state.status))))) && apre == null && link.?[rel=='http://intertrust.ru/cmj/relations#save.and.fill.files'].size() > 0]]></script>
+            </calc-values>
+        </boolean>
+        <string name="$preparationStatusInfo" system="true"/>
+        <boolean name="preparationStatusInfoNotIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+            #this.tuning()!=null && #this.tuning().getValues()!=null && #this.tuning().getValues().get("$preparationStatusInfo")!=null && !$preparationStatusInfo.equals("")
+          ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="preparationStatusInfoIsNull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[$preparationStatusInfo == null]]></script>
+            </calc-values>
+        </boolean>
+        <string name="docStatusExec" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceContracts))?"":
+T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(NotCompletedResForRkk)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() != 0 && 'not-complete'.equals(complete.state.status) ? 'На исполнении' : ( 'complete'.equals(complete.state.status) ? 'Исполнен' : '')]]></script>
+            </calc-values>
+        </string>
+        <boolean name="docStatusExecIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.tuning().getValues().get("docStatusExec")==null || docStatusExec.equals("")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="docStatusExecIsNull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[isNew || docStatusExec == null || docStatusExec == '']]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$isCorporate" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[integrationId!=null && integrationId.length() > 0]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canEdit" temporal="true" access-edit="override"/>
+        <boolean name="$isProject" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[registration==null || registration.number==null]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="disableLinkAccess" system="true"/>
+        <date name="$currDate" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(T(java.util.Calendar).getInstance().getTime(), false)]]></script>
+            </calc-values>
+        </date>
+        <boolean name="isInStamp" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#stampConvert'].size() > 0 || link.?[rel=='http://intertrust.ru/cmj/relations#stamp.progress'].size() > 0]]></script>
+            </calc-values>
+        </boolean>
+        <string name="stampInfo" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Идет формирование образа документа']]></script>
+            </calc-values>
+        </string>
+        <integer name="MedoGateState">
+            <storage-field name="MedoGateState"/>
+        </integer>
+        <boolean name="$QCprocessed" temporal="true"/>
+        <string name="$id" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[id]]></script>
+            </calc-values>
+        </string>
+        <boolean name="enablePersonal" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[((registration==null || registration.number==null) && !"signed".equals(signature?.state?.status)) && (T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(T(ru.intertrust.cmj.af.core.AFCMDomino).getSODbReplicaID()).enablePersonal)]]></script>
+            </calc-values>
+        </boolean>
+        <string name="approvingTemplateId" system="true" createlog="true"/>
+        <string name="reservedNumberFull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(registration != null && registration.state != null && registration.state.status == 'registered') ? "" :
+(registration == null || registration.reservedNumber ==null ) ? "" :
+registration.reservedNumber.prefix  +  registration.reservedNumber.number +  registration.reservedNumber.suffix]]></script>
+            </calc-values>
+        </string>
+        <boolean name="canReserveNumber" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(registration != null && registration.state != null && registration.state.status == 'registered') ? false : ((registration != null && registration.reservedNumber != null) ? false : true)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isNumberReserved" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(registration != null && registration.state != null && registration.state.status == 'registered') ? false :    ((registration == null || registration.reservedNumber == null ) ? false : true)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$isClerk" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#isClerk(#this, null)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="CurUserIsClerk" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#isClerk(#this, null) || #hasRole(#this, 'AllDelo')]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canRegisterWithReserve" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[(registration==null || registration.state==null || isOnRework != null && isOnRework) ? false :  (link.?[rel=='http://intertrust.ru/cmj/relations#register'].size() > 0 && registration.reservedNumber != null)]]></script>
+            </calc-values>
+        </boolean>
+        <string name="signStatusInfo" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA["rejected".equals(signature?.state?.status) ? 'Отказано в подписании' : "sent".equals(signature?.state?.status) ? 'На подписании' : "signed".equals(signature?.state?.status) ? 'Подписано' : ' ']]></script>
+            </calc-values>
+        </string>
+        <boolean name="signStatusInfoIsNull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[signature == null || signature.state == null]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="signStatusIsSigned" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[signature != null && signature.state != null && signature.state.status=='signed']]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isAllResolutionCompleted" createlog="true">
+            <storage-field name="isAllResolutionCompleted"/>
+        </boolean>
+        <boolean name="$isAllResolutionCompleted" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDocByUNID(getId())?.getParentDatabase()?.getView("(NotCompletedResForRkk_FOR_COUNT)")?.getAllDocumentsByKey(T(ru.intertrust.cmj.af.core.AFCMDomino)?.ormUNIDToCMFullUNID(T(ru.intertrust.cmj.af.core.AFCMDomino)?.getDocByUNID(getId())?.getUniversalID())[0])?.getCount() == 0]]></script>
+            </calc-values>
+        </boolean>
+        <string name="PaperDocNumbers" createlog="true">
+            <storage-field name="paperDocNumbers"/>
+        </string>
+        <actor name="f_read_allowbyctx" array="true" computed="true" >
+            <calc-values>
+                <script event="save" lang="SPEL"><![CDATA[#joinCols(#toCol(signature?.signer), signature?.signers?.?[#this != null]?.![signer])]]></script>
+            </calc-values>
+        </actor>
+        <boolean name="isSignedOrOnSign" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA["sent".equals(signature?.state?.status) || "signed".equals(signature?.state?.status)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="versionalEnable" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).versionalEnable]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="hasOldVersion" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[versionalEnable && versionInfo?.oldNumber != null]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="verByRejectSignEnable" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).createVerByRejectSign && T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).versionalEnable]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$enableUnsign" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                ((getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput)) ||
+                getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceInternal)) ||
+                getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceMissions)) ||
+                getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.finances.Finance.Resource)) ||
+                getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.document.Document.Resource)))
+                &&(link.?[rel=='http://intertrust.ru/cmj/relations#unsign'].size() > 0))
+       ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$enableUnsignForOnlyFirstOne" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(signature != null
+                && (signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD
+                || signature?.signers?.size()==1
+                || (signature?.signers?.size() > 1 && signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).PARALLEL
+                    && ('sent'.equals(signature?.state?.status) || 'signed'.equals(signature?.state?.status)))
+                || (signature?.signers?.size()>1 && signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).SERIAL
+                    && signature?.signers[0].getState()!=null && signature?.signers[0].getState().toString() == 'SIGNED'
+                    && (signature?.signers[1].getState()==null || signature?.signers[1].getState().toString() != 'SIGNED'))))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$showUnsignWithVersionButton" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                ($enableUnsign==true && $enableUnsignForOnlyFirstOne==true && versionalEnable!=null && versionalEnable==true)
+       ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$showUnsignButton" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                ($enableUnsign==true)
+       ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$showUnsignWithWorkButton" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                ($enableUnsign==true && $enableUnsignForOnlyFirstOne==false)
+       ]]></script>
+            </calc-values>
+        </boolean>
+        <string name="personGrifs" array="true" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getPerson().getPersonStampGrifs()]]></script>
+            </calc-values>
+        </string>
+        <string name="security_stamp_name" temporal="true"/>
+        <string name="securityStamp" system="true" createlog="true"/>
+        <boolean name="supportSecurityStamp" system="true" temporal="true"/>
+        <boolean name="showSecurityStampField" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[(securityStamp != null && securityStamp != "") ||
+        (docReasonWithdrawlObj != null && (docReasonWithdrawlObj.id != null || docReasonWithdrawlObj.docType != null || docReasonWithdrawlObj.withdrawStampReasonText != null)  && (securityStamp == null || securityStamp == '')) ||
+        (supportSecurityStamp) ||
+        ( isNew && T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'DOPName') && T(ru.intertrust.cmj.af.utils.BeansUtils).getBean('securityStampImpl').isSupportSecurityStamp(DOPName) && T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).usedSecurityStamp)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="securityStampIsNotEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[securityStamp != null && securityStamp != '']]></script>
+            </calc-values>
+        </boolean>
+        <string computed="true" createlog="true" name="editSecurityStampField">
+            <storage-field name="editSecurityStampField" />
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[(editSecurityStampField == null || editSecurityStampField == '') ? (securityStampIsNotEmpty ? 'No' : 'Yes') : editSecurityStampField]]></script>
+            </calc-values>
+        </string>
+        <string name="stampStatus" system="true" temporal="true"/>
+        <string name="stampState" system="true" temporal="true"/>
+        <boolean name="stampStatusNotIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+            #this.tuning()!=null && #this.tuning().getValues()!=null && #this.tuning().getValues().get("stampStatus")!=null && !stampStatus.equals("")
+          ]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="docReasonWithdrawalIsView">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[(docReasonWithdrawlObj != null && docReasonWithdrawlObj.id != null
+        && T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(docReasonWithdrawlObj.id)!=null
+        && (securityStamp == null || securityStamp == ''))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="docReasonWithdrawalManualIsView">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[(docReasonWithdrawlObj != null &&
+                (docReasonWithdrawlObj.id == null || T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(docReasonWithdrawlObj.id)==null )
+                && docReasonWithdrawlObj.docType != null && docReasonWithdrawlObj.withdrawStampReasonText==null && (securityStamp == null || securityStamp == ''))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="docReasonWithdrawalReasonIsView">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[(docReasonWithdrawlObj != null && docReasonWithdrawlObj.id == null && docReasonWithdrawlObj.docType == null && docReasonWithdrawlObj.withdrawStampReasonText!=null && (securityStamp == null || securityStamp == ''))]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="supportSecurityStampCalc">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[(supportSecurityStamp) || ( isNew && T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'DOPName') && T(ru.intertrust.cmj.af.utils.BeansUtils).getBean('securityStampImpl').isSupportSecurityStamp(DOPName) && T(ru.intertrust.cmj.af.core.AFCMDomino).getDbInfoByReplicaID(id.substring(0,16)).usedSecurityStamp)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean default-value="false" temporal="true" name="isPublicRkkAccess">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'isPublicAccess') && isPublicAccess]]></script>
+            </calc-values>
+        </boolean>
+        <boolean temporal="true" name="$isCompleted">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[complete != null && complete.getState().getStatus().equals("complete")]]></script>
+            </calc-values>
+        </boolean>
+        <string name="$signersTitle" system="true" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA['Подписи:']]>
+                </script>
+            </calc-values>
+        </string>
+        <string name="signingModeTitle" system="true" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA['Режим подписания:']]>
+                </script>
+            </calc-values>
+        </string>
+        <string name="signatureTextReject" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[signature?.lastRefuseInfo?.comment]]></script>
+            </calc-values>
+        </string>
+        <boolean name="hasMultipleSigners" system="true" temporal="true">
+            <calc-values>
+                <script event="open">
+                    <![CDATA[signature != null && !(signature.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD)]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="currentUserIsSigner" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[signature != null && (signature.signer != null || signature.signers != null) && (signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD ?
+		(T(com.google.common.collect.Lists).transform(#this?.signature?.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) ||
+			T(com.google.common.collect.Lists).transform(#this?.signature?.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(#this)].size() > 0
+		):(
+		#this?.signature?.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard())].size() > 0 ||
+		#this?.signature?.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(#this)].size() > 0].size() > 0)
+		)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isFirstSigner" temporal="true">
+            <calc-values>
+                <script event="open">
+                    <![CDATA[!hasMultipleSigners ||
+                    (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()).equals(#this?.signature?.signers?.get(0))]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <boolean name="showCancellationOfRegistrationButton" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+          (registration != null && registration.state != null && "sent".equals(registration.state.status)) &&
+          (getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput)) || getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceInternal)) ||
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceMissions)) || getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceContracts)) ||
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.addagr.Agreement.Resource)) || getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.finances.Finance.Resource)) ||
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.contracts.document.Document.Resource)))
+          && (curUserIsExec || (signature != null && signature.signers != null && signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).SERIAL && ((signature?.signers?.size()>1 && (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID()).equals(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this?.signature?.signers?.get(#this?.signature?.signers?.size()-1).signer).getUNID())) ||
+(signature?.signers?.size()==1 && (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID()).equals(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this?.signature?.signers?.get(0).signer).getUNID())))) || #hasRole(#this, 'Supervisor')
+          || (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id).getAuthor() != null
+          && (T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id).getAuthor().getUNID().equalsIgnoreCase(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID())
+		  || T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id).getAuthor())))
+		  )]]>
+                </script>
+            </calc-values>
+        </boolean>
+        <string name="regPlaceID" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.registration == null ? '' : (#this.registration.place == null ? '' : (T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#this.registration.place).getUNID().split(':')[1]))]]></script>
+            </calc-values>
+        </string>
+        <actor name="prevRegPlace" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[!(#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP)) ? null:
+#this.prevRegPlace!=null? #this.prevRegPlace:#this.registration.place]]></script>
+            </calc-values>
+        </actor>
+        <boolean name="$isPrevRegPlaceClerk" temporal="true" computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.prevRegPlace==null? true :
+link.?[rel=='http://intertrust.ru/cmj/relations#register.sent'].size() == 0? false :
+#isClerk(#this, "prevRegPlace")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canNotEditNdDeal" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(registration!=null && registration.number!=null)]]></script>
+            </calc-values>
+        </boolean>
+        <string name="barCode">
+            <storage-field name="barCode"/>
+        </string>
+        <string name="emptyFieldLabel" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA['Не заполнено']]></script>
+            </calc-values>
+        </string>
+        <string name="withoutDeadlineLabel" temporal="true">
+            <calc-values>
+                <script event="open"><![CDATA['Без срока']]></script>
+            </calc-values>
+        </string>
+        <string name="regInfo" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP) ? ((#this.registration.number == null ?
+(#this.projectNumber.numberCharacter == null ? 'Проект' : 'Проект № ' + (#this.projectNumber.projectNumber)) :
+(#this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix))
++ ' от ' + (#this.registration.number == null || #this.registration.date == null ?
+T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.creationDate.toInstant())) :
+T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date))) : '']]></script>
+            </calc-values>
+        </string>
+        <string temporal="true" name="showDocNumber">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[projectNumber.projectNumber == null ? '' : 'Проектный № ' + projectNumber.projectNumber + ((registration==null || registration.date==null) ? '' : ' от '
+        + new java.text.SimpleDateFormat("dd MMMM yyyy", "ru").format(registration.date))]]></script>
+            </calc-values>
+        </string>
+        <string temporal="true" name="reqNumber">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[projectNumber.projectNumber == null? '' : (projectNumber.projectNumber != ''? '№ ':'') + projectNumber.projectNumber + ((registration==null || registration.date==null) ? '' : ' от '
+        + new java.text.SimpleDateFormat("dd MMMM yyyy", "ru").format(registration.date))]]></script>
+            </calc-values>
+        </string>
+        <string name="showProjectNumber" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[projectNumber.projectNumber == null?'':projectNumber.projectNumber]]></script>
+            </calc-values>
+        </string>
+        <string name="regNumberFull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[registration.number==null ? '' : registration.number.prefix+registration.number.number+registration.number.suffix]]></script>
+            </calc-values>
+        </string>
+        <actor name="showRegPlace" computed="true" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.registration == null ? null : #this.registration.place]]></script>
+            </calc-values>
+        </actor>
+        <boolean name="$hideChangeLinksActions" temporal="true">
+            <meta>
+                <documentation>Управление видимостью системных кнопок</documentation>
+            </meta>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+(link.?[rel=='http://intertrust.ru/cmj/relations#change.links'].size()>0 ?
+link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#change.links'].get(0)) : true)
+]]></script>
+            </calc-values>
+        </boolean>
+        <actor name="signersWithOtherSigners" temporal="true" array="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(org.apache.commons.collections.ListUtils).union((signers != null ? signers : #this?.signature?.signer != null ? T(java.util.Collections).singletonList(#this?.signature?.signer) : T(java.util.Collections).emptyList()),
+        (#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP) && advSigner != null ? advSigner : T(java.util.Collections).emptyList()))]]></script>
+            </calc-values>
+        </actor>
+        <string name="baseon_ident" system="true"/>
+        <boolean name="regStatusInfoIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[#this.registration==null || #this.registration.state==null || #this.registration.state.status==null || # this.registration.state.status=='']]>
+                </script>
+            </calc-values>
+        </boolean>
+        <string name="$emailHeader" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceMissions)) ? 'ОРД' :
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceInput))? 'Входящий':
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceInternal))? 'Внутренний' :
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceOutput))?'Исходящий':
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests))?'Обращение':
+getClass().isAssignableFrom(T(ru.intertrust.cmj.rest.rkk.RkkResourceContracts))?'Договор':type)
++((registration==null || registration.number==null)?'':(' N '+registration.number.prefix+registration.number.number+registration.number.suffix))+
+((registration==null || registration.date==null)?'':' от '+T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(registration.date, false))+
+' (от '+ T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().toString( T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME ) +')']]></script>
+            </calc-values>
+        </string>
+        <string name="$emailDocinfo" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[((registration==null || registration.number==null)?'':('N '+registration.number.prefix+registration.number.number+registration.number.suffix)+' ')+
+((registration==null || registration.date==null)?'':'от '+T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(registration.date, false) )]]></script>
+            </calc-values>
+        </string>
+        <string name="$emailSender" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().toString(T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME)]]></script>
+            </calc-values>
+        </string>
+        <string name="$emailRichText" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['${emailRichText}']]></script>
+            </calc-values>
+        </string>
+        <string name="$emailLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['<p><a href="'+T(ru.intertrust.cmj.rest.core.RkkWebLinkREST).getUrl(id, false)+'">ссылка</a></p>']]></script>
+            </calc-values>
+        </string>
+        <boolean name="fillLabelsInContentFiles" system="true"/>
+        <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.org.springframework.util.StringUtils);
+importClass(Packages.ru.intertrust.cmj.af.core.AFApplicationObjectType);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.securitystamp.HasSecurityStamp);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK.HasSigning);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK.Registration);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.af.history.HistoryF);
+importClass(Packages.ru.intertrust.cmj.af.history.DConnHistory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.SochiHistoryService);
+
+importPackage(Packages.java.util);
+
+function queryCreate(object){
+}
+
+function querySave(object, document) {
+    checkSigners(object);
+
+    if (!(AFSession.get().isRunAsSystem() || AFSession.get().isRunWithFakeUser()) && object instanceof HasSecurityStamp) {
+        var securityStamp = object.getSecurityStamp();
+        var personStampGrifs = AFSession.get().currentUser().getPerson().getPersonStampGrifs();
+        if (securityStamp != null && !securityStamp.isEmpty() && !personStampGrifs.contains(securityStamp)) {
+            throw "Не заданы настройки для создания документа данного типа!";
+        }
+    }
+
+    if (object.isDeleted()) {
+        return true;
+    }
+
+    if(object.tuning()!= null && object.tuning().getValues()!= null){
+      var securityStamp = object.getSecurityStamp();
+      var editSecurityStampField = securityStamp != null && securityStamp != "" ? "No" : "Yes";
+      object.tuning().getValues().put("editSecurityStampField",TuningHelper.createPropertyValue(editSecurityStampField, object.tuning().getSchema().getProperty("editSecurityStampField")));
+    }
+
+    if (StringUtils.isEmpty(object.getSecurityStamp()) && !StringUtils.isEmpty(document.getItemValueString("security_stamp_name"))) {
+	    var needGrifWarning = true;
+	    if (object instanceof DPMContracts.RKK) {
+	      needGrifWarning = (object.getStatus() != DPMContracts.Entity.HasStatus.Status.PROJECT);
+	    } else {
+	      needGrifWarning = object.registration().getState()==DPM.RKK.Registration.State.REGISTERED
+	    }
+	    if (needGrifWarning) {
+	      var reasonWithdraw = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.description");
+	      needGrifWarning = reasonWithdraw==null || reasonWithdraw=="" || reasonWithdraw=="null";
+	    }
+	    if (needGrifWarning) {
+	      throw "Для удаления грифа доступа воспользуйтесь кнопкой \"Снять гриф доступа\".";
+	    }
+	  }
+
+	  // отслеживаем изменение причины снятия грифа либо снятие грифа
+	  var reasonWithdraw = TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.description");
+	  if (!StringUtils.isEmpty(reasonWithdraw)) {
+	    var oldTextReason = document.getItemValueString("withdrawStampReason");
+	    var oldDocType = document.getItemValueString("reasonDocType");
+	    var oldDocNum = document.getItemValueString("reasonDocDocNumber");
+	    var oldRegDate = document.getItemValueString("reasonDocRegDateText");
+	    var oldDocInfo = (oldDocType+" "+(StringUtils.isEmpty(oldDocNum) ? "" : '№ '+oldDocNum) + " "
+	                + (StringUtils.isEmpty(oldRegDate)?"":("от "+oldRegDate))).trim();
+	    if (reasonWithdraw!=oldTextReason && reasonWithdraw!=oldDocInfo) {
+	      var event = StringUtils.isEmpty(oldTextReason) && StringUtils.isEmpty(oldDocInfo) ? FieldBase.RKK_GRIF_WITHDRAW :
+	      !StringUtils.isEmpty(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText")) ?
+	      FieldBase.RKK_GRIF_WITHDRAW_REASON : FieldBase.RKK_GRIF_WITHDRAW_DOC;
+	      if (event == FieldBase.RKK_GRIF_WITHDRAW) {
+	        TunableHistoryHelper.hist_addBasicText(object.history(), event,
+(StringUtils.isEmpty(TunableObjectHelper.getAFInstanceTypedValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText"))?
+"Основание - ":"Причина: ")+reasonWithdraw);
+	      } else {
+	        TunableHistoryHelper.hist_addTextOne(object.history(), event, StringUtils.isEmpty(oldTextReason)?oldDocInfo:oldTextReason, reasonWithdraw);
+	      }
+	    }
+	  }
+
+      var signingModeType = object.tuning().getValues().get("signingModeTypes");
+      var isRkkHasMultipleSigners = TunableObjectHelper.getBooleanValue(object.tuning(), "isRkkHasMultipleSigners");
+      if (isRkkHasMultipleSigners && signingModeType != null) {
+          var selectedSigningMode = TunableObjectHelper.getAFInstanceValue(signingModeType)
+          var signingMode = AFCMDomino.getItemValueInteger(document, "SigningMode", false);
+          if (signingMode != 0) {
+            if (selectedSigningMode.equals("Параллельно")) {
+                AFCMDomino.replaceItemValue(document, "SigningMode", 1);
+            } else {
+                AFCMDomino.replaceItemValue(document, "SigningMode", 2);
+            }
+
+          }
+      }
+
+	  // Запись истории штрихкода
+	  writeHistory(object, document);
+
+      if (object.isNew()) {
+        // удаление события rkk.created. На postSave запишется новое.
+        var creationWithNumber = useCustomCreationEventWithNumber(object);
+        if (creationWithNumber) {
+            var hist = object.history();
+            var evt = hist.getRecord(FieldBase.RKK_CREATED);
+            evt.setUpdated(false);
+        }
+    }
+
+    return true;
+}
+
+function postSave(object, document) {
+    var barcodeIsGenerated = false;
+    var barcodeIsManual = false;
+    var documentIsUpdated = false;
+    if (object.links() != null && !object.links().isDirty()) {
+        if (object.tuning() != null && object.tuning().getValues() != null) {
+            var isCorpate = object.tuning().getValues().get("$isCorporate");
+            var isProject = object.tuning().getValues().get("$isProject");
+            if (isCorpate != null && isCorpate.getValue() && isProject != null && isProject.getValue()) {
+                var currDate = object.tuning().getValues().get("$currDate");
+                if (currDate.getValue() != null) {
+                    AFCMDomino.replaceItemValue(document, "RDate", currDate.getValue().toJavaDate(), AFCMDomino.RIV.DATEONLY)
+                    documentIsUpdated = true;
+                }
+            }
+            //Работа с Штрих-кодом
+            var barcodeField = object.tuning().getValues().get("barCode");
+            if (barcodeField != null) {
+                var barcode = TunableObjectHelper.getAFInstanceValue(barcodeField);
+                if (isNeedGenerateBarcode(barcode)) {
+                    var barcodeGenerationService = BeansUtils.getBean("BarcodeGenerationService");
+                    barcode = barcodeGenerationService.generate(document, AFSession.get().currentUser().getBeard());
+                    TunableObjectHelper.putAFInstanceValue(object.tuning(), "barCode", barcode)
+                    AFCMDomino.replaceItemValue(document, "barCode", barcode)
+                    documentIsUpdated = true;
+                    barcodeIsGenerated = true;
+                } else {
+                    barcodeIsManual = object.isNew() && StringUtils.hasLength(barcode);
+                }
+            }
+        }
+    }
+
+    if (object.isNew()) {
+        documentIsUpdated |= addCustomCreationEvent(object, document);
+    }
+
+    if (barcodeIsGenerated || barcodeIsManual) {
+        documentIsUpdated |= writeHistoryBarcodeCreated(document);
+    }
+    if (documentIsUpdated) {
+        document.save();
+    }
+}
+
+//обработка переопределенного события создания документа
+function addCustomCreationEvent(object, document) {
+    var creationWithNumber = useCustomCreationEventWithNumber(object);
+    if (creationWithNumber) {
+        var sochiHistoryService = BeansUtils.getTypedBean(SochiHistoryService.class);
+        var hist = object.history();
+
+        var author = document.getItemValueString("IdAuthor");
+
+        if (!document.getItemValueString("PNumber_Full").isEmpty()) {
+            //проставлен проектный номер, переопределенное событие создания содержит информацию о нём
+            var dx = null;
+            var schemeName = object.tuning().getSchema().getName();
+            if (schemeName == "RkkResourceApplication") {
+                dx = hist.createNewRecord("request.created.number", author);
+            } else if (schemeName == "RkkResourceOrder") {
+                dx = hist.createNewRecord("order.created.number", author);
+            }
+            else {
+                dx = hist.createNewRecord(FieldBase.RKK_CREATED_PROJECT_NUMBER, author);
+            }
+            dx.update(document.getItemValueString("PNumber_Full"), null, null);
+            return sochiHistoryService.flushToNotesDoc(hist, document);
+        } else {
+            // номер не был проставлен, записываем простое событие создания
+            var dx = hist.createNewRecord("rkk.created", author);
+            dx.update("", null, null);
+
+            return sochiHistoryService.flushToNotesDoc(hist, document);
+        }
+    }
+
+    return false;
+}
+
+function useCustomCreationEventWithNumber(object) {
+    var idents = Arrays.asList("JobApps", "JobOrders");
+    return idents.contains(object.getDbIdent());
+}
+
+function writeHistoryBarcodeCreated(document) {
+    var barcode = getFieldValue(document, "barCode");
+    var history = new HistoryF(null, new HashSet());
+    var dx = history.getRecord(FieldBase.BARCODE_CREATED);
+    dx.setUseHibernateData(false);
+    dx.setParams(new ArrayList());
+    dx.updateOne(null, barcode);
+
+    var historyConnector = new DConnHistory();
+    historyConnector.pushTo(null, history, document);
+
+    return true;
+}
+
+// Запись истории штрихкода
+function writeHistory(object, document) {
+    var hist = object.history();
+    if (!object.isNew()) {
+        writeTextHistory(object, document, hist, "barCode", "barCode", FieldBase.BARCODE_CREATED);
+        writeTextHistory(object, document, hist, "barCode", "barCode", FieldBase.BARCODE_CHANGED);
+        writeTextHistory(object, document, hist, "barCode", "barCode", FieldBase.BARCODE_DELETED);
+    }
+    object.history = hist;
+}
+
+// Работа с штрихкодом
+function isNeedGenerateBarcode(barcode) {
+    if (!StringUtils.hasLength(barcode)) {
+        return false;
+    }
+    var barcodeGenerationService = BeansUtils.getBean("BarcodeGenerationService");
+    var autoBarcodeMessage = barcodeGenerationService.autoGenerationMessage();
+    if (autoBarcodeMessage != null) {
+        autoBarcodeMessage = autoBarcodeMessage.trim();
+    }
+    return barcode.trim().equalsIgnoreCase(autoBarcodeMessage)
+}
+
+// Запись истории при изменении штрихкода
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName) {
+    var oldValue = getFieldValue(document, fieldName);
+    var newValue = getPropertyValue(object, propertyName);
+    if (!oldValue.equals(newValue)) {
+        if (oldValue.isEmpty() && !newValue.isEmpty() && FieldBase.BARCODE_CREATED.equals(eventName)) {
+            if (!isNeedGenerateBarcode(newValue)) {
+                TunableHistoryHelper.hist_addTextOne(hist, eventName, null, newValue);
+            }
+        } else if (!oldValue.isEmpty() && newValue.isEmpty() && FieldBase.BARCODE_DELETED.equals(eventName)) {
+            if (!isNeedGenerateBarcode(oldValue)) {
+                TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, null);
+            }
+        } else if (!oldValue.isEmpty() && !newValue.isEmpty() && FieldBase.BARCODE_CHANGED.equals(eventName)) {
+            if (!isNeedGenerateBarcode(newValue)) {
+                TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+            }
+        }
+    }
+}
+
+function getFieldValue(document, fieldName) {
+    var value = null;
+    if (document != null) {
+        value = document.getItemValueString(fieldName);
+    }
+    return value != null ? value : "";
+}
+
+function getPropertyValue(object, propertyName) {
+    var value = null;
+    if (object != null &&
+        object.tuning().getValues().get(propertyName) != null &&
+        object.tuning().getValues().get(propertyName).getValue() != null) {
+        value = object.tuning().getValues().get(propertyName).getValue();
+    }
+    return value != null ? value : "";
+}
+
+function checkSigners(object) {
+    if (!object.registration().isSaveWithRegistration)
+        return;
+    var exclusionList = new ArrayList();
+    exclusionList.add("Requests");
+    exclusionList.add("DTR");
+    var isPurchase = false;
+    var type = object.getApplicationObjectType();
+    if (type != null && (AFApplicationObjectType.ADDAGREEMENT_PURCHASE_CONTRACTS.equals(type.getAlias()) ||
+        AFApplicationObjectType.TERMINATIONAGREEMENT_PURCHASE_CONTRACTS.equals(type.getAlias()) ||
+        AFApplicationObjectType.RKK_PURCHASE_CONTRACTS.equals(type.getAlias()))) {
+        isPurchase = true;
+    }
+    if (!(object instanceof DPM.RKK.HasSigning) || exclusionList.contains(object.getDbIdent()) || isPurchase) {
+        return;
+    }
+    if (object.signing().getSigners().size() < 1) {
+        throw ("Заполните поле Подписант!");
+    }
+}
+
+function recalc(object, changedField) {
+  if (changedField == 'addLinkedDocGrif') {
+    var values = object.tuning().getValues();
+	  var addLinkedDoc = values.get('addLinkedDocGrif');
+		var ids = addLinkedDoc.getValues().get("ids") != null? addLinkedDoc.getValues().get("ids").getValues(): null;
+		var docGrifUnid = (ids==null || ids.isEmpty())?null:getIdFromHref(ids.get(0).getValue());
+		var docGrifSubject = null;
+		var docGrifType = null;
+		var docGrifRegDate = null;
+		var docGrifRNum = null;
+		if (docGrifUnid!=null && !docGrifUnid.equals("")) {
+		  var appdp = AFSession.get().getApplication(DPApplication.class);
+			var grifRkk = appdp.getEntityByUNID(docGrifUnid);
+			docGrifSubject = grifRkk.getSubject();
+			docGrifType = grifRkk.getType();
+			docGrifRNum = grifRkk.registration().getRegisteredInfo().getNumber().toString();
+			docGrifRegDate = AFDate.fromJavaDate(grifRkk.registration().getDate()).toString();
+		} else {
+		// ручной ввод реквизитов
+		  var manDoc = addLinkedDoc.getValues().get("manualDoc");
+		  docGrifSubject = TunableObjectHelper.getAFInstanceTypedValue(manDoc, "subject");
+		  docGrifType = TunableObjectHelper.getAFInstanceTypedValue(manDoc, "docInfo");
+		}
+		if ((docGrifUnid!=null && docGrifUnid!="") || (docGrifType!=null && docGrifType!="")){
+		  TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.id", docGrifUnid);
+		  TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.docType", docGrifType);
+		  TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.subject", docGrifSubject);
+		  TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.docNumber", docGrifRNum);
+		  TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.regDate", docGrifRegDate);
+		  TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.withdrawStampReasonText", null);
+		  object.setSecurityStamp("");
+		}
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "addLinkedDocGrif", null);
+  }
+
+  if(changedField=='docReasonWithdrawlObj.withdrawStampReasonText') {
+      TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.id", null);
+      TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.docType", null);
+      TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.subject", null);
+      TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.docNumber", null);
+      TunableObjectHelper.putAFInstanceValue(object.tuning(), "docReasonWithdrawlObj.regDate", null);
+      object.setSecurityStamp("");
+  }
+
+  if (changedField == "registration.place" && object.registration().getState() == DPM.RKK.Registration.State.SENT) {
+      object.registration().state = null
+  }
+
+  if ('control'.equals(changedField) && !object.control().isControlled()) {
+      object.control().setDeadline(null);
+  }
+}
+
+function getIdFromHref(href) {
+    var index = href.lastIndexOf("/", href.length())+1;
+	if (index < 0) {
+		return href;
+	} else {
+		return href.substring(index);
+	}
+}
+]]></custom-event-handler>
+    </schema>
+</schemas>

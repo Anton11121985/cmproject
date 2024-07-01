@@ -1,0 +1,398 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <form schema-ref="DTREntrySubObject" id="DTREntrySubObjectForm" projection="default">
+        <meta>
+            <category name="Система\Делопроизводство\Реестр передачи документов"/>
+        </meta>
+        <properties>
+            <hide condition-union="AND">
+                <negative-condition-ref ref="edit"/>
+                <negative-condition-ref ref="read"/>
+                <negative-condition-ref ref="dialog"/>
+            </hide>
+        </properties>
+        <component>
+            <button name="${ui.form.DTREntrySubObjectForm.button.Сохранить.name:Сохранить}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="DTREntrySubObject_canEdit"/>
+                        <negative-condition-ref ref="dialog"/>
+                    </hide>
+                </properties>
+                <appearance>
+                    <label-style>
+                        <style id="tunBtnBlue"/>
+                    </label-style>
+                </appearance>
+                <action>
+                    <system name="save"/>
+                </action>
+            </button>
+            <button name="${ui.form.DTREntrySubObjectForm.button.Отмена.name:Отмена}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="DTREntrySubObject_canEdit"/>
+                        <negative-condition-ref ref="dialog"/>
+                    </hide>
+                </properties>
+                <action>
+                    <system name="cancel"/>
+                </action>
+            </button>
+            <button name="${ui.form.DTREntrySubObjectForm.button.Отменить получение.name:Отменить получение}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="DTREntrySubObject_canCancelReceiving"/>
+                        <!--<negative-condition-ref ref="DTREntrySubObject_canRollbackReceiving"/>-->
+                    </hide>
+                </properties>
+                <action>
+                    <custom>
+                        <operation>
+                            <handler-ref ref="DTR_RollbackReceiving"/>
+                        </operation>
+                    </custom>
+                </action>
+            </button>
+
+            <field attribute-ref="barcode" name="${ui.form.DTREntrySubObjectForm.field.barcode.name:Штрихкод:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                </properties>
+            </field>
+            <!--<field attribute-ref="reqType" name="${ui.form.DTREntrySubObjectForm.field.reqType.name:Вид документа:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                </properties>
+            </field>-->
+
+            <!-- поле "Вид документа" для ввода реквизитов вручную -->
+            <section id="reqTypeSection" group="true">
+                <component>
+                    <!-- InputDocs -->
+                    <field attribute-ref="reqType" name="${ui.form.DTREntrySubObjectForm.field.reqType.name:Вид документа:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isInput"/>
+                            </hide>
+                        </properties>
+                        <directories limit-livesearch="sys-current" manual-input="false">
+                            <directory-ref ref="kvid_InputDocs"/>
+                        </directories>
+                    </field>
+                    <!-- InternalDocs -->
+                    <field attribute-ref="reqType" name="${ui.form.DTREntrySubObjectForm.field.reqType.name:Вид документа:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isInternal"/>
+                            </hide>
+                        </properties>
+                        <directories limit-livesearch="sys-current" manual-input="false">
+                            <directory-ref ref="kvid_InternalDocs"/>
+                        </directories>
+                    </field>
+                    <!-- Missions -->
+                    <field attribute-ref="reqType" name="${ui.form.DTREntrySubObjectForm.field.reqType.name:Вид документа:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isMissions"/>
+                            </hide>
+                        </properties>
+                        <directories limit-livesearch="sys-current" manual-input="false">
+                            <directory-ref ref="kvid_Missions"/>
+                        </directories>
+                    </field>
+                    <!-- OutputDocs -->
+                    <field attribute-ref="reqType" name="${ui.form.DTREntrySubObjectForm.field.reqType.name:Вид документа:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isOutput"/>
+                            </hide>
+                        </properties>
+                        <directories limit-livesearch="sys-current" manual-input="false">
+                            <directory-ref ref="kvid_OutputDocs"/>
+                        </directories>
+                    </field>
+                    <!-- ContractsLite -->
+                    <section id="reqTypeSectionContracts" group="true">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isContract"/>
+                            </hide>
+                        </properties>
+                        <component>
+                            <field attribute-ref="isAddAgrType" name="${ui.form.DTREntrySubObjectForm.field.isAddAgrType.name:Дополнительное соглашение}" recalc="true"/>
+                            <field attribute-ref="reqType" name="${ui.form.DTREntrySubObjectForm.field.reqType.name:Вид документа:}">
+                                <properties>
+                                    <hide>
+                                        <condition-ref ref="DTREntrySubObject_isAddAgrType"/>
+                                    </hide>
+                                </properties>
+                                <directories limit-livesearch="sys-current" manual-input="false">
+                                    <directory-ref ref="kvid_ContractsLite"/>
+                                </directories>
+                            </field>
+                        </component>
+                    </section>
+                    <!--
+                     NotRegistered
+                     EmplCredentials
+                     WorkplaceRequests
+                     ServiceRequests
+                     SendDocRequests
+                     AttorneyDocs
+                     MeetingsPacks
+                     Documents -->
+                    <field attribute-ref="reqType" name="${ui.form.DTREntrySubObject.field.reqType.name:Вид документа:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isInputNotRegistered"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isEmplCredentials"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isWorkplaceRequests"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isServiceRequests"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isSendDocRequests"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isAttorneyDocs"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isMeetingsPacks"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isDocuments"/>
+                            </hide>
+                        </properties>
+                    </field>
+                </component>
+            </section>
+
+            <!--<field attribute-ref="regData" name="${ui.form.DTREntrySubObjectForm.field.regData.name:№ и дата:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                </properties>
+            </field>-->
+            <section id="rowRegDataEdit" group="true">
+                <properties>
+                    <hide>
+                        <negative-condition-ref ref="edit"/>
+                        <negative-condition-ref ref="dialog"/>
+                    </hide>
+                </properties>
+                <appearance field-layout="horizontal">
+                    <alt-appearancies>
+                        <alt-appearance>
+                            <appearance-ref ref="horizontalSection"/>
+                            <enable condition-union="AND">
+                                <condition>true</condition>
+                            </enable>
+                        </alt-appearance>
+                    </alt-appearancies>
+                </appearance>
+                <component>
+                    <field attribute-ref="regNumber" name="${ui.form.DTREntrySubObjectForm.field.regData.name:№ и дата:}">
+                        <properties>
+                            <read-only>
+                                <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                            </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                            <label-style field-width="5" field-unit="symbol"/>
+                            <alt-appearancies>
+                                <alt-appearance>
+                                    <appearance-ref ref="css_headerElementBold"/>
+                                    <enable condition-union="AND">
+                                        <condition>true</condition>
+                                    </enable>
+                                </alt-appearance>
+                            </alt-appearancies>
+                        </appearance>
+                    </field>
+                    <field attribute-ref="fromText">
+                        <properties>
+                            <read-only condition-union="AND">
+                                <condition>true</condition>
+                            </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                            <label-style field-width="1" field-unit="symbol"/>
+                            <alt-appearancies>
+                                <alt-appearance>
+                                    <appearance-ref ref="css_headerElementGray"/>
+                                    <enable condition-union="AND">
+                                        <condition>true</condition>
+                                    </enable>
+                                </alt-appearance>
+                            </alt-appearancies>
+                        </appearance>
+                    </field>
+                    <field attribute-ref="regDate">
+                        <properties>
+                            <read-only>
+                                <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                            </read-only>
+                        </properties>
+                        <appearance importance="normal" multiline="false">
+                            <label-style field-width="12" field-unit="symbol"/>
+                            <alt-appearancies>
+                                <alt-appearance>
+                                    <appearance-ref ref="css_headerElementBold"/>
+                                    <enable condition-union="AND">
+                                        <condition>true</condition>
+                                    </enable>
+                                </alt-appearance>
+                            </alt-appearancies>
+                        </appearance>
+                    </field>
+                </component>
+            </section>
+            <section id="rowRegDataRead" group="true">
+                <properties>
+                    <hide>
+                        <negative-condition-ref ref="read"/>
+                    </hide>
+                </properties>
+                <component>
+                    <field attribute-ref="regData" name="${ui.form.DTREntrySubObjectForm.section.rowRegDataRead.field.regData.name:№ и дата:}">
+                        <appearance align="left" importance="normal" multiline="false">
+                            <limit max-height-scroll="5"/>
+                        </appearance>
+                    </field>
+                </component>
+            </section>
+
+            <field attribute-ref="subject" name="${ui.form.DTREntrySubObjectForm.field.subject.name:Заголовок:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                    <hide>
+                        <negative-condition-ref ref="DTREntrySubObject_createdByHand"/>
+                    </hide>
+                </properties>
+            </field>
+            <!-- link to document -->
+            <field attribute-ref="documentLinkSubject" name="${ui.form.DTREntrySubObjectForm.field.documentLink.name:Заголовок:}">
+                <appearance open-form="newTab">
+                    <field-style space-for-empty-name="true"/>
+                </appearance>
+                <properties>
+                    <read-only condition-union="AND">
+                        <condition>true</condition>
+                    </read-only>
+                    <hide>
+                        <condition-ref ref="DTREntrySubObject_createdByHand"/>
+                    </hide>
+                </properties>
+            </field>
+            <!--<field attribute-ref="comment" name="${ui.form.DTREntrySubObjectForm.field.comment.name:Примечание:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                </properties>
+            </field>-->
+            <field attribute-ref="correspondentContractorText" name="${ui.form.DTREntrySubObjectForm.field.correspondentContractor.name:Корреспондент/ Контрагент:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                    <hide>
+                        <condition-ref ref="dialog"/> <!--режим "dialog" означает открытие подформы на редактирование-->
+                    </hide>
+                </properties>
+            </field>
+            <section id="correspondentSectionEdit" group="true">
+                <appearance field-layout="horizontal"/>
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                    <hide>
+                        <condition-ref ref="read"/>
+                    </hide>
+                </properties>
+                <component>
+                    <field attribute-ref="correspondentContractorText" name="${ui.form.DTREntrySubObjectForm.section.correspondentSection.field.correspondent.name:Корреспондент/ Контрагент:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isOutput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInputNotRegistered"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isContract"/>
+                            </hide>
+                        </properties>
+                        <appearance multiline="true">
+                            <limit max-height-scroll="5"/>
+                        </appearance>
+                    </field>
+                    <field recalc="true" attribute-ref="correspondentForAdd">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isOutput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInputNotRegistered"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isContract"/>
+                            </hide>
+                        </properties>
+                        <appearance location="subform" align="right" importance="normal">
+                            <label-style field-width="8" field-unit="symbol"/>
+                            <field-style group="true"/>
+                        </appearance>
+                    </field>
+                </component>
+            </section>
+            <field attribute-ref="addInfoText" name="${ui.form.DTREntrySubObjectForm.field.addInfoText.name:Допинфо:}">
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                    <hide>
+                        <condition-ref ref="dialog"/> <!--режим "dialog" означает открытие подформы на редактирование-->
+                    </hide>
+                </properties>
+            </field>
+            <section id="addInfoSectionEdit" group="true">
+                <appearance field-layout="horizontal"/>
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotEdit"/>
+                    </read-only>
+                    <hide>
+                        <condition-ref ref="read"/>
+                    </hide>
+                </properties>
+                <component>
+                    <field attribute-ref="addInfoText" name="${ui.form.DTREntrySubObjectForm.section.addInfoSection.field.addInfoText.name:Допинфо:}">
+                        <appearance multiline="true">
+                            <limit max-height-scroll="5"/>
+                        </appearance>
+                    </field>
+                    <field recalc="true" attribute-ref="addInfoForAdd">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isInput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInputNotRegistered"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isContract"/>
+                            </hide>
+                        </properties>
+                        <appearance location="subform" align="right" importance="normal">
+                            <label-style field-width="8" field-unit="symbol"/>
+                            <field-style group="true"/>
+                        </appearance>
+                    </field>
+                </component>
+            </section>
+
+            <field attribute-ref="deliveryStatus" name="${ui.form.DTREntrySubObjectForm.field.deliveryStatus.name:Статус:}">
+                <directories>
+                    <directory-ref ref="DTRDeliveryState"/>
+                </directories>
+                <properties>
+                    <read-only>
+                        <condition-ref ref="DTREntrySubObject_canNotChangeDeliveryStatus"/>
+                    </read-only>
+                </properties>
+            </field>
+        </component>
+    </form>
+</ui>

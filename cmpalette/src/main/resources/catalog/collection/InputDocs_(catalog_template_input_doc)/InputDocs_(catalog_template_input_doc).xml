@@ -1,0 +1,332 @@
+<collection name="InputDocs_(catalog_template_input_doc)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+                 SELECT
+                  id,
+                  Module,
+                  created_date,
+                  hasAttachments,
+                  templateName,
+                  reqType,
+                  self_1,
+                  self_2,
+                  self_3,
+                  correspondent,
+                  theme,
+                  addresseesName,
+                  authorTemplate,
+                  subject,
+                  accessTypeColl
+                FROM (
+                       SELECT
+                         rkkbase.id,
+                         rkkbase.module                               AS Module,
+                         rkkbase.created_date,
+                         rkkbase.type AS reqType,
+                         (SELECT
+                         coalesce(max(a), cast(0 AS SMALLINT))
+                          FROM (
+                                 SELECT
+                                   cast(1 AS SMALLINT) a
+                                 FROM f_ContentFiles_Rkk CF
+                                 WHERE CF.f_dp_rkkbase = imputrkkT.id
+                                 UNION SELECT
+                                         cast(1 AS SMALLINT)
+                                       FROM f_ContentRichText_Rkk CRT
+                                       WHERE CRT.f_dp_rkkbase = imputrkkT.id
+                                 UNION SELECT
+                                         cast(1 AS SMALLINT)
+                                       FROM f_VerifyImage_Rkk VI
+                                       WHERE VI.f_dp_rkk = imputrkkT.id
+                               ) t
+                         )                                            AS hasAttachments,
+                         rkkT.Name                                    AS templateName,
+                         '<id>'                                       AS self_1,
+                         ':'                                          AS self_2,
+                         '</>'                                        AS self_3,
+			            coalesce((
+                                SELECT '<id>' || coalesce(nullif(imputrkkT.fromsorepid, '$'), nullif('$' || (substring(firmid.cmjunid, 1, 32)), '$')) || '</><shortName>' || firmid.orig_shortname || '</>' --Корреспондент Организация
+                                FROM so_beard firmid
+                                WHERE firmid.id = imputrkkT.fromid
+                            ),
+                            (
+                                SELECT string_agg('<id>' ||  nullif(substring(userFromId.cmjunid, 33, 48) || ':' || substring(userFromId.cmjunid, 1, 32), ':') || '</>'
+                                    || '<shortName>' || coalesce(userFromId.orig_shortname, '') || '</>'
+                                , '')
+                                FROM f_dp_inputrkkt_author inputrkkt_author
+                                LEFT JOIN so_beard userFromId ON userFromId.id = inputrkkt_author.author
+                                WHERE inputrkkt_author.OWNER = imputrkkT.id
+                                --Корреспондент физическое лицо
+                            ),
+                            (
+                                SELECT string_agg('<id></><shortName>' || coalesce(nullif(inputrkkt_authorpln.authorplain, ''), 'Не указан') || '</>', '')
+                                FROM F_DP_InputRkkT_authorpln inputrkkt_authorpln
+                                WHERE inputrkkt_authorpln.OWNER = imputrkkT.id
+                                --Корреспондент физическое лицо(Автор из справочника физических лиц) или не указан(Вводим в ручную)
+                            ),
+                            '<id></><shortName></>'
+                        ) AS correspondent,
+
+                        (select
+                            array_to_string(array_agg( theme), ';', '')
+                            from f_dp_rkkbase_theme themes
+                            where themes.owner = rkkbase.id
+                        ) as theme,
+
+                        (select case
+                          when count (*) = 0 then 'Не указано'
+                          else  array_to_string(array_agg( shName), ' ', '')
+                          end
+                          from
+                          (select beardaddressee.orig_shortname as shName
+                            FROM
+                            F_DP_InputRkk_Addressee inputaddress
+                            LEFT JOIN so_beard beardaddressee ON beardaddressee.id = inputaddress.Addressee
+                            WHERE inputaddress.owner = imputrkkT.id
+                          ORDER BY inputaddress.idx
+                          )t) AS addresseesName,
+              			 case when  rkkT.isfavouritesaccess = 1 then 'Доступен выбранным'
+                    	      else 'Личный доступ'
+                         end as accessTypeColl,
+                          (SELECT array_to_string(array_agg(SPLIT_PART(tfs.value, '%', 1)), ', ', '') AS v
+                            FROM tn_field_string tfs
+                            JOIN tn_field tnf ON tnf.id = tfs.id
+                            WHERE tnf."owner" = rkkbase.id AND tnf.cmjfield = 'Tn$_authorTemplate') AS authorTemplate,
+                         rkkbase.subject                              AS subject
+                       FROM
+                         F_DP_InputRkkT imputrkkT
+                         JOIN F_DP_RkkTemplate rkkT ON rkkT.id = imputrkkT.id
+                         JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkkT.id
+                       WHERE rkkbase.isdeleted <> 1
+                     ) s
+                WHERE
+                  1 = 1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                  COUNT(1)
+                FROM (
+                       SELECT
+                         rkkbase.id,
+                         rkkbase.module                               AS Module,
+                         rkkbase.created_date,
+                         (SELECT
+                         coalesce(max(a), cast(0 AS SMALLINT))
+                          FROM (
+                                 SELECT
+                                   cast(1 AS SMALLINT) a
+                                 FROM f_ContentFiles_Rkk CF
+                                 WHERE CF.f_dp_rkkbase = imputrkkT.id
+                                 UNION SELECT
+                                         cast(1 AS SMALLINT)
+                                       FROM f_ContentRichText_Rkk CRT
+                                       WHERE CRT.f_dp_rkkbase = imputrkkT.id
+                                 UNION SELECT
+                                         cast(1 AS SMALLINT)
+                                       FROM f_VerifyImage_Rkk VI
+                                       WHERE VI.f_dp_rkk = imputrkkT.id
+                               ) t
+                         )                                            AS hasAttachments,
+                         rkkT.Name                                    AS templateName,
+                         rkkbase.type                                 AS reqType,
+			        coalesce((
+                                SELECT '<id>' || coalesce(nullif(imputrkkT.fromsorepid, '$'), nullif('$' || (substring(firmid.cmjunid, 1, 32)), '$')) || '</><shortName>' || firmid.orig_shortname || '</>' --Корреспондент Организация
+                                FROM so_beard firmid
+                                WHERE firmid.id = imputrkkT.fromid
+                            ),
+                            (
+                                SELECT string_agg('<id>' ||  nullif(substring(userFromId.cmjunid, 33, 48) || ':' || substring(userFromId.cmjunid, 1, 32), ':') || '</>'
+                                    || '<shortName>' || coalesce(userFromId.orig_shortname, '') || '</>'
+                                , '')
+                                FROM f_dp_inputrkkt_author inputrkkt_author
+                                LEFT JOIN so_beard userFromId ON userFromId.id = inputrkkt_author.author
+                                WHERE inputrkkt_author.OWNER = imputrkkT.id
+                                --Корреспондент физическое лицо
+                            ),
+                            (
+                                SELECT string_agg('<id></><shortName>' || coalesce(nullif(inputrkkt_authorpln.authorplain, ''), 'Не указан') || '</>', '')
+                                FROM F_DP_InputRkkT_authorpln inputrkkt_authorpln
+                                WHERE inputrkkt_authorpln.OWNER = imputrkkT.id
+                                --Корреспондент физическое лицо(Автор из справочника физических лиц) или не указан(Вводим в ручную)
+                            ),
+                            '<id></><shortName></>'
+                        ) AS correspondent,
+
+                        (select
+                            array_to_string(array_agg( theme), ';', '')
+                            from f_dp_rkkbase_theme themes
+                            where themes.owner = rkkbase.id
+                        ) as theme,
+
+                        (select case
+                          when count (*) = 0 then 'Не указано'
+                          else  array_to_string(array_agg( shName), ' ', '')
+                          end
+                          from
+                          (select beardaddressee.orig_shortname as shName
+                            FROM
+                            F_DP_InputRkk_Addressee inputaddress
+                            LEFT JOIN so_beard beardaddressee ON beardaddressee.id = inputaddress.Addressee
+                            WHERE inputaddress.owner = imputrkkT.id
+                          ORDER BY inputaddress.idx
+                          )t) AS addresseesName,
+                          (SELECT array_to_string(array_agg(SPLIT_PART(tfs.value, '%', 1)), ', ', '') AS v
+                            FROM tn_field_string tfs
+                            JOIN tn_field tnf ON tnf.id = tfs.id
+                            WHERE tnf."owner" = rkkbase.id AND tnf.cmjfield = 'Tn$_authorTemplate') AS authorTemplate,
+                            rkkbase.subject AS subject
+                       FROM
+                         F_DP_InputRkkT imputrkkT
+                         JOIN F_DP_RkkTemplate rkkT ON rkkT.id = imputrkkT.id
+                         JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkkT.id
+                       WHERE rkkbase.isdeleted <> 1
+                     ) s
+                WHERE
+                  1 = 1
+                    ::where-clause
+                    ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        hasAttachments = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        templateName = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        templateName ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        reqType = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        reqType ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondent">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        correspondent = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondent_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        correspondent ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        subject = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        subject ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="theme_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     theme ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addresseesName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addresseesName ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	addresseesName LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorTemplate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    authorTemplate = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorTemplate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    authorTemplate ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorTemplate_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	authorTemplate LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl ~* ('(^|\W)'||{0})
+                    ]]>
+        </criteria>
+    </filter>
+</collection>

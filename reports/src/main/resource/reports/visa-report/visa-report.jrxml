@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.8.0.final using JasperReports Library version 6.8.0-2ed8dfabb690ff337a5797129f2cd92902b0c87b  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="visa-report" pageWidth="1200" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1200" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" scriptletClass="UtilScriptlet" isIgnorePagination="true" uuid="71ac7614-f8ac-4cd9-942a-492a08f876a9">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="rep1\DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.border" value="false"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="net.sf.jasperreports.export.xls.fit.width" value="1"/>
+	<parameter name="MODULE_TYPE.Name" class="java.util.ArrayList" nestedType="String">
+		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList("Договоры", "ОРД", "Внутренние"))]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ModuleTypes" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{REPORT_SCRIPTLET}.getModules($P{MODULE_TYPE.Name});]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_START.Start" class="java.util.Date"/>
+	<parameter name="DATE_START.End" class="java.util.Date"/>
+	<parameter name="HOUR.Text" class="java.lang.String">
+		<defaultValueExpression><![CDATA[15]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[with
+/*
+     types as (select v from unnest(string_to_array('InternalDocs', ',')) v),
+     startDate as (select '2019-01-01'::date v),
+     endDate as (select '2020-12-01'::date v),*/
+     types as (select v from unnest(string_to_array('$P!{ModuleTypes}', ',')) v),
+     startDate as (select $P{DATE_START.Start}::date v),
+     endDate as (select $P{DATE_START.End}::date v),
+     ts as (
+         select module.id v from ss_module module join ss_moduletype moduletype
+         on moduletype.id = module.type where moduletype.alias='TempStorage'
+     )
+select
+       *,
+       -- для последовательного или комбинированного
+       case when typevisa in (1, 3) then
+           -- если не все поставили визы на пред. этапе
+           case when lag(has_non_visas, num_in_stage::int) over (partition by aprid order by cur_stage, num_in_stage) = 1 then
+                -- начало этапа
+                comb_ser_stage_start
+           else
+                -- максимальная дата визирования пред. этапа
+                coalesce(
+                    lag(max_end_proc_date, num_in_stage::int) over
+                    (partition by aprid order by cur_stage, num_in_stage), stage_start_date
+                )
+           end
+       else
+           -- начало процесса (для параллельного)
+           stage_start_date
+       end as entered_for_approval
+from (
+select
+    rkkbase.id as rkkid,
+    aprlist.id as aprid,
+    opt.idx as optidx,
+    coalesce(rkkbase.subject, '') as subject,
+    timezone('0', aprList."begin") stage_start_date,
+    timezone('0', aprList."end") stage_finish_date,
+    authorBeard.orig_shortname initiator_name,
+    partbrd.orig_shortname || coalesce(' (' || visa_who_name || ')', '') participant_name_expr,
+    nullif(coalesce(rkk.regnumprist || rkk.regnumcnt || rkk.regnumfin, cds.regnumber, cd.regnumber, cfd.regnumber),'') as regnum,
+    coalesce(rkk.regdate, cds.regdate, cd.regdate, cfd.regdate) as regdate,
+    rkk_dog.regnumprist || rkk_dog.regnumcnt || rkk_dog.regnumfin as dog_regnum,
+    rkk_dog.regdate as dog_regdate,
+    case when rkkbase.complect = 'ContractsLite' then rkkbase.form else rkkbase.complect end as form,
+    nullif(rkkbase.type, '') as rkk_type,
+    cur_stage,
+    end_proc_date,
+    -- максимальная дата визы на этом этапе
+    max(end_proc_date) over (partition by aprlist.id, cur_stage) max_end_proc_date,
+    -- есть ли участники без визы на этом этапе
+    max(case when end_proc_date is null then 1 else 0 end) over (partition by aprlist.id, cur_stage) has_non_visas,
+     -- порядковый номер в этом этапе
+    row_number() over (partition by aprlist.id, cur_stage order by opt.idx) num_in_stage,
+    comb_ser_stage_start, -- начало этого этапа
+    aprlistortempl.typevisa,
+    comb_ser_duetimes,
+    par_duedate as par_duedate
+
+from f_dp_rkkbase rkkbase
+left join f_dp_rkk rkk on rkkbase.id = rkk.id
+left join f_dp_contractrkk crkk on rkkbase.id = crkk.id
+left join f_dp_contractds cds on rkkbase.id = cds.id --доп. соглашение
+left join F_DP_ContractDoc cd on rkkbase.id = cd.id  --документ к договору
+left join F_DP_ContractFD cfd on rkkbase.id = cfd.id --фин. документ
+left join f_dp_contractcommon cco on cd.id = cco.id or cds.id = cco.id or cfd.id = cco.id
+left join f_dp_rkk rkk_dog on cco.hierroot = rkk_dog.id --связанный договор
+left join f_dp_contractrkk crkk_dog on rkk_dog.id = crkk_dog.id
+
+join apr_list aprlist on aprlist.HierParent = rkkbase.id and nullif(parlistunid, '') is null
+join apr_apprlist aprapprlist on aprlist.id = aprapprlist.id
+join apr_listortempl aprlistortempl on aprlist.id = aprlistortempl.id and aprlistortempl.met = 0 and aprlistortempl.module not in (select v from ts)
+join so_beard authorbeard on authorbeard.id = aprlistortempl.idauthor
+
+join apr_apprlist_options opt on opt.owner = aprlist.id
+join apr_list_whocanvisaid whocanvisa on whocanvisa.whocanvisaid = opt.sendtosh and whocanvisa.owner = aprlist.id
+join so_beard partbrd on opt.sendtosh = partbrd.id
+left join apr_answer answer ON
+     answer.HierParent = aprlist.id AND partbrd.id = answer.realvise
+     and answer.met = 0 and answer.module not in (select v from ts)
+left join apr_appranswer apranswer on answer.id = apranswer.id and apranswer.isdraft = 0
+left join so_beard visaauthor on visaauthor.id = idauthor_answere and idauthor_answere != realvise
+left join lateral (
+    select
+    timezone('0', answer.crdate) as end_proc_date,
+    visaauthor.orig_shortname as visa_who_name
+) tvisa on apranswer.id is not null
+-- расчёт этапов
+-- см ru.intertrust.cmj.af.apre._stdimpl.dao.approving.StagesApproving#constructStages
+-- для комбинированного
+left join lateral (
+    select
+    group_last.idx as comb_cur_stage,
+    opt_last.idx as comb_idx,
+    opt_last.sendtooptions as comb_opts
+    from apr_apprlist_options opt_last -- опция последнего из группы
+    join apr_listortempl_last group_last on group_last.owner = aprList.id and opt_last.sendtosh_id = group_last.lastingroup
+    where
+    opt_last.owner = aprList.id and opt_last.idx >= opt.idx
+    order by group_last.idx limit 1
+    -- первая группа по возрастанию, в которой
+    -- последний индекс из группы больше индекса участника
+) as tmpcurstage_comb on aprlistortempl.typevisa = '3'
+-- для последовательного - аналогично, но каждая группа из одного участника
+left join lateral (
+    select
+    whocanvisa.idx as ser_cur_stage,
+    opt_last.idx as ser_idx,
+    opt_last.sendtooptions as ser_opts
+    from apr_apprlist_options opt_last -- опция последнего из группы
+    join apr_list_whocanvisaid whocanvisa on opt_last.owner = aprlist.id and opt_last.sendtosh = whocanvisa.whocanvisaid
+    where whocanvisa.owner = aprList.id and opt_last.idx >= opt.idx
+    order by whocanvisa.idx limit 1
+) as tmpstage_ser on aprlistortempl.typevisa = '1'
+-- для комбинированного и последовательного
+-- общее - нужно получить срок и начало этапа
+left join lateral (
+    select
+    substring(opts, '^[0-9]+~([0-9]+)%') || (case when substring(opts, '^([0-9])+~')::int = 2 then ' ч.' else '' end)
+        as comb_ser_duetimes,
+    coalesce(comb_cur_stage, ser_cur_stage) as cur_stage,
+    timezone('0', dates.groupdaterange) as comb_ser_stage_start
+    from (select coalesce(comb_opts, ser_opts) as opts) tmp
+    left join apr_listortempl_dates dates on dates.owner = aprList.id and dates.idx in (comb_idx * 2, ser_idx * 2)
+) as tmpopts_comb_ser on aprlistortempl.typevisa in ('1', '3')
+-- для параллельного - этапов нет
+left join lateral (
+    select
+    controldate as par_duedate
+) as tmpstage_par on aprlistortempl.typevisa = '2'
+where
+  rkkbase.isdeleted = 0
+  -- договор или соглашение или документ не в архиве
+  and (cco.statusdog is null or cco.statusdog <> 'архив')
+  and (crkk.statusdog is null or crkk.statusdog <> 'архив')
+  and (crkk_dog.statusdog is null or crkk_dog.statusdog <> 'архив')
+  -- учитываем базу
+  and rkkbase.complect in (select v from types)
+  and rkkbase.module not in (select v from ts)
+  and timezone('0', aprList."begin")::date between (select v from startDate) and (select v from endDate)
+) t
+order by rkkid, aprid, optidx]]>
+	</queryString>
+	<field name="subject" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="subject"/>
+	</field>
+	<field name="participant_name_expr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="participant_name_expr"/>
+	</field>
+	<field name="initiator_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="initiator_name"/>
+	</field>
+	<field name="stage_start_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="stage_start_date"/>
+	</field>
+	<field name="stage_finish_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="stage_finish_date"/>
+	</field>
+	<field name="end_proc_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="end_proc_date"/>
+	</field>
+	<field name="regnum" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="regnum"/>
+	</field>
+	<field name="regdate" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="regdate"/>
+	</field>
+	<field name="dog_regnum" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="dog_regnum"/>
+	</field>
+	<field name="dog_regdate" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="dog_regdate"/>
+	</field>
+	<field name="form" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="form"/>
+	</field>
+	<field name="rkk_type" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="rkk_type"/>
+	</field>
+	<field name="entered_for_approval" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="entered_for_approval"/>
+	</field>
+	<field name="typevisa" class="java.lang.Long"/>
+	<field name="comb_ser_duetimes" class="java.lang.String"/>
+	<field name="par_duedate" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="75" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="1200" height="30" uuid="3003b686-737a-44e9-b426-0d23cc815d63">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Отчет по СОГЛАСОВАНИЮ ДОКУМЕНТОВ ЗА ПЕРИОД С " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{DATE_START.Start}) + " ПО " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{DATE_START.End}) +  " (начало процесса)"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="1200" height="20" uuid="65dfa8df-906b-4528-bf65-51e7d4990353">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA["по документам: " + String.join(", ", $P{MODULE_TYPE.Name})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="50" width="1200" height="24" uuid="d47e11ea-b76b-4a92-8dfc-127081fde71f">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA["расчётный час: " + $P{REPORT_SCRIPTLET}.getHour($P{HOUR.Text})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="77" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="27" width="150" height="50" uuid="cc3f3b43-fc91-46d3-8511-8acfe7c88742">
+					<property name="net.sf.jasperreports.export.xls.auto.filter" value="Start"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Документ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="27" width="150" height="50" uuid="5c47c071-4135-4c14-8460-fc82d2d7cee5"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Краткое содержание]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="27" width="120" height="50" uuid="1083da24-1356-46c4-a095-5aa92c25563d"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Инициатор согласования]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="420" y="27" width="100" height="50" uuid="e1decbe9-1d09-486a-a4d0-31e4495aa5da"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Начало процесса]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="520" y="27" width="90" height="50" uuid="ef01579f-3398-49c9-9978-91aa83247f90"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Окончание
+процесса]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="610" y="27" width="100" height="50" uuid="4f3ea80a-be2d-4414-abde-1a24bc1a2753"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Общее кол-во дней согласования]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="710" y="27" width="130" height="50" uuid="f66948f6-d47e-445a-bafb-04d9b97f496e"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Согласующий]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="840" y="27" width="100" height="50" uuid="a05a14e3-94ac-4d0d-975a-8679d58a7274"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Документ поступил на согласование]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="940" y="27" width="100" height="50" uuid="592b6a83-de3d-4544-8a0e-a8a6afb30708"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Документ завизирован]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1040" y="27" width="80" height="50" uuid="78071cdb-7ac2-41f0-b3e0-b75130e43bec"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Срок]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1120" y="27" width="80" height="50" uuid="db4c285f-5fdd-4edb-8b73-f88bc35c1257">
+					<property name="net.sf.jasperreports.export.xls.auto.filter" value="End"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Кол-во дней
+согласования]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="420" y="0" width="100" height="26" uuid="b707d91d-9904-4448-9357-1ebc0f0f8b22">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[4]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="0" width="120" height="26" uuid="144b833b-1312-47ed-93f7-3c3dc579780b">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[3]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="0" width="150" height="26" uuid="ab2b2c46-dc6f-4d83-bc79-19f01ac70f22">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="150" height="26" uuid="e803ee1a-c094-431e-b263-05dfa8c54d9b">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="520" y="0" width="90" height="26" uuid="83641a97-9094-4330-8fd7-0cfc52b5ac02">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[5]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="610" y="0" width="100" height="26" uuid="03e6e457-6d0e-4845-830d-86a872bbf5c4">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[6]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="710" y="0" width="130" height="26" uuid="f2fe859b-81c7-414c-8427-8fc50d65fbe1">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[7]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="840" y="0" width="100" height="26" uuid="6a68ba71-5f23-4c49-ab6b-bcf92a090153">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[8]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="940" y="0" width="100" height="26" uuid="b512c740-0914-4b5a-b6f7-f587262dc1a4">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[9]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1040" y="0" width="80" height="26" uuid="30a1368a-edf3-499f-98a4-ab3adc22cc5a">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[10]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1120" y="0" width="80" height="26" uuid="686055e3-bdbd-44b9-b5be-3a2f9c4ce791">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[11]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="33" splitType="Stretch">
+			<frame>
+				<reportElement x="0" y="0" width="1200" height="33" uuid="add3b199-bf94-4c95-859f-3147feb53f86"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="150" height="33" uuid="1c5ad181-1e84-41c0-93ca-4ecbc3cd102e">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{form}
+
+.replaceAll("^Dog$", "Договор " + ($F{regnum} == null ? "б/н" : "№" + $F{regnum}) + " " + 
+($F{regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate}))
+)
+
+.replaceAll("^AddAgr$", "Дополнительное соглашение " + 
+($F{regnum} == null ? "б/н" : "№" + $F{regnum}) + " к договору " +($F{dog_regnum} == null ? "б/н" : "№" + $F{dog_regnum}) + " " + 
+($F{dog_regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{dog_regdate}))
+)
+
+.replaceAll("^(DocDogovor|Finance)$", 
+	$F{rkk_type}!= null ? $F{form}.replace("DocDogovor", $F{rkk_type}).replace("Finance", $F{rkk_type}) + " " + 
+($F{regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate})) + " к договору " +
+ ($F{dog_regnum} == null ? "б/н" : "№" + $F{dog_regnum}) + " " +
+($F{dog_regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{dog_regdate})) :
+ 
+($F{regdate} == null ? "Б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate})) + " к договору " +
+ ($F{dog_regnum} == null ? "б/н" : "№" + $F{dog_regnum}) + " " +
+($F{dog_regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{dog_regdate})))
+
+.replaceAll("^(InternalDocs|Missions|OutputDocs)$", 
+	$F{rkk_type}!= null ?	
+	($F{form}.replace("InternalDocs", $F{rkk_type}).replace("Missions", $F{rkk_type}).replace("OutputDocs", $F{rkk_type}) + ($F{regnum} == null ? "" : " №" + $F{regnum}) + " "  +
+	($F{regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate}))) : 
+			$F{regnum} != null ? 
+			("№" + $F{regnum} + " " +($F{regdate} == null ? "б/д" : "от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate}))): 
+			$F{regdate} == null ? "Б/д" : "От " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate})
+)]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="150" y="0" width="150" height="33" uuid="a2996262-ae81-4f0a-af60-5c7b8082455c">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="0" width="120" height="33" uuid="2d5c056b-6226-4d0a-8e88-1f1f05c18e3a">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{initiator_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="420" y="0" width="100" height="33" uuid="2236031b-5d9b-4f7c-b9f6-4c98b4457b1e">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format($F{stage_start_date})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="520" y="0" width="90" height="33" uuid="2a627f35-3e72-4367-a23f-40e7b425106d">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{stage_finish_date} == null) ? "" : new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format($F{stage_finish_date})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="940" y="0" width="100" height="33" uuid="8cb4cac3-2271-46d5-b79d-637505495cd4">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{end_proc_date} == null) ? "" : new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format($F{end_proc_date})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="610" y="0" width="100" height="33" uuid="e796f846-3a5e-4987-8411-520917ea3879">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{stage_finish_date} == null) ? "" : ($P{REPORT_SCRIPTLET}.getNumDays($F{stage_start_date}, $F{stage_finish_date}, $P{HOUR.Text}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="710" y="0" width="130" height="33" uuid="cf206670-342c-41f4-853b-6dff9bf8646b">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{participant_name_expr}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="840" y="0" width="100" height="33" uuid="61d7e003-f20a-48b1-bfce-1a19547cb93d">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format($F{entered_for_approval})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="1040" y="0" width="80" height="33" uuid="ae21002d-4126-4da4-bd0e-f5f57972eb43">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{typevisa} == 2) ? ($P{REPORT_SCRIPTLET}.getNumDays($F{stage_start_date}, $F{par_duedate}, $P{HOUR.Text})) : $F{comb_ser_duetimes}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="1120" y="0" width="80" height="33" uuid="1afaf84e-263b-4576-b5aa-da89643ede6a">
+						<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+						<property name="net.sf.jasperreports.export.xls.auto.filter" value="End"/>
+					</reportElement>
+					<box bottomPadding="10">
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{end_proc_date} == null) ? "" : ($P{REPORT_SCRIPTLET}.getNumDays($F{stage_start_date}, $F{end_proc_date}, $P{HOUR.Text}))]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,2021 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <handler name="Отправить Нарочно" id="SendingOnPurpose">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.java.util.HashSet);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("check_fill")) {
+        return process_checkAndFill(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    if (paramsResource.tuning().getValues().get("idsAll") == null)
+        var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    else
+        var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var corrList = new ArrayList();
+    if (paramsResource.tuning().getValues().get("SendLcbrTable") != null)
+        corrList = GetValue(paramsResource, "SendLcbrTable");
+    else {
+        var addrss = obj.addressees.getList();
+        for (var i = 0; i<addrss.size(); i++) {
+            if (addrss.get(i).orgAddressees().getList().size() == 0) {
+                var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendLcbrTable"));
+                var corr = addrss.get(i).getOrganization();
+                newr.put("baseSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("baseSelectCorr").getSchema(), corr));
+                corrList.add(newr);
+            }
+            for (var j = 0; j<addrss.get(i).orgAddressees().getList().size(); j++) {
+                var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendLcbrTable"));
+                var corr2 = addrss.get(i).orgAddressees().getList().get(j);
+                newr.put("baseSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("baseSelectCorr").getSchema(), corr2));
+                if (!corr2.originalData().getType().equals(SOBeard.Type.SYS_DEPARTMENT) && !corr2.originalData().getType().equals(SOBeard.Type.SYS_ROLE)
+                    && !corr2.originalData().getType().equals(SOBeard.SYS_ORGANIZATION) && !corr2.originalData().getType().equals(SOBeard.NONSYS_ORGANIZATION)) {
+                    var recipient = corr2.originalData().getFullName();
+                    recipient = recipient == null ? corr2.originalData().getShortName() : recipient;
+                    newr.put("recipient", new AFInstanceSimpleImpl(newr.getSchema().getProperty("recipient").getSchema(), recipient));
+                }
+                corrList.add(newr);
+            }
+        }
+    }
+
+    var message;
+
+    message = appTNObject.composeDialog("SendLcbrAction", null, null, null);
+    message.tuning().put("SendLcbrTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendLcbrTable"), corrList));
+	var curentDateTime = Calendar.getInstance().getTime();
+    var dDate = AFDateTime.convertFromDate(curentDateTime);
+	message.tuning().put("deliveredDate",  new AFInstanceSimpleImpl(apl.getSchemaByName("DateTime"), dDate));
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "check_fill");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_checkAndFill(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var corrList = GetValue(paramsResource, "SendLcbrTable");
+    var purposeCorrs = new ArrayList();
+    if (corrList != null) {
+        for (var i = 0; i < corrList.size(); i++) {
+            var selected = corrList.get(i).getValues().get("baseCheckBox").getValue();
+            if (selected) {
+                purposeCorrs.add(corrList.get(i));
+            }
+        }
+        if (purposeCorrs.isEmpty()) {
+            var message;
+            message = appTNObject.composeDialog("SendCorrsEmptyErrorAction", null, null, null);
+            message.tuning().put("SendLcbrTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendLcbrTable"), corrList));
+
+            TunableObjectHelper.putAFInstanceValue(message, "counter", "context");
+            TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+            returnResource.resource = TunableObjectREST.Resource.create(message);
+            return returnResource.resource;
+        }
+
+        var deliveredDate = GetSimpleValue(paramsResource, "deliveredDate");
+        if ((deliveredDate == null) || (deliveredDate.toAFDate().toJavaDate().getTime() < AFDate.createCurrent().toJavaDate().getTime())) {
+            var message;
+            message = appTNObject.composeDialog("SendBackDatedErrorAction", null, null, null);
+            message.tuning().put("SendLcbrTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendLcbrTable"), corrList));
+
+            TunableObjectHelper.putAFInstanceValue(message, "counter", "context");
+            TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+            returnResource.resource = TunableObjectREST.Resource.create(message);
+            return returnResource.resource;
+        }
+
+        process_fill_form(paramsResource, returnResource, purposeCorrs);
+    }
+}
+
+function process_fill_form(paramsResource, returnResource, purposeCorrs) {
+    var log = LoggerFactory.getLogger("handler.SendingOnPurpose");
+    log.debug("handler.SendingOnPurpose started");
+    log.debug("purposeCorrs size=" + purposeCorrs.size());
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var corrList = purposeCorrs;
+
+    if (corrList != null) {
+        var textSubSent = "";
+        var sendingTable = obj.sending().specified();
+        for (var i = 0; i < corrList.size(); i++) {
+            var selectedCorr = corrList.get(i).getValues().get("baseSelectCorr").getValue();
+			var deliveredDate = GetSimpleValue(paramsResource, "deliveredDate");
+			var fio = "";
+			if (corrList.get(i).getValues().get("recipient") != null) fio = corrList.get(i).getValues().get("recipient").getValue();
+            var j = 0;
+            log.debug("sendingTable size=" + sendingTable.size());
+            for (j = (sendingTable.size() - 1); j >= 0; j--) {
+                var addressee = sendingTable.get(j).getAddressee();
+                log.debug("addressee=" + addressee + ", selectedCorr=" + selectedCorr);
+                if (addressee == selectedCorr)
+                    break;
+            }
+            log.debug("j=" + j);
+            var aSpf = createAddresseeSpecified(selectedCorr, "Нарочно", "Доставлено", deliveredDate, deliveredDate, fio);
+            var sendStatus = (j != -1 && sendingTable.get(j).getSendStatus()!=null) ? sendingTable.get(j).getSendStatus() : "";
+            if (j != -1 &&(sendStatus.replace(" ", "").equals("") || sendStatus.equals("Отказано"))) {
+                sendingTable.set(j, aSpf);
+                log.debug("replaced in sendingTable");
+            } else {
+                sendingTable.add(aSpf);
+                log.debug("added to sendingTable");
+            }
+            if (!"".equals(textSubSent))
+                textSubSent = textSubSent + ";";
+            textSubSent = textSubSent + selectedCorr.getUNID() + "%" + selectedCorr.toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+        }
+
+        var historyRecordSent = obj.history().createNewRecord("send.delivered", AFSession.get().currentUser().getBeard().toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        if (historyRecordSent != null) {
+            historyRecordSent.update("Корреспондент%" + "Нарочно. Дата доставки: " + new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(deliveredDate.getTime()), null, textSubSent);
+        }
+    }
+
+    obj.save();
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function createAddresseeSpecified(corr, type, sendStatus, sent, received, fio) {
+    var userBeard = AFSession.get().currentUser().getBeard();
+    var emailAddress = new HashSet();
+    return new DPMOutput.RKK.HardCopySending.AddresseeSpecified {
+    getAddressee: function() { return corr; },
+    getDisplayAddressee : function() { return corr.getOrganization() != null ?
+        (corr.getOrganization().getBeard().getUNID().equals(corr.getUNID()) ?
+			corr.getOrganizationName()
+			: (corr.getOrganizationName() + ": " + (corr).getOrigShortName()))
+        : (corr).getOrigShortName(); },
+    getEAddress: function() { return emailAddress; }, //Адрес отправки
+    getTime: function() { return sent; }, //Дата отправки
+    getDisplaySent: function() { return sent != null && sent.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(sent.getTime()) : ""; },
+    getUser: function() { return userBeard; },
+    getReceivedDate: function() { return received; }, //Дата доставки
+    getDisplayReceived: function() { return received != null && received.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(received.getTime()) : ""; },
+    getReceiver: function() { return fio != null ? fio : ""; },
+    getType: function() { return type != null ? type : ""; }, //Способ отправки
+    getComment: function() { return ""; },
+    getSendStatus: function() { return sendStatus != null ? sendStatus : ""; }, //Статус отправки/доставки
+    getExternalCode: function() { return ""; },
+    getIndex: function() { return ""; },
+    getPhone: function() { return ""; },
+    getCourier: function() { return ""; },
+    getRuPostTypeRPO: function() { return ""; }, //Вид РПО
+    getRuPostCategoryRPO: function() { return ""; }, //Категория РПО
+    getRuPostDeliveryNotice: function() { return false; }, //С уведомлением о вручении
+    getEmail: function() { return ""; },
+    getSenderNN: function() { return ""; },
+    getFileName: function() { return ""; },
+    getExternalID: function() { return ""; },
+    getCurUserIsClerk: function() { return false; },
+    getStatusOnSending: function() { return false; },
+    getCanEditReceiver: function() { return false; },
+    getCurUserIsClerkOrExpeditor: function() { return false; },
+    getCanEditSendToType: function() { return false; },
+    getCanEditSendStatus: function() { return false; },
+    getSendStatusValues: function() { return null; },
+    getCanEditSentDate: function() { return false; },
+    getCanSeeReceivedDate: function() { return false; },
+    getCanEditExternalCode: function() { return false; },
+    getCanSeeExternalCode: function() { return false; },
+    getSendTypeAutoUpdated: function() { return null; },
+    getCanExpeditorEditRow: function() { return null; }
+    };
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}]]></script>
+    </handler>
+    <handler name="Отправить на подписание ЭЗП" id="SendToSignRE">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations.RkkOperations);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.ContentResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate)
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.services.AutoStampService);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource)
+{
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty())
+    {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var unid = obj.getUNID();
+    if (unid != null) {
+        AutoStampService.getService().sendContentToStampWithoutStartProcess(unid);
+        obj.setToPrepareRE(false);
+        SetValue(obj, "SendSignStamp", true);
+    }
+
+    obj.save();
+
+    (new PkdSession()).markEventsAsCompleted(obj.getUNID(), EventCode.getByString("OUTD1_31"));
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}]]></script>
+    </handler>
+    <handler name="На подготовку ЭЗП" id="ToPrepareRE">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations.RkkOperations);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.ContentResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate)
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource)
+{
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty())
+    {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    obj.setToPrepareRE(true);
+
+    obj.save();
+    obj = appdp.getEntityByUNID(obj.getUNID());
+
+    var sender = AFSession.get().currentUser().getBeard();
+    var receivers = obj.registration().getPlace().getAccessUnit().registrationSettingsRegplace().getAllDps().get("output");
+    if (receivers != null && receivers.size() > 0) {
+        DPNotificationUtils.sendNotice(obj, sender, receivers, "NOTICE", "OUTD1_31", "", "На оформление", "TOREADER");
+    }
+
+    (new PkdSession()).markEventsAsCompleted(obj.getUNID(), EventCode.getByString("OUTD1_32"));
+
+    resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+]]></script>
+    </handler>
+    <handler name="Отправить Почтой России" id="SendingRusPost">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.org.slf4j.LoggerFactory);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("fill_form")) {
+        return process_fill_form(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+	  var ids = null;
+    if (paramsResource.tuning().getValues().get("idsAll") == null)
+        ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    else
+        ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+    if (ids == null || ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var isREDoc = obj.getType().equals("Электронное заказное письмо");
+    var corrList = new ArrayList();
+    if (isREDoc && paramsResource.tuning().getValues().get("SendRusPostRETable") != null) {
+        corrList = GetValue(paramsResource, "SendRusPostRETable");
+    } else if (!isREDoc && paramsResource.tuning().getValues().get("SendRusPostTable") != null) {
+        corrList = GetValue(paramsResource, "SendRusPostTable");
+    } else {
+        var addrss = obj.addressees.getList();
+        for (var i = 0; i<addrss.size(); i++){
+            if (addrss.get(i).orgAddressees().getList().size() == 0){
+                if (isREDoc)
+                    var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendRusPostRETable"));
+                else
+                    var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendRusPostTable"));
+                var corr = addrss.get(i).getOrganization();
+                newr.put("postSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("postSelectCorr").getSchema(), corr));
+                var org = null
+                if (corr != null)
+                    org = getOrgDocByID(corr.getUNID().split(":")[1]);
+                if (org == null || !"individualentrepreneur".equals(org.getItemValueString("counterparty")))
+                    newr.put("postSelectAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corr.getAddress().toString()));
+
+                newr.put("postHideDelivNotBox", new AFInstanceSimpleImpl(apl.getSchemaByName("Boolean"), true));
+                corrList.add(newr);
+            }
+            for(var j = 0; j<addrss.get(i).orgAddressees().getList().size(); j++){
+                if (isREDoc)
+                    var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendRusPostRETable"));
+                else
+                    var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendRusPostTable"));
+                var corr2 = addrss.get(i).orgAddressees().getList().get(j);
+                newr.put("postSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("postSelectCorr").getSchema(), corr2));
+                if (corr2.getAddress() == null || corr2.getAddress().toString() == "") corr2 = addrss.get(i).getOrganization();
+                if (corr2 != null) newr.put("postSelectAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corr2.getAddress().toString()));
+                newr.put("postHideDelivNotBox", new AFInstanceSimpleImpl(apl.getSchemaByName("Boolean"), true));
+                corrList.add(newr);
+            }
+        }
+    }
+
+    var message;
+
+    if (isREDoc) {
+        message = appTNObject.composeDialog("SendRusPostREAction", null, null, null);
+        message.tuning().put("SendRusPostRETable", new AFInstanceArrayImpl(apl.getSchemaByName("SendRusPostRETable"), corrList));
+    } else {
+        message = appTNObject.composeDialog("SendRusPostAction", null, null, null);
+        message.tuning().put("SendRusPostTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendRusPostTable"), corrList));
+    }
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "fill_form");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_fill_form(paramsResource, returnResource) {
+	  var log = LoggerFactory.getLogger("handler.SendingRusPost");
+    log.debug("process_fill_form started");
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var isREDoc = obj.getType().equals("Электронное заказное письмо");
+    var corrList;
+    if (isREDoc)
+        corrList = GetValue(paramsResource, "SendRusPostRETable");
+    else
+        corrList = GetValue(paramsResource, "SendRusPostTable");
+    if (corrList != null) {
+        var ruspostCorrs = new ArrayList();
+		    var sendingTable = obj.sending().specified();
+        for (var i = 0; i < corrList.size(); i++) {
+            var selected = corrList.get(i).getValues().get("postCheckBox").getValue();
+            if(selected) {
+                var selectedCorr = corrList.get(i).getValues().get("postSelectCorr").getValue();
+                var selectedWay = "Почта России (ЭЗП)";
+                var selectedAddr = corrList.get(i).getValues().get("postSelectAddress").getValue();
+                var selectedCategory = "-";
+                var selectedType = "-";
+                var selectedDelivNot = false;
+                ruspostCorrs.add(selectedCorr);
+                if (!isREDoc) {
+                    selectedWay = "Почта России";
+                    selectedCategory = corrList.get(i).getValues().get("postSelectCatRPO").getValue();
+                    selectedType = corrList.get(i).getValues().get("postSelectWayRPO").getValue();
+                }
+                if (!corrList.get(i).getValues().get("postHideDelivNotBox").getValue())
+                    selectedDelivNot = corrList.get(i).getValues().get("postDeliveryNotice").getValue();
+                var dateTime = new AFDateTime();
+
+				        var j = 0;
+                for (j = (sendingTable.size() - 1); j >= 0; j--) {
+                    var addressee = sendingTable.get(j).getAddressee();
+					          log.debug("addressee=" + addressee + ", selectedCorr=" + selectedCorr);
+					          if (addressee == selectedCorr)
+                        break;
+                }
+                log.debug("j=" + j);
+
+				        var aSpf = createAddresseeSpecified(selectedCorr, selectedWay, "На отправке", dateTime, dateTime,
+					          selectedCategory, selectedType, selectedDelivNot);
+					    var sendStatus = (j != -1 && sendingTable.get(j).getSendStatus()!=null) ? sendingTable.get(j).getSendStatus() : "";
+                if (j != -1 &&(sendStatus.replace(" ", "").equals("") || sendStatus.equals("Отказано"))) {
+                    sendingTable.set(j, aSpf);
+					          log.debug("replaced in sendingTable");
+				        } else {
+                    sendingTable.add(aSpf);
+					          log.debug("added to sendingTable");
+				        }
+            }
+        }
+        log.debug("ruspostCorrs=" + ruspostCorrs);
+        if (ruspostCorrs.size() > 0) {
+            var sendRussianPost = obj.getSendRussianPost();
+            log.debug("sendRussianPost=" + sendRussianPost);
+            var user = AFSession.get().currentUser().getBeard();
+			      var sendRussianPostNew = 1;
+            if (sendRussianPost != null) {
+                sendRussianPostNew = sendRussianPost + 1;
+            }
+            log.debug("sendRussianPostNew=" + sendRussianPostNew);
+            obj.setSendRussianPost(sendRussianPostNew);
+            obj.setInitSendRussianPost(user);
+            var expedtors = obj.registration().getPlace().getAccessUnit().registrationSettingsRegplace().getAllDps().get("ExpeditionOrders");
+            if (expedtors != null && expedtors.size() > 0) {
+                obj.setExpedtors(expedtors);
+            }
+
+            //история
+            var currentUser = AFSession.get().currentUser().getBeard();
+            var eventId = "sent.by.russian.post";
+            if (isREDoc) {
+                eventId = "send.ruspost.sending.re";
+            }
+            var textSub = "";
+
+            var historyRecord = obj.history().createNewRecord(eventId, currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+            for (var i = 0; i < ruspostCorrs.size(); i++) {
+                if (!"".equals(textSub))
+                    textSub = textSub + ";";
+                textSub = textSub + ruspostCorrs.get(i).getUNID() + "%" + ruspostCorrs.get(i).toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+            }
+            if (isREDoc) {
+                historyRecord.update("Корреспондент%Почта России (ЭЗП)", null, textSub);
+            } else {
+                historyRecord.update("Корреспондент%Почта России", null, textSub);
+            }
+        }
+        else {
+            var message;
+            message = appTNObject.composeDialog("SendCorrsEmptyErrorAction", null, null, null);
+            if (isREDoc)
+                message.tuning().put("SendRusPostRETable", new AFInstanceArrayImpl(apl.getSchemaByName("SendRusPostRETable"), corrList));
+            else
+                message.tuning().put("SendRusPostTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendRusPostTable"), corrList));
+
+            TunableObjectHelper.putAFInstanceValue(message, "counter", "context");
+            TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+            returnResource.resource = TunableObjectREST.Resource.create(message);
+            return returnResource.resource;
+        }
+    }
+
+    obj.save();
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function createAddresseeSpecified(corr, type, sendStatus, sent, received, ruPostCategoryRPO, ruPostTypeRPO, ruPostDeliveryNotice) {
+    var userBeard = AFSession.get().currentUser().getBeard();
+    var emailAddress = new HashSet();
+    return new DPMOutput.RKK.HardCopySending.AddresseeSpecified {
+    getAddressee: function() { return corr; },
+    getDisplayAddressee : function() { return corr.getOrganization() != null ?
+        (corr.getOrganization().getBeard().getUNID().equals(corr.getUNID()) ?
+			corr.getOrganizationName()
+			: (corr.getOrganizationName() + ": " + (corr).getOrigShortName()))
+        : (corr).getOrigShortName(); },
+    getEAddress: function() { return emailAddress; }, //Адрес отправки
+    getTime: function() { return sent; }, //Дата отправки
+    getDisplaySent: function() { return sent != null && sent.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(sent.getTime()) : ""; },
+    getUser: function() { return userBeard; },
+    getReceivedDate: function() { return received; }, //Дата доставки
+    getDisplayReceived: function() { return received != null && received.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(received.getTime()) : ""; },
+    getReceiver: function() { return userBeard.originalData().getFullName(); },
+    getType: function() { return type != null ? type : ""; }, //Способ отправки
+    getComment: function() { return ""; },
+    getSendStatus: function() { return sendStatus != null ? sendStatus : ""; }, //Статус отправки/доставки
+    getExternalCode: function() { return ""; },
+    getIndex: function() { return ""; },
+    getPhone: function() { return ""; },
+    getCourier: function() { return ""; },
+    getRuPostTypeRPO: function() { return ruPostTypeRPO; }, //Вид РПО
+    getRuPostCategoryRPO: function() { return ruPostCategoryRPO; }, //Категория РПО
+    getRuPostDeliveryNotice: function() { return ruPostDeliveryNotice; }, //С уведомлением о вручении
+    getEmail: function() { return ""; },
+    getSenderNN: function() { return ""; },
+    getFileName: function() { return ""; },
+    getExternalID: function() { return ""; },
+    getCurUserIsClerk: function() { return false; },
+    getStatusOnSending: function() { return false; },
+    getCanEditReceiver: function() { return false; },
+    getCurUserIsClerkOrExpeditor: function() { return false; },
+    getCanEditSendToType: function() { return false; },
+    getCanEditSendStatus: function() { return false; },
+    getSendStatusValues: function() { return null; },
+    getCanEditSentDate: function() { return false; },
+    getCanSeeReceivedDate: function() { return false; },
+    getCanEditExternalCode: function() { return false; },
+    getCanSeeExternalCode: function() { return false; },
+    getSendTypeAutoUpdated: function() { return null; },
+    getCanExpeditorEditRow: function() { return null; }
+    };
+}
+
+function getOrgDocByID(id) {
+    try {
+        var db = AFCMDomino.getDbByIdent("OrgDirectory", "");
+        var org = db.getDocumentByUNID(id);
+        return org;
+    } catch (e) {
+        return null;
+    }
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}]]></script>
+    </handler>
+    <handler name="Отказать в подготовке ЭЗП" id="RefuseToPrepareRE">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations.RkkOperations);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFSigningOnRework);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.ContentResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate)
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("reason")) {
+        return process_reason(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource)
+{
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty())
+    {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var message;
+    message = appTNObject.composeDialog("RefuseToPrepareAction", null, null, null);
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "reason");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_reason(paramsResource, returnResource)
+{
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty())
+    {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    obj.setToPrepareRE(false);
+	TuningHelper.processProperty(obj.tuning().getValues(), "isOnRework", true, obj.tuning().getSchema().getProperty("isOnRework"));
+    var onReworkHandler = new RKKFSigningOnRework(obj);
+    onReworkHandler.onBeforeSave();
+
+	var currentUser = AFSession.get().currentUser().getBeard();
+    var eventId = "prepare.re.rejected";
+    var refuseReason = GetSimpleValue(paramsResource, "refuseReason");
+
+    var historyRecord = obj.history().createNewRecord(eventId, currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+    historyRecord.update(refuseReason, null, null);
+
+    obj.save();
+
+    var sender = AFSession.get().currentUser().getBeard();
+    var receivers = new ArrayList();
+    var initiators = GetValue(obj, "executor");
+    if (initiators != null)
+        for (var i = 0; i < initiators.size(); i++)
+            receivers.add(initiators.get(i).getValue());
+    if (receivers != null && receivers.size() > 0) {
+        var afNotice = DPNotificationUtils.createNotice(obj, sender, receivers, "NOTICE", "OUTD1_32", "", "На доработку", "TOREADER");
+        afNotice.useSubjectForEvents = false;
+
+        if (refuseReason != null) {
+            afNotice.subject = refuseReason;
+        } else {
+            afNotice.subject = "";
+        }
+
+        DPNotificationUtils.sendNotice(afNotice);
+    }
+
+    (new PkdSession()).markEventsAsCompleted(obj.getUNID(), EventCode.getByString("OUTD1_31"));
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}]]></script>
+    </handler>
+    <handler name="Прервать обработку файлов" id="InterruptSendSignStamp">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations.RkkOperations);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.ContentResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate)
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.services.AutoStampService);
+importClass(Packages.ru.intertrust.idocs_storage.connector._stdimpl.cm4.utils.ContentUtils);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource)
+{
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty())
+    {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var unid = obj.getUNID();
+    if (unid != null) {
+        AutoStampService.getService().stopProcessingWithoutChangeState(unid);
+        SetValue(obj, "SendSignStamp", false);
+    }
+
+    var content = obj.content().getFileItems();
+    var filesBeforeSentToSign = obj.tuning().getValues().get("filesBeforeSentToSign");
+    if (content != null && !content.isEmpty() && filesBeforeSentToSign != null && !filesBeforeSentToSign.files().isEmpty()) {
+        content.clear();
+        var iDocFiles = ContentUtils.toIDocsFiles(filesBeforeSentToSign.files());
+        for (var i = 0; i < iDocFiles.size(); i++) {
+            content.add(ContentUtils.idocsFileToDpFile(iDocFiles.get(i), obj));
+        }
+    }
+
+    obj.save();
+
+    resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}]]></script>
+    </handler>
+    <handler name="Отправить курьером" id="SendingCourier">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.java.util.HashSet);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("check_fill")) {
+        return process_checkAndFill(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    if (paramsResource.tuning().getValues().get("idsAll") == null)
+        var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    else
+        var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var corrList = new ArrayList();
+    if (paramsResource.tuning().getValues().get("SendCourierTable") != null)
+        corrList = GetValue(paramsResource, "SendCourierTable");
+    else {
+        var addrss = obj.addressees.getList();
+        for (var i = 0; i<addrss.size(); i++) {
+			if (addrss.get(i).orgAddressees().getList().size() == 0) {
+				var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendCourierTable"));
+				var corr = addrss.get(i).getOrganization();
+				newr.put("courSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("courSelectCorr").getSchema(), corr));
+				var corrDoc = null;
+				if (corr != null) corrDoc = getDocByUNIDDoc(corr.getUNID());
+				if (!"individualentrepreneur".equals(corrDoc.getItemValueString("counterparty"))) {
+					if (corrDoc == null) {
+						newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corr.getAddress().toString()));
+					} else {
+						var street= "";
+						var house = "";
+						var corp = "";
+						var build = "";
+						var office = "";
+						var city = "";
+						var locality = "";
+						var region = "";
+						var country = "";
+						var zipcode = "";
+						if (!corrDoc.getItemValueString("CAddr_Street").equals("")) {
+							street = " " + corrDoc.getItemValueString("CAddr_Street");
+						}
+						if (!corrDoc.getItemValueString("CAddr_House").equals("")) {
+							house = ", д. " + corrDoc.getItemValueString("CAddr_House");
+						}
+						if (!corrDoc.getItemValueString("CAddr_Corp").equals("")) {
+							corp = ", корп. " + corrDoc.getItemValueString("CAddr_Corp");
+						}
+						if (!corrDoc.getItemValueString("CAddr_Build").equals("")) {
+							build = ", стр. " + corrDoc.getItemValueString("CAddr_Build");
+						}
+						if (!corrDoc.getItemValueString("CAddr_Office").equals("")) {
+							office = ", офис или кв. " + corrDoc.getItemValueString("CAddr_Office");
+						}
+						if (!corrDoc.getItemValueString("CAddr_City").equals("")) {
+							city = ", г. " + corrDoc.getItemValueString("CAddr_City");
+						}
+						if (!corrDoc.getItemValueString("CAddr_Locality").equals("")) {
+							locality = ", р-н " + corrDoc.getItemValueString("CAddr_Locality");
+						}
+						if (!corrDoc.getItemValueString("jRegion").equals("")) {
+							region = ", " + corrDoc.getItemValueString("jRegion");
+						}
+						if (!corrDoc.getItemValueString("jCountry").equals("")) {
+							country = ", " + corrDoc.getItemValueString("jCountry");
+						}
+						if (!corrDoc.getItemValueString("CAddr_ZipCode").equals("")) {
+							zipcode = ", " + corrDoc.getItemValueString("CAddr_ZipCode");
+						}
+						var addr = corrDoc.getItemValueString("CAddr_StreetType") + street + house + corp + build + office + city + locality + region + country + zipcode;
+						newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), addr));
+					}
+				}
+
+				if (corrDoc != null) {
+					newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDoc.getItemValueString("CAddr_ZipCode")));
+					newr.put("courFIO", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDoc.getItemValueString("CShortName")));
+					newr.put("courPhone", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDoc.getItemValueString("CPhone")));
+				}
+				corrList.add(newr);
+			}
+			for (var j = 0; j<addrss.get(i).orgAddressees().getList().size(); j++) {
+				var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendCourierTable"));
+				var corr2 = addrss.get(i).orgAddressees().getList().get(j);
+				newr.put("courSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("courSelectCorr").getSchema(), corr2));
+				var corrDoc1 = null;
+				if (corr2 != null) corrDoc1 = getDocByUNIDDoc(corr2.getUNID());
+				if (corrDoc1 != null) {
+
+					if (corrDoc1.getItemValueString("CAddr_Street_Live").equals("") && corrDoc1.getItemValueString("CAddr_House_Live").equals("") && corrDoc1.getItemValueString("CAddr_Corp_Live").equals("") &&
+					corrDoc1.getItemValueString("CAddr_Build_Live").equals("") && corrDoc1.getItemValueString("CAddr_Office_Live").equals("") && corrDoc1.getItemValueString("CAddr_City_Live").equals("") &&
+					corrDoc1.getItemValueString("CAddr_Locality_Live").equals("") && corrDoc1.getItemValueString("CAddr_Region_Live").equals("") && corrDoc1.getItemValueString("CAddr_Country_Live").equals("") &&
+					corrDoc1.getItemValueString("CAddr_ZipCode_Live").equals("")) {
+						corr2 = addrss.get(i).getOrganization();
+						if (corr2 != null) var corrDocOrg = getDocByUNIDDoc(corr2.getUNID());
+						if (corrDocOrg != null) {
+							newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDocOrg.getItemValueString("CAddr_ZipCode")));
+
+							var street= "";
+							var house = "";
+							var corp = "";
+							var build = "";
+							var office = "";
+							var city = "";
+							var locality = "";
+							var region = "";
+							var country = "";
+							var zipcode = "";
+							if (!corrDocOrg.getItemValueString("CAddr_Street").equals("")) {
+								street = " " + corrDocOrg.getItemValueString("CAddr_Street");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_House").equals("")) {
+								house = ", д. " + corrDocOrg.getItemValueString("CAddr_House");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_Corp").equals("")) {
+								corp = ", корп. " + corrDocOrg.getItemValueString("CAddr_Corp");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_Build").equals("")) {
+								build = ", стр. " + corrDocOrg.getItemValueString("CAddr_Build");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_Office").equals("")) {
+								office = ", офис или кв. " + corrDocOrg.getItemValueString("CAddr_Office");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_City").equals("")) {
+								city = ", г. " + corrDocOrg.getItemValueString("CAddr_City");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_Locality").equals("")) {
+								locality = ", р-н " + corrDocOrg.getItemValueString("CAddr_Locality");
+							}
+							if (!corrDocOrg.getItemValueString("jRegion").equals("")) {
+								region = ", " + corrDocOrg.getItemValueString("jRegion");
+							}
+							if (!corrDocOrg.getItemValueString("jCountry").equals("")) {
+								country = ", " + corrDocOrg.getItemValueString("jCountry");
+							}
+							if (!corrDocOrg.getItemValueString("CAddr_ZipCode").equals("")) {
+								zipcode = ", " + corrDocOrg.getItemValueString("CAddr_ZipCode");
+							}
+							var addr = corrDocOrg.getItemValueString("CAddr_StreetType") + street + house + corp + build + office + city + locality + region + country + zipcode;
+							newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), addr));
+						} else {
+							newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), ""));
+							newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), ""));
+						}
+					} else {
+						newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDoc1.getItemValueString("CAddr_ZipCode_Live")));
+						var street= "";
+						var house = "";
+						var corp = "";
+						var build = "";
+						var office = "";
+						var city = "";
+						var locality = "";
+						var region = "";
+						var country = "";
+						var zipcode = "";
+						if (!corrDoc1.getItemValueString("CAddr_Street_Live").equals("")) {
+							street = " " + corrDoc1.getItemValueString("CAddr_Street_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_House_Live").equals("")) {
+							house = ", д. " + corrDoc1.getItemValueString("CAddr_House_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_Corp_Live").equals("")) {
+							corp = ", корп. " + corrDoc1.getItemValueString("CAddr_Corp_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_Build_Live").equals("")) {
+							build = ", стр. " + corrDoc1.getItemValueString("CAddr_Build_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_Office_Live").equals("")) {
+							office = ", офис или кв. " + corrDoc1.getItemValueString("CAddr_Office_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_City_Live").equals("")) {
+							city = ", г. " + corrDoc1.getItemValueString("CAddr_City_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_Locality_Live").equals("")) {
+							locality = ", р-н " + corrDoc1.getItemValueString("CAddr_Locality_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_Region_Live").equals("")) {
+							region = ", " + corrDoc1.getItemValueString("CAddr_Region_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_Country_Live").equals("")) {
+							country = ", " + corrDoc1.getItemValueString("CAddr_Country_Live");
+						}
+						if (!corrDoc1.getItemValueString("CAddr_ZipCode_Live").equals("")) {
+							zipcode = ", " + corrDoc1.getItemValueString("CAddr_ZipCode_Live");
+						}
+						var addr = corrDoc1.getItemValueString("CAddr_StreetType_Live") + street + house + corp + build + office + city + locality + region + country + zipcode;
+						newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), addr));
+					}
+
+					newr.put("courFIO", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDoc1.getItemValueString("LastName") + " " + corrDoc1.getItemValueString("FirstName") + " " + corrDoc1.getItemValueString("MiddleName")));
+					newr.put("courPhone", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), corrDoc1.getItemValueString("PhoneWork")));
+
+				}
+
+				corrList.add(newr);
+			}
+        }
+    }
+
+    var message;
+
+    message = appTNObject.composeDialog("SendCourierAction", null, null, null);
+    message.tuning().put("SendCourierTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendCourierTable"), corrList));
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "check_fill");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_checkAndFill(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var corrList = GetValue(paramsResource, "SendCourierTable");
+	var deliveryWay = GetSimpleValue(paramsResource, "deliveryWay");
+	var cour = "";
+	if (deliveryWay.equals("courCompany")) {
+		cour = GetSimpleValue(paramsResource, "courCompany");
+	} else if (deliveryWay.equals("courier")) {
+		cour = GetSimpleValue(paramsResource, "courier");
+	}
+    var purposeCorrs = new ArrayList();
+    if (corrList != null) {
+        for (var i = 0; i < corrList.size(); i++) {
+            var selected = corrList.get(i).getValues().get("courCheckBox").getValue();
+            if (selected) {
+                purposeCorrs.add(corrList.get(i));
+            }
+        }
+        if (purposeCorrs.isEmpty()) {
+            var message;
+            message = appTNObject.composeDialog("SendCorrsEmptyErrorAction", null, null, null);
+            message.tuning().put("SendCourierTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendCourierTable"), corrList));
+
+            TunableObjectHelper.putAFInstanceValue(message, "counter", "context");
+            TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+            returnResource.resource = TunableObjectREST.Resource.create(message);
+            return returnResource.resource;
+        }
+
+        process_fill_form(paramsResource, returnResource, purposeCorrs, cour, deliveryWay);
+    }
+}
+
+function process_fill_form(paramsResource, returnResource, purposeCorrs, cour, deliveryWay) {
+    var log = LoggerFactory.getLogger("handler.SendingCourier");
+    log.debug("handler.SendingCourier started");
+    log.debug("purposeCorrs size=" + purposeCorrs.size());
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var corrList = purposeCorrs;
+
+    if (corrList != null) {
+        var textSubSent = "";
+        var sendingTable = obj.sending().specified();
+        for (var i = 0; i < corrList.size(); i++) {
+            var selectedCorr = corrList.get(i).getValues().get("courSelectCorr").getValue();
+			var selectedCorrIndex = "";
+			if (corrList.get(i).getValues().get("courIndex") != null) selectedCorrIndex = corrList.get(i).getValues().get("courIndex").getValue();
+			var selectedCorrAddr = corrList.get(i).getValues().get("courAddress").getValue();
+			var selectedCorrFIO = "";
+			if (corrList.get(i).getValues().get("courFIO") != null) selectedCorrFIO = corrList.get(i).getValues().get("courFIO").getValue();
+			var selectedCorrPhone = "";
+			if (corrList.get(i).getValues().get("courPhone") != null) selectedCorrPhone = corrList.get(i).getValues().get("courPhone").getValue();
+            var dateTime = new AFDateTime();
+            var j = 0;
+            log.debug("sendingTable size=" + sendingTable.size());
+            for (j = (sendingTable.size() - 1); j >= 0; j--) {
+                var addressee = sendingTable.get(j).getAddressee();
+                log.debug("addressee=" + addressee + ", selectedCorr=" + selectedCorr);
+                if (addressee == selectedCorr)
+                    break;
+            }
+            log.debug("j=" + j);
+            var aSpf = createAddresseeSpecified(selectedCorr, deliveryWay, "На отправке", null, null, selectedCorrIndex, selectedCorrAddr, selectedCorrFIO, selectedCorrPhone, cour);
+            var sendStatus = (j != -1 && sendingTable.get(j).getSendStatus()!=null) ? sendingTable.get(j).getSendStatus() : "";
+            if (j != -1 && (sendStatus.replace(" ", "").equals("") || sendStatus.equals("Отказано"))) {
+                sendingTable.set(j, aSpf);
+                log.debug("replaced in sendingTable");
+            } else {
+                sendingTable.add(aSpf);
+                log.debug("added to sendingTable");
+            }
+            if (!"".equals(textSubSent))
+                textSubSent = textSubSent + ";";
+            textSubSent = textSubSent + selectedCorr.getUNID() + "%" + selectedCorr.toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+        }
+        obj.setCanSendByCour(true);
+
+        var historyRecordSent = obj.history().createNewRecord("onSending", AFSession.get().currentUser().getBeard().toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        if (historyRecordSent != null) {
+			if (deliveryWay.equals("courCompany")) {
+				historyRecordSent.update("Корреспонденты%" + "Курьерская компания «" + cour + "»", null, textSubSent);
+			} else if (deliveryWay.equals("courier")) {
+				historyRecordSent.update("Корреспонденты%" + "Курьер организации " + cour, null, textSubSent);
+			}
+        }
+
+		var receivers = new ArrayList();
+
+        receivers = obj.registration().getPlace().getAccessUnit().registrationSettingsRegplace().getAllDps().get("ExpeditionOrders");
+
+		if (receivers != null && receivers.size() > 0) {
+			var sender = AFSession.get().currentUser().getBeard();
+			obj.setExpedtors(receivers);
+			var doc = AFCMDomino.getDocByFullUNID(obj.getUNID());
+			DPNotificationUtils.sendNotice(doc, "OUTD1_21", true, sender, "Система", new HashSet(receivers));
+		}
+    }
+
+    obj.save();
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function createAddresseeSpecified(corr, cour, sendStatus, sent, received, index, addr, fio, phone, courFIO) {
+    var userBeard = AFSession.get().currentUser().getBeard();
+    var emailAddress = new HashSet();
+	emailAddress.add(addr);
+    return new DPMOutput.RKK.HardCopySending.AddresseeSpecified {
+    getAddressee: function() { return corr; },
+    getDisplayAddressee : function() { return corr.getOrganization() != null ?
+        (corr.getOrganization().getBeard().getUNID().equals(corr.getUNID()) ?
+			corr.getOrganizationName()
+			: (corr.getOrganizationName() + ": " + (corr).getOrigShortName()))
+        : (corr).getOrigShortName(); },
+    getEAddress: function() { return emailAddress; }, //Адрес отправки
+    getTime: function() { return sent; }, //Дата отправки
+    getDisplaySent: function() { return sent != null && sent.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(sent.getTime()) : ""; },
+    getUser: function() { return userBeard; },
+    getReceivedDate: function() { return received; }, //Дата доставки
+    getDisplayReceived: function() { return received != null && received.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(received.getTime()) : ""; },
+    getReceiver: function() {return fio != null ? fio : ""; },
+    getType: function() { return cour.equals("courCompany") ? "Курьерская компания" : (cour.equals("courier") ? "Курьер организации" : "");}, //Способ отправки
+    getComment: function() { return ""; },
+    getSendStatus: function() { return sendStatus != null ? sendStatus : ""; }, //Статус отправки/доставки
+    getExternalCode: function() { return ""; },
+    getIndex: function() { return index != null ? index : ""; },
+    getPhone: function() { return phone != null ? phone : ""; },
+    getCourier: function() { return courFIO != null ? courFIO : "";  },
+    getRuPostTypeRPO: function() { return ""; }, //Вид РПО
+    getRuPostCategoryRPO: function() { return ""; }, //Категория РПО
+    getRuPostDeliveryNotice: function() { return false; }, //С уведомлением о вручении
+    getEmail: function() { return ""; },
+    getSenderNN: function() { return ""; },
+    getFileName: function() { return ""; },
+    getExternalID: function() { return ""; },
+    getCurUserIsClerk: function() { return false; },
+    getStatusOnSending: function() { return false; },
+    getCanEditReceiver: function() { return false; },
+    getCurUserIsClerkOrExpeditor: function() { return false; },
+    getCanEditSendToType: function() { return false; },
+    getCanEditSendStatus: function() { return false; },
+    getSendStatusValues: function() { return null; },
+    getCanEditSentDate: function() { return false; },
+    getCanSeeReceivedDate: function() { return false; },
+    getCanEditExternalCode: function() { return false; },
+    getCanSeeExternalCode: function() { return false; },
+    getSendTypeAutoUpdated: function() { return null; },
+    getCanExpeditorEditRow: function() { return null; }
+    };
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function getDocByUNIDDoc(unid) {
+    var parts = AFCMDomino.ormUNIDToCMFullUNID(unid);
+    var db = AFCMDomino.getDbByReplicaID(parts[0]);
+    var doc = AFCMDomino.getDocByDocId(db, parts[1]);
+    return doc;
+}]]></script>
+    </handler>
+    <handler name="Отправка курьером" id="SendingCourierOperation">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.java.util.HashSet);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("check_fill")) {
+        return process_checkAndFill(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    if (paramsResource.tuning().getValues().get("idsAll") == null)
+        var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    else
+        var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+	var objDoc = getDocByUNIDDoc(ids.get(0));
+
+    var corrList = new ArrayList();
+	var delWay = "";
+	var cour = "";
+    if (paramsResource.tuning().getValues().get("SendCourierOperTable") != null)
+        corrList = GetValue(paramsResource, "SendCourierOperTable");
+    else {
+		var sendingTable = obj.sending().specified();
+
+		if (sendingTable!=null && sendingTable.size()>0) {
+			for (var i = 0; i<sendingTable.size(); i++) {
+				var type = sendingTable.get(i).getType();
+				var sendStatus = sendingTable.get(i).getSendStatus();
+				if ((type.equals("Курьерская компания") || type.equals("Курьер организации")) && sendStatus.equals("На отправке")) {
+					if (delWay.equals("") && cour.equals("")) {
+						delWay = sendingTable.get(i).getType().equals("Курьерская компания") ? "courCompany" : (sendingTable.get(i).getType().equals("Курьер организации") ? "courier" : "") ;
+						cour = sendingTable.get(i).getCourier()!=null ? sendingTable.get(i).getCourier() : "";
+					}
+					var newr = new AFInstanceObjectImpl(apl.getSchemaByName("SendCourierOperTable"));
+					newr.put("courSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("courSelectCorr").getSchema(), (sendingTable.get(i).getAddressee()!=null ? sendingTable.get(i).getAddressee() : "")));
+                    var addr = sendingTable.get(i).getEAddress().toString().substring(1).replace("]","");
+					newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), (addr!=null ? addr : "")));
+					newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), (sendingTable.get(i).getIndex()!=null ? sendingTable.get(i).getIndex() : "")));
+					newr.put("courFIO", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), (sendingTable.get(i).getReceiver()!=null ? sendingTable.get(i).getReceiver() : "")));
+					newr.put("courPhone", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), (sendingTable.get(i).getPhone()!=null ? sendingTable.get(i).getPhone() : "")));
+					newr.put("courCompany", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), (sendingTable.get(i).getType()!=null ? sendingTable.get(i).getType() : "")));
+					newr.put("courCourier", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), (sendingTable.get(i).getCourier()!=null ? sendingTable.get(i).getCourier() : "")));
+					newr.put("courPosition", new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), i));
+					corrList.add(newr);
+				}
+			}
+		}
+    }
+
+    var message;
+
+    message = appTNObject.composeDialog("SendCourierOperAction", null, null, null);
+    message.tuning().put("SendCourierOperTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendCourierOperTable"), corrList));
+	message.tuning().put("deliveryWay",  TuningHelper.createPropertyValue(delWay, message.tuning().getSchema().getProperty("deliveryWay")));
+	if (delWay.equals("courCompany")) {
+		message.tuning().put("courCompany",  TuningHelper.createPropertyValue(cour, message.tuning().getSchema().getProperty("courCompany")));
+	} else if (delWay.equals("courier")) {
+		message.tuning().put("courier",  TuningHelper.createPropertyValue(cour, message.tuning().getSchema().getProperty("courier")));
+	}
+    var curentDateTime = Calendar.getInstance().getTime();
+    var dDate = AFDateTime.convertFromDate(curentDateTime);
+	message.tuning().put("deliveredDate",  new AFInstanceSimpleImpl(apl.getSchemaByName("DateTime"), dDate));
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "check_fill");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_checkAndFill(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var corrList = GetValue(paramsResource, "SendCourierOperTable");
+    var purposeCorrs = new ArrayList();
+    if (corrList != null) {
+        for (var i = 0; i < corrList.size(); i++) {
+            var selected = corrList.get(i).getValues().get("courCheckBox").getValue();
+            if (selected) {
+                purposeCorrs.add(corrList.get(i));
+            }
+        }
+        if (purposeCorrs.isEmpty()) {
+            var message;
+            message = appTNObject.composeDialog("SendCorrsEmptyErrorAction", null, null, null);
+            message.tuning().put("SendCourierOperTable", new AFInstanceArrayImpl(apl.getSchemaByName("SendCourierOperTable"), corrList));
+
+            TunableObjectHelper.putAFInstanceValue(message, "counter", "context");
+            TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+            returnResource.resource = TunableObjectREST.Resource.create(message);
+            return returnResource.resource;
+        }
+
+        process_fill_form(paramsResource, returnResource, purposeCorrs);
+    }
+}
+
+function process_fill_form(paramsResource, returnResource, purposeCorrs) {
+    var log = LoggerFactory.getLogger("handler.SendingCourierOperation");
+    log.debug("handler.SendingCourierOperation started");
+    log.debug("purposeCorrs size=" + purposeCorrs.size());
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var corrList = purposeCorrs;
+
+    if (corrList != null) {
+        var textSubSent = "";
+        var sendingTable = obj.sending().specified();
+        for (var i = 0; i < corrList.size(); i++) {
+            var selectedCorr = corrList.get(i).getValues().get("courSelectCorr").getValue();
+			var selectedCorrIndex = corrList.get(i).getValues().get("courIndex").getValue();
+			var selectedCorrAddr = corrList.get(i).getValues().get("courAddress").getValue();
+			var selectedCorrFIO = corrList.get(i).getValues().get("courFIO").getValue();
+			var selectedCorrPhone = corrList.get(i).getValues().get("courPhone").getValue();
+			var selectedPosition = corrList.get(i).getValues().get("courPosition").getValue();;
+			var selectedDelWay = "";
+			if (corrList.get(i).getValues().get("courCompany") != null) selectedDelWay = corrList.get(i).getValues().get("courCompany").getValue();
+			var selectedTrack = "";
+			if (corrList.get(i).getValues().get("courTrack") != null) selectedTrack = corrList.get(i).getValues().get("courTrack").getValue();
+			var selectedCour = "";
+			if (corrList.get(i).getValues().get("courCourier") != null) selectedCour = corrList.get(i).getValues().get("courCourier").getValue();
+			var deliveredDate = GetSimpleValue(paramsResource, "deliveredDate");
+
+            var aSpf = createAddresseeSpecified(selectedCorr, selectedDelWay, "Отправлено", deliveredDate, null, selectedTrack, selectedCour, selectedCorrIndex, selectedCorrAddr, selectedCorrFIO, selectedCorrPhone);
+            var sendStatus = sendingTable.get(selectedPosition).getSendStatus();
+            if (sendStatus.equals("На отправке")) {
+                sendingTable.set(selectedPosition, aSpf);
+                log.debug("replaced in sendingTable");
+            } else {
+                sendingTable.add(aSpf);
+                log.debug("added to sendingTable");
+            }
+        }
+
+		var sendingTable = obj.sending().specified();
+		var canSendByCour = false;
+		var canChangeTrack = false;
+		if (sendingTable!=null && sendingTable.size()>0) {
+			for (var i = 0; i<sendingTable.size(); i++) {
+				var type = sendingTable.get(i).getType();
+				var sendStatus = sendingTable.get(i).getSendStatus();
+				var track = sendingTable.get(i).getExternalCode();
+				if ((type.equals("Курьерская компания") || type.equals("Курьер организации")) && sendStatus.equals("На отправке")) {
+					canSendByCour = true;
+				}
+				if (sendStatus.equals("Отправлено") && track.equals("")) {
+					canChangeTrack = true;
+				}
+			}
+		}
+        obj.setCanSendByCour(canSendByCour);
+        obj.setCanChangeTrack(true);
+    }
+
+    obj.save();
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function createAddresseeSpecified(corr, delWay, sendStatus, sent, received, track, cour, index, addr, fio, phone) {
+    var userBeard = AFSession.get().currentUser().getBeard();
+    var emailAddress = new HashSet();
+	emailAddress.add(addr);
+    return new DPMOutput.RKK.HardCopySending.AddresseeSpecified {
+    getAddressee: function() { return corr; },
+    getDisplayAddressee : function() { return corr.getOrganization() != null ?
+        (corr.getOrganization().getBeard().getUNID().equals(corr.getUNID()) ?
+			corr.getOrganizationName()
+			: (corr.getOrganizationName() + ": " + (corr).getOrigShortName()))
+        : (corr).getOrigShortName(); },
+    getEAddress: function() { return emailAddress; }, //Адрес отправки
+    getTime: function() { return sent; }, //Дата отправки
+    getDisplaySent: function() { return sent != null && sent.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(sent.getTime()) : ""; },
+    getUser: function() { return userBeard; },
+    getReceivedDate: function() { return received; }, //Дата доставки
+    getDisplayReceived: function() { return received != null && received.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(received.getTime()) : ""; },
+    getReceiver: function() {return fio != null ? fio : ""; },
+    getType: function() { return delWay != null ? delWay : "";}, //Способ отправки
+    getComment: function() { return ""; },
+    getSendStatus: function() { return sendStatus != null ? sendStatus : ""; }, //Статус отправки/доставки
+    getExternalCode: function() { return track != null ? track : ""; },
+    getIndex: function() { return index != null ? index : ""; },
+    getPhone: function() { return phone != null ? phone : ""; },
+    getCourier: function() { return cour != null ? cour : "";  },
+    getRuPostTypeRPO: function() { return ""; }, //Вид РПО
+    getRuPostCategoryRPO: function() { return ""; }, //Категория РПО
+    getRuPostDeliveryNotice: function() { return false; }, //С уведомлением о вручении
+    getEmail: function() { return ""; },
+    getSenderNN: function() { return ""; },
+    getFileName: function() { return ""; },
+    getExternalID: function() { return ""; },
+    getCurUserIsClerk: function() { return false; },
+    getStatusOnSending: function() { return false; },
+    getCanEditReceiver: function() { return false; },
+    getCurUserIsClerkOrExpeditor: function() { return false; },
+    getCanEditSendToType: function() { return false; },
+    getCanEditSendStatus: function() { return false; },
+    getSendStatusValues: function() { return null; },
+    getCanEditSentDate: function() { return false; },
+    getCanSeeReceivedDate: function() { return false; },
+    getCanEditExternalCode: function() { return false; },
+    getCanSeeExternalCode: function() { return false; },
+    getSendTypeAutoUpdated: function() { return null; },
+    getCanExpeditorEditRow: function() { return null; }
+    };
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function getDocByUNIDDoc(unid) {
+    var parts = AFCMDomino.ormUNIDToCMFullUNID(unid);
+    var db = AFCMDomino.getDbByReplicaID(parts[0]);
+    var doc = AFCMDomino.getDocByUNID(db, parts[1]);
+    return doc;
+}]]></script>
+    </handler>
+    <handler name="Ввести Трек-№" id="ChangeTrack">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.java.util.HashSet);
+importClass(Packages.ru.intertrust.cmj.dp.DPMOutput);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("check_fill")) {
+        return process_checkAndFill(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    if (paramsResource.tuning().getValues().get("idsAll") == null)
+        var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    else
+        var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var corrList = new ArrayList();
+    if (paramsResource.tuning().getValues().get("ChangeTrackTable") != null)
+        corrList = GetValue(paramsResource, "ChangeTrackTable");
+    else {
+		var sendingTable = obj.sending().specified();
+
+		if (sendingTable!=null && sendingTable.size()>0) {
+			for (var i = 0; i<sendingTable.size(); i++) {
+				var type = sendingTable.get(i).getType();
+				var sendStatus = sendingTable.get(i).getSendStatus();
+				var track = sendingTable.get(i).getExternalCode()!=null ? sendingTable.get(i).getExternalCode() : "";
+				if ((type.equals("Курьерская компания") || type.equals("Курьер организации")) && sendStatus.equals("Отправлено") && track.equals("")) {
+					var newr = new AFInstanceObjectImpl(apl.getSchemaByName("ChangeTrackTable"));
+					newr.put("courSelectCorr", new AFInstanceSimpleImpl(newr.getSchema().getProperty("courSelectCorr").getSchema(), sendingTable.get(i).getAddressee()));
+                    var addr = sendingTable.get(i).getEAddress().toString().substring(1).replace("]","");
+					newr.put("courAddress", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), addr!=null ? addr : ""));
+					newr.put("courIndex", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), sendingTable.get(i).getIndex()!=null ? sendingTable.get(i).getIndex() : ""));
+					newr.put("courFIO", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), sendingTable.get(i).getReceiver()!=null ? sendingTable.get(i).getReceiver() : ""));
+					newr.put("courPhone", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), sendingTable.get(i).getPhone()!=null ? sendingTable.get(i).getPhone() : ""));
+					newr.put("courCourier", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), sendingTable.get(i).getCourier()!=null ? sendingTable.get(i).getCourier() : ""));
+					newr.put("courTrack", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), track));
+					newr.put("courDelWay", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), sendingTable.get(i).getType()!=null ? sendingTable.get(i).getType() : ""));
+					newr.put("courStatus", new AFInstanceSimpleImpl(apl.getSchemaByName("String"), sendingTable.get(i).getSendStatus()!=null ? sendingTable.get(i).getSendStatus() : ""));
+					corrList.add(newr);
+				}
+			}
+		}
+    }
+
+    var message;
+
+    message = appTNObject.composeDialog("ChangeTrackAction", null, null, null);
+    message.tuning().put("ChangeTrackTable", new AFInstanceArrayImpl(apl.getSchemaByName("ChangeTrackTable"), corrList));
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "check_fill");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_checkAndFill(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var corrList = GetValue(paramsResource, "ChangeTrackTable");
+    var purposeCorrs = new ArrayList();
+    if (corrList != null) {
+        process_fill_form(paramsResource, returnResource, corrList);
+    }
+}
+
+function process_fill_form(paramsResource, returnResource, corrList) {
+    var log = LoggerFactory.getLogger("handler.SendingCourierOperation");
+    log.debug("handler.SendingCourierOperation started");
+    log.debug("corrList size=" + corrList.size());
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning().getValues().get("idsAll"));
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+	var needChng = false;
+    if (corrList != null) {
+        var textSubSent = "";
+		var textTrack = "";
+        var sendingTable = obj.sending().specified();
+        for (var i = 0; i < corrList.size(); i++) {
+            var selectedCorr = corrList.get(i).getValues().get("courSelectCorr").getValue();
+			var selectedCorrIndex = corrList.get(i).getValues().get("courIndex").getValue();
+			var selectedCorrAddr = corrList.get(i).getValues().get("courAddress").getValue();
+			var selectedCorrFIO = corrList.get(i).getValues().get("courFIO").getValue();
+			var selectedCorrPhone = corrList.get(i).getValues().get("courPhone").getValue();
+			var selectedDelWay = corrList.get(i).getValues().get("courDelWay").getValue();
+			var selectedTrack = "";
+			if (corrList.get(i).getValues().get("courTrack")!=null) selectedTrack = corrList.get(i).getValues().get("courTrack").getValue();
+			var selectedCour = corrList.get(i).getValues().get("courCourier").getValue();
+			var selectedStatus = corrList.get(i).getValues().get("courStatus").getValue();
+
+            var j = 0;
+            log.debug("sendingTable size=" + sendingTable.size());
+            for (j = (sendingTable.size() - 1); j >= 0; j--) {
+                var addressee = sendingTable.get(j).getAddressee();
+                log.debug("addressee=" + addressee + ", selectedCorr=" + selectedCorr);
+                if (addressee == selectedCorr) {
+					if (sendingTable.get(j).getTime()!= null) {
+						var selectedDate = sendingTable.get(j).getTime();
+					} else {
+						var selectedDate = new AFDateTime();
+					}
+					break;
+				}
+            }
+            log.debug("j=" + j);
+            var aSpf = createAddresseeSpecified(selectedCorr, selectedDelWay, selectedStatus, selectedDate, selectedDate, selectedTrack, selectedCour, selectedCorrIndex, selectedCorrAddr, selectedCorrFIO, selectedCorrPhone);
+            var sendStatus = j != -1 ? sendingTable.get(j).getSendStatus() : "";
+            if (j != -1 && sendStatus.equals("Отправлено")) {
+                sendingTable.set(j, aSpf);
+                log.debug("replaced in sendingTable");
+            } else {
+                sendingTable.add(aSpf);
+                log.debug("added to sendingTable");
+            }
+			if (!"".equals(selectedTrack)) {
+				if (!"".equals(textSubSent))
+					textSubSent = textSubSent + ";";
+				textSubSent = textSubSent + selectedCorr.getUNID() + "%" + selectedCorr.toString(SOBeard.ToStringFormat.CMDOMINO_STD);
+				if (!"".equals(textTrack))
+					textTrack = textTrack + ";";
+				textTrack = textTrack + selectedTrack;
+			}
+        }
+
+		if (!"".equals(textTrack)) needChng=true;
+
+		var sendingTable = obj.sending().specified();
+		var canChangeTrack = false;
+		if (sendingTable!=null && sendingTable.size()>0) {
+			for (var i = 0; i<sendingTable.size(); i++) {
+				var sendStatus = sendingTable.get(i).getSendStatus();
+				var track = sendingTable.get(i).getExternalCode()!=null ? sendingTable.get(i).getExternalCode() : "";
+				if (sendStatus.equals("Отправлено") && track.equals("")) {
+					canChangeTrack = true;
+				}
+			}
+		}
+        obj.setCanChangeTrack(canChangeTrack);
+
+        var historyRecordSent = obj.history().createNewRecord("chng.track", AFSession.get().currentUser().getBeard().toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+        if (historyRecordSent != null) {
+			historyRecordSent.update("Корреспондент%" + textTrack, null, textSubSent);
+        }
+    }
+	if (needChng) obj.save();
+
+    var resource = RkkResource.valueOf(obj);
+    returnResource.setResource(resource);
+    return returnResource.resource;
+}
+
+function createAddresseeSpecified(corr, delWay, sendStatus, sent, received, track, cour, index, addr, fio, phone) {
+    var userBeard = AFSession.get().currentUser().getBeard();
+    var emailAddress = new HashSet();
+	emailAddress.add(addr);
+    return new DPMOutput.RKK.HardCopySending.AddresseeSpecified {
+    getAddressee: function() { return corr; },
+    getDisplayAddressee : function() { return corr.getOrganization() != null ?
+        (corr.getOrganization().getBeard().getUNID().equals(corr.getUNID()) ?
+			corr.getOrganizationName()
+			: (corr.getOrganizationName() + ": " + (corr).getOrigShortName()))
+        : (corr).getOrigShortName(); },
+    getEAddress: function() { return emailAddress; }, //Адрес отправки
+    getTime: function() { return sent; }, //Дата отправки
+    getDisplaySent: function() { return sent != null && sent.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(sent.getTime()) : ""; },
+    getUser: function() { return userBeard; },
+    getReceivedDate: function() { return received; }, //Дата доставки
+    getDisplayReceived: function() { return received != null && received.getTime() != 0 ?
+        new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(received.getTime()) : ""; },
+    getReceiver: function() {return fio != null ? fio : ""; },
+    getType: function() { return delWay != null ? delWay : "";}, //Способ отправки
+    getComment: function() { return ""; },
+    getSendStatus: function() { return sendStatus != null ? sendStatus : ""; }, //Статус отправки/доставки
+    getExternalCode: function() { return track != null ? track : ""; },
+    getIndex: function() { return index != null ? index : ""; },
+    getPhone: function() { return phone != null ? phone : ""; },
+    getCourier: function() { return cour != null ? cour : "";  },
+    getRuPostTypeRPO: function() { return ""; }, //Вид РПО
+    getRuPostCategoryRPO: function() { return ""; }, //Категория РПО
+    getRuPostDeliveryNotice: function() { return false; }, //С уведомлением о вручении
+    getEmail: function() { return ""; },
+    getSenderNN: function() { return ""; },
+    getFileName: function() { return ""; },
+    getExternalID: function() { return ""; },
+    getCurUserIsClerk: function() { return false; },
+    getStatusOnSending: function() { return false; },
+    getCanEditReceiver: function() { return false; },
+    getCurUserIsClerkOrExpeditor: function() { return false; },
+    getCanEditSendToType: function() { return false; },
+    getCanEditSendStatus: function() { return false; },
+    getSendStatusValues: function() { return null; },
+    getCanEditSentDate: function() { return false; },
+    getCanSeeReceivedDate: function() { return false; },
+    getCanEditExternalCode: function() { return false; },
+    getCanSeeExternalCode: function() { return false; },
+    getSendTypeAutoUpdated: function() { return null; },
+    getCanExpeditorEditRow: function() { return null; }
+    };
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+]]></script>
+    </handler>
+</ui>

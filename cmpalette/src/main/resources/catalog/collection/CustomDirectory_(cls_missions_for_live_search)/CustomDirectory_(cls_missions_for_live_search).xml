@@ -1,0 +1,265 @@
+<collection name="CustomDirectory_(cls_missions_for_live_search)" replace="runtime" idField="id">
+    <prototype>
+        <![CDATA[
+SELECT id,
+       created_date,
+       Module,
+       self_1,
+       self_2,
+       self_3,
+
+       parent,
+       parent_type,
+       hasChilds,
+       allowed,
+       LevelId,
+       category_object,
+       title
+FROM (with tempCategory as (
+    SELECT cls.id                   as id,
+           null                     as parent,
+           (SELECT complex.title AS number
+            FROM clscom_tag clst
+                     left join clscom_to_tag to_tag on to_tag.tag = clst.id
+                     left join classifier_complex complex on complex.id = to_tag.classifier
+                     left join cls_typeComp typecom on typecom.id = complex.owner
+            WHERE deleted <> 1
+              and schema = 'ComplectClassifierCategoryMissions'
+              and alias = 'number'
+              and clst.id = cls.id) as number,
+           complex.title            as category
+    FROM clscom_tag cls
+             left join clscom_to_tag to_tag on to_tag.tag = cls.id
+             left join classifier_complex complex on complex.id = to_tag.classifier
+             left join cls_typeComp typecom on typecom.id = complex.owner
+    WHERE deleted <> 1
+      and schema = 'ComplectClassifierCategoryMissions'
+      and alias = 'category'),
+           tempSubSection as (
+               SELECT cls.id                                                   AS id,
+                      complex.title                                            AS subSection,
+                      (SELECT complex.title AS category
+                       FROM clscom_tag clst
+                                left join clscom_to_tag to_tag on to_tag.tag = clst.id
+                                left join classifier_complex complex on complex.id = to_tag.classifier
+                                left join cls_typeComp typecom on typecom.id = complex.owner
+                       WHERE deleted <> 1
+                         and schema = 'ComplectClassifierSubSectionMissions'
+                         and alias = 'category'
+                         and clst.id = cls.id)                                 AS subCategory,
+                      (SELECT id
+                       FROM tempCategory
+                       WHERE tempCategory.category = (SELECT complex.title AS category
+                                                      FROM clscom_tag clst
+                                                               left join clscom_to_tag to_tag on to_tag.tag = clst.id
+                                                               left join classifier_complex complex on complex.id = to_tag.classifier
+                                                               left join cls_typeComp typecom on typecom.id = complex.owner
+                                                      WHERE deleted <> 1
+                                                        and schema = 'ComplectClassifierSubSectionMissions'
+                                                        and alias = 'category'
+                                                        and clst.id = cls.id)) as parent
+               FROM clscom_tag cls
+                        left join clscom_to_tag to_tag on to_tag.tag = cls.id
+                        left join classifier_complex complex on complex.id = to_tag.classifier
+                        left join cls_typeComp typecom on typecom.id = complex.owner
+
+               WHERE deleted <> 1
+                 and schema = 'ComplectClassifierSubSectionMissions'
+                 and alias = 'subSection')
+      SELECT cls.id                                                               AS id,
+             cls.created_date                                                     AS created_date,
+             cls."module"                                                         AS Module,
+             '<id>'                                                               AS self_1,
+             ':'                                                                  AS self_2,
+             '</>'                                                                AS self_3,
+             null                                                                 AS parent,
+             cls.id_type                                                          as parent_type,
+             CAST(1 as SMALLINT)                                                  as hasChilds,
+             CAST(1 as SMALLINT)                                                  AS allowed,
+             '<id>' || cast(cls.id_type as TEXT) || cast(cls.id as TEXT) || '</>' as LevelId,
+
+             '<id>' || tempCategory.id || '</><category>' || tempCategory.number || '. ' || tempCategory.category ||
+             '</><categoryCode>' || tempCategory.number || '</><subSection>' || tempCategory.number || '. ' ||
+             tempCategory.category
+                 || '</><subSectionCode></><isSimple#Boolean>0</><allowed>1</>'      category_object,
+             tempCategory.number || '. ' || tempCategory.category                 AS title
+
+      FROM tempCategory
+               left join clscom_tag cls on cls.id = tempCategory.id
+      WHERE tempCategory.parent is null
+        and deleted <> 1
+      UNION
+      SELECT cls.id                                                               as id,
+             cls.created_date                                                     AS created_date,
+             cls."module"                                                         AS Module,
+             '<id>'                                                               AS self_1,
+             ':'                                                                  AS self_2,
+             '</>'                                                                AS self_3,
+             tempSubSection.parent                                                AS parent,
+             cls.id_type                                                          as parent_type,
+             CAST(0 as SMALLINT)                                                  as hasChilds,
+             CAST(1 as SMALLINT)                                                  AS allowed,
+             '<id>' || cast(cls.id_type as TEXT) || cast(cls.id as TEXT) || '</>' as LevelId,
+
+             '<id>' || tempSubSection.id || '</><category>' || tempCategory.number || '. ' || tempCategory.category
+                 || '</><categoryCode>' || tempCategory.number || '</><subSection>' || tempSubSection.subSection ||
+             '</><subSectionCode>' || tempSubSection.id || '</><isSimple#Boolean>0</><allowed>1</>' category_object,
+             tempSubSection.subSection                                            AS                title
+
+      FROM tempSubSection
+               left join tempCategory on tempCategory.id = tempSubSection.parent
+               left join clscom_tag cls on cls.id = tempSubSection.id
+      WHERE deleted <> 1
+     ) s
+          WHERE 1 = 1
+			::where-clause
+		]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+SELECT
+    count(1)
+FROM (with tempCategory as (
+    SELECT cls.id                   as id,
+           null                     as parent,
+           (SELECT complex.title AS number
+            FROM clscom_tag clst
+                     left join clscom_to_tag to_tag on to_tag.tag = clst.id
+                     left join classifier_complex complex on complex.id = to_tag.classifier
+                     left join cls_typeComp typecom on typecom.id = complex.owner
+            WHERE deleted <> 1
+              and schema = 'ComplectClassifierCategoryMissions'
+              and alias = 'number'
+              and clst.id = cls.id) as number,
+           complex.title            as category
+    FROM clscom_tag cls
+             left join clscom_to_tag to_tag on to_tag.tag = cls.id
+             left join classifier_complex complex on complex.id = to_tag.classifier
+             left join cls_typeComp typecom on typecom.id = complex.owner
+    WHERE deleted <> 1
+      and schema = 'ComplectClassifierCategoryMissions'
+      and alias = 'category'),
+           tempSubSection as (
+               SELECT cls.id                                                   AS id,
+                      complex.title                                            AS subSection,
+                      (SELECT complex.title AS category
+                       FROM clscom_tag clst
+                                left join clscom_to_tag to_tag on to_tag.tag = clst.id
+                                left join classifier_complex complex on complex.id = to_tag.classifier
+                                left join cls_typeComp typecom on typecom.id = complex.owner
+                       WHERE deleted <> 1
+                         and schema = 'ComplectClassifierSubSectionMissions'
+                         and alias = 'category'
+                         and clst.id = cls.id)                                 AS subCategory,
+                      (SELECT id
+                       FROM tempCategory
+                       WHERE tempCategory.category = (SELECT complex.title AS category
+                                                      FROM clscom_tag clst
+                                                               left join clscom_to_tag to_tag on to_tag.tag = clst.id
+                                                               left join classifier_complex complex on complex.id = to_tag.classifier
+                                                               left join cls_typeComp typecom on typecom.id = complex.owner
+                                                      WHERE deleted <> 1
+                                                        and schema = 'ComplectClassifierSubSectionMissions'
+                                                        and alias = 'category'
+                                                        and clst.id = cls.id)) as parent
+               FROM clscom_tag cls
+                        left join clscom_to_tag to_tag on to_tag.tag = cls.id
+                        left join classifier_complex complex on complex.id = to_tag.classifier
+                        left join cls_typeComp typecom on typecom.id = complex.owner
+
+               WHERE deleted <> 1
+                 and schema = 'ComplectClassifierSubSectionMissions'
+                 and alias = 'subSection')
+      SELECT cls.id                                                               AS id,
+             cls.created_date                                                     AS created_date,
+             cls."module"                                                         AS Module,
+             '<id>'                                                               AS self_1,
+             ':'                                                                  AS self_2,
+             '</>'                                                                AS self_3,
+             null                                                                 AS parent,
+             cls.id_type                                                          as parent_type,
+             CAST(1 as SMALLINT)                                                  as hasChilds,
+             CAST(1 as SMALLINT)                                                  AS allowed,
+             '<id>' || cast(cls.id_type as TEXT) || cast(cls.id as TEXT) || '</>' as LevelId,
+
+             '<id>' || tempCategory.id || '</><category>' || tempCategory.number || '. ' || tempCategory.category ||
+             '</><categoryCode>' || tempCategory.number || '</><subSection>' || tempCategory.number || '. ' ||
+             tempCategory.category
+                 || '</><subSectionCode></><isSimple#Boolean>0</><allowed>1</>'      category_object,
+             tempCategory.number || '. ' || tempCategory.category                 AS title
+
+      FROM tempCategory
+               left join clscom_tag cls on cls.id = tempCategory.id
+      WHERE tempCategory.parent is null
+        and deleted <> 1
+      UNION
+      SELECT cls.id                                                               as id,
+             cls.created_date                                                     AS created_date,
+             cls."module"                                                         AS Module,
+             '<id>'                                                               AS self_1,
+             ':'                                                                  AS self_2,
+             '</>'                                                                AS self_3,
+             tempSubSection.parent                                                AS parent,
+             cls.id_type                                                          as parent_type,
+             CAST(0 as SMALLINT)                                                  as hasChilds,
+             CAST(1 as SMALLINT)                                                  AS allowed,
+             '<id>' || cast(cls.id_type as TEXT) || cast(cls.id as TEXT) || '</>' as LevelId,
+
+             '<id>' || tempSubSection.id || '</><category>' || tempCategory.number || '. ' || tempCategory.category
+                 || '</><categoryCode>' || tempCategory.number || '</><subSection>' || tempSubSection.subSection ||
+             '</><subSectionCode>' || tempSubSection.id || '</><isSimple#Boolean>0</><allowed>1</>' category_object,
+             tempSubSection.subSection                                            AS                title
+
+      FROM tempSubSection
+               left join tempCategory on tempCategory.id = tempSubSection.parent
+               left join clscom_tag cls on cls.id = tempSubSection.id
+      WHERE deleted <> 1
+     ) s
+               WHERE 1 = 1
+				::where-clause
+		]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="UNID">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       id = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="title">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   title like {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="parent">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     parent = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="nullParent">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        parent is null
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[lower(title) like ('%' || lower({0}) || '%')]]>
+        </criteria>
+    </filter>
+</collection>

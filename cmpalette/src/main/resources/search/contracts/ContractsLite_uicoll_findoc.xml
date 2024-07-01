@@ -1,0 +1,98 @@
+<search-area name="ContractsLite_uicoll_findoc" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <!-- Финансовые документы-->
+    <target-domain-object type="F_DP_ContractFD">
+
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+        <!-- Заголовок -->
+        <indexed-field name="Subject" />
+        <!-- Вид родительского документа -->
+        <!-- key="finance#parentDocType" value="ParentTypeDoc%ParentDodType" -->
+        <indexed-field name="parentDocType" search-by="substring" language="">
+            <doel>HierParent.Form</doel>
+        </indexed-field>
+        <!-- key="finance#reqType" value="ReqType" -->
+        <indexed-field name="reqType">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- key="finance#parentDocNumber" value="ParentNumber" -->
+        <indexed-field name="parentDocNumber" search-by="substring" language="">
+            <script>
+                var contract = session.find(ctx.get('HierParent'));
+                var rn = contract.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = contract.get('regnumprist'); if (prist == null) prist = '';
+                var fin = contract.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>HierParent.regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- key="finance#parentDocDate" value="ParentDate" -->
+        <indexed-field name="parentDocDate">
+            <doel>HierParent.RegDate</doel>
+        </indexed-field>
+
+        <!-- Наименование товара/услуг -->
+        <indexed-field name="ServiceDescription"/>
+        <!-- Поставшик -->
+        <indexed-field name="Vendor_FIO" search-by="substring" language="">
+            <doel>Vendor.orig_shortname</doel>
+        </indexed-field>
+        <!-- Покупатель -->
+        <indexed-field name="Purchaser_FIO" search-by="substring" language="">
+            <doel>Purchaser.orig_shortname</doel>
+        </indexed-field>
+        <!-- Получатель -->
+        <indexed-field name="Receiver_FIO" search-by="substring" language="">
+            <doel>Receiver.orig_shortname</doel>
+        </indexed-field>
+        <!-- Номер документа -->
+        <indexed-field name="docNumber">
+            <doel>regnumber</doel>
+        </indexed-field>
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>regdate</doel>
+        </indexed-field>
+        <!-- Подпись -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="finDocSigner" search-by="substring" language="">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Вторая сторона -->
+        <indexed-field name="finDocParty2" search-by="substring" language="">
+            <!--doel>HierParent.Party2IdA.Orig_ShortName</doel-->
+            <script>
+                var parta = ctx.get('HierParent.Party2IdA.Orig_ShortName');
+                var partb = ctx.get('HierParent.Party2IdB.Orig_ShortName');
+                var retVal = 'не указан';
+                if (partb != null) {
+                retVal = partb;
+                }
+                else if (parta != null) {
+                retVal = parta;
+                }
+                retVal
+            </script>
+        </indexed-field>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+
+</search-area>
+    

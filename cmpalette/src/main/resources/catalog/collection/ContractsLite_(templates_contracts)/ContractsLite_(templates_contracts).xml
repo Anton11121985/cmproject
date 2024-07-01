@@ -1,0 +1,275 @@
+<collection name="ContractsLite_(templates_contracts)" replace="runtime" idField="id" >
+    <prototype>
+        <![CDATA[
+           SELECT
+  id,
+  created_date,
+  module,
+  self_1,
+  self_2,
+  self_3,
+  hasAttachments,
+  accessTypeColl,
+  templateName,
+  dogParty2,
+  subject
+FROM
+  (SELECT
+     contract_template.id,
+     rkkbase.created_date,
+     rkkbase.module  AS Module,
+     '<id>'          AS self_1,
+     ':'             AS self_2,
+     '</>'           AS self_3,
+     (SELECT
+     coalesce(max(a), cast(0 AS SMALLINT))
+      FROM (
+             SELECT
+               cast(1 AS SMALLINT) a
+             FROM f_ContentFiles_Rkk CF
+             WHERE CF.f_dp_rkkbase = rkkbase.id
+             UNION SELECT
+                     cast(1 AS SMALLINT)
+                   FROM f_ContentRichText_Rkk CRT
+                   WHERE CRT.f_dp_rkkbase = rkkbase.id
+             UNION SELECT
+                     cast(1 AS SMALLINT)
+                   FROM f_VerifyImage_Rkk VI
+                   WHERE VI.f_dp_rkk = rkk.id
+           ) t
+     )               AS hasAttachments,
+     (CASE
+	  	WHEN (SELECT count(lnfield) FROM (
+				SELECT lnfield
+				FROM DP_LNAcc_ContractRkkT dogAcc
+				JOIN dp_lnacc ON dp_lnacc.id = dogAcc.id
+				WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess' AND dogAcc.owner = contract_template.id
+				UNION
+				SELECT lnfield
+				FROM  DP_LNAccRole_ContractRkkT dogAccRole
+				JOIN dp_lnaccrole ON dp_lnaccrole.id = dogAccRole.id
+				WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess' AND dogAccRole.owner = contract_template.id
+			 ) pub) <> 0 THEN 'Доступен всем'
+	  	WHEN AVG(tmpl.isfavouritesaccess) <> 0 THEN 'Доступен выбранным'
+	  	ELSE 'Личный доступ'
+	 END)						AS accessTypeColl,
+     rkkbase.subject AS subject,
+     tmpl.name       AS templateName,
+     Coalesce((select
+         (string_agg((case when sign2signer.cmjunid is null and party2ida.cmjunid is null or contract_template.Party2IdB IS NULL AND contract_template.Party2IdA IS NULL
+         then null else ( CASE
+     WHEN contract_template.Party2Type = 1 THEN
+       '<id>' || coalesce(substring(sign2signer.cmjunid, 33, 48) || ':' || substring(sign2signer.cmjunid, 1, 32), '') ||
+       '</>'
+     ELSE
+       '<id>' ||
+       coalesce(substring(party2ida.cmjunid, 33, 48) || ':' || substring(party2ida.cmjunid, 1, 32), '')
+       || '</>'
+     END
+     || '<shortName>' ||
+     CASE
+     WHEN party2idb.orig_shortName IS NOT NULL
+     THEN party2idb.orig_shortName
+     WHEN party2ida.orig_shortName IS NOT NULL
+     THEN party2ida.orig_shortName
+     END
+     || '</>')end),';'))),'<id></><shortName><Не указан></>')
+                                                                        AS dogParty2
+   FROM
+     f_dp_contractrkktmpl contract_template
+     LEFT JOIN F_DP_RkkTemplate tmpl ON tmpl.id = contract_template.id
+     LEFT JOIN f_dp_rkk rkk ON rkk.id = contract_template.id
+     LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = contract_template.id AND rkkbase.id_type = contract_template.id_type
+     LEFT JOIN SO_Beard sign2signer ON sign2signer.id = contract_template.Sign2Signer
+     LEFT JOIN so_beard party2idb ON contract_template.Party2IdB = party2idb.id
+     LEFT JOIN SO_Beard party2ida ON contract_template.party2ida = party2ida.id
+   WHERE rkkbase.isdeleted != 1
+   group by contract_template.id,rkkbase.created_date,rkkbase.module,rkkbase.id,rkk.id,tmpl.name
+  ) s
+WHERE
+  1 = 1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(*)
+                FROM
+  (SELECT
+     contract_template.id,
+     rkkbase.created_date,
+     rkkbase.module  AS Module,
+     '<id>'          AS self_1,
+     ':'             AS self_2,
+     '</>'           AS self_3,
+     (SELECT
+     coalesce(max(a), cast(0 AS SMALLINT))
+      FROM (
+             SELECT
+               cast(1 AS SMALLINT) a
+             FROM f_ContentFiles_Rkk CF
+             WHERE CF.f_dp_rkkbase = rkkbase.id
+             UNION SELECT
+                     cast(1 AS SMALLINT)
+                   FROM f_ContentRichText_Rkk CRT
+                   WHERE CRT.f_dp_rkkbase = rkkbase.id
+             UNION SELECT
+                     cast(1 AS SMALLINT)
+                   FROM f_VerifyImage_Rkk VI
+                   WHERE VI.f_dp_rkk = rkk.id
+           ) t
+     )               AS hasAttachments,
+     (CASE
+	  	WHEN (SELECT count(lnfield) FROM (
+				SELECT lnfield
+				FROM DP_LNAcc_ContractRkkT dogAcc
+				JOIN dp_lnacc ON dp_lnacc.id = dogAcc.id
+				WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess' AND dogAcc.owner = contract_template.id
+				UNION
+				SELECT lnfield
+				FROM  DP_LNAccRole_ContractRkkT dogAccRole
+				JOIN dp_lnaccrole ON dp_lnaccrole.id = dogAccRole.id
+				WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess' AND dogAccRole.owner = contract_template.id
+			 ) pub) <> 0 THEN 'Доступен всем'
+	  	WHEN AVG(tmpl.isfavouritesaccess) <> 0 THEN 'Доступен выбранным'
+	  	ELSE 'Личный доступ'
+	 END)						AS accessTypeColl,
+
+     rkkbase.subject AS subject,
+     tmpl.name       AS templateName,
+     Coalesce((select
+         (string_agg((case when sign2signer.cmjunid is null and party2ida.cmjunid is null or contract_template.Party2IdB IS NULL AND contract_template.Party2IdA IS NULL
+         then null else ( CASE
+     WHEN contract_template.Party2Type = 1 THEN
+       '<id>' || coalesce(substring(sign2signer.cmjunid, 33, 48) || ':' || substring(sign2signer.cmjunid, 1, 32), '') ||
+       '</>'
+     ELSE
+       '<id>' ||
+       coalesce(substring(party2ida.cmjunid, 33, 48) || ':' || substring(party2ida.cmjunid, 1, 32), '')
+       || '</>'
+     END
+     || '<shortName>' ||
+     CASE
+     WHEN party2idb.orig_shortName IS NOT NULL
+     THEN party2idb.orig_shortName
+     WHEN party2ida.orig_shortName IS NOT NULL
+     THEN party2ida.orig_shortName
+     END
+     || '</>')end),';'))),'<id></><shortName><Не указан></>')
+                                                                        AS dogParty2
+   FROM
+     f_dp_contractrkktmpl contract_template
+     LEFT JOIN F_DP_RkkTemplate tmpl ON tmpl.id = contract_template.id
+     LEFT JOIN f_dp_rkk rkk ON rkk.id = contract_template.id
+     LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = contract_template.id AND rkkbase.id_type = contract_template.id_type
+     LEFT JOIN SO_Beard sign2signer ON sign2signer.id = contract_template.Sign2Signer
+     LEFT JOIN so_beard party2idb ON contract_template.Party2IdB = party2idb.id
+     LEFT JOIN SO_Beard party2ida ON contract_template.party2ida = party2ida.id
+   WHERE rkkbase.isdeleted != 1
+   group by contract_template.id,rkkbase.created_date,rkkbase.module,rkkbase.id,rkk.id,tmpl.name
+  ) s
+WHERE
+  1 = 1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	created_date < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	created_date >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	created_date LIKE {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        upper(accessTypeColl) like upper('%'||{0}||'%')
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        templateName = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        templateName ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="dogParty2">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        dogParty2 = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="dogParty2_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        dogParty2 ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        subject = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        subject ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+</collection>

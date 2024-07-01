@@ -1,0 +1,135 @@
+<search-area name="so_departments_search_uicoll" replace="runtime">
+
+    <boost-every-where>
+        <field-boost name="fullname" value="20.0"/>
+        <field-boost name="shortname" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_department">
+        <indexed-field name="shortname"/>
+
+        <indexed-field name="fullname"/>
+        <!-- GUID ССТУ-->
+        <indexed-field name="SSTUGUID"/>
+        <!-- Сайт -->
+        <indexed-field name="Telex"/>
+        <!-- ОКВЭД-->
+        <indexed-field name="OKONH"/>
+        <!-- Расчётный счёт-->
+        <indexed-field name="Account"/>
+        <!-- Название банка-->
+        <indexed-field name="Bank"/>
+        <!-- Бик банка -->
+        <indexed-field name="BIK"/>
+        <!-- Корреспондентский счет банка -->
+        <indexed-field name="AccountCorr"/>
+
+        <!-- Номенклатурный индекс -->
+        <indexed-field name="numIndex" search-by="substring">
+            <doel>so_parent_su^owner.numIndex</doel>
+        </indexed-field>
+
+        <!-- Код подразделения -->
+        <indexed-field name="depCode" search-by="substring">
+            <doel>so_parent_su^owner.code</doel>
+        </indexed-field>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <indexed-field name="depType">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("depType")</doel>
+                </filter>
+            </indexed-field>
+            <!-- Профиль рабочего времени-->
+            <indexed-field name="WTP_Name">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("WTP_Name")</doel>
+                </filter>
+            </indexed-field>
+            <!--ОКАТО -->
+            <indexed-field name="COKATO">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("COKATO")</doel>
+                </filter>
+            </indexed-field>
+            <!--Комментарий -->
+            <indexed-field name="comment">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("comment")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Dep">
+            <indexed-field name="postAddress" search-by="substring">
+                <compound-field delimiter=" ">
+                    <field-part>
+                        <doel>streettype</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>street</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>house</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>corp</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>building</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>office</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>settlement</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>city</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>locality</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>country</doel>
+                    </field-part>
+                </compound-field>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="SO_Phone_Dep">
+            <indexed-field name="phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_Email_Dep">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="SO_Fax_Dep">
+            <indexed-field name="fax"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+</search-area>

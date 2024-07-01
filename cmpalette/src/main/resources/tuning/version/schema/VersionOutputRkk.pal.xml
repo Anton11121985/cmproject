@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+	<schema name="VersionOutputRkk" extends="VersionRkk">
+		<string array="true" name="category">
+			<storage-field name="category"/>
+		</string>
+		<schema-ref ref="ProjectNumberInfoTun" name="projectNumber"/>
+		<schema-ref ref="SignatureInfoTun" name="signature"/>
+		<schema-ref ref="OrganizationTun" array="true" name="correspondent"/>
+		<string name="comment"/>
+		<string name="signLabel" temporal="true">
+			<calc-values>
+				<script event="open" lang="SPEL"><![CDATA["Подписант:"]]></script>
+			</calc-values>
+		</string>
+		<boolean name="allowManualHuman">
+			<storage-field name="allowManualHuman"/>
+		</boolean>
+		<actor name="executor" array="true"/>
+		<boolean name="hasMultipleSigners" system="true" temporal="true">
+			<calc-values>
+				<script event="open">
+					<![CDATA[signature != null && !('STD'.equals(signature.signingMode))]]>
+				</script>
+			</calc-values>
+		</boolean>
+		<boolean name="addedLockerLinks" system="true" temporal="true">
+			<calc-values>
+				<script event="open">
+					<![CDATA[#this.hasMultipleSigners &&  T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).addLockerSignatureLinkImpl(#this, 'signature.signers', 'lockerSignatureID', T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.version.VersionApplication)), #this.id)]]>
+				</script>
+			</calc-values>
+		</boolean>
+		<boolean name="corrsByDistribList">
+			<storage-field name="corrsByDistribList"/>
+		</boolean>
+		<actor array="true" name="advSigner"/>
+	</schema>
+</schemas>

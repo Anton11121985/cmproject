@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="DocumentLink">
+    <string name="tnUnid"/>
+    <string name="name">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[tnUnid == null ? null :{
+        #document = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(tnUnid),
+        #parent = (#document instanceof T(ru.intertrust.cmj.dp.DPM$Entity$HasParents) ? #document?.parents()?.getParent() : null),
+        #grandparent = (#parent instanceof T(ru.intertrust.cmj.dp.DPM$Entity$HasParents) ? #parent?.parents()?.getParent() : null),
+        (#document instanceof T(ru.intertrust.cmj.dp.DPMInternal.RKK) ?
+        (#document?.getType()+' № '+(#document?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        #document instanceof T(ru.intertrust.cmj.dp.DPMContracts.RKK) ?
+        ('документ № '+(#document?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        #document instanceof T(ru.intertrust.cmj.dp.DPMContracts.Addagr) ?
+        ('доп. соглашение № '+(#document?.registrationSimple()?.number?:'б/н')
+        +' к документу № '+(#parent?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        (#document?.getType()+' № '+(#document?.registrationSimple()?.number?:'б/н')
+        +(#parent instanceof T(ru.intertrust.cmj.dp.DPMContracts.RKK) ?
+        ('к документу № '+(#document?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        (' к доп. соглашению № '+(#parent?.registrationSimple()?.number?:'б/н')
+        +' к документу № '+(#grandparent?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')))))
+        +' от '+(T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate((#grandparent?:#parent?:#document)?.registration?.date)?:'б/д')
+        }[3]]]></script>
+      </calc-values>
+    </string>
+    <date name="deadline">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[tnUnid == null ? null : {
+        #document = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(tnUnid),
+        #document instanceof T(ru.intertrust.cmj.dp.DPMInternal.RKK) ? null :
+        T(ru.intertrust.cmj.af.misc.AFDate).fromJavaDate(
+          (#document instanceof T(ru.intertrust.cmj.dp.DPMContracts.RKK) || #document instanceof T(ru.intertrust.cmj.dp.DPMContracts.Addagr))?
+          #document.getFinishDate() : #document?.parents()?.getParent()?.getFinishDate(), false)
+        }[1]]]></script>
+      </calc-values>
+    </date>
+  </schema>
+</schemas>

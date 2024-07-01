@@ -1,0 +1,190 @@
+<search-area name="ContractsLite_uicoll_rkk" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="20.0"/>
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <!-- Договора -->
+    <target-domain-object type="F_DP_ContractRkk">
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <indexed-field name="Comment" />
+        <!-- Заголовок -->
+        <indexed-field name="Subject" />
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate"/>
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring" language="">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Место регистрации -->
+        <indexed-field name="Registration" search-by="substring" language="">
+            <script>
+                var code = ctx.get('RegCode.orig_shortname');
+                if (code == null) code;
+                var reg = ctx.get('RegRegistrator.orig_shortname');
+                if (reg != null) code += ' (' + reg + ')';
+                code;
+            </script>
+            <filter>
+                <doel>RegCode.orig_shortname:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Подпись (Основной документ)-->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="signer" search-by="substring" language="">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Состояние договора -->
+        <indexed-field name="contractStatus">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Тип договора -->
+        <indexed-field name="contractType">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- Состояние договора -->
+        <indexed-field name="DSt">
+            <doel>StatusDog</doel>
+        </indexed-field>
+        <!-- Дата начала работ -->
+        <indexed-field name="beginDate">
+            <doel>JobStartDate</doel>
+        </indexed-field>
+        <!-- Дата завершения -->
+        <indexed-field name="finishDate">
+            <doel>FinishDate</doel>
+        </indexed-field>
+        <!-- Подпись (1-я сторона) -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="signing1" search-by="substring" language="">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тип валюты -->
+        <indexed-field name="currencyType"/>
+
+        <!-- 1-я сторона -->
+        <indexed-field name="COurName" search-by="substring" language="">
+            <doel>Party1Id.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- 2-я сторона -->
+        <indexed-field name="CFullName" search-by="substring" language="">
+            <doel>Party2IdA.Orig_ShortName</doel>
+        </indexed-field>
+
+        <!-- Учетный номер -->
+        <indexed-field name="RNumber_Full" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt');
+                if (rn == null) rn = '';
+                var prist = ctx.get('regnumprist');
+                if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin');
+                if (fin == null) fin = '';
+                prist + rn + fin</script>
+        </indexed-field>
+        <!-- номер договора -->
+        <indexed-field name="appnum">
+            <doel>AdditionalNumber</doel>
+        </indexed-field>
+        <!-- Дата учета (регистрации) -->
+        <indexed-field name="rdate">
+            <doel>RegDate</doel>
+        </indexed-field>
+        <!-- Дата заключения -->
+        <indexed-field name="DStDate">
+            <doel>ConcludeDate</doel>
+        </indexed-field>
+
+        <!-- Другие стороны -->
+        <linked-domain-object type="F_DP_ContractRkk_PtOthIdA">
+            <indexed-field name="ExtPersonNames" search-by="substring" language="">
+                <doel>PartyOtherIdA.Orig_ShortName</doel>
+            </indexed-field>
+            <indexed-field name="OrgNames">
+                <doel>PartyOtherIdA.OrgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Сумма -->
+        <indexed-field name="sum">
+            <doel>TotalValue</doel>
+        </indexed-field>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Ответственные -->
+        <linked-domain-object type="F_DP_ContractRkk_Resp">
+            <indexed-field name="otv" search-by="substring" language="">
+                <doel>Responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подготовили -->
+        <linked-domain-object type="F_DP_ContractRkk_PrepBy">
+            <indexed-field name="Executor" search-by="substring" language="">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <indexed-field name="DepResp" search-by="substring" language="">
+            <script>
+                var PreparedByUnit = ctx.get('preparedbyunit');
+                if(PreparedByUnit != null){
+                var collectionName = "ContractsLite_(GetSoBeardObject)";
+                var filter = session.createFilter();
+                filter.add("cmjunid", PreparedByUnit);
+                var idList = session.find(collectionName, filter);
+                if(idList.size() > 0) {
+                var beardObject = session.find(idList.get(0));
+                if(beardObject != null){
+                var origName = beardObject.get('orig_shortname');
+                ctx.setResult(origName);
+                } else {
+                ctx.setResult(null);
+                }
+                } else {
+                ctx.setResult(null);
+                }
+                }else{
+                ctx.setResult(null);
+                }
+
+            </script>
+            <filter>
+                <doel>preparedbyunit:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+    </target-domain-object>
+
+</search-area>

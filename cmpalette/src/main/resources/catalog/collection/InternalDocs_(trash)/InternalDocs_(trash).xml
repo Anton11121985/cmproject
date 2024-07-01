@@ -1,0 +1,589 @@
+<collection name="InternalDocs_(trash)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    hasGriff,
+    hasAttachments,
+    deletedPerson,
+    deletedDate,
+    reqType,
+    objectType,
+    regDate,
+    createdName,
+    executorName
+FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rkkbase.created_date                                   AS regDate,
+             rkkbase.deletedate                                     AS deletedDate,
+             'РКК'                                                  AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+
+         FROM
+             f_dp_intrkk internalrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             resbase.id                                             AS id,
+             resbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             resbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             resRkk.date                                            AS regDate,
+             resbase.deletedate                                     AS deletedDate,
+             'Резолюция'                                            AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = resbase.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+             COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+         FROM
+             F_DP_Resolution resRkk
+                 LEFT JOIN f_dp_rkk rkk ON rkk.id = resRkk.id
+                 LEFT JOIN F_DP_ResltnBase resbase ON resbase.id = resRkk.id
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resRkk.HierRoot
+         WHERE resbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rep.id                                                 AS id,
+             rep.created_date                                       AS created_date,
+             rkkbase.type                                           AS reqType,
+             rep.module                                             AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rep.created_date                                       AS regDate,
+             rep.deletedate                                         AS deletedDate,
+             'Исполнение'                                           AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rep.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+         FROM
+             F_DP_Report rep
+                 LEFT JOIN F_DP_Rkk rkk ON rkk.id = rep.HierRoot
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 JOIN f_dp_rkkbase docBase ON docBase.id = rep.HierRoot
+         WHERE rep.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rkkbase.id                                                 AS id,
+             rkkbase.created_date                                       AS created_date,
+             rkkbase.type                                               AS reqType,
+             rkkbase.module                                             AS Module,
+             '<id>'                                                     AS self_1,
+             ':'                                                        AS self_2,
+             '</>'                                                      AS self_3,
+             rkk.regdate                                                AS regDate,
+             rkkbase.deletedate                                         AS deletedDate,
+             'Шаблон РКК'                                               AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+         FROM
+             F_dp_intrkkt rkkT
+                 LEFT JOIN f_dp_rkk rkk ON rkk.id = rkkT.id
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+     ) as s
+     WHERE 1=1
+        ::where-clause
+     ORDER BY regDate
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(1)
+FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rkkbase.created_date                                   AS regDate,
+             rkkbase.deletedate                                     AS deletedDate,
+             'РКК'                                                  AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+
+         FROM
+             f_dp_intrkk internalrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             resbase.id                                             AS id,
+             resbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             resbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             resRkk.date                                            AS regDate,
+             resbase.deletedate                                     AS deletedDate,
+             'Резолюция'                                            AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = resbase.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+         FROM
+             F_DP_Resolution resRkk
+                 LEFT JOIN f_dp_rkk rkk ON rkk.id = resRkk.id
+                 LEFT JOIN F_DP_ResltnBase resbase ON resbase.id = resRkk.id
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resRkk.HierRoot
+         WHERE resbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rep.id                                                 AS id,
+             rep.created_date                                       AS created_date,
+             rkkbase.type                                           AS reqType,
+             rep.module                                             AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rep.created_date                                       AS regDate,
+             rep.deletedate                                         AS deletedDate,
+             'Исполнение'                                           AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rep.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName
+         FROM
+             F_DP_Report rep
+                 LEFT JOIN F_DP_Rkk rkk ON rkk.id = rep.HierRoot
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 JOIN f_dp_rkkbase docBase ON docBase.id = rep.HierRoot
+         WHERE rep.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rkkbase.id                                                 AS id,
+             rkkbase.created_date                                       AS created_date,
+             rkkbase.type                                               AS reqType,
+             rkkbase.module                                             AS Module,
+             '<id>'                                                     AS self_1,
+             ':'                                                        AS self_2,
+             '</>'                                                      AS self_3,
+             rkk.regdate                                                AS regDate,
+             rkkbase.deletedate                                         AS deletedDate,
+             'Шаблон РКК'                                               AS objectType,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+              (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdName,
+
+              COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName,
+         FROM
+             F_dp_intrkkt rkkT
+                 LEFT JOIN f_dp_rkk rkk ON rkk.id = rkkT.id
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+     ) as s
+    WHERE 1=1
+        ::where-clause
+]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedPerson">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        deletedPerson = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedPerson_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       deletedPerson ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="createdName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        createdName = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="createdName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       createdName ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (deletedDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(deletedDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(deletedDate as date) >= cast({0} as date) and cast(deletedDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="objectType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        objectType = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(regDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (regDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(regDate as date) >= cast({0} as date) and cast(regDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                executorName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,68 @@
+<collection name="DTS_(vw_cmj_contracts_01)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+                SELECT
+                    id,
+                    Module,
+                    created_date,
+                    self_1,
+                    self_2,
+                    self_3,
+                    reqType,
+                    deloModuleName
+                FROM
+                    (SELECT
+                        kvid.id                 AS id,
+                        kvid.Module             AS Module,
+                        kvid.created_date       AS created_date,
+                        '<id>'                  AS self_1,
+                        '-TN:'                  AS self_2,
+                        '</>'                   AS self_3,
+                        kvid.DocType            AS reqType,
+                        ss.NAME                 AS deloModuleName,
+                        ss.Alias                AS Alias
+                    FROM Kvid_DocTypeSetting kvid
+                    left join SS_ModuleType ss on ss.id = kvid.DeloModuleType
+                    WHERE
+                    kvid.DeleteWho is null and kvid.DeleteDate is null and ss.Alias = 'ContractsLite') s
+                WHERE
+                1 = 1
+                ::where-clause
+            ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deloModuleName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    deloModuleName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deloModuleName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    deloModuleName iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,868 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <form schema-ref="RkkResourceDTR" showtabs="true" projection="default" id="RkkResourceDTRForm">
+    <meta>
+      <category name="Система\Делопроизводство\Реестр передачи документов"/>
+    </meta>
+    <properties>
+      <hide condition-union="AND">
+        <negative-condition-ref ref="edit"/>
+        <negative-condition-ref ref="read"/>
+      </hide>
+    </properties>
+    <appearance widget="tabs"/>
+    <component>
+      <button name="${ui.form.RkkResourceDTRForm.button.Восстановить.name:Восстановить}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="CanRestore"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceDTRForm.button.Восстановить.hintPopUp:Восстановить}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#restore.from.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.RkkResourceDTRForm.button.На ознакомление.name:На ознакомление}">
+        <properties>
+          <hide>
+            <condition>true</condition>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceDTRForm.button.На ознакомление.hintPopUp:На ознакомление}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#review.start"/>
+        </action>
+      </button>
+      <button attribute-ref="$canRegisterManual" name="${ui.form.RkkResourceProductRegistryForm.button.canRegisterManual.name:Вручную}">
+        <properties>
+          <hide condition-union="AND">
+            <condition>true</condition>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceDTRForm.button.canRegisterManual.hintPopUp:№ вручную}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#register.manual"/>
+        </action>
+      </button>
+      <button attribute-ref="$canRegister" name="${ui.form.RkkResourceDTRForm.button.canRegister.name:По счетчику}">
+        <properties>
+          <hide>
+            <condition>true</condition>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceDTRForm.button.canRegister.hintPopUp:Регистрация}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#register"/>
+        </action>
+      </button>
+      <button name="${ui.form.RkkResourceDTRForm.button.Удалить.name:Удалить}">
+        <properties>
+          <hide>
+            <negative-condition-ref ref="RkkResourceDTR_canDelete"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceDTRForm.button.Удалить.hintPopUp:Удалить}</hint-pop-up>
+        <action position="30">
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+
+      <section id="Header">
+        <component>
+          <section id="row1" group="true">
+            <appearance>
+              <alt-appearancies>
+                <alt-appearance>
+                  <appearance-ref ref="horizontalSection"/>
+                  <enable condition-union="AND">
+                    <condition>true</condition>
+                  </enable>
+                </alt-appearance>
+              </alt-appearancies>
+            </appearance>
+            <component>
+              <field attribute-ref="showIdent">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal" align="left">
+                  <label-style field-unit="symbol" field-width="50"/>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+              </field>
+              <section id="row1col2" group="true">
+                <component>
+                  <field attribute-ref="state">
+                    <appearance align="right">
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                    </appearance>
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <directories>
+                      <directory-ref ref="DTRState"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="deletedLabel">
+                    <appearance align="right">
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                    </appearance>
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide>
+                        <negative-condition-ref ref="RkkResourceDTR_isDeleted"/>
+                      </hide>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+          <section id="row2" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <section id="col21" group="true">
+                <appearance field-layout="vertical"/>
+                <component>
+                  <field attribute-ref="showRegInfo">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="Registrated_RKK"/>
+                      </hide>
+                    </properties>
+                    <appearance location="subform" importance="normal" align="left"/>
+                  </field>
+                  <field attribute-ref="createdate">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <condition-ref ref="Registrated_RKK"/>
+                      </hide>
+                    </properties>
+                    <appearance>
+                      <field-style space-for-empty-name="true"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="sender" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.sender.name:Отправитель:}">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left"/>
+                  </field>
+                  <field attribute-ref="registration.place" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.dep.name:Подразделение:}" recalc="true">
+                    <properties>
+                      <!--<read-only>
+                        <condition>true</condition>
+                      </read-only>-->
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="RkkResourceDTR_canEditSenderDep"/>
+                      </hide>
+                      <require>
+                        <condition-ref ref="edit"/>
+                      </require>
+                    </properties>
+                    <appearance align="left">
+                      <field-style>
+                        <value-style>
+                          <style id="tunBold"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <directories>
+                      <directory-select-value attribute-ref="senderRegPlaces" name="Подразделение"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="senderDepHierarchy" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.dep.name:Подразделение:}">
+                    <appearance multiline="true">
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                      <hide>
+                        <condition-ref ref="RkkResourceDTR_canEditSenderDep"/>
+                      </hide>
+                    </properties>
+                  </field>
+                  <field attribute-ref="sendingDateTime">
+                    <properties>
+                      <hide>
+                        <condition>true</condition>
+                      </hide>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                      <field-style space-for-empty-name="true"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="col22" group="true">
+                <appearance field-layout="vertical"/>
+                <component>
+                  <field attribute-ref="receivingDateTime" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.receivingDateTime.name:Получено:}">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                      <field-style space-for-empty-name="true"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="receiver" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.receiver.name:Получатель:}">
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                  <field attribute-ref="receiverDep" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.dep.name:Подразделение:}" recalc="true">
+                    <properties>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                        <condition-ref ref="RkkResourceDTR_canEditSenderDep"/>
+                      </require>
+                      <hide condition-union="OR">
+                        <negative-condition-ref ref="edit"/>
+                        <negative-condition-ref ref="RkkResourceDTR_canEditSenderDep"/>
+                      </hide>
+                    </properties>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBold"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                    <directories limit-livesearch="sys-current">
+                      <directory-ref ref="CURRENT_SYS_DEP"/>
+                      <directory-ref ref="CURRENT_SYS_DEP_HIER"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="receiverDepHierarchy" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.dep.name:Подразделение:}">
+                    <appearance multiline="true">
+                      <label-style>
+                        <style id="tunBold"/>
+                      </label-style>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                      <hide condition-union="AND">
+                        <condition-ref ref="edit"/>
+                        <condition-ref ref="RkkResourceDTR_canEditSenderDep"/>
+                      </hide>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="RootMenu">
+        <component>
+          <button name="${ui.form.RkkResourceDTRForm.button.Скрыть кнопку Отменить.name:Скрыть кнопку Отменить}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <action>
+              <system name="CANCEL"/>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.Скрыть кнопку Закрыть.name:Скрыть кнопку Закрыть}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+                <negative-condition-ref ref="edit"/>
+              </hide>
+            </properties>
+            <action>
+              <system name="CLOSE"/>
+            </action>
+          </button>
+          <!--<button name="${ui.form.RkkResourceDTRForm.button.Отменить.name:Отменить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_editTransferred"/>
+              </hide>
+            </properties>
+            <action>
+              <system name="cancel"/>
+            </action>
+          </button> -->
+          <button name="${ui.form.RkkResourceDTRForm.button.Save.name:Скрыть кнопку Сохранить}">
+            <properties>
+              <hide>
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <action>
+              <system name="SAVE"/>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.SavePost.name:Сохранить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="isNewEdit"/>
+              </hide>
+            </properties>
+            <action position="9">
+              <custom>
+                <save/>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.SavePut.name:Сохранить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_editIsNotNewNotTransferred"/>
+              </hide>
+            </properties>
+            <action position="9">
+              <custom>
+                <save-existing/>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.ReturnToReadMode.name:Сохранить}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_editTransferred"/>
+              </hide>
+            </properties>
+            <action position="9">
+              <custom>
+                <operation save-context="false">
+                  <handler-ref ref="DTR_ReturnToReadMode"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <!--<button name="${ui.form.RkkResourceDTRForm.button.AddEntry.name:Добавить запись}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="RkkResourceDTR_canAddEntryToRegistry"/>
+                <negative-condition-ref ref="edit"/>
+              </hide>
+            </properties>
+            <icon code="90"/>
+            <action position="11">
+              <custom>
+                <operation save-context="true">
+                  <handler-ref ref="DTR_AddEntries"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.AddEntry.name:Добавить запись}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="RkkResourceDTR_canAddEntryToRegistry"/>
+                <negative-condition-ref ref="read"/>
+              </hide>
+            </properties>
+            <icon code="90"/>
+            <action position="11">
+              <custom>
+                <operation>
+                  <handler-ref ref="DTR_AddEntries"/>
+                </operation>
+              </custom>
+            </action>
+          </button>-->
+          <button name="${ui.form.RkkResourceDTRForm.button.SendToRegistry.name:Передать реестр}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_canSendRegistry"/>
+              </hide>
+            </properties>
+            <icon code="108"/>
+            <action position="12">
+              <custom>
+                <operation save-context="true">
+                  <handler-ref ref="DTR_SendToRegistry"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.RkkResourceDTRForm.button.ReceiveDocs.name:Получить документы}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_canReceive"/>
+              </hide>
+            </properties>
+            <icon code="02"/>
+            <action position="11">
+              <system name="EDIT"/>
+            </action>
+          </button>
+          <!--<button name="${ui.form.RkkResourceDTRForm.button.ReceiveDocs.name2:Получить документы (диалог)}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_canReceive"/>
+              </hide>
+            </properties>
+            <icon code="02"/>
+            <action position="12">
+              <custom>
+                <operation>
+                  <handler-ref ref="DTR_ReceiveDocuments"/>
+                </operation>
+              </custom>
+            </action>
+          </button>-->
+          <button name="${ui.form.RkkResourceDTRForm.button.FinishReceiving.name:Завершить получение}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="RkkResourceDTR_canFinishReceiving"/>
+              </hide>
+            </properties>
+            <icon code="82"/>
+            <action position="12">
+              <custom>
+                <operation save-context="false">
+                  <handler-ref ref="DTR_FinishReceiving"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+
+          <section id="CREATE" name="${ui.form.RkkResourceDTRForm.section.RootMenu.section.Create.name:Создать}">
+            <appearance>
+              <action>
+                <system name="CREATE"/>
+              </action>
+            </appearance>
+            <properties>
+              <hide>
+                <negative-condition-ref ref="read"/>
+              </hide>
+            </properties>
+            <component>
+              <button name="${ui.form.RkkResourceDTRForm.section.RootMenu.section.Create.button.HideSystemCreate.name:Скрыть системную кнопку Создать}">
+                <properties>
+                  <hide>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+                <action>
+                  <system name="CREATE_DOCUMENT"/>
+                </action>
+              </button>
+              <button name="${ui.form.RkkResourceDTRForm.section.RootMenu.section.Create.button.registry.name:Реестр передачи документов}">
+                <action position="13">
+                  <custom>
+                    <operation>
+                      <handler-ref ref="DTR_CreateRegistry"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+          </section>
+          <button name="${ui.form.RkkResourceDTRForm.button.Удалить.name:Удалить}">
+            <properties>
+              <hide>
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <hint-pop-up>${ui.form.RkkResourceDTRForm.button.Удалить.hintPopUp:Удалить}</hint-pop-up>
+            <action position="30">
+              <system name="DELETE"/>
+            </action>
+          </button>
+        </component>
+      </section>
+      <section id="Documents" name="${ui.form.RkkResourceDTRForm.section.Attributes.name:Документы}">
+        <component>
+          <field attribute-ref="documents" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.documents.name:}" recalc="true">
+            <appearance location="table" open-mode="EmbeddedView" digest-mode="EmbeddedView" importance="normal" clickable="true" widget="EmbeddedView"/>
+          </field>
+          <section id="total" group="true">
+            <properties>
+              <read-only>
+                <condition>true</condition>
+              </read-only>
+            </properties>
+            <appearance field-layout="horizontal"/>
+            <component>
+              <section id="totalLeft" group="true">
+                <appearance>
+                  <label-style width="10" unit="symbol"/>
+                </appearance>
+                <component>
+                  <field attribute-ref="totalLabel">
+                    <appearance>
+                      <label-style field-width="10" field-unit="symbol">
+                        <style id="tunBold"/>
+                        <style id="tunBlue"/>
+                      </label-style>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+              <section id="totalRight" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="totalCount" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.totalCount.name:Всего в реестре:}">
+                    <appearance align="left">
+                      <label-style field-unit="symbol" field-width="8"/>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                      <hide>
+                        <negative-condition-ref ref="RkkResourceDTR_isProject"/>
+                      </hide>
+                    </properties>
+                  </field>
+                  <field attribute-ref="totalSent" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.totalSent.name:Всего в реестре:}">
+                    <appearance align="left">
+                      <label-style field-unit="symbol" field-width="8"/>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                      <hide>
+                        <condition-ref ref="RkkResourceDTR_isProject"/>
+                      </hide>
+                    </properties>
+                  </field>
+                  <field attribute-ref="totalReceived" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.totalReceived.name:Получено:}">
+                    <appearance align="left">
+                      <label-style field-unit="symbol" field-width="8"/>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                  <field attribute-ref="totalNotReceived" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.totalNotReceived.name:Не получено:}">
+                    <appearance align="left">
+                      <label-style field-unit="symbol" field-width="8"/>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                  <field attribute-ref="totalReceivedByFact" name="${ui.form.RkkResourceDTRForm.section.Attributes.fields.totalReceivedByFact.name:Получено по факту:}">
+                    <appearance align="left">
+                      <label-style field-unit="symbol" field-width="8"/>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+          <!-- Добавление документов в Реестр -->
+          <field attribute-ref="LabelAddDocToDTR">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="OR">
+                <negative-condition-ref ref="edit"/>
+                <negative-condition-ref ref="RkkResourceDTR_canAddEntryToRegistry"/>
+              </hide>
+            </properties>
+            <appearance align="left" importance="normal">
+              <label-style field-unit="symbol">
+                <style id="tunBgGrayBlue"/>
+                <style id="tunCaption"/>
+              </label-style>
+            </appearance>
+          </field>
+          <section id="AddDocToDTR" group="true">
+            <properties>
+              <hide condition-union="OR">
+                <negative-condition-ref ref="edit"/>
+                <negative-condition-ref ref="RkkResourceDTR_canAddEntryToRegistry"/>
+              </hide>
+            </properties>
+            <appearance field-layout="vertical">
+              <label-style width="34" unit="symbol"/>
+            </appearance>
+            <component>
+              <section id="rowAddDocByBarcode" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field recalc="true" autofocus="true" attribute-ref="addDocByBarcode" name="${ui.form.RkkResourceDTRForm.AddDocToDTR.addDocByBarcode.name:Добавить документ по штрихкоду/QR-коду:}">
+                    <appearance>
+                      <label-style field-width="40" field-unit="symbol"/>
+                    </appearance>
+                  </field>
+                  <!-- Добавить документ из системы-->
+                  <!--<button name="${ui.form.RkkResourceDTRForm.Добавить документ из системы.name:Добавить документ из системы}">
+                    <appearance>
+                      <label-style width="17" unit="symbol">
+                        <style id="tunBtnHeader"/>
+                      </label-style>
+                    </appearance>
+                    <action>
+                      <custom>
+                        <change-subobject schema-ref="SelectTransmittedDocResourceArray"/>
+                      </custom>
+                    </action>
+                  </button>
+                  <field attribute-ref="transmittedDoc" recalc="true">
+                    <properties>
+                      <hide>
+                        <condition>true</condition>
+                      </hide>
+                    </properties>
+                  </field>-->
+                  <!-- Добавить документ вручную через диалог выбора связанного-->
+                  <button attribute-ref="addLinkedDoc" name="${ui.form.RkkResourceDTRForm.section.Attributes.button.addLinkedDoc.name:Добавить документ из системы}">
+                    <action>
+                      <custom>
+                        <update-linked-doc schema-ref="LinkedDocSelectionParamsDTR"/>
+                      </custom>
+                    </action>
+                  </button>
+                  <field attribute-ref="addLinkedDoc" recalc="true">
+                    <properties>
+                      <hide>
+                        <condition>true</condition>
+                      </hide>
+                    </properties>
+                  </field>
+                  <!-- Добавить документ вручную -->
+                  <field attribute-ref="addManuallyDocResource" recalc="true">
+                    <appearance location="subform" align="left" importance="normal">
+                      <label-style field-width="2" field-unit="symbol"/>
+                      <field-style group="true"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="rowNotFoundLabel" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="emptyLabel">
+                    <appearance align="left">
+                      <label-style field-width="40" field-unit="symbol"/>
+                    </appearance>
+                    <properties>
+                      <read-only>
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                  <field attribute-ref="notFoundDocByBarcodeLabel">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="RkkResourceDTR_notFoundDocByBarcode"/>
+                  </hide>
+                </properties>
+                <appearance align="left">
+                  <label-style>
+                    <style id="tunRed"/>
+                  </label-style>
+                </appearance>
+              </field>
+                </component>
+              </section>
+            </component>
+          </section>
+
+          <!-- Фиксация получения документов -->
+          <field attribute-ref="LabelFixingReceiptDoc">
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+              <hide condition-union="OR">
+                <negative-condition-ref ref="RkkResourceDTR_canAddEntryForReceive"/>
+              </hide>
+            </properties>
+            <appearance align="left" importance="normal">
+              <label-style field-unit="symbol">
+                <style id="tunBgGrayBlue"/>
+                <style id="tunCaption"/>
+              </label-style>
+            </appearance>
+          </field>
+          <section id="FixingReceiptDoc" group="true">
+            <properties>
+              <hide condition-union="OR">
+                <negative-condition-ref ref="RkkResourceDTR_canAddEntryForReceive"/>
+              </hide>
+            </properties>
+            <appearance field-layout="horizontal">
+              <label-style width="34" unit="symbol"/>
+            </appearance>
+            <component>
+              <!-- Получить документ по штрихкоду/QR-коду -->
+              <field recalc="true" autofocus="true" attribute-ref="getDocByBarcode" name="${ui.form.RkkResourceDTRForm.FixingReceiptDoc.getDocByBarcode.name:Получить документ по штрихкоду/QR-коду:}">
+                <appearance align="left">
+                  <label-style field-width="40" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="notGetDocByBarcodeLabel">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="RkkResourceDTR_notGetDocByBarcode"/>
+                  </hide>
+                </properties>
+                <appearance align="center">
+                  <label-style>
+                    <style id="tunRed"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <!-- Выбрать документы из Реестра -->
+              <button name="${ui.form.RkkResourceDTRForm.Выбрать документы из Реестра.name:Выбрать документы из Реестра}">
+                <action>
+                  <custom>
+                    <change-subobject schema-ref="DTRReceiveDocsSelectDocFromRegister"/>
+                  </custom>
+                </action>
+              </button>
+              <field attribute-ref="entriesForSelect" recalc="true">
+                <properties>
+                  <hide>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+              </field>
+              <!--<field attribute-ref="receiveDocsSelectDocFromRegister" recalc="true">
+                <appearance location="subform" align="right" importance="normal">
+                  <label-style width="2" unit="symbol"/>
+                  <field-style group="true"/>
+                </appearance>
+              </field>-->
+              <!-- Добавить документ из системы -->
+              <!--<field attribute-ref="receiveSelectTransmittedDoc" recalc="true">
+                <appearance location="subform" align="right" importance="normal">
+                  <label-style width="2" unit="symbol"/>
+                  <field-style group="true"/>
+                </appearance>
+              </field>-->
+              <!--<button name="${ui.form.RkkResourceDTRForm.Добавить документ из системы.name:Добавить документ из системы}">
+                <appearance>
+                  <label-style width="17" unit="symbol">
+                    <style id="tunBtnHeader"/>
+                  </label-style>
+                </appearance>
+                <action>
+                  <custom>
+                    <change-subobject schema-ref="SelectTransmittedDocResourceArray"/>
+                  </custom>
+                </action>
+              </button>
+              <field attribute-ref="transmittedDoc" recalc="true">
+                <properties>
+                  <hide>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+              </field> -->
+              <!-- Добавить документ вручную через диалог выбора связанного-->
+              <button attribute-ref="addLinkedDocReceive" name="${ui.form.RkkResourceDTRForm.section.Attributes.button.addLinkedDocReceive.name:Добавить документ из системы}">
+                <action>
+                  <custom>
+                    <update-linked-doc schema-ref="LinkedDocSelectionParamsDTR"/>
+                  </custom>
+                </action>
+              </button>
+              <field attribute-ref="addLinkedDocReceive" recalc="true">
+                <properties>
+                  <hide>
+                    <condition>true</condition>
+                  </hide>
+                </properties>
+              </field>
+
+              <!-- Добавить документ вручную -->
+              <field attribute-ref="receiveAddManuallyDocResource" recalc="true">
+                <appearance location="subform" align="right" importance="normal">
+                  <label-style field-width="2" field-unit="symbol"/>
+                  <field-style group="true"/>
+                </appearance>
+              </field>
+            </component>
+          </section>
+
+        </component>
+      </section>
+      <section id="Discussion" name="${ui.form.RkkResourceDTRForm.section.Discussion.name:Обсуждения}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="canDiscuss"/>
+            <negative-condition-ref ref="RkkResourceDTR_isSender"/>
+            <negative-condition-ref ref="RkkResourceDTR_isReceiver"/>
+          </hide>
+            <read-only>
+                <condition-ref ref="edit"/>
+            </read-only>
+        </properties>
+      </section>
+      <section id="History" name="${ui.form.RkkResourceDTRForm.section.History.name:История}"/>
+    </component>
+  </form>
+</ui>

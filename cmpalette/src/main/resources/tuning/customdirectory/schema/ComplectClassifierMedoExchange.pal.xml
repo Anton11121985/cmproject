@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="ComplexClassifierAbstract" name="ComplectClassifierMedoExchange" recalc="true">
+        <meta>
+            <category name="Справочник МЭДО"/>
+        </meta>
+
+        <boolean name="notUsing">
+            <storage-field name="notUsing"/>
+        </boolean>
+
+        <boolean name="byDefault">
+            <storage-field name="byDefault"/>
+        </boolean>
+
+        <enum name="typeOfDirectory">
+            <string value="Схема справочника МЭДО" name="Схема справочника МЭДО"/>
+            <string value="Вид документа МЭДО" name="Вид документа МЭДО"/>
+            <string value="Причина отказа в регистрации МЭДО" name="Причина отказа в регистрации МЭДО"/>
+            <string value="Причина отказа в получении документа МЭДО" name="Причина отказа в получении документа МЭДО"/>
+            <string value="Место составления документа МЭДО" name="Место составления документа МЭДО"/>
+            <string value="Тип связи МЭДО" name="Тип связи МЭДО"/>
+        </enum>
+
+        <string name="medoDirectorySchema"/>
+        <string name="parentGroup"/>
+        <boolean name="groupOfValues">
+            <storage-field name="groupOfValues"/>
+        </boolean>
+        <string name="code">
+	      <validate>
+	        <regex>^([^\t\n\r])*$</regex>
+	        <message locale="ru">Ввод табуляции и переводов строк запрещен</message>
+	      </validate>
+	    </string>
+        <string name="value"/>
+        <string name="comment"/>
+        <string name="versionNumber"/>
+        <date name="date">
+            <storage-field name="date"/>
+        </date>
+
+        <boolean name="fromMedo">
+            <storage-field name="fromMedo"/>
+        </boolean>
+
+        <string name="title">
+            <storage-field name="title"/>
+        </string>
+
+        <boolean name="isParentGroup" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[parentGroup != null ? true : false]]>
+                </script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="isGroupOfValues" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[groupOfValues != null ? true : false]]>
+                </script>
+            </calc-values>
+        </boolean>
+
+        <string name="medoMark" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[fromMedo != null ? 'Получен по МЭДО' : '']]></script>
+            </calc-values>
+        </string>
+        
+	    <boolean name="isDel" temporal="true">
+	      <calc-values>
+	        <script event="open" lang="SPEL">
+	          <![CDATA[met != null ? met : false]]>
+	        </script>
+	      </calc-values>
+	    </boolean>
+
+        <string name="deletedMark" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Удален']]></script>
+            </calc-values>
+        </string>
+
+        <boolean name="isSupervisor" temporal="true">
+            <calc-values>
+               <script event="open"><![CDATA[
+					T(ru.intertrust.cmj.af.core.AFCMDomino).userRoles("MEDO", "").contains('[Supervisor]')
+					]]>
+               </script>
+            </calc-values>
+        </boolean>
+
+<custom-event-handler lang="JavaScript">
+<![CDATA[
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+
+function queryCreate(object) {
+
+	var medoSchema = getSchemaValueByDefault(object);
+	if (medoSchema != null){
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), 'medoDirectorySchema', medoSchema);		
+	}
+}
+
+function getSchemaValueByDefault(object) {
+
+  var byDefault = true;
+  var schemaV = null;
+  var db = AFCMDomino.getDbByIdent('CustomDirectory', '');
+    if (db == null) {
+        return null;
+    }
+    
+    var vw = db.getView('CustomDirectory_(cls_directory_scheme_directory_medo_by_default)');
+    if (vw != null) {
+    	    try {
+            	vw.refresh();            
+                var doc = vw.getDocumentByKey(byDefault, true);                
+                if (doc != null) {
+                   schemaV = doc.getItemValueString("title");
+                }
+           
+        	} finally {            
+            DominoUtils.recycle(vw);
+        }
+    }
+ 	return schemaV;
+}
+
+function recalc(object, changedField) {
+    if (changedField == 'notUsing') {
+
+        var notUsing = object.tuning().getValues().get('notUsing');
+        if (notUsing != null) {
+            notUsing = notUsing.getValue();
+        }
+        if ((notUsing != null) && notUsing) {
+            var values = object.tuning().getValues();
+            var isDefault = values.get('byDefault');
+            if (isDefault != null) {
+                isDefault = isDefault.getValue();
+            }
+            if ((isDefault != null) && isDefault) {
+                TunableObjectHelper.putAFInstanceValue(object.tuning(), 'byDefault', false);
+            }
+        }
+    }
+}
+]]>
+</custom-event-handler>
+
+    </schema>
+</schemas>

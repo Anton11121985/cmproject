@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="CoveringLetterResource" recalc="true">
+    <meta>
+      <category name="Система\Сопроводительное письмо"/>
+      <documentation>основная схема "Сопроводительного письма"</documentation>
+    </meta>
+    <string name="pagename" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Сопроводительное письмо']]></script>
+      </calc-values>
+    </string>
+    <string name="showIdent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Сопроводительное письмо']]></script>
+      </calc-values>
+    </string>
+    <string name="lableLink" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Сопроводительное письмо к документу №']]></script>
+      </calc-values>
+    </string>
+    <string name="fromLable" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['от']]></script>
+      </calc-values>
+    </string>
+    <string name="subject" system="true"/>
+    <string name="number" system="true"/>
+    <string name="execInstruction" system="true"/>
+    <actor array="true" name="authors" system="true"/>
+    <actor array="true" name="executors" system="true"/>
+    <actor name="org" system="true"/>
+    <date name="date" system="true"/>
+    <date name="execDate" system="true"/>
+    <schema-ref ref="ContentResource" name="$content" system="true"/>
+    <string name="textLink" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top == null ? '1': (#top instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)? (#top.registration == null ? '':(#top.registration.number == null? '': #top.registration.number.prefix+#top.registration.number.number+#top.registration.number.suffix)) : (#top.correspondent==null?'':#top.correspondent.regNumber==null?'':#top.correspondent.regNumber))]]></script>
+      </calc-values>
+    </string>
+    <string name="textDate" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#top instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceRequests)? (#top.registration == null ? '': T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#top.registration.date)) : (date != null ? date.toString() : '')]]></script>
+      </calc-values>
+    </string>
+    <boolean name="isHaveDocument" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#document'].size() > 0]]></script>
+      </calc-values>
+    </boolean>
+    <hyperlink name="selfHyperLink" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[textLink != '' && isHaveDocument !=null && isHaveDocument ? T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink(textLink +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + link.?[rel=='http://intertrust.ru/cmj/relations#document'].get(0).href+'~#newTab~#local') : null]]></script>
+      </calc-values>
+    </hyperlink>
+    <boolean name="$isOrganization" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[org!=null]]></script>
+      </calc-values>
+    </boolean>
+  </schema>
+</schemas>

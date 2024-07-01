@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <condition name="ResolutionTasksResource_HasContent">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.contentCount > 0;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_HasContentAdd">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.contentAdd != null && resource.contentAddCount > 0;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_isRelationDocument">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return !!environment.relation
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_DeadlineExpiredOnControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_DeadlineExpireSoonWithControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_OnControlNormalDeadline">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && resource.control.deadline != null && resource.control.isControlled && resource.control.deadlineStatus === 'NONE';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_NormalDeadlineNoControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && !resource.control.isControlled && resource.control.deadline != null && resource.control.deadlineStatus === 'NONE';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_DeadlineExpireSoonNoControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && !resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_DeadlineExpiredNoControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control != null && !resource.control.isControlled && resource.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_WithoutDeadline">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.control.deadline == null;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_WithoutDeadline">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.control == null || resource.relatedDocument.object.control.deadline == null)
+      || resource.rootDocument != null && resource.rootDocument.object.control.deadline == null;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_DeadlineExpiredNoControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null
+      && !resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRED'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null
+      && !resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_DeadlineExpireSoonNoControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null && !resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRE_SOON'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null && !resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_NormalDeadlineNoControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null
+      && !resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadline != null && resource.relatedDocument.object.control.deadlineStatus === 'NONE'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null
+      && !resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadline != null && resource.rootDocument.object.control.deadlineStatus === 'NONE';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_DeadlineExpiredOnControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null
+      && resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRED'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null
+      && resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'EXPIRED';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_HasNotAuthor">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.signersAuthor == null);
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_HasExecutorsAndRkkProject">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.executor != null && resource.relatedDocument.object.executor.length > 0
+      && resource.relatedDocument.object.$isProject || resource.rootDocument != null && resource.rootDocument.object.executor != null
+      && resource.rootDocument.object.executor.length > 0 && resource.rootDocument.object.$isProject;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_HasNotExecutorsAndRkkProject">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && (resource.relatedDocument.object.executor == null || resource.relatedDocument.object.executor.length === 0)
+      && resource.relatedDocument.object.$isProject || resource.rootDocument != null && (resource.rootDocument.object.executor == null || resource.rootDocument.object.executor.length === 0)
+      && resource.rootDocument.object.$isProject;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_DeadlineExpireSoonWithControl">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null && resource.relatedDocument.object.control.isControlled
+      && resource.relatedDocument.object.control.deadlineStatus === 'EXPIRE_SOON'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null && resource.rootDocument.object.control.isControlled
+      && resource.rootDocument.object.control.deadlineStatus === 'EXPIRE_SOON';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_OnControlNormalDeadline">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.rootDocument == null && resource.relatedDocument.object.control != null && resource.relatedDocument.object.control.deadline != null
+      && resource.relatedDocument.object.control.isControlled && resource.relatedDocument.object.control.deadlineStatus === 'NONE'
+      || resource.rootDocument != null && resource.rootDocument.object.control != null && resource.rootDocument.object.control.deadline != null
+      && resource.rootDocument.object.control.isControlled && resource.rootDocument.object.control.deadlineStatus === 'NONE';
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_HasContent">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && (resource.relatedDocument.object.contentCount > 0)
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && (resource.rootDocument.object.contentCount > 0);
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResourceInTaskContext_HasContentAdd">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.relatedDocument != null && resource.contextType.substr(resource.contextType.length - 6) != 'AsRoot'
+      && (resource.relatedDocument.object.contentAddCount > 0)
+      || resource.rootDocument != null && resource.contextType.substr(resource.contextType.length - 6) == 'AsRoot'
+      && (resource.rootDocument.object.contentAddCount > 0);
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_HasExecutionChilds">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return resource.hasExecutionChilds;
+    ]]></expression>
+    </condition>
+    <condition name="ResolutionTasksResource_HasNotExecutionChildsInNotProject">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND"/>
+        <expression lang="JavaScript"><![CDATA[
+      return !resource.hasExecutionChilds && !resource.isProject;
+    ]]></expression>
+    </condition>
+    <condition name="CanSendTaskWD">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="true" ref="$canPublish"/>
+        </schema-ref>
+    </condition>
+    <condition name="contentTaskEmpty">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="false" ref="$contentTaskNotEmpty"/>
+        </schema-ref>
+    </condition>
+    <condition name="contentTaskNotEmpty">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="true" ref="$contentTaskNotEmpty"/>
+        </schema-ref>
+    </condition>
+    <condition name="contentAddTaskEmpty">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="false" ref="$contentAddTaskNotEmpty"/>
+        </schema-ref>
+    </condition>
+    <condition name="contentAddTaskNotEmpty">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="true" ref="$contentAddTaskNotEmpty"/>
+        </schema-ref>
+    </condition>
+    <condition name="contentTaskSectionEmpty">
+        <schema-ref ref="ResolutionTasksResource" condition-union="AND">
+            <boolean-ref value="false" ref="$contentTaskSectionEmpty"/>
+        </schema-ref>
+    </condition>
+</ui>

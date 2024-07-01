@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reg-of-citizens" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" scriptletClass="net.sf.jasperreports.engine.JRDefaultScriptlet" uuid="c6ec1858-0e3f-42bd-b63b-b46c8166a5a8">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="109"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.governor.max.pages.enabled" value="true"/>
+	<property name="net.sf.jasperreports.governor.max.pages" value="10000"/>
+	<parameter name="regdate.Start" class="java.util.Date"/>
+	<parameter name="regdate.End" class="java.util.Date"/>
+	<parameter name="regPlace" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT DISTINCT
+
+    f_dp_requestrkk.id as docid,
+    coalesce(f_dp_rkk.regnumprist, '') ||
+    coalesce(cast(f_dp_rkk.regnumcnt AS VARCHAR), '') ||
+    coalesce(f_dp_rkk.regnumfin, '')
+                       AS regNumber,
+    f_dp_rkk.regDate                        AS regDate,
+    (
+
+        CASE
+            When authortype = '0' and sbeard.orgname is not null then sbeard.orgname
+            WHEN AuthorType = '0' THEN  coalesce(f_dp_requestrkk.CorrLastName, '') || ' ' || coalesce(substring(f_dp_requestrkk.CorrFirstName, 1, 1), '') || '. '
+            WHEN AuthorType = '1' THEN coalesce(f_dp_requestrkk.CorrLastName, '')
+            WHEN AuthorType = '2' THEN ''
+            WHEN AuthorType = '3' THEN f_dp_requestrkk.CorrLastName
+            ELSE ''
+            END
+
+        ) AS correspondent,
+    (SELECT string_agg(coalesce(subquestion, question),chr(10))
+     FROM F_DP_RequestRkk_Question question
+     LEFT JOIN f_dp_requestrkk_subquest subQuestion ON subQuestion.owner = question.owner AND subQuestion.idx = question.idx AND subQuestion.subquestion != '-'
+     where question.owner = f_dp_requestrkk.id) AS question,
+
+    coalesce(f_dp_requestrkk.redirorgname ,(SELECT
+                                                string_agg(so.orig_shortname, ', ')
+                                            FROM so_beard so
+                                                     LEFT JOIN f_dp_requestrkk_addressee addr ON addr.owner = f_dp_requestrkk.id
+                                            WHERE so.id = addr.addressee
+    )      )          AS addressees,
+    f_dp_rkk.ctrldateexecution as execdate,
+    (case when so_beard.orig_shortname is null then '' else so_beard.orig_shortname end)regPlaceName,
+    row_number() OVER (PARTITION BY so_beard.orig_shortname ORDER BY f_dp_requestrkk.id) AS rowNumber
+
+FROM
+    f_dp_requestrkk
+        LEFT JOIN F_DP_RkkBase rkkbase on rkkbase.id = f_dp_requestrkk.id
+        LEFT JOIN f_dp_rkk on f_dp_rkk.id = rkkbase.id
+        INNER JOIN so_beard ON rkkbase.RegCode = so_beard.id
+        left join so_beard sbeard on f_dp_requestrkk.corr=sbeard.id
+
+WHERE
+    f_dp_rkk.regnumcnt is not null and regDate is not null and
+    (f_dp_rkk.regdate >= $P{regdate.Start}
+        AND date_trunc('day', f_dp_rkk.regdate) <= $P{regdate.End} and rkkbase.isdeleted=0
+        )
+order by regPlaceName, regdate]]>
+	</queryString>
+	<field name="regnumber" class="java.lang.String"/>
+	<field name="regdate" class="java.sql.Timestamp"/>
+	<field name="correspondent" class="java.lang.String"/>
+	<field name="question" class="java.lang.String"/>
+	<field name="addressees" class="java.lang.String"/>
+	<field name="execdate" class="java.sql.Timestamp"/>
+	<field name="regPlaceName" class="java.lang.String"/>
+	<field name="docid" class="java.lang.Object"/>
+	<field name="rowNumber" class="java.lang.String"/>
+	<group name="regplace">
+		<groupExpression><![CDATA[$F{regPlaceName}]]></groupExpression>
+		<groupHeader>
+			<band height="70">
+				<textField>
+					<reportElement stretchType="RelativeToBandHeight" x="0" y="50" width="802" height="20" uuid="2bd54f85-fe34-4fd1-b739-eadc4db6fca8"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement>
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{regPlaceName}==null ? "" : $F{regPlaceName}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="29" y="0" width="100" height="50" uuid="1a0140f5-70e5-4059-a708-3afd085eb3ae"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Номер и дата обращения]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="129" y="0" width="100" height="50" uuid="1a4e3fb4-c4c6-4a72-8d7f-62aeb1240800"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Заявитель]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="229" y="0" width="130" height="50" uuid="59e526ac-ce6c-43df-853d-38107042a1d7"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Содержание вопросов]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="359" y="0" width="100" height="50" uuid="7646652e-3176-4f21-8350-e632d3b21c15"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Направлен]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="459" y="0" width="162" height="50" uuid="4cf03290-b976-4884-bd5a-cabec11e9aa0"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Резолюция]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="621" y="0" width="100" height="50" uuid="37472507-f2cd-40d6-9326-527b6445585f"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Исполнители]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="721" y="0" width="81" height="50" uuid="819c40de-2e63-4810-8601-f84d14269720"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Дата исполнения ОГ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="29" height="50" uuid="e20e7f28-0dd0-4663-9529-daa646d1b8e4"/>
+					<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+						<pen lineWidth="1.0"/>
+						<topPen lineWidth="1.0"/>
+						<leftPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0"/>
+						<rightPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[№ п/п]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20"/>
+		</groupFooter>
+	</group>
+	<title>
+		<band height="46" splitType="Stretch">
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="802" height="26" uuid="fd3a1690-5ca0-4077-a51e-cf15f946f453"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Реестр обращений граждан,]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="26" width="802" height="20" uuid="363ece22-7b48-4050-8d46-4191997beed2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["поступивших за период с " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{regdate.Start}) +
+" по " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{regdate.End})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="20" splitType="Prevent">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="230" y="0" width="129" height="20" isPrintWhenDetailOverflows="true" uuid="9129b920-8adf-42a0-8b95-61979874760f"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{question} != null ? $F{question} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="29" y="0" width="100" height="20" uuid="befd47c8-e412-4a47-ab92-870ee066508f"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{regnumber}+ " "+"от"+" "+new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="129" y="0" width="101" height="20" uuid="8c38809e-93d2-45e3-a6ba-4e69b5460cc5"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{correspondent}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="359" y="0" width="100" height="20" uuid="32f19a97-464d-41ba-a807-43b24404b593"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="11" isStrikeThrough="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{addressees} != null ? $F{addressees}.replace(", ", "\r\n") : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="721" y="0" width="81" height="20" uuid="a18e20ea-9f42-42c1-8195-890ece3bc21e"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{execdate} != null ? new SimpleDateFormat("dd.MM.yyyy").format($F{execdate}): ""]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement stretchType="RelativeToBandHeight" x="459" y="0" width="262" height="20" isPrintWhenDetailOverflows="true" uuid="607e4189-2e50-40bb-a5dc-2c560d4dbf85"/>
+				<box>
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<subreport>
+					<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="262" height="20" isPrintWhenDetailOverflows="true" uuid="043917c4-8e25-4fb9-8b3a-31808a7a6645"/>
+					<subreportParameter name="docid">
+						<subreportParameterExpression><![CDATA[$F{docid}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["reg_of_citizens-list-res.jasper"]]></subreportExpression>
+				</subreport>
+				<line direction="BottomUp">
+					<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="161" y="0" width="1" height="20" isPrintWhenDetailOverflows="true" uuid="10be6bba-a35a-444d-9014-2eda954cb338"/>
+					<graphicElement>
+						<pen lineWidth="1.0"/>
+					</graphicElement>
+				</line>
+			</frame>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="29" height="20" uuid="2c393c61-e068-4c77-923d-cf3e856dc655"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rowNumber}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="20">
+			<textField>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="802" height="20" uuid="561ce45a-d1c9-4293-aeec-f6944f6cf615"/>
+				<textElement textAlignment="Justified" markup="none">
+					<font fontName="Times New Roman" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Итого: "+ (($V{REPORT_COUNT} ==0) ? "" : $V{REPORT_COUNT})]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

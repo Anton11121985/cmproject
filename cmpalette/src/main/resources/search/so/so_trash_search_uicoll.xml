@@ -1,0 +1,165 @@
+<search-area name="so_trash_search_uicoll">
+
+    <boost-every-where>
+        <field-boost name="objectDescription" value="20.0"/>
+        <field-boost name="name" value="20.0"/>
+        <field-boost name="origShortName" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_unit">
+        <indexed-field name="objectDescription" search-by="substring">
+            <script>
+                var name, personName, shortName, fullName, result, person, tabel;
+
+                name = ctx.get('name') ? ctx.get('name') : '';
+                shortName = ctx.get('shortname') ? ctx.get('shortname') : '';
+                fullName = ctx.get('fullname') ? ctx.get('fullname') : '';
+                tabel = '';
+
+                if (ctx.get('so_appointmenthead^post')) {
+                if (ctx.get('so_appointmenthead^post.person')) {
+                personName = ctx.get('so_appointmenthead^post.person.lastname');
+                if (ctx.get('so_appointmenthead^post.person.firstname')) {
+                personName = personName + ' ' + ctx.get('so_appointmenthead^post.person.firstname').substring(0,1) + '.';
+                }
+                if (ctx.get('so_appointmenthead^post.person.middlename')) {
+                personName = personName + ' ' + ctx.get('so_appointmenthead^post.person.middlename').substring(0,1) + '.';
+                }
+                tabel = tabel + ctx.get('so_appointmenthead^post.person.tabnum');
+                } else {
+                personName = '(Вакансия)';
+                }
+                } else if (ctx.get('so_appointmentplain^post')) {
+                if (ctx.get('so_appointmentplain^post.person')) {
+                personName = ctx.get('so_appointmentplain^post.person.lastname');
+                if (ctx.get('so_appointmentplain^post.person.firstname')) {
+                personName = personName + ' ' + ctx.get('so_appointmentplain^post.person.firstname').substring(0,1) + '.';
+                }
+                if (ctx.get('so_appointmentplain^post.person.middlename')) {
+                personName = personName + ' ' + ctx.get('so_appointmentplain^post.person.middlename').substring(0,1) + '.';
+                }
+                tabel = tabel + ctx.get('so_appointmentplain^post.person.tabnum');
+                } else {
+                personName = '(Вакансия)';
+                }
+                } else {
+                personName = '';
+                }
+
+                result = personName.concat(' ', name, ' ', shortName, ' ', fullName, ' ', tabel);
+                result.replace(/\s/g,'') == '' ?  ctx.setResult(null) : ctx.setResult(result.trim());
+            </script>
+        </indexed-field>
+    </target-domain-object>
+
+    <target-domain-object type="so_group">
+        <!-- Название -->
+        <indexed-field name="name"/>
+        <!-- Группа доступа в АК -->
+        <indexed-field name="AccessGroupName"/>
+    </target-domain-object>
+
+    <target-domain-object type="so_personsys">
+        <!-- ФИО -->
+        <indexed-field name="origShortName" search-by="substring">
+            <compound-field delimiter=" ">
+                <field-part>
+                    <doel>lastname</doel>
+                </field-part>
+                <field-part>
+                    <doel>firstname</doel>
+                </field-part>
+                <field-part>
+                    <doel>middlename</doel>
+                </field-part>
+            </compound-field>
+        </indexed-field>
+        <!-- Табельный номер -->
+        <indexed-field name="tabnum" />
+        <!-- Системное имя -->
+        <indexed-field name="login">
+            <doel>
+                PlatformPerson.login
+            </doel>
+        </indexed-field>
+        <!-- HR ID (код персоны) -->
+        <indexed-field name="hr_id" />
+        <!-- Skype -->
+        <indexed-field name="skype" />
+        <!-- Почтовый адрес MS Exchange -->
+        <indexed-field name="ExchangeAccount" />
+        <!-- День рождения -->
+        <indexed-field name="BirthDate" />
+        <!-- ИНН -->
+        <indexed-field name="INN" />
+        <!-- СНИЛС-->
+        <indexed-field name="SNILS" />
+        <!-- Рабочий email -->
+        <linked-domain-object type="SO_Email_Person">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Альтернативные идентификаторы -->
+        <linked-domain-object type="person_alt_uids">
+            <indexed-field name="alter_uid"/>
+            <parent-link>
+                <doel>person.so_personsys^PlatformPerson</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Здание и комната -->
+        <linked-domain-object type="SO_AddressData_Person">
+            <indexed-field name="Building"/>
+            <indexed-field name="Office"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Мобильный телефон -->
+        <linked-domain-object type="SO_Phone_Person_M">
+            <indexed-field name="Phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Рабочий телефон -->
+        <linked-domain-object type="SO_Phone_Person_W">
+            <indexed-field name="Phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Внутренний телефон -->
+        <linked-domain-object type="SO_Phone_Person_Local">
+            <indexed-field name="Phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+            <!-- Личный email -->
+            <indexed-field name="personalEmail">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("personalEmail")</doel>
+                </filter>
+            </indexed-field>
+
+            <!--Комментарий -->
+            <indexed-field name="comment">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("comment")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+</search-area>

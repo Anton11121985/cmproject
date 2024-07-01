@@ -1,0 +1,356 @@
+<search-area name="Meetings_wd_ext" replace="runtime">
+
+    <!--   TODO скорее всего <b></b> заменится на что-то другое + не ясно, как должно отображаться пока      -->
+    <highlighting-config hl-require-match="true" hl-frag-size="255" hl-post-tag="&lt;/b&gt;" hl-pre-tag="&lt;b&gt;">
+    </highlighting-config>
+
+    <!-- Заседания -->
+    <target-domain-object type="F_Meetings_meeting">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRT_a_meet"/>
+        <indexed-content type="F_ContentFiles_a_meet"/>
+        <indexed-content type="F_ContentRT_p_meet"/>
+        <indexed-content type="F_ContentFiles_p_meet"/>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting_date</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="docDate">
+            <doel>created_date</doel>
+        </indexed-field>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>Subject</doel>
+        </indexed-field>
+
+        <!-- Председатель -->
+        <indexed-field name="agendaChairman" search-by="substring">
+            <doel>a_chairman.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Номер заседания -->
+        <indexed-field name="meetingNumber" search-by="substring">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_Meetings_meeting_ULnk">
+            <indexed-field name="linkedDocs">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Статус повестки -->
+        <indexed-field name="agendaStatus">
+            <doel>a_affirmState</doel>
+        </indexed-field>
+
+        <!-- Секретарь -->
+        <indexed-field name="agendaSecretary" search-by="substring">
+            <doel>a_secretary.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Приглашенные (повестка) -->
+        <linked-domain-object type="F_Meetings_a_invited">
+            <indexed-field name="agendaInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Приглашенные - на заседание (протокол) -->
+        <linked-domain-object type="F_Meetings_p_invited">
+            <indexed-field name="minutesInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Приглашенные - по вопросам (протокол) -->
+        <linked-domain-object type="F_Meetings_p_qinvited">
+            <indexed-field name="minutesQInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Приглашенные (вопрос) -->
+        <linked-domain-object type="f_point_invited">
+            <indexed-field name="pointInvited" search-by="substring">
+                <doel>invited.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner.meeting</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Постоянные участники (повестка) -->
+        <linked-domain-object type="F_Meetings_a_ppart">
+            <indexed-field name="agendaParticipants" search-by="substring">
+                <doel>participant.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Номер протокола -->
+        <indexed-field name="minutesNumber" search-by="substring">
+            <doel>ord_fullnumber</doel>
+        </indexed-field>
+
+        <target-collection name="Meetings_(search_Meetings)"/>
+    </target-domain-object>
+
+    <!-- Решение -->
+    <target-domain-object type="f_meetings_decision">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentFiles_Des"/>
+        <indexed-content type="F_ContentRT_Dec"/>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>meeting.Subject</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting.meeting_date</doel>
+        </indexed-field>
+
+        <!-- Номер заседания -->
+        <!--            <indexed-field name="meetingNumber" search-by="substring">-->
+        <!--                <script>-->
+        <!--                    var meeting = session.find(ctx.get('meeting'));-->
+        <!--                    var rn = meeting.get('prjnumcounter'); if (rn == null) rn; else {-->
+        <!--                    var prist = meeting.get('prjnumprist'); if (prist == null) prist = '';-->
+        <!--                    var fin = meeting.get('prjnumfin'); if (fin == null) fin = '';-->
+        <!--                    prist + rn + fin + ' ' + rn }-->
+        <!--                </script>-->
+        <!--            </indexed-field>-->
+
+        <!-- Номер протокола -->
+        <indexed-field name="minutesNumber" search-by="substring">
+            <doel>meeting.ord_fullnumber</doel>
+        </indexed-field>
+
+        <!-- Вопрос -->
+        <indexed-field name="questionText">
+            <doel>pointText</doel>
+        </indexed-field>
+
+        <!-- Докладчики -->
+        <linked-domain-object type="f_decision_reporters">
+            <indexed-field name="reporter" search-by="substring">
+                <doel>reporter.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Решение -->
+        <indexed-field name="decision">
+            <doel>text</doel>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_Meetings_pr_ULnk">
+            <indexed-field name="linkedDocs">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="Meetings_(search_Meetings)"/>
+    </target-domain-object>
+
+    <!-- Выписка -->
+    <target-domain-object type="f_meetings_extract">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentFiles_Extr"/>
+        <indexed-content type="F_ContentRT_Extr"/>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>meeting.Subject</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting.meeting_date</doel>
+        </indexed-field>
+
+        <!--            &lt;!&ndash; Номер заседания &ndash;&gt;-->
+        <!--            <indexed-field name="meetingNumber" search-by="substring">-->
+        <!--                <script>-->
+        <!--                    var meeting = session.find(ctx.get('meeting'));-->
+        <!--                    var rn = meeting.get('prjnumcounter'); if (rn == null) rn; else {-->
+        <!--                    var prist = meeting.get('prjnumprist'); if (prist == null) prist = '';-->
+        <!--                    var fin = meeting.get('prjnumfin'); if (fin == null) fin = '';-->
+        <!--                    prist + rn + fin + ' ' + rn }-->
+        <!--                </script>-->
+        <!--            </indexed-field>-->
+
+        <!-- Номер протокола -->
+        <indexed-field name="minutesNumber" search-by="substring">
+            <doel>meeting.ord_fullnumber</doel>
+        </indexed-field>
+
+        <!--            &lt;!&ndash; Дата создания &ndash;&gt;-->
+        <!--            <indexed-field name="docDate">-->
+        <!--                <doel>created_date</doel>-->
+        <!--            </indexed-field>-->
+
+        <linked-domain-object type="F_Meetings_extract_des">
+            <!-- Вопрос -->
+            <indexed-field name="questionText" search-by="substring">
+                <doel>decision.pointText</doel>
+            </indexed-field>
+            <!-- Решение -->
+            <indexed-field name="decision" search-by="substring">
+                <doel>decision.text</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <indexed-field name="reporter" search-by="substring">
+            <doel>F_Meetings_extract_des^Owner.decision.f_decision_reporters^Owner.reporter.orig_shortname</doel>
+        </indexed-field>
+
+        <target-collection name="Meetings_(search_Meetings)"/>
+    </target-domain-object>
+
+    <!-- Вопрос -->
+    <target-domain-object type="f_meetings_point">
+        <!-- Модуль -->
+
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentFiles_Point"/>
+        <indexed-content type="F_ContentRT_Point"/>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>meeting.Subject</doel>
+        </indexed-field>
+
+        <!-- Дата создания -->
+        <indexed-field name="created">
+            <doel>created_date</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting.meeting_date</doel>
+        </indexed-field>
+
+        <!-- Создан -->
+        <indexed-field name="created_date">
+            <doel>created_date</doel>
+        </indexed-field>
+
+        <!--            &lt;!&ndash; Номер заседания &ndash;&gt;-->
+        <!--            <indexed-field name="meetingNumber" search-by="substring">-->
+        <!--                <script>-->
+        <!--                    var meeting = session.find(ctx.get('meeting'));-->
+        <!--                    var rn = meeting.get('prjnumcounter'); if (rn == null) rn; else {-->
+        <!--                    var prist = meeting.get('prjnumprist'); if (prist == null) prist = '';-->
+        <!--                    var fin = meeting.get('prjnumfin'); if (fin == null) fin = '';-->
+        <!--                    prist + rn + fin + ' ' + rn }-->
+        <!--                </script>-->
+        <!--            </indexed-field>-->
+
+        <!-- Вопрос -->
+        <indexed-field name="questionText">
+            <doel>point</doel>
+        </indexed-field>
+
+        <!-- Ответственный за подготовку -->
+        <linked-domain-object type="f_point_responsibles">
+            <indexed-field name="responsible" search-by="substring">
+                <doel>responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Докладчики -->
+        <linked-domain-object type="f_point_reporters">
+            <indexed-field name="reporter" search-by="substring">
+                <doel>reporter.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="f_meetings_decisionpr">
+            <!-- Проект решения -->
+            <indexed-field name="decisionProject" search-by="substring">
+                <doel>text</doel>
+            </indexed-field>
+            <!-- Автор проекта решения -->
+            <indexed-field name="projectAuthor" search-by="substring">
+                <doel>author.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>point</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_Meetings_point_ULnk">
+            <indexed-field name="linkedDocs">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="Meetings_(search_Meetings)"/>
+    </target-domain-object>
+
+</search-area>

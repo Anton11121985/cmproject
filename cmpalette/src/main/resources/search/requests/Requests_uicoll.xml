@@ -1,0 +1,280 @@
+<search-area name="Requests_uicoll" replace="runtime">
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="20.0"/>
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object type="F_DP_RequestRkk">
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate"/>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>created_date</doel>
+        </indexed-field>
+
+        <!-- Форма поступления -->
+        <indexed-field name="deliveryInfo" search-by="substring">
+            <doel>DeliveryInfoField</doel>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер, по точному совпадению -->
+        <indexed-field name="regNumberExact" search-by="exactmatch">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+
+        <!--Заголовок-->
+        <indexed-field name="Subject" search-by="substring"/>
+
+        <!--Регион-->
+        <indexed-field name="region"/>
+
+        <!--Район-->
+        <indexed-field name="locality"/>
+
+        <!--Город-->
+        <indexed-field name="city"/>
+
+        <!--Улица-->
+        <indexed-field name="street"/>
+
+        <!--Дом-->
+        <indexed-field name="house"/>
+
+        <!-- Способ обращения -->
+        <indexed-field name="appealWay" search-by="substring">
+            <doel>AppealWayField</doel>
+        </indexed-field>
+
+        <!-- Адресат -->
+        <linked-domain-object type="F_DP_RequestRkk_Addressee">
+            <indexed-field name="To" search-by="substring">
+                <doel>Addressee.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Сопроводительное письмо -->
+        <linked-domain-object type="F_DP_SP">
+            <indexed-field name="SP_Subject">
+                <doel>Subject</doel>
+            </indexed-field>
+            <indexed-field name="SP_AuthorPlain">
+                <doel>AuthorPlain</doel>
+            </indexed-field>
+            <indexed-field name="SP_Executor">
+                <doel>Executor.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="SP_ExecDate">
+                <doel>ExecDate</doel>
+            </indexed-field>
+            <indexed-field name="SP_ExecInstruction">
+                <doel>ExecInstruction</doel>
+            </indexed-field>
+            <indexed-field name="SP_RegNumber">
+                <doel>RegNumber</doel>
+            </indexed-field>
+            <indexed-field name="SP_RegDate">
+                <doel>RegDate</doel>
+            </indexed-field>
+            <indexed-field name="SP_FromId">
+                <doel>FromId.orig_shortname</doel>
+            </indexed-field>
+            <indexed-content type="F_ContentRichText_SP"/>
+            <indexed-content type="F_ContentFiles_SP"/>
+            <parent-link>
+                <doel>HierRoot</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!--Льготный состав-->
+        <linked-domain-object type="f_dp_requestrkk_bnftgr">
+            <indexed-field name="benefitGroups">
+                <doel>benefitgroup</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Исполнение контролируют -->
+        <linked-domain-object type="F_DP_RkkBase_Controller">
+            <indexed-field name="ControlPeople" search-by="substring">
+                <doel>Controller.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RequestRkk_SubQuest">
+            <indexed-field name="question">
+                <doel>ClCode</doel>
+            </indexed-field>
+            <indexed-field name="section">
+                <doel>Section</doel>
+            </indexed-field>
+            <indexed-field name="Subject">
+                <doel>Subject</doel>
+            </indexed-field>
+            <indexed-field name="Theme">
+                <doel>Theme</doel>
+            </indexed-field>
+            <indexed-field name="Subquestion">
+                <doel>Subquestion</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+
+        <linked-domain-object type="F_DP_RequestRkk_Question">
+            <indexed-field name="questionText">
+                <doel>question</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Место регистрации -->
+        <indexed-field name="Registration" search-by="substring">
+            <script>
+                var code = ctx.get('RegCode.orig_shortname');
+                if (code == null) code;
+                var reg = ctx.get('RegRegistrator.orig_shortname');
+                if (reg != null) code += ' (' + reg + ')';
+                code;
+            </script>
+            <filter>
+                <doel>RegCode.orig_shortname:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!--Корреспондент -->
+        <indexed-field name="CorrBeard" search-by="substring">
+            <doel>corr.orig_shortname</doel>
+        </indexed-field>
+        <linked-domain-object type="F_DP_RequestRkk_AuthGrp">
+            <indexed-field name="LNameCorp">
+                <doel>AuthorGroup</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Вид документа -->
+        <indexed-field name="reqType">
+            <doel>Type</doel>
+        </indexed-field>
+
+        <!--Вид обращения-->
+        <indexed-field name="reqTypeRequests">
+            <doel>type</doel>
+        </indexed-field>
+
+        <!--Тип обращения-->
+        <indexed-field name="correspondentType">
+            <doel>AuthorType</doel>
+        </indexed-field>
+
+        <indexed-field name="mainTypeRequest">
+            <doel>typerequest</doel>
+        </indexed-field>
+
+        <!--Результат рассмотрения-->
+        <indexed-field name="reviewResults">
+            <doel>reviewresults</doel>
+        </indexed-field>
+
+        <!--Принято решение-->
+        <indexed-field name="solution">
+            <doel>solution</doel>
+        </indexed-field>
+
+        <!--Направление-->
+        <indexed-field name="redirection" search-by="substring">
+            <doel>redirorgname</doel>
+        </indexed-field>
+
+        <!-- Особый контроль boolean?-->
+        <!-- linked-domain-object type="F_DP_RkkBase_Controller">
+                <indexed-field name="isSpecialControl">
+                    <doel>Controller.orig_shortname</doel>
+                </indexed-field>
+                <parent-link>
+                    <doel>Owner</doel>
+                </parent-link>
+            </linked-domain-object-->
+        <indexed-field name="isSpecialControl">
+            <doel>CtrlState</doel>
+        </indexed-field>
+
+        <!--Источник поступления-->
+        <!--<indexed-field name="receiptSource">-->
+        <!--<doel>redirorgname</doel>-->
+        <!--</indexed-field>-->
+
+        <!--Повторное обращение boolean?-->
+        <!--<indexed-field name="isRepeated">-->
+        <!--<doel>redirorgname</doel>-->
+        <!--</indexed-field>-->
+        <indexed-field name="DocIds">
+            <doel>F_DP_RequestRkk_Doc^Owner</doel>
+        </indexed-field>
+
+        <!-- Зарегистрирован -->
+        <indexed-field name="isRegistered">
+            <doel>RegNumCnt</doel>
+        </indexed-field>
+
+        <!-- Контроль -->
+        <indexed-field name="isControl">
+            <doel>CtrlState</doel>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecuted">
+            <doel>CtrlDateExecution</doel>
+        </indexed-field>
+        <!-- Срок исполнения -->
+        <indexed-field name="extControlDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+
+
+        <filter>
+            <doel>Module.Type.Alias:in("Requests", "RequestsPrev")</doel>
+        </filter>
+    </target-domain-object>
+
+</search-area>

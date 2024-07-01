@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="file-title-page" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="468" leftMargin="85" rightMargin="42" topMargin="52" bottomMargin="52" whenResourceMissingType="Empty" uuid="38a3cbf3-da5a-4a1f-b6d0-51b4396b58a1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="request_id" class="java.lang.Object" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+	fr.id AS file,
+	COALESCE(org.fullName, 'Не указана') AS orgName,
+	COALESCE(NULLIF(fr.branchDivision, ''),
+					 dep.fullName,
+					 rvz.lastName || ' ' || rvz.firstName || ' ' || rvz.middleName,
+					 'Не указано') AS soUnit_or_branchDivision,
+	fr.indexFile,
+	NULLIF(fre.countTomeSections, '') AS tome,
+	fr.titleFile,
+	TO_CHAR(fr.dateOfBeginning, CASE WHEN fre.DateOfBeginningType = 'YEAR' THEN 'YYYY' ELSE 'DD.MM.YYYY' END) AS dateOfBeginning,
+	TO_CHAR(fr.dateOfEnd, CASE WHEN fre.DateOfEndType = 'YEAR' THEN 'YYYY' ELSE 'DD.MM.YYYY' END) AS dateOfEnd,
+	fre.countSheets,
+	CASE WHEN fre.countSheets <> 11 AND fre.countSheets % 10 = 1 THEN 'листе' ELSE 'листах' END AS sheetsLabel,
+	CASE
+		WHEN ur.statusGeneral = 'ACTIVE' OR (ur.statusGeneral = 'PROJECT' AND fr.statusGeneral = 'PROJECT')
+			THEN COALESCE(spd.period, fr.storagePeriod, ' ')
+		WHEN ur.statusGeneral = 'PROJECT' AND fr.statusGeneral = 'FORMED'
+			THEN COALESCE(spd.period, NULLIF(fur.storagePeriodNew, ''), fr.storagePeriod, ' ')
+		ELSE COALESCE(spd.period, fur.storagePeriodNew, ' ')
+	END AS storagePeriod,
+	CASE
+		WHEN ur.statusGeneral = 'ACTIVE' OR (ur.statusGeneral = 'PROJECT' AND fr.statusGeneral = 'PROJECT')
+			THEN COALESCE(spd.articleNum, fr.spDescription, ' ')
+		WHEN ur.statusGeneral = 'PROJECT' AND fr.statusGeneral = 'FORMED'
+			THEN COALESCE(spd.articleNum, NULLIF(fur.spDescriptionNew, ''), fr.spDescription, ' ')
+		ELSE COALESCE(spd.articleNum, fur.spDescriptionNew, ' ')
+	END AS spDescription,
+	CASE WHEN spd.epk = 1 THEN 'ЭПК' ELSE ' ' END AS epkLabel
+FROM Fr_File_Extended fre
+JOIN Fr_File fr ON fr.id = fre.parent
+LEFT JOIN SO_StructureUnit org ON org.beard = fr.organization
+LEFT JOIN SO_StructureUnit dep ON dep.beard = fr.soUnit
+LEFT JOIN SO_Appointment soApp ON soApp.beard = fr.soUnit
+LEFT JOIN SO_Person rvz ON rvz.id = soApp.person
+JOIN FR_UR_File_Register fur ON fur.file = fr.id
+JOIN FR_UnitRegister ur ON ur.id = fur.owner
+LEFT JOIN nunid2punid_map n2p ON n2p.nunid = fur.shelfLifeNew
+LEFT JOIN SPD_Period spd ON spd.id_type || LPAD(spd.id || '', 12, '0') =
+								CASE
+									WHEN ur.statusGeneral = 'ACTIVE' OR (ur.statusGeneral = 'PROJECT' AND fr.statusGeneral = 'PROJECT')
+										THEN fr.shelfLife_type || LPAD(fr.shelfLife || '', 12, '0')
+									WHEN ur.statusGeneral = 'PROJECT' AND fr.statusGeneral = 'FORMED'
+										THEN COALESCE(SUBSTRING(n2p.punid, 1, 16), fr.shelfLife_type || LPAD(fr.shelfLife || '', 12, '0'))
+									ELSE SUBSTRING(n2p.punid, 1, 16)
+								END
+WHERE fr.id IN (SELECT item FROM QR_Id_List WHERE request = $P{request_id})]]>
+	</queryString>
+	<field name="file" class="java.lang.Object"/>
+	<field name="orgName" class="java.lang.String"/>
+	<field name="soUnit_or_branchDivision" class="java.lang.String"/>
+	<field name="indexFile" class="java.lang.String"/>
+	<field name="tome" class="java.lang.String"/>
+	<field name="titleFile" class="java.lang.String"/>
+	<field name="dateOfBeginning" class="java.lang.String"/>
+	<field name="dateOfEnd" class="java.lang.String"/>
+	<field name="countSheets" class="java.lang.Integer"/>
+	<field name="sheetsLabel" class="java.lang.String"/>
+	<field name="storagePeriod" class="java.lang.String"/>
+	<field name="spDescription" class="java.lang.String"/>
+	<field name="epkLabel" class="java.lang.String"/>
+	<group name="File" isStartNewPage="true" isResetPageNumber="true">
+		<groupExpression><![CDATA[$F{file}]]></groupExpression>
+	</group>
+	<detail>
+		<band height="738" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="474" height="1" uuid="c774ebc7-01fc-49be-9ef1-e2e1b5079be1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="1" width="1" height="736" uuid="1d0cd39c-93b9-4dda-9dd9-bd4b17681ed7"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="474" y="1" width="1" height="736" uuid="d97d7f41-0bd4-437f-95e4-4f7dadefd009"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="737" width="474" height="1" uuid="0219cdf6-9c0f-48d0-a1e8-5e63dc5478a6"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="19" y="24" width="436" height="20" uuid="9be2e38a-0ea5-45f4-af29-629b3536b0d5"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="16" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orgName}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="24" y="60" width="426" height="20" uuid="0017ac31-456b-411a-9ca9-f125b9bc6d60"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom" markup="html">
+					<font fontName="Times New Roman" size="16" isBold="true" isUnderline="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{soUnit_or_branchDivision}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="24" y="80" width="426" height="12" uuid="9c30189f-6671-4a7c-9c33-7a549fd2bede"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(наименование подразделения)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="24" y="250" width="426" height="29" uuid="e1062d95-8803-417a-bac0-de5104f92400"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom" markup="html">
+					<font fontName="Times New Roman" size="24" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ДЕЛО  № " + $F{indexFile} + " том&nbsp;№&nbsp;" + ($F{tome} != null ? $F{tome} : "<u>&nbsp;&nbsp;&nbsp;&nbsp;</u>")]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="24" y="279" width="426" height="13" uuid="e08748b6-f49a-4950-9c71-0d747ccbea8e"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(индекс по номенклатуре дел)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="4" y="320" width="466" height="18" uuid="9379755a-ba12-45b9-86a4-ffb89126408d"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{titleFile}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="24" y="348" width="426" height="13" uuid="678a678d-f897-4109-804f-f8509f950f80"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(заголовок дела)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="262" y="490" width="75" height="18" uuid="3adcfe1b-4788-420b-a386-2c8edde02cbf"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Начато"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="337" y="490" width="113" height="18" uuid="1a2b5fed-3a2e-4492-b0b7-b3e3f93d883f"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dateOfBeginning} != null ? $F{dateOfBeginning} : " "]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="337" y="508" width="113" height="12" uuid="97655129-88a9-4d76-8b63-3303e8a34d5e"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(дата начала дела)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="262" y="520" width="75" height="18" uuid="7596ed6d-c18d-40e6-aa1a-74ea148eeae5"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Окончено"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="337" y="520" width="113" height="18" uuid="8da01abf-95f5-43f9-8cae-6e7351c4e6ac"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dateOfEnd} != null ? $F{dateOfEnd} : " "]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="337" y="538" width="113" height="12" uuid="f625f553-75c5-4a5d-a4eb-2bd8db815305"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(дата окончания дела)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="150" y="603" width="300" height="18" uuid="d037feba-3083-4f06-b9d0-4ebf7ca7cef1"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" markup="html">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["На <u>&ensp;" + ($F{countSheets} != null ? $F{countSheets} : "&emsp;") + "&ensp;</u> " + $F{sheetsLabel}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="150" y="632" width="300" height="18" uuid="99762b04-8d60-4470-98a7-7f080e805fa8"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" markup="html">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Хранить <u>&ensp;" + $F{storagePeriod} + "&ensp;</u> лет"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="150" y="661" width="300" height="18" uuid="0f4529f2-0d0c-495a-8107-abbb1096f6be"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" markup="html">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ст. <u>&ensp;" + ($F{spDescription} != null ? $F{spDescription} : " ") + "&nbsp;&nbsp;</u>"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="398" y="690" width="52" height="18" uuid="3296bb55-29d2-4c6f-baf5-7d150cb4d2cd"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom" markup="html">
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{epkLabel} != null ? "<u>&ensp;" + $F{epkLabel} + "&nbsp;&nbsp;</u>" : " "]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

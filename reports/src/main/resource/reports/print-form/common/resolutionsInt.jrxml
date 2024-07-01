@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="resolutionsInt" pageWidth="555" pageHeight="400" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5d0b0afa-0408-47c3-bdf2-f4f9e76c9e19">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="InterTrust"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="ID" class="java.lang.Object">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[975]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doc_name" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["резолюции"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+resId,
+HierRoot,
+author1,
+created_date,
+resolution,
+ctrldeadline,
+parent,
+offset1
+FROM
+
+(SELECT
+res.id as resId,
+res.HierRoot,
+author.orig_shortname as author1,
+resBase.created_date as created_date,
+resBase.resolution,
+res.ctrldeadline,
+CASE WHEN res.HierRoot = res.HierParent AND res.HierRoot_type = res.HierParent_type THEN null
+ELSE res.HierParent
+END as parent,
+CASE WHEN res.HierRoot = res.HierParent AND res.HierRoot_type = res.HierParent_type THEN ''
+ELSE '        '
+END as offset1
+FROM
+F_DP_Resolution res
+JOIN F_DP_ResltnBase resBase on resBase.id = res.id
+JOIN So_Beard author on author.id = resBase.author
+WHERE  res.isproject = 0 
+)q
+WHERE HierRoot =$P{ID} 
+ORDER BY  Coalesce(parent, resId), resId]]>
+	</queryString>
+	<field name="resid" class="java.lang.Object"/>
+	<field name="hierroot" class="java.lang.Object"/>
+	<field name="author1" class="java.lang.String"/>
+	<field name="created_date" class="java.sql.Timestamp"/>
+	<field name="resolution" class="java.lang.String"/>
+	<field name="ctrldeadline" class="java.sql.Timestamp"/>
+	<field name="parent" class="java.lang.Object"/>
+	<field name="offset1" class="java.lang.String"/>
+	<detail>
+		<band height="108" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="555" height="18" uuid="139a4288-0bb6-4cc5-97c8-8b53438c5c29">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="styled">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{offset1}+"<b>Автор "+$P{doc_name}+": "+
+$F{author1}+
+"</b> "+
+"("+
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{created_date})+
+")"]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="18" width="555" height="90" isPrintWhenDetailOverflows="true" uuid="a9f27871-d0eb-43bc-8452-0ff84ce9bd10">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<subreport>
+					<reportElement isPrintRepeatedValues="false" x="0" y="0" width="555" height="18" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="1db4aba6-6ca1-4515-97e1-20a58125cb70"/>
+					<subreportParameter name="resId">
+						<subreportParameterExpression><![CDATA[$F{resid}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="offset">
+						<subreportParameterExpression><![CDATA[$F{offset1}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["executorRespOrd.jasper"]]></subreportExpression>
+				</subreport>
+				<subreport runToBottom="false">
+					<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="18" width="555" height="18" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="c9a297f5-4057-449b-a3af-9a79bf5c6ff0">
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					</reportElement>
+					<subreportParameter name="resId">
+						<subreportParameterExpression><![CDATA[$F{resid}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="offset">
+						<subreportParameterExpression><![CDATA[$F{offset1}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["executorCurrOrd.jasper"]]></subreportExpression>
+				</subreport>
+				<textField>
+					<reportElement positionType="Float" x="0" y="36" width="555" height="18" uuid="c198ecfb-6dc5-4a6c-833a-21d13d53ff71">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					</reportElement>
+					<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{offset1}+$F{resolution}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="0" y="54" width="555" height="18" uuid="31caa126-a499-4666-93a2-a87f4fa6e1da">
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					</reportElement>
+					<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{offset1}+"Срок: "+
+($F{ctrldeadline}!=null
+?new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{ctrldeadline})
+:""
+)]]></textFieldExpression>
+				</textField>
+				<subreport>
+					<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="72" width="555" height="18" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="c9a297f5-4057-449b-a3af-9a79bf5c6ff0">
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					</reportElement>
+					<subreportParameter name="ID">
+						<subreportParameterExpression><![CDATA[$F{resid}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["executions.jasper"]]></subreportExpression>
+				</subreport>
+			</frame>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="1">
+			<textField>
+				<reportElement x="0" y="0" width="555" height="1" uuid="ebf2327d-bf7e-49c9-ba46-d4b88f28496e"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="1">
+			<textField>
+				<reportElement x="0" y="0" width="555" height="1" uuid="2b08273d-8c03-4e18-9def-312aa71127be"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

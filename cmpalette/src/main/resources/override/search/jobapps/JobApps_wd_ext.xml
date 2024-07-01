@@ -1,0 +1,213 @@
+<search-area name="JobApps_wd_ext" replace="runtime">
+    <solr-server-url>search.wd.solr.server</solr-server-url>
+    <content-search-by>words</content-search-by>
+    <target-filter-name>CNTX_ID_FILTER</target-filter-name>
+
+    <highlighting-config hl-require-match="true"  hl-frag-size="255" hl-post-tag="&lt;/b&gt;" hl-pre-tag="&lt;b&gt;">
+    </highlighting-config>
+
+    <target-domain-object  type="F_DP_IntRkk">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject" show-in-results="true">
+            <doel>Subject</doel>
+        </indexed-field>
+
+        <!-- Тип заявки -->
+        <indexed-field name="reqType" search-by="exactmatch" show-in-results="true">
+            <script> 'Заявки на исполнение'</script>
+        </indexed-field>
+
+        <!-- Вид заявки -->
+        <indexed-field name="typeRequestWD" search-by="exactmatch" show-in-results="true">
+            <doel>Type</doel>
+        </indexed-field>
+
+        <!-- Номер заявки -->
+        <indexed-field name="numberRequest" search-by="substring" show-in-results="true">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Проектный номер -->
+        <indexed-field name="projectNumber" search-by="substring" show-in-results="true">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin}
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер, по точному совпадению -->
+        <indexed-field name="regNumberExact" search-by="exactmatch">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate" show-in-results="true"/>
+
+        <!-- Дата заявки -->
+        <indexed-field name="dateRequest" show-in-results="true">
+            <doel>RegDate</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate" show-in-results="true">
+            <doel>RegDate</doel>
+        </indexed-field>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="exactmatch" show-in-results="true"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Подписант -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="jaSigner" search-by="substring" show-in-results="true">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Исполнитель WD-->
+        <linked-domain-object type="F_DP_IntRkk_Executor">
+            <indexed-field name="Mast" search-by="substring" show-in-results="true">
+                <doel>Executor.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- linkedDoc -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" include-everywhere = "false">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <!-- Исх. номер -->
+            <indexed-field name="jaOutputNumber" search-by="substring" show-in-results="true">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("outnumber")</doel>
+                </filter>
+            </indexed-field>
+
+            <!-- Корреспондент -->
+            <indexed-field name="correspondent" show-in-results="true">
+                <script>
+                    var partyNameArray = ctx.get('value').split('%');
+                    var result = '$'.equals(partyNameArray[0]) ? partyNameArray[1] : partyNameArray[0];
+                    result;
+                </script>                <filter>
+                    <doel>cmjfield:in("correspondent")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_Datetime" nested="true">
+
+            <!-- Исхд. дата -->
+            <indexed-field name="jaOutputDate" solr-prefix="cm_dt" show-in-results="true">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("outdate")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk" index-boost-value="2.0" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="rt1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt1_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt1_length" type="length"/>
+            <content-field target-field-name="rt1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt1_description" type="description"/>
+            <content-field target-field-name="rt1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_Rkk" index-boost-value="2.0" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf1_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf1_length" type="length"/>
+            <content-field target-field-name="cf1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf1_description" type="description"/>
+            <content-field target-field-name="cf1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_AddFiles_Rkk" index-boost-value="2.0" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf2_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf2_length" type="length"/>
+            <content-field target-field-name="cf2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf2_description" type="description"/>
+            <content-field target-field-name="cf2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <!-- Количество вложений (с учетом ричтекста) -->
+        <indexed-field name="contentCount" show-in-results="true"   index-boost-value="0.1">
+            <script return-type="long">session.findByQuery('select id from F_ContentRichText_Rkk where f_dp_rkkbase = {0} union select id from F_ContentFiles_Rkk where f_dp_rkkbase = {0} union select id from F_AddFiles_Rkk where f_dp_rkkbase = {0}', ctx.getId()).size()</script>
+        </indexed-field>
+
+        <target-collection name="(searchContextual)"/>
+
+        <filter>
+            <doel>Module.Type.Alias:in("JobApps")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

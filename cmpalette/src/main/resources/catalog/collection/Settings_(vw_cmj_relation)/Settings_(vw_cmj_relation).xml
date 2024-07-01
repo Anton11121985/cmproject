@@ -1,0 +1,69 @@
+<collection name="Settings_(vw_cmj_relation)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[SELECT
+	                id,
+	                created_date,
+	                relation_name,
+	                relation_description,
+	                relation_formula
+                FROM (select
+                	id,
+                	created_date,
+                    name        as relation_name,
+                    description as relation_description,
+                    formula     as relation_formula
+                    FROM so_relations) s
+                WHERE 1=1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+				COUNT(1)
+                FROM (SELECT
+	                    id,
+                        name,
+	                    description,
+	                    formula
+                        FROM so_relations) s
+                WHERE 1=1
+            ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="relation_name">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    relation_name = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="relation_name_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                relation_name ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="relation_description">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                 relation_description = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="relation_description_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                relation_description ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+</collection>

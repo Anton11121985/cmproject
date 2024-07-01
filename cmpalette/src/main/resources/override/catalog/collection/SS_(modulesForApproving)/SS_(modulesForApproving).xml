@@ -1,0 +1,20 @@
+<collection name="SS_(modulesForApproving)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+           SELECT
+               mo.id, mo.created_date, coalesce(m2.replica, to_char(cast((m2.id_type * 10^12) as bigint) + m2.id, 'FM0000000000000000')) || '%' ||
+               coalesce(m.replica, to_char(cast((m.id_type * 10^12) as bigint) + m.id, 'FM0000000000000000')) replicaIdAndOtmet,
+               mo.updated_date
+           FROM ss_module m
+               join ss_moduletype mt on (m.type = mt.id)
+               join ss_moduleorg mo on (mo.module = m.id)
+               join ss_moduleorg mo2 on (mo2.organization = mo.organization)
+               join ss_module m2 on (mo2.module = m2.id)
+               join ss_moduletype mt2 on (m2.type = mt2.id)
+           WHERE
+               m.id != m2.id
+               and mt.alias in ('OutputDocs', 'Missions', 'InternalDocs', 'JobApps', 'ContractsLite', 'JobOrders', 'Meetings')
+               and mt2.alias = 'SO'
+           ]]>
+    </prototype>
+</collection>

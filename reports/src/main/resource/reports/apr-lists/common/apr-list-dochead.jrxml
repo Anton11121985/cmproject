@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.8.0.final using JasperReports Library version 6.8.0-2ed8dfabb690ff337a5797129f2cd92902b0c87b  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="apr-list-dochead" pageWidth="483" pageHeight="842" columnWidth="483" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5fb6c9a7-46e0-44bc-b821-b13d7ec2a9b7">
+	<style name="boldStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{headerType}.equals("all")]]></conditionExpression>
+			<style isBold="true"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="lid" class="java.lang.Object"/>
+	<parameter name="rid" class="java.lang.String"/>
+	<parameter name="headerType" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[WITH rkkid AS (
+	SELECT
+		substring(n2p.punid, 5, 12)::bigint uid
+	,	left(n2p.punid, 4)::integer "type"
+	FROM
+		nunid2punid_map n2p
+	WHERE
+		n2p.nunid = $P{rid}
+)
+SELECT
+	(
+		SELECT
+			string_agg(r.signername, chr(10))
+	) signer
+,	r.subject
+,	r.execs
+,	r.doctype
+,	r.isdogrelated
+,	r.isdogords
+,	r.ismeeting
+,	r.contragent
+,	r.oths
+,	r.totalvalue
+,	r.comment
+FROM
+	(
+		SELECT
+			CASE
+				WHEN bs.signingmode = 0 THEN
+					signername.orig_shortname
+				ELSE
+					(
+						SELECT
+							coalesce(
+								so_beard.orig_shortname || CASE
+									WHEN so_beard.orig_type IN (1, 3) THEN
+										coalesce(', ' || so_beard.orig_postname, '') || coalesce(', ' || ssu.fullname, '')
+									ELSE
+										''
+								END
+							,	''
+							)
+						FROM
+							so_beard
+						LEFT JOIN
+							so_structureunit ssu
+								ON ssu.beard = so_beard.hierparent
+						WHERE
+							signers.signer = so_beard.id
+					)
+			END signername
+		,	coalesce(bs.subject, '') subject
+		,	coalesce(execs, '') execs
+		,	coalesce(
+				nullif(bs.type, '')
+			,	CASE
+					WHEN contractds.id IS NOT NULL THEN
+						'Доп. соглашение'
+				END
+			,	''
+			) || rnum doctype
+		,	CASE
+				WHEN coalesce(
+						contractrkk.id
+					,	contractds.id
+					,	contractfd.id
+					,	contractdoc.id
+					) IS NOT NULL THEN
+					'1'
+				ELSE
+					'0'
+			END isdogrelated
+		,	CASE
+				WHEN coalesce(contractrkk.id, contractds.id) IS NOT NULL THEN
+					'1'
+				ELSE
+					'0'
+			END isdogords
+		,	'0' ismeeting
+		,	coalesce(contrbrd.orig_shortname, '') contragent
+		,	coalesce(oths, '') oths
+		,	coalesce(
+				contractrkk.totalvalue || coalesce(' ' || contractrkk.currencytype, '')
+			,	contractds.totalvalue || coalesce(' ' || contractds.currencytype, '')
+			,	''
+			) totalvalue
+		,	coalesce(
+				worc.comments
+			,	contractrkk.comment
+			,	contractds.comment
+			,	contractdoc.comment
+			,	''
+			) "comment"
+		FROM
+			f_dp_rkkbase bs
+		JOIN
+			rkkid
+				ON bs.id = rkkid.uid AND
+				bs.id_type = rkkid.type
+		LEFT JOIN
+			f_dp_rkkworegandctrl worc
+				ON bs.id = worc.id
+		LEFT JOIN
+			f_dp_rkk rkk
+				ON bs.id = rkk.id
+		LEFT JOIN
+			f_dp_contractrkk contractrkk
+				ON contractrkk.id = bs.id
+		LEFT JOIN
+			f_dp_contractds contractds
+				ON contractds.id = bs.id
+		LEFT JOIN
+			f_dp_contractfd contractfd
+				ON contractfd.id = bs.id
+		LEFT JOIN
+			f_dp_contractdoc contractdoc
+				ON contractdoc.id = bs.id
+		LEFT JOIN
+			f_dp_ordrkk ordrkk
+				ON ordrkk.id = bs.id
+		LEFT JOIN
+			f_dp_outputrkk outrkk
+				ON outrkk.id = bs.id
+		LEFT JOIN
+			f_dp_intrkk intrkk
+				ON intrkk.id = bs.id
+		LEFT JOIN
+			so_beard signername
+				ON signername.id = intrkk.signsigner AND
+				signername.id = outrkk.signsigner AND
+				signername.id = ordrkk.signsigner AND
+				signername.id = contractdoc.signsigner AND
+				signername.id = contractfd.signsigner AND
+				signername.id = contractds.signsigner AND
+				signername.id = contractrkk.signsigner
+		LEFT JOIN
+			f_dp_rkk_signinginfo signers
+				ON signers.owner = bs.id
+		JOIN
+			LATERAL(
+				SELECT
+					coalesce(
+						' ' || coalesce(
+							coalesce(regnumprist, '') || regnumcnt || coalesce(regnumfin, '')
+						,	contractds.regnumber
+						,	contractfd.regnumber
+						,	contractdoc.regnumber
+						,	coalesce(prjnumprist, '') || prjnumcounter || coalesce(prjnumfin, '')
+						)
+					,	''
+					) rnum
+			) tmp1
+				ON 1 = 1
+		LEFT JOIN
+			f_dp_contractcommon comcontract
+				ON comcontract.id = coalesce(contractdoc.id, contractds.id, contractfd.id)
+		LEFT JOIN
+			f_dp_contractrkk parcontract
+				ON parcontract.id = comcontract.hierroot
+		LEFT JOIN
+			so_beard contrbrd
+				ON contrbrd.id = coalesce(
+					contractrkk.party2ida
+				,	contractrkk.party2idb
+				,	parcontract.party2ida
+				,	parcontract.party2idb
+				)
+		JOIN
+			LATERAL(
+				SELECT
+					string_agg(shname, ', ') oths
+				FROM
+					(
+						SELECT
+							othbrd.orig_shortname shname
+						FROM
+							(
+								SELECT
+									coalesce(contractrkk.id, parcontract.id) contrid
+							) tmp1
+						JOIN
+							LATERAL(
+								SELECT
+									partyotherida party
+								,	idx
+								,	1 ord
+								FROM
+									f_dp_contractrkk_ptothida oth1
+								WHERE
+									oth1.owner = contrid
+							UNION ALL
+								SELECT
+									partyotheridb
+								,	idx
+								,	2 ord
+								FROM
+									f_dp_contractrkk_ptothidb oth1
+								WHERE
+									oth1.owner = contrid
+							UNION ALL
+								SELECT
+									organization
+								,	idx
+								,	3 ord
+								FROM
+									f_dp_contractrkk_othprts oth1
+								WHERE
+									oth1.owner = contrid
+							) tmp2
+								ON 1 = 1
+						JOIN
+							so_beard othbrd
+								ON othbrd.id = party
+						ORDER BY
+							ord
+						,	idx
+					) tmp3
+			) tmpdogoth
+				ON 1 = 1
+		JOIN
+			LATERAL(
+				SELECT
+					string_agg(
+						execbrd.orig_shortname || CASE
+							WHEN execbrd.orig_type IN (1, 3) THEN
+								coalesce(', ' || execbrd.orig_postname, '')
+							ELSE
+								''
+						END
+					,	chr(10)
+					) execs
+				FROM
+					(
+						SELECT
+							bs.id bsid
+					) bs2
+				LEFT JOIN
+					f_dp_intrkk_executor intrkkexec
+						ON intrkkexec.owner = bsid
+				LEFT JOIN
+					f_dp_outputrkk_executor outrkkexec
+						ON outrkkexec.owner = bsid
+				LEFT JOIN
+					f_dp_ordrkk_executor ordrkkexec
+						ON ordrkkexec.owner = bsid
+				LEFT JOIN
+					f_dp_contractrkk_prepby contractprep
+						ON contractprep.owner = bsid
+				LEFT JOIN
+					f_dp_contractds_prepby contractdsprep
+						ON contractdsprep.owner = bs.id
+				JOIN
+					so_beard execbrd
+						ON execbrd.id = coalesce(
+							intrkkexec.executor
+						,	outrkkexec.executor
+						,	ordrkkexec.executor
+						,	contractprep.preparedby
+						,	contractdsprep.preparedby
+						)
+			) tmp2
+				ON 1 = 1
+	UNION ALL
+		SELECT
+			(
+				SELECT
+					coalesce(
+						so_beard.orig_shortname || CASE
+							WHEN so_beard.orig_type IN (1, 3) THEN
+								coalesce(', ' || so_beard.orig_postname, '') || coalesce(', ' || ssu.fullname, '')
+							ELSE
+								''
+						END
+					,	''
+					)
+				FROM
+					so_beard
+				LEFT JOIN
+					so_structureunit ssu
+						ON ssu.beard = so_beard.hierparent
+				WHERE
+					signer.uid = so_beard.id
+			) signername
+		,	meeting.subject
+		,	NULL execs
+		,	CASE
+				WHEN partalias.alias = 'agenda' THEN
+					'Повестка'
+				WHEN partalias.alias = 'minutes' THEN
+					'Протокол'
+				ELSE
+					NULL
+			END doctype
+		,	'0' isdogrelated
+		,	'0' isdogords
+		,	'1' ismeeting
+		,	NULL contragent
+		,	NULL oths
+		,	NULL totalvalue
+		,	CASE
+				WHEN meeting.complect = 'Meetings' THEN
+					meeting.p_comment
+				ELSE
+					NULL
+			END "comment"
+		FROM
+			f_meetings_meeting meeting
+		JOIN
+			rkkid
+				ON meeting.id = rkkid.uid AND
+				meeting.id_type = rkkid.type
+		JOIN
+			LATERAL(
+				SELECT DISTINCT
+					meetappr.partalias alias
+				FROM
+					aprmeet_vores_meet meetappr
+				WHERE
+					meetappr.id = $P{lid}
+			) partalias
+				ON 1 = 1
+		JOIN
+			LATERAL(
+				SELECT
+					CASE
+						WHEN partalias.alias = 'agenda' THEN
+							meeting.a_chairman
+						WHEN partalias.alias = 'minutes' THEN
+							meeting.p_chairman
+						ELSE
+							NULL
+					END uid
+			) signer
+				ON 1 = 1
+	) r
+GROUP BY
+	r.subject
+,	r.execs
+,	r.doctype
+,	r.isdogrelated
+,	r.isdogords
+,	r.ismeeting
+,	r.contragent
+,	r.oths
+,	r.totalvalue
+,	r.comment]]>
+	</queryString>
+	<field name="signer" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="execs" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="isdogrelated" class="java.lang.String"/>
+	<field name="isdogords" class="java.lang.String"/>
+	<field name="ismeeting" class="java.lang.String"/>
+	<field name="contragent" class="java.lang.String"/>
+	<field name="oths" class="java.lang.String"/>
+	<field name="totalvalue" class="java.lang.String"/>
+	<field name="comment" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="158">
+			<frame>
+				<reportElement positionType="Float" x="0" y="0" width="483" height="20" uuid="8bed4086-9241-4683-b583-dc7da6960303"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="20" uuid="3d7166eb-0065-4f78-b4c8-91af5652ca5f"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{doctype}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="20" uuid="a8f646b0-8e2d-444f-b6fe-a5877870285d"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Документ]]></text>
+				</staticText>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="100" width="483" height="20" uuid="ba85a2fc-848b-4747-b3d1-3ed1a9d5f52c"/>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="20" uuid="970a6a62-5a67-47ef-9785-3ef250c063fd"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Подпись]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="20" uuid="50439ea9-889f-4dd4-af17-bf4384c6b9c1"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{signer}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="80" width="483" height="20" isRemoveLineWhenBlank="true" uuid="ec1de83e-8b74-452b-8901-34b34c6a0b5a">
+					<printWhenExpression><![CDATA[$F{isdogords}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="20" uuid="adeb0faa-b02a-42a4-976c-c7e176e34d97"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Сумма]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="20" uuid="7ba48d85-0444-4262-a39e-8e99f5fc30b1"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{totalvalue}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="60" width="483" height="20" uuid="34e5775a-70f7-437c-af8f-1037858f098c"/>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="20" uuid="8287ab12-7288-4412-b27e-3e9367740a99"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Заголовок]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="20" uuid="27a6f47b-7d25-4d22-a4d2-4ee864941142"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="40" width="483" height="20" isRemoveLineWhenBlank="true" uuid="f4c8ad83-36ec-43fe-b146-62672d3d7cf3">
+					<printWhenExpression><![CDATA[$F{isdogrelated}.equals("1") && !$F{oths}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="20" uuid="0f2c1281-04d1-4677-8a3b-90c2c73d0913"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Другие стороны]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="20" uuid="355b03b1-7a68-49a2-a7dc-1668e8c187ed"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{oths}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="20" width="483" height="20" isRemoveLineWhenBlank="true" uuid="d0117f3e-bbb7-4f28-8e2c-5710d9c3454f">
+					<printWhenExpression><![CDATA[$F{isdogrelated}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="20" uuid="74dd24b9-698c-4876-86da-c3ca4db28556"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Контрагент]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="20" uuid="075c671e-375f-443b-b281-1a3b3b639cce"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{contragent}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" isRemoveLineWhenBlank="true" x="0" y="120" width="483" height="19" uuid="e2be5ed6-df56-4b09-9279-bf613b63333d">
+					<printWhenExpression><![CDATA[!$F{ismeeting}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="19" uuid="dcab3643-bfe2-4445-890e-4d585046151f"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Исполнитель]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="19" uuid="43b43c30-bc04-46c5-b1fc-7282e54bfd57"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{execs}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="139" width="483" height="19" isRemoveLineWhenBlank="true" uuid="b424fb37-bedc-47f7-a978-bfb5d7c1dc05">
+					<printWhenExpression><![CDATA[$P{headerType}.equals("all")]]></printWhenExpression>
+				</reportElement>
+				<staticText>
+					<reportElement style="boldStyle" stretchType="RelativeToTallestObject" x="0" y="0" width="155" height="19" uuid="07012e12-080c-480e-8e2e-11d0f3fae6ee"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Комментарий]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="328" height="19" uuid="7a178d8a-5872-4e69-9db2-e08e875412db"/>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comment}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

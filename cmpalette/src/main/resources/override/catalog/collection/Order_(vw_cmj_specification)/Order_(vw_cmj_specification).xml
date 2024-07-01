@@ -1,0 +1,261 @@
+<collection name="Order_(vw_cmj_specification)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+            SELECT
+	id,
+	created_date,
+	Module,
+	self_1,
+	self_2,
+	self_3,
+	regNumber,
+	dogID,
+	dogStatusNotAnIcon,
+	dogDate,
+	dogDocNumber,
+	dogDocDate,
+	dogSigners,
+	executorName,
+	subject,
+	party2
+FROM (
+	WITH contractStatus(indb, incolumn) AS (
+		SELECT 'действующий', 'Действ.'
+		UNION
+		SELECT 'недействующий', 'Недейств.'
+		UNION
+		SELECT 'проект', 'Проект'
+	)
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+        CASE
+        WHEN rkk.regnumcnt IS NULL THEN '<regNumberPrefix></><regNumberCounter#Number></><regNumberSuffix></>'
+        ELSE
+          '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+          || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+          || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>'
+        END                                                            							AS regNumber,
+		dogRkk.id																				AS dogID,
+		(SELECT incolumn FROM contractStatus WHERE contractStatus.indb = dogCommon.StatusDog)	AS dogStatusNotAnIcon,
+		rkk.regDate																				AS dogDate,
+		dogDoc.regNumber																		AS dogDocNumber,
+		dogDoc.regDate																			AS dogDocDate,
+		COALESCE(
+			(SELECT sgnr FROM (
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Contract_Signers_Ext sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogDoc.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+				UNION
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Rkk_SigningInfo sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogDoc.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+			) sgnrs WHERE sgnr IS NOT NULL ORDER BY upd DESC LIMIT 1),
+			(SELECT sb.Orig_ShortName FROM SO_Beard sb WHERE sb.id = dogDoc.signSigner))		AS dogSigners,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDoc_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogDoc.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		rkkbase.subject																			AS subject,
+		(SELECT sb.Orig_ShortName FROM SO_Beard sb
+		 WHERE sb.id = CASE WHEN dogRkk.party2type = 0 THEN dogRkk.party2ida
+			 				ELSE dogRkk.party2idb END)											AS party2
+	FROM F_DP_ContractDoc dogDoc
+	JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = dogDoc.id
+	JOIN F_DP_ContractRkk dogRkk ON dogRkk.id = dogCommon.hierRoot
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogDoc.id
+	WHERE rkkbase.IsDeleted <> 1 AND rkkbase.type = 'Спецификация'
+) s
+WHERE
+	1 = 1
+    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+SELECT COUNT(*)
+FROM (
+	WITH contractStatus(indb, incolumn) AS (
+		SELECT 'действующий', 'Действ.'
+		UNION
+		SELECT 'недействующий', 'Недейств.'
+		UNION
+		SELECT 'проект', 'Проект'
+	)
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+        CASE
+        WHEN rkk.regnumcnt IS NULL THEN '<regNumberPrefix></><regNumberCounter#Number></><regNumberSuffix></>'
+        ELSE
+          '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+          || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+          || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>'
+        END                                                            							AS regNumber,
+		dogRkk.id																				AS dogID,
+		(SELECT incolumn FROM contractStatus WHERE contractStatus.indb = dogCommon.StatusDog)	AS dogStatusNotAnIcon,
+		rkk.regDate																				AS dogDate,
+		dogDoc.regNumber																		AS dogDocNumber,
+		dogDoc.regDate																			AS dogDocDate,
+		COALESCE(
+			(SELECT sgnr FROM (
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Contract_Signers_Ext sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogDoc.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+				UNION
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Rkk_SigningInfo sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogDoc.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+			) sgnrs WHERE sgnr IS NOT NULL ORDER BY upd DESC LIMIT 1),
+			(SELECT sb.Orig_ShortName FROM SO_Beard sb WHERE sb.id = dogDoc.signSigner))		AS dogSigners,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDoc_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogDoc.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		rkkbase.subject																			AS subject,
+		(SELECT sb.Orig_ShortName FROM SO_Beard sb
+		 WHERE sb.id = CASE WHEN dogRkk.party2type = 0 THEN dogRkk.party2ida
+			 				ELSE dogRkk.party2idb END)											AS party2
+	FROM F_DP_ContractDoc dogDoc
+	JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = dogDoc.id
+	JOIN F_DP_ContractRkk dogRkk ON dogRkk.id = dogCommon.hierRoot
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogDoc.id
+	WHERE rkkbase.IsDeleted <> 1 AND rkkbase.type = 'Спецификация'
+) s
+WHERE
+	1 = 1
+    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(dogDate, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogDate IS NULL
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDocNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogDocNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDocNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(dogDocNumber) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogDocDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(dogDocDate, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDocDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogDocDate IS NULL
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogSigners_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(dogSigners) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(executorName) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(subject) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="party2_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(party2) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDocDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(dogDocDate as date) >= cast({0} as date) and cast(dogDocDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Нагр делопр" pageWidth="1100" pageHeight="300" whenNoDataType="AllSectionsNoDetail" columnWidth="1100" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" scriptletClass="Scriplet" isIgnorePagination="true" uuid="40c2ea57-9226-4ae0-b01f-b6c21550897b">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="181"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="808"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<parameter name="DATE_EXEC.Start" class="java.util.Date"/>
+	<parameter name="DATE_EXEC.End" class="java.util.Date"/>
+	<parameter name="EXEC_LIST.Value" class="java.lang.Object"/>
+	<parameter name="execsString" class="java.lang.String">
+		<defaultValueExpression><![CDATA[$P{REPORT_SCRIPTLET}.getIdsList($P{EXEC_LIST.Value})]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT rkk.id
+	, (coalesce(rkk.regnumprist,'') || rkk.regnumcnt || coalesce(rkk.regnumfin,'')) AS numb_doc
+	, rkk.regdate
+	, CASE WHEN (inp.fromid IS NOT null) THEN corr.orig_shortname ELSE '' END AS correspondent
+	, base.subject
+	, coalesce(reprt.reprt_text,'') reprt_text
+	, reprt.ctrldeadline1 as ctrldeadline1
+	, coalesce(rrkwor."comments", '') AS comm
+FROM f_dp_inputrkk inp
+	JOIN f_dp_rkk rkk ON rkk.id = inp.id
+	JOIN f_dp_rkkbase base ON base.id = inp.id
+	LEFT JOIN so_beard corr ON corr.id = inp.fromid
+	LEFT JOIN f_dp_rkkworegandctrl rrkwor ON rrkwor.id = base.id
+	LEFT JOIN (SELECT ttl_res.id, string_agg(ttl_res.reprt_text,E'\n') reprt_text
+				,string_agg(ttl_res.ctrldeadline1,E'\n') as ctrldeadline1
+			from (SELECT base.id, fdr.id fdr_id, fdr2.author autor_res, fdr2.author autor_res_type
+					, 'автор: ' || sb.orig_shortname || '; исполнитель: ' || fdre.users || '; текст: ' || fdr2.resolution reprt_text
+					,to_char(fdr.ctrldeadline, 'DD.MM.YYYY') as ctrldeadline1
+				FROM f_dp_rkkbase base
+				LEFT JOIN f_dp_resolution fdr ON base.id = fdr.hierroot
+				LEFT JOIN f_dp_resltnbase fdr2 ON fdr2.id = fdr.id
+				LEFT JOIN so_beard sb ON sb.id = fdr2.author
+				LEFT JOIN (SELECT string_agg(sbe_.orig_shortname, ', ') users, fdre_."owner"
+							FROM f_dp_resltnbase_execcurr fdre_
+							LEFT JOIN so_beard sbe_ ON sbe_.id = fdre_.executorcurr
+							group by fdre_."owner"
+				) fdre ON fdre."owner" = fdr2.id
+				where fdr.hierroot = fdr.hierparent and fdr.isproject = 0 and fdr.isproject = 0
+			) ttl_res
+			group by ttl_res.id
+		) reprt ON reprt.id = inp.id
+WHERE
+	rkk.regnumcnt IS NOT NULL
+	AND base.isdeleted = 0
+	AND rkk.regdate BETWEEN $P{DATE_EXEC.Start} AND $P{DATE_EXEC.End}
+	AND ($P{execsString} = '-4' OR inp.fromid IN ($P!{execsString}))
+ORDER BY rkk.regnumcnt]]>
+	</queryString>
+	<field name="numb_doc" class="java.lang.String"/>
+	<field name="regdate" class="java.sql.Timestamp"/>
+	<field name="correspondent" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="reprt_text" class="java.lang.String"/>
+	<field name="ctrldeadline1" class="java.lang.String"/>
+	<field name="comm" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="40" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<subreport>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="0" width="1100" height="40" isRemoveLineWhenBlank="true" uuid="77375673-74a6-42aa-8493-73465d98d3e9">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<subreportParameter name="DATE_EXEC.End">
+					<subreportParameterExpression><![CDATA[$P{DATE_EXEC.End}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATE_EXEC.Start">
+					<subreportParameterExpression><![CDATA[$P{DATE_EXEC.Start}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="execsString">
+					<subreportParameterExpression><![CDATA[$P{execsString}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["report-exec-incoming-correspondence-params.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="0" width="90" height="30" backcolor="#E6E6E6" uuid="317537f4-3090-404b-afd1-cd8ac2953ea2">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[№ п/п]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="0" width="130" height="30" backcolor="#E6E6E6" uuid="197ab3ec-7c97-48c0-a526-3d2ab4c3ca77">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Рег. номер]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="220" y="0" width="110" height="30" backcolor="#E6E6E6" uuid="cf049e8e-0ad9-40d9-bf6f-66ac6c308a49">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Дата регистрации]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="330" y="0" width="120" height="30" backcolor="#E6E6E6" uuid="7770cc04-eb41-4951-ab09-042a51f4f6d7">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Корреспондент]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="570" y="0" width="280" height="30" backcolor="#E6E6E6" uuid="4fe8b5e3-5b6c-4967-8b96-3ceab09b2b46">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Ход исполнения]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="450" y="0" width="120" height="30" backcolor="#E6E6E6" uuid="cbffa5a3-282d-4350-83ba-49ad7779755b">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Заголовок]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="960" y="0" width="140" height="30" backcolor="#E6E6E6" uuid="98de43f6-52ce-4cfc-8ad2-f33765158328">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Примечание]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="850" y="0" width="110" height="30" backcolor="#E6E6E6" uuid="0c30fa3b-d61e-4f0e-9e06-bf689e1a4b24">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Срок исполнения]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="0" y="0" width="90" height="20" isPrintWhenDetailOverflows="true" uuid="2a64698d-4881-4ebe-82f1-513b73dcdd0f">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="90" y="0" width="130" height="20" isPrintWhenDetailOverflows="true" uuid="0b04d207-d729-404a-b540-5893667ac501">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{numb_doc} == null ? "" :  $F{numb_doc})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="220" y="0" width="110" height="20" isPrintWhenDetailOverflows="true" uuid="1d1dfc1e-d550-4c0e-9b05-f49fce6aa591">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{regdate} == null ? "" :  new SimpleDateFormat("dd.MM.YYYY").format($F{regdate}))]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="330" y="0" width="120" height="20" isPrintWhenDetailOverflows="true" uuid="b4cb850b-ea2f-4145-b847-c9e3e5e2b255">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{correspondent} == null ? "" :  $F{correspondent})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="570" y="0" width="280" height="20" isPrintWhenDetailOverflows="true" uuid="b0e0a9eb-d636-4d7d-8843-e1c228c07b23">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{reprt_text} == null ? "" :  $F{reprt_text})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="450" y="0" width="120" height="20" isPrintWhenDetailOverflows="true" uuid="a840696f-8dbf-4082-90ea-325ae5d62602">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{subject} == null ? "" :  $F{subject})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="960" y="0" width="140" height="20" isPrintWhenDetailOverflows="true" uuid="c4ec2f96-a0ee-4172-b8aa-8ee2157df5af">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{comm} == null ? "" : $F{comm})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="ContainerHeight" x="850" y="0" width="110" height="20" isPrintWhenDetailOverflows="true" uuid="16bf17d8-ab1e-462a-9aa0-0d97387f911f">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ctrldeadline1} == null ? "" :  $F{ctrldeadline1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

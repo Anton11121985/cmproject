@@ -1,0 +1,163 @@
+<collection name="ContractsLite_(templates_contracts_docs)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+            SELECT
+                id,
+                created_date,
+                module,
+                self_1,
+                self_2,
+                self_3,
+                accessTypeColl,
+                templateName,
+                subject
+            FROM (
+                SELECT
+                    doc_template.id,
+                    rkkbase.created_date,
+                    rkkbase.module					AS Module,
+                    '<id>'	AS self_1,
+                    ':'		AS self_2,
+                    '</>'	AS self_3,
+                    (CASE
+                        WHEN (SELECT count(lnfield) FROM (
+                            SELECT lnfield
+                            FROM DP_LNAcc_ContractDocT ddAcc
+                            JOIN dp_lnacc ON dp_lnacc.id = ddAcc.id
+                            WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess' AND ddAcc.owner = doc_template.id
+                            UNION
+                            SELECT lnfield
+                            FROM  DP_LNAccRole_ContractDocT ddAccRole
+                            JOIN dp_lnaccrole ON dp_lnaccrole.id = ddAccRole.id
+                            WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess' AND ddAccRole.owner = doc_template.id
+                        ) pub) <> 0 THEN 'Доступен всем'
+                        WHEN AVG(tmpl.isfavouritesaccess) <> 0 THEN 'Доступен выбранным'
+                        ELSE 'Личный доступ'
+                    END)							AS accessTypeColl,
+                    REPLACE(tmpl.name, '$$$', ' ')	AS templateName,
+                    rkkbase.subject
+                FROM F_DP_ContractDocTmpl doc_template
+                LEFT JOIN F_DP_RkkTemplate tmpl ON tmpl.id = doc_template.id
+                LEFT JOIN F_DP_Rkk rkk ON rkk.id = doc_template.id
+                LEFT JOIN F_DP_RkkBase rkkbase ON rkkbase.id = doc_template.id AND rkkbase.id_type = doc_template.id_type
+                WHERE rkkbase.isdeleted <> 1
+                GROUP BY doc_template.id, rkkbase.created_date, rkkbase.module, tmpl.name, rkkbase.subject
+            ) s
+            WHERE
+                1 = 1
+                ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT COUNT(*) FROM (
+                SELECT
+                    doc_template.id,
+                    rkkbase.created_date,
+                    rkkbase.module	AS Module,
+                    (CASE
+                        WHEN (SELECT count(lnfield) FROM (
+                            SELECT lnfield
+                            FROM DP_LNAcc_ContractDocT ddAcc
+                            JOIN dp_lnacc ON dp_lnacc.id = ddAcc.id
+                            WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess' AND ddAcc.owner = doc_template.id
+                            UNION
+                            SELECT lnfield
+                            FROM  DP_LNAccRole_ContractDocT ddAccRole
+                            JOIN dp_lnaccrole ON dp_lnaccrole.id = ddAccRole.id
+                            WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess' AND ddAccRole.owner = doc_template.id
+                        ) pub) <> 0 THEN 'Доступен всем'
+                        WHEN AVG(tmpl.isfavouritesaccess) <> 0 THEN 'Доступен выбранным'
+                        ELSE 'Личный доступ'
+                    END)						AS accessTypeColl,
+                    tmpl.name					AS templateName
+                FROM F_DP_ContractDocTmpl doc_template
+                LEFT JOIN F_DP_RkkTemplate tmpl ON tmpl.id = doc_template.id
+                LEFT JOIN F_DP_Rkk rkk ON rkk.id = doc_template.id
+                LEFT JOIN F_DP_RkkBase rkkbase ON rkkbase.id = doc_template.id AND rkkbase.id_type = doc_template.id_type
+                WHERE rkkbase.isdeleted <> 1
+                GROUP BY doc_template.id, rkkbase.created_date, rkkbase.module, tmpl.name, rkkbase.subject
+            ) s
+            WHERE
+                1 = 1
+                ::where-clause
+           ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        upper(accessTypeColl) like upper('%'||{0}||'%')
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       templateName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	templateName ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	templateName < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	templateName >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        subject = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        subject ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+</collection>

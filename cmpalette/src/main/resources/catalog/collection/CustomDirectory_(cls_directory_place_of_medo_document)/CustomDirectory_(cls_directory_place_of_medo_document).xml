@@ -1,0 +1,320 @@
+<collection name="CustomDirectory_(cls_directory_place_of_medo_document)" replace="runtime" idField="id" useClone="false">
+    <prototype>
+        <![CDATA[
+			SELECT
+				id,
+				created_date,
+				self_1,
+				self_2,
+				self_3,
+				Module,
+				codeValue,
+                valueMedo,
+                comment,
+                versionValue,
+                dateValue,
+                iconId_usage,
+                iconHint_usage,
+                iconId_createType,
+                iconHint_createType,
+                parentGroup
+			FROM(
+				SELECT
+					tag.id,
+					tag.created_date,
+					'<id>' as self_1,
+					':' as self_2,
+					'</>' as self_3,
+					tag.module AS Module,
+					(SELECT
+                        CASE
+                            WHEN tfd.value = 1 THEN '91'
+                            ELSE (SELECT
+                                    CASE WHEN tfd.value = 1 THEN '43'
+                                    ELSE ''
+                                    END
+                                  FROM tn_field tf
+                                  JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                                  WHERE tf.owner = tag.id AND tf.cmjfield = 'byDefault')
+                        END
+                    FROM tn_field tf
+                    JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                    WHERE tf.owner = tag.id AND tf.cmjfield = 'notUsing'
+                    )																								 as iconId_usage,
+
+                    (SELECT
+                        CASE
+                            WHEN tfd.value = 1 THEN 'Не используется'
+                            ELSE (SELECT
+                                    CASE WHEN tfd.value = 1 THEN 'По умолчанию'
+                                    ELSE ''
+                                    END
+                                  FROM tn_field tf
+                                  JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                                  WHERE tf.owner = tag.id AND tf.cmjfield = 'byDefault')
+                        END
+                    FROM tn_field tf
+                    JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                    WHERE tf.owner = tag.id AND tf.cmjfield = 'notUsing'
+                    )																								 as iconHint_usage,
+
+                (select 
+						case when count (tfd.value) = 0 then '24'
+						else ''
+						end 
+                     from  tn_field tf
+                     JOIN Tn_Field_Decimal tfd on tfd.id = tf.id
+                     WHERE tf.owner = tag.id AND tf.cmjfield = 'fromMedo' AND tfd.value=1
+                     ) 																								as iconId_createType,
+
+                     (select 
+						case 
+						when count (tfd.value) = 0 then 'Создан вручную'
+						else ''
+						end 
+                     from  tn_field tf
+                     JOIN Tn_Field_Decimal tfd on tfd.id = tf.id
+                     WHERE tf.owner = tag.id AND tf.cmjfield = 'fromMedo' and tfd.value=1
+                     )                                                                               				 as iconHint_createType,
+
+				    (SELECT complex.title
+				     FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'code' AND to_tag.tag = tag.id
+					)                                                                                                as codeValue,
+
+				    (SELECT complex.title
+				     FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'value' AND to_tag.tag = tag.id
+					)                                                                                                as valueMedo,
+
+					(SELECT complex.title
+					 FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'comment' AND to_tag.tag = tag.id
+					)                                                                                                as comment,
+
+					(SELECT complex.title
+					 FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'versionNumber' AND to_tag.tag = tag.id
+					 ORDER BY to_tag.updated_date desc LIMIT 1
+					)                                                                                                as versionValue,
+
+				    (SELECT timezone('0', tfdo.value)
+                     FROM tn_field tf
+                     JOIN tn_field_dateonly tfdo on tfdo.id = tf.id
+                     WHERE tf.owner = tag.id AND tf.cmjfield = 'date'
+                    )                                                                                                as dateValue,
+
+                    (SELECT complex.title
+					 FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'parentGroup' AND to_tag.tag = tag.id
+					)                                                                                                as parentGroup
+
+				FROM
+					clscom_tag tag
+				WHERE
+				    tag.schema = 'ComplectClassifierMedoPlaceOfDocument'
+				    AND tag.deleted <> 1
+			)s
+			WHERE
+				1=1
+				::where-clause
+		]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+			SELECT
+				count(1)
+            FROM(
+				SELECT
+					tag.id,
+					tag.created_date,
+					'<id>' as self_1,
+					':' as self_2,
+					'</>' as self_3,
+					tag.module AS Module,
+					(SELECT
+                        CASE
+                            WHEN tfd.value = 1 THEN '91'
+                            ELSE (SELECT
+                                    CASE WHEN tfd.value = 1 THEN '43'
+                                    ELSE ''
+                                    END
+                                  FROM tn_field tf
+                                  JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                                  WHERE tf.owner = tag.id AND tf.cmjfield = 'byDefault')
+                        END
+                    FROM tn_field tf
+                    JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                    WHERE tf.owner = tag.id AND tf.cmjfield = 'notUsing'
+                    )																								 as iconId_usage,
+
+                    (SELECT
+                        CASE
+                            WHEN tfd.value = 1 THEN 'Не используется'
+                            ELSE (SELECT
+                                    CASE WHEN tfd.value = 1 THEN 'По умолчанию'
+                                    ELSE ''
+                                    END
+                                  FROM tn_field tf
+                                  JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                                  WHERE tf.owner = tag.id AND tf.cmjfield = 'byDefault')
+                        END
+                    FROM tn_field tf
+                    JOIN tn_field_decimal tfd ON tfd.id = tf.id
+                    WHERE tf.owner = tag.id AND tf.cmjfield = 'notUsing'
+                    )																								 as iconHint_usage,
+
+					(select 
+						case when count (tfd.value) = 0 then '24'
+						else ''
+						end 
+                     from  tn_field tf
+                     JOIN Tn_Field_Decimal tfd on tfd.id = tf.id
+                     WHERE tf.owner = tag.id AND tf.cmjfield = 'fromMedo' AND tfd.value=1
+                     ) 																								as iconId_createType,
+
+                     (select 
+						case 
+						when count (tfd.value)  = 0 then 'Создан вручную'
+						else ''
+						end 
+                     from  tn_field tf
+                     JOIN Tn_Field_Decimal tfd on tfd.id = tf.id
+                     WHERE tf.owner = tag.id AND tf.cmjfield = 'fromMedo' and tfd.value=1
+                     )                                                                               				 as iconHint_createType,
+
+				    (SELECT complex.title
+				     FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'code' AND to_tag.tag = tag.id
+					)                                                                                                as codeValue,
+
+				    (SELECT complex.title
+				     FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'value' AND to_tag.tag = tag.id
+					)                                                                                                as valueMedo,
+
+					(SELECT complex.title
+					 FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'comment' AND to_tag.tag = tag.id
+					)                                                                                                as comment,
+
+					(SELECT complex.title
+					 FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'versionNumber' AND to_tag.tag = tag.id
+					 ORDER BY to_tag.updated_date desc LIMIT 1
+					)                                                                                                as versionValue,
+
+				    (SELECT timezone('0', tfdo.value)
+                     FROM tn_field tf
+                     JOIN tn_field_dateonly tfdo on tfdo.id = tf.id
+                     WHERE tf.owner = tag.id AND tf.cmjfield = 'date'
+                    )                                                                                                as dateValue,
+
+                    (SELECT complex.title
+					 FROM clscom_to_tag to_tag
+					 JOIN classifier_complex complex ON complex.id = to_tag.classifier
+					 JOIN cls_typeComp typecom ON typecom.id = complex.owner
+					 WHERE typecom.alias = 'parentGroup' AND to_tag.tag = tag.id
+					)                                                                                                as parentGroup
+
+				FROM
+					clscom_tag tag
+				WHERE
+				    tag.schema = 'ComplectClassifierMedoPlaceOfDocument'
+				    AND tag.deleted <> 1
+			)s
+			WHERE
+				1=1
+				::where-clause
+		]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="codeValue">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    codeValue = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="codeValue_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    (codeValue) iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="valueMedo">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    valueMedo = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="valueMedo_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    (valueMedo) iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="comment">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    comment = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="comment_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    (comment) iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="versionValue">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    versionValue = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="versionValue_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    (versionValue) iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dateValue">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(dateValue, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+</collection>
+

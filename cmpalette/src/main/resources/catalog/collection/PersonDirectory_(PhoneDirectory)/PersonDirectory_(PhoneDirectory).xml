@@ -1,0 +1,248 @@
+<collection name="PersonDirectory_(PhoneDirectory)" idField="id">
+    <prototype>
+        <![CDATA[
+	select
+			    ss_module_org.Module,
+                temp.id,
+                temp.id_type,
+                '<id>' as self_1,
+                ':' as self_2,
+                '</>' as self_3,
+                temp.self,
+                temp.created_date,
+                temp.isDeleted,
+                temp.workPhone,
+                temp.mobilePhone,
+                temp.soInternalPhone,
+                temp.soEmail,
+                temp.soMix1,
+                temp.soMix2,
+                temp.soAddress,
+                temp.organization,
+                temp.independentHigherDep,
+                temp.soPhone,
+                temp.soParentFullName,
+                temp.soLeaderShortName
+            From (
+            SELECT
+                                pers.id,
+                                pers.id_type as id_type,
+                                '<id>' as self_1,
+                                ':' as self_2,
+                                '</>' as self_3,
+                                CONCAT ('<id>',substring(beard.cmjunid, 33, 48),':',substring(beard.cmjunid, 1, 32),'</>') self,
+                                pers.created_date,
+                                pers.isDeleted,
+                                phonew.phone as workPhone,
+                                phonem.phone as mobilePhone,
+                                phoneint.phone as soInternalPhone,
+                                email.email as soEmail,
+                                pers.lastName || (case when length(pers.firstname) > 0 then ' ' || pers.firstname else '' end) ||
+                                        (case when length(pers.middlename) > 0 then ' ' || pers.middlename else '' end) as soMix1,
+                                case
+                                    when  post.name is null then ''
+                                    else  post.name
+                                end as soMix2,
+                                pers.updated_date as updated_date,
+                                    adrs.streettype,
+                                    adrs.street,
+                                    adrs.house,
+                                    adrs.corp,
+                                    adrs.building,
+                                    adrs.office,
+                                    adrs.settlement,
+                                    adrs.city,
+                                    adrs.locality,
+                                    adrs.country,
+                                    adrs.zipcode,
+                                    case
+                                        when (adrs.street IS NOT NULL AND adrs.street <> '')
+                                        then coalesce(NULLIF(adrs.streettype, ''), 'ул.') || ' ' || adrs.street
+                                        else ''
+                                    end
+                                    || coalesce(' д. ' || NULLIF(adrs.house, ''), '')
+                                    || coalesce(' корп. ' || NULLIF(adrs.corp, ''), '')
+                                    || coalesce(' стр. ' || NULLIF(adrs.building, ''), '')
+                                    || coalesce(' офис ' || NULLIF(adrs.office, ''), '')
+                                    || coalesce(' н/п ' || NULLIF(adrs.settlement, ''), '')
+                                    || coalesce(' г. ' || NULLIF(adrs.city, ''), '')
+                                    || coalesce(' р-н. ' || NULLIF(adrs.locality, ''), '')
+                                    || coalesce(' ' || NULLIF(adrs.region, ''), '')
+                                    || coalesce(' ' || NULLIF(adrs.country, ''), '')
+                                    || coalesce(' ' || NULLIF(adrs.zipcode, ''), '') as soAddress,
+                                    independentDep.shortname as independentHigherDep,
+                                    personsys.organization as organization,
+                                    concat_ws (',', phonew.phone, phonem.phone, phoneint.phone) as soPhone,
+                                    beard.orig_departmentname as soParentFullName,
+                                    (select orig_shortname from so_beard
+                                join SO_Appointment on so_beard.id = SO_Appointment.beard and so_beard.id_type = SO_Appointment.beard_type and SO_Appointment.isPrimary = 1
+                               join SO_AppointmentHead on SO_AppointmentHead.id = SO_Appointment.id
+                               join so_posthead on SO_AppointmentHead.post =so_posthead.id
+                                where so_posthead.id = post.boss limit 1) as soLeaderShortName
+                            FROM
+
+                                so_personsys personsys
+join so_person pers on personsys.id = pers.id
+join so_appointment app on app.person = personsys.id and app.person_type = personsys.id_type
+join so_appointmenthead head on app.id = head.id
+join so_posthead ph on ph.id = head.post
+join so_post post on post.id = head.post
+join so_unit on so_unit.id = post.id
+join so_beard beard on beard.id = app.beard and beard.id_type = app.beard_type
+left join so_addressdata_person adrsper on adrsper.owner = pers.id
+left join so_addressdata adrs on adrs.id = adrsper.id
+left join so_phone_person_int intphone on intphone.owner = pers.id
+left join so_phone_person_m mphone on mphone.owner = pers.id
+left join so_phone_person_w wphone on wphone.owner = pers.id
+left join so_phone phonew on phonew.id = wphone.id
+left join so_phone phonem on phonem.id = mphone.id
+left join so_phone phoneint on phoneint.id = intphone.id
+left join so_email_person email_person on email_person.owner = pers.id
+left join so_email email on email.id = email_person.id
+left join so_structureunit independentDep on so_unit.isolatedDep = independentDep.id
+where beard.isactive = 1
+union all
+            select
+                                pers.id,
+                                pers.id_type as id_type,
+                                '<id>' as self_1,
+                                ':' as self_2,
+                                '</>' as self_3,
+                                CONCAT ('<id>', substring(beard.cmjunid, 33, 48), ':', substring(beard.cmjunid, 1, 32), '</>') self,
+                                pers.created_date,
+                                pers.isDeleted,
+                                phonew.phone as workPhone,
+                                phonem.phone as mobilePhone,
+                                phoneint.phone as soInternalPhone,
+                                email.email as soEmail,
+                                pers.lastName || (case when length(pers.firstname) > 0 then ' ' || pers.firstname else '' end) ||
+                                        (case when length(pers.middlename) > 0 then ' ' || pers.middlename else '' end) as soMix1,
+                                case
+                                    when post.name is null then '' else post.name
+                                end as soMix2,
+                                pers.updated_date as updated_date,
+                                    adrs.streettype,
+                                    adrs.street,
+                                    adrs.house,
+                                    adrs.corp,
+                                    adrs.building,
+                                    adrs.office,
+                                    adrs.settlement,
+                                    adrs.city,
+                                    adrs.locality,
+                                    adrs.country,
+                                    adrs.zipcode,
+                                    case
+                                        when (adrs.street is not null and adrs.street <> '')
+                                        then coalesce(nullif(adrs.streettype, ''), 'ул.') || ' ' || adrs.street else ''
+                                    end
+                                    || coalesce(' д. ' || nullif(adrs.house, ''), '')
+                                    || coalesce(' корп. ' || nullif(adrs.corp, ''), '')
+                                    || coalesce(' стр. ' || nullif(adrs.building, ''), '')
+                                    || coalesce(' офис ' || nullif(adrs.office, ''), '')
+                                    || coalesce(' н/п ' || nullif(adrs.settlement, ''), '')
+                                    || coalesce(' г. ' || nullif(adrs.city, ''), '')
+                                    || coalesce(' р-н. ' || nullif(adrs.locality, ''), '')
+                                    || coalesce(' ' || nullif(adrs.region, ''), '')
+                                    || coalesce(' ' || nullif(adrs.country, ''), '')
+                                    || coalesce(' ' || nullif(adrs.zipcode, ''), '') as soAddress,
+                                    independentDep.shortname as independentHigherDep,
+                                    personsys.organization as organization,
+                                    concat_ws (',', phonew.phone, phonem.phone, phoneint.phone) as soPhone,
+                                    beard.orig_departmentname as soParentFullName,
+                                    (select orig_shortname from so_beard
+                                join SO_Appointment on so_beard.id = SO_Appointment.beard and so_beard.id_type = SO_Appointment.beard_type and SO_Appointment.isPrimary = 1
+                               join SO_AppointmentHead on SO_AppointmentHead.id = SO_Appointment.id
+                               join so_posthead on SO_AppointmentHead.post =so_posthead.id
+                                where so_posthead.id = post.boss limit 1) as soLeaderShortName
+                                    from
+                                so_personsys personsys
+                                join so_person pers on personsys.id = pers.id
+                                join SO_Appointment app on app.person = pers.id
+                                join so_appointmentplain plain on app.id=plain.id
+								join SO_Postplain pp on pp.id=plain.post
+                                join so_post post on post.id=pp.id
+                                join so_unit on so_unit.id=post.id
+								join so_beard beard on beard.id = app.beard and beard.id_type = app.beard_type
+                                left join so_addressdata_person adrsper on adrsper.owner = pers.id
+                                left join so_addressdata adrs on adrs.id = adrsper.id
+                                left join so_phone_person_int intphone on intphone.owner = pers.id
+                                left join so_phone_person_m mphone on mphone.owner = pers.id
+                                left join so_phone_person_w wphone on wphone.owner = pers.id
+                                left join  so_phone phonew on phonew.id = wphone.id
+                                left join  so_phone phonem on phonem.id = mphone.id
+                                left join  so_phone phoneint on phoneint.id = intphone.id
+                                left join so_email_person email_person on email_person.owner = pers.id
+                                left join so_email email on email.id = email_person.id
+                                left join so_structureunit independentDep on so_unit.isolatedDep = independentDep.id
+
+                                where beard.isactive = 1
+            ) temp
+                    ::from-clause
+                where
+                    temp.isDeleted <> 1
+                    ::where-clause
+			]]>
+    </prototype>
+    <filter name="MODULE">
+        <reference placeholder="from-clause">
+            <![CDATA[
+                   join SS_ModuleOrg ss_module_org on ss_module_org.Organization = temp.organization
+                ]]>
+        </reference>
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    SS_Module_Org.Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="workPhone_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.workPhone ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="mobilePhone_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.mobilePhone ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soInternalPhone_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.soInternalPhone ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soEmail_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.soEmail ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soPost_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.soPost ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soAddress_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.soAddress ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="independentHigherDep_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    temp.independentHigherDep ilike ('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

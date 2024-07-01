@@ -1,0 +1,324 @@
+<collection name="InternalDocs_(project_by_project_number)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    hasGriff,
+    hasAttachments,
+    regDate,
+    reqType,
+    signerName,
+    executorName,
+    addresseesName,
+    linkedDoc,
+    subject,
+    regPlace,
+    projectNumber
+FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rkk.regdate                                            AS regDate,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+                 else ''
+                 end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                      AS hasAttachments,
+
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                     (SELECT array_to_string(array_agg(orig_shortname), ' ', '')
+                      FROM so_beard
+                               LEFT JOIN F_DP_Rkk_SigningInfo on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                      WHERE internalrkk.id = F_DP_Rkk_SigningInfo.owner)
+                 END AS signerName,
+
+             COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName,
+
+             (select case
+                         when count (*) = 0 then 'Не указано'
+                         else  array_to_string(array_agg( beardaddressee.orig_shortname), ' ', '')
+                         end
+              FROM
+                  f_dp_intrkk_addressee inttaddress
+                      LEFT JOIN so_beard beardaddressee ON beardaddressee.id = inttaddress.Addressee
+              WHERE inttaddress.owner = internalrkk.id
+             )                                                                  AS addresseesName,
+
+             rkkbase.subject                                                    AS subject,
+
+             (SELECT COALESCE(string_agg((CASE
+                                              WHEN link.doclinktype = '' THEN '<id></>'
+                                              ELSE (COALESCE(
+                                                                      '<id>' || link.docreplid || ':' || link.docunid || '</>',
+                                                                      '<id>' || to_char(
+                                                                                  cast((module.id_type * 10 ^ 12) as bigint) + module.id,
+                                                                                  'FM0000000000000000') ||
+                                                                      ':00000000000000000000000000000000' || '</>')) END), ';'),
+                              '<id></>')
+              FROM F_DP_RkkWORegAndCtrl_ULnk link
+                       LEFT JOIN ss_module module ON module.id = rkkbase.module
+              WHERE link.owner = rkk.id)  AS linkedDoc,
+
+             coalesce(
+                     (SELECT
+                          CASE WHEN regplace.orig_shortname IS NULL THEN 'Не указано'
+                               ELSE regplace.orig_shortname
+                              END
+                      FROM so_beard RegPlace
+                      WHERE RegPlace.id = rkkbase.RegCode),
+                     CASE WHEN rkkbase.RegCode IS NULL THEN 'Не указано' END
+                 )  AS regPlace,
+
+             concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin) as projectNumber
+
+         FROM
+             f_dp_intrkk internalrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 LEFT JOIN So_BEARD signerName ON signerName.id = InternalRkk.SignSigner
+         WHERE rkkbase.isdeleted = 0 and rkk.regnumcnt is null
+     ) as s
+WHERE 1=1
+        ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+        SELECT
+            COUNT(*)
+        FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rkk.regdate                                            AS regDate,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+                 else ''
+                 end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                      AS hasAttachments,
+
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                     (SELECT array_to_string(array_agg(orig_shortname), ' ', '')
+                      FROM so_beard
+                               LEFT JOIN F_DP_Rkk_SigningInfo on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                      WHERE internalrkk.id = F_DP_Rkk_SigningInfo.owner)
+                 END AS signerName,
+
+             COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS executorName,
+
+             (select case
+                         when count (*) = 0 then 'Не указано'
+                         else  array_to_string(array_agg( beardaddressee.orig_shortname), ' ', '')
+                         end
+              FROM
+                  f_dp_intrkk_addressee inttaddress
+                      LEFT JOIN so_beard beardaddressee ON beardaddressee.id = inttaddress.Addressee
+              WHERE inttaddress.owner = internalrkk.id
+             )                                                                  AS addresseesName,
+
+             rkkbase.subject                                                    AS subject,
+
+             coalesce(
+                     (SELECT
+                          CASE WHEN regplace.orig_shortname IS NULL THEN 'Не указано'
+                               ELSE regplace.orig_shortname
+                              END
+                      FROM so_beard RegPlace
+                      WHERE RegPlace.id = rkkbase.RegCode),
+                     CASE WHEN rkkbase.RegCode IS NULL THEN 'Не указано' END
+                 )  AS regPlace,
+
+             concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin) as projectNumber
+
+         FROM
+             f_dp_intrkk internalrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 LEFT JOIN So_BEARD signerName ON signerName.id = InternalRkk.SignSigner
+         WHERE rkkbase.isdeleted = 0 and rkk.regnumcnt is null
+     ) as s
+WHERE 1=1
+        ::where-clause
+        ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(regDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (regDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(regDate as date) >= cast({0} as date) and cast(regDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	reqType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        reqType ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signerName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                signerName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                executorName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addresseesName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                addresseesName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="linkedDoc">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    linkedDoc = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+</collection>

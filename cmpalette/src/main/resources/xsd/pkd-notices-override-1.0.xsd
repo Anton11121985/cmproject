@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:com="http://www.intertrust.ru/schema/palette/common">
+
+  <xs:import namespace="http://www.intertrust.ru/schema/palette/common" schemaLocation="common-1.0.xsd">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Общие типы]]></xs:documentation>
+    </xs:annotation>
+  </xs:import>
+
+  <xs:complexType name="pkdNoticesType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Список типов уведомлений]]></xs:documentation>
+    </xs:annotation>
+    <xs:sequence maxOccurs="unbounded">
+      <xs:element name="pkd-notice" maxOccurs="unbounded" minOccurs="1">
+        <xs:complexType>
+          <xs:attribute type="xs:string" name="ref" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="codeSPELType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[язык написания формулы SPEL]]></xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="lang" fixed="SPEL"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="subjectsType">
+    <xs:all>
+      <xs:element name="notice" type="codeSPELType"/>
+      <xs:element name="task" type="codeSPELType"/>
+      <xs:element name="stamp" type="codeSPELType"/>
+    </xs:all>
+    <xs:attribute name="locale" type="xs:string" use="optional" default="default"/>
+  </xs:complexType>
+  <xs:complexType name="modulesType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Типы модулей и комплекты, для которых применяется настройка]]></xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="module" type="com:moduleType" minOccurs="1"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <!--Web-уведомления для модуля-->
+  <xs:complexType name="pkdNoticeOverrideType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Web-уведомления для модуля]]></xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="modules" type="modulesType" />
+      <xs:element name="pkd-notices" type="pkdNoticesType"/>
+      <xs:element name="subjects" type="subjectsType" minOccurs="0"/>
+    </xs:all>
+  </xs:complexType>
+</xs:schema>

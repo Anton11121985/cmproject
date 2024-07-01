@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dtrPrintForm" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="8734cff9-99fd-4879-8c1d-8b627625576a">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT
+	rkk.id,
+	rkk.id_type,
+	COALESCE(rkk.regnumprist, '') || COALESCE(cast(rkk.regnumcnt as varchar), '') || COALESCE(rkk.regnumfin, '') as regNumber,
+	CASE
+		WHEN regPlace.orig_type = 0 -- sys_org
+        THEN regPlace.orig_shortname
+        WHEN regPlace.orig_type = 1 -- sys_human_head
+        THEN regPlace.orig_shortname || ', ' || regPlace.orig_postname
+        WHEN regPlace.orig_type = 2 -- sys_department
+        THEN (SELECT SO_StructureUnit.fullname
+				FROM SO_StructureUnit
+				WHERE SO_StructureUnit.beard = regPlace.id)
+	END as registrationPlace,
+
+	CASE
+		WHEN (SELECT tfs."value"
+				FROM tn_field tf
+				JOIN tn_field_string tfs on tfs.id = tf.id
+				WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'state') = 'Project'
+			THEN to_char(timezone('0', rkkbase.created_date), 'HH24:MI')
+		ELSE
+			to_char(timezone('0', (SELECT tfd."value"
+			FROM tn_field tf
+			JOIN tn_field_datetime tfd on tfd.id = tf.id
+			WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'sendingDateTime')), 'HH24:MI')
+	END as sendingTime,
+
+	CASE
+		WHEN (SELECT tfs."value"
+				FROM tn_field tf
+				JOIN tn_field_string tfs on tfs.id = tf.id
+				WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'state') = 'Project'
+		THEN to_char(rkkbase.created_date, 'dd.MM.yyyy')
+		ELSE
+			to_char((SELECT tfd."value"
+			FROM tn_field tf
+			JOIN tn_field_datetime tfd on tfd.id = tf.id
+			WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'sendingDateTime'), 'dd.MM.yyyy')
+	END as sendingDate,
+
+	to_char(timezone('0', (SELECT tfd."value"
+	FROM tn_field tf
+	JOIN tn_field_datetime tfd on tfd.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'receivingDateTime')), 'HH24:MI') as receivingTime,
+
+	to_char((SELECT tfd."value"
+	FROM tn_field tf
+	JOIN tn_field_datetime tfd on tfd.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'receivingDateTime'), 'dd.MM.yyyy') as receivingDate,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_string tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'sender') as sender,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_string tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'receiver') as receiver,
+
+	(SELECT SO_StructureUnit.fullname
+	FROM SO_Beard
+	JOIN SO_StructureUnit on SO_StructureUnit.beard = SO_Beard.id
+	JOIN tn_field tf on tf.owner = rkkbase.id
+	JOIN tn_field_string tfs ON tf.access_object_id = tfs.id
+	WHERE tf.cmjfield = 'receiverDepBeard'
+	AND SO_Beard.cmjunid = concat(split_part(tfs.value, '%', 4),split_part(tfs.value, '%', 5))
+	) as receiverDep,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_string tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'senderDepHierarchy') as senderDepHierarchy,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_string tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'receiverDepHierarchy') as receiverDepHierarchy,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_decimal tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'totalSent') as totalSent,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_decimal tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'totalNotReceived') as totalNotReceived,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_decimal tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'totalReceived') as totalReceived,
+
+	(SELECT tfs."value"
+	FROM tn_field tf
+	JOIN tn_field_decimal tfs on tfs.id = tf.id
+	WHERE tf."owner" = rkkbase.id and tf.cmjfield = 'totalReceivedByFact') as totalReceivedByFact
+
+FROM
+F_DP_IntRkk inrRkk
+JOIN F_DP_Rkk rkk on rkk.id = inrRkk.id
+JOIN F_DP_RkkBase rkkBase on rkkBase.id = inrRkk.id
+LEFT JOIN F_DP_RkkBase_Theme theme on theme.owner = inrRkk.id
+LEFT JOIN So_Beard regPlace on regPlace.id = rkkBase.RegCode
+LEFT JOIN So_Beard signer on signer.id = inrRkk.SignSigner
+LEFT JOIN ss_module module ON module.id = rkkbase.module
+LEFT JOIN ss_moduletype moduletype ON moduletype.id =module.type
+
+WHERE moduletype.alias= 'DTR' and rkk.id in (SELECT Item FROM QR_Id_List WHERE Request = $P{request_id})]]>
+	</queryString>
+	<field name="sender" class="java.lang.String"/>
+	<field name="regNumber" class="java.lang.String"/>
+	<field name="senderDepHierarchy" class="java.lang.String"/>
+	<field name="registrationPlace" class="java.lang.String"/>
+	<field name="receiver" class="java.lang.String"/>
+	<field name="receiverDep" class="java.lang.String"/>
+	<field name="receiverDepHierarchy" class="java.lang.String"/>
+	<field name="totalSent" class="java.lang.String"/>
+	<field name="totalReceived" class="java.lang.String"/>
+	<field name="totalNotReceived" class="java.lang.String"/>
+	<field name="totalReceivedByFact" class="java.lang.String"/>
+	<field name="sendingDate" class="java.lang.String"/>
+	<field name="sendingTime" class="java.lang.String"/>
+	<field name="receivingDate" class="java.lang.String"/>
+	<field name="receivingTime" class="java.lang.String"/>
+	<field name="id" class="java.lang.Object"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="122" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="369" y="0" width="64" height="16" uuid="0c579fda-c8f1-4a8e-baae-8e38177107a8"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["РЕЕСТР"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="16" width="671" height="14" uuid="11076644-40e1-42a1-8625-f69340f363b3">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["передачи документов №" + ($F{regNumber} != null? " "+$F{regNumber} : "") + " от " + ($F{sendingDate} != null? " "+$F{sendingDate} : "") + ($F{sendingTime} != null? " "+$F{sendingTime} : "")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="54" y="32" width="266" height="18" uuid="8ed95d55-c1f4-44b1-b350-d29e549feee5"/>
+				<textFieldExpression><![CDATA["Отправитель: " + ($F{sender} != null ? $F{sender} : "")]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="54" y="50" width="85" height="18" uuid="9b02bc91-00d0-4e46-b7cc-2ebc36fa6184">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA["Подразделение: "]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="400" y="50" width="85" height="18" uuid="d0a267ee-853e-4f73-ace1-009858020317">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA["Подразделение: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="400" y="30" width="291" height="20" uuid="537efdfa-f3d7-44c2-a8d2-e5af3d798463">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA["Получатель: " + ($F{receiver} != null ? $F{receiver} : "")]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement positionType="Float" x="400" y="68" width="291" height="18" uuid="aeb44d68-db28-4e49-a52d-8df4febe0591">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[($F{receivingDate} != null ? $F{receivingDate} : "") + " " + ($F{receivingTime} != null ? $F{receivingTime} : "")]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="139" y="50" width="181" height="18" uuid="556127d5-5ce1-4a83-94fa-e5168321c7f2"/>
+				<textFieldExpression><![CDATA[( $F{senderDepHierarchy} != null ? $F{senderDepHierarchy} : "")]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="485" y="50" width="206" height="18" uuid="f21a0e39-b6a8-4132-a80f-951e07ac76c9">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[($F{receiverDepHierarchy} != null  ? $F{receiverDepHierarchy}  : "")]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement positionType="Float" x="20" y="90" width="671" height="32" uuid="a19bc640-e1cb-438a-af31-be3773757258">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField>
+					<reportElement positionType="Float" x="120" y="0" width="90" height="32" uuid="208f47b7-2a0a-4d82-998d-f701a740c70c">
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["Рег. номер и дата документа"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="210" y="0" width="190" height="32" uuid="c8deb2c1-1343-445f-a368-befd9399c37c"/>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["Заголовок"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="400" y="0" width="80" height="32" uuid="c3676c16-a839-4742-8b49-5c6bb3c20b70"/>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["Корреспондент/ Контрагент"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="480" y="0" width="90" height="32" uuid="9b6b1831-505f-43a0-befa-e43e81cb8e59"/>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["Допинфо"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="570" y="0" width="101" height="32" uuid="24a11ff9-ce5a-4934-a6ee-09bedb7659ea">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["Состояние доставки"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="30" y="0" width="90" height="32" uuid="e1232d23-35d8-4ae2-9569-a68b8690fb44"/>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["Вид документа"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" x="0" y="0" width="30" height="32" uuid="ca8947c9-45ed-4c96-bbeb-013d10d764c0"/>
+					<box>
+						<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA["№ п/п"]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+		<band height="40" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<frame>
+				<reportElement x="20" y="0" width="671" height="40" uuid="5e226dd4-3a09-420f-b982-54c17f15e866">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<subreport>
+					<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="671" height="40" isRemoveLineWhenBlank="true" uuid="ab9dcf47-2e03-41f4-8e6c-7b3f74889935">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<subreportParameter name="rkkID">
+						<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["Documents_SubReport.jasper"]]></subreportExpression>
+				</subreport>
+			</frame>
+		</band>
+		<band height="21" splitType="Stretch">
+			<textField>
+				<reportElement positionType="Float" x="54" y="0" width="637" height="20" uuid="c3ae2d8f-166a-456c-a034-c95d46cf7939">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA["ИТОГО: Всего в реестре " + ($F{totalSent} != null ? $F{totalSent} : "0") + ", получено " + ($F{totalReceived} != null ? $F{totalReceived} : "0") + ", не получено " + ($F{totalNotReceived} != null ? $F{totalNotReceived} : "0") + ", получено по факту " + ($F{totalReceivedByFact} != null ? $F{totalReceivedByFact} : "0")]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement positionType="Float" x="0" y="20" width="842" height="1" uuid="c36c764c-3946-4485-add2-317a30d75f2f"/>
+			</break>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,96 @@
+<collection name="Missions_(typesettings_printform)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    docsType,
+    templateName,
+    docsType_1,
+    docsName_1,
+    "order"
+FROM ( SELECT
+           r.id           AS id,
+           '<id>'              AS self_1,
+           ':'                 AS self_2,
+           '</>'               AS self_3,
+           r.module            AS Module,
+           r.created_date AS created_date,
+           '<docsType>'    AS docsType_1,
+           '<docsName>'    AS docsName_1,
+
+           r.name AS docsType,
+           rt.name AS templateName,
+           r."order" AS "order"
+       FROM QR_Report r
+                JOIN report_template rt on rt.id = r.template
+) s
+        WHERE
+    docsType in ('Бланк приказа РФ', 'Бланк приказа ГО')
+            ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+        SELECT *
+        FROM ( SELECT
+           r.id           AS id,
+           '<id>'              AS self_1,
+           ':'                 AS self_2,
+           '</>'               AS self_3,
+           r.module            AS Module,
+           r.created_date AS created_date,
+           '<docsType>'    AS docsType_1,
+           '<docsName>'    AS docsName_1,
+
+           r.name AS docsType,
+           rt.name AS templateName,
+           r."order" AS "order"
+       FROM QR_Report r
+                JOIN report_template rt on rt.id = r.template
+) s
+        WHERE
+    docsType in ('Бланк приказа РФ', 'Бланк приказа ГО')
+            ::where-clause
+        ]]>
+    </counting-prototype>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="reportName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reportName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reportName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reportName iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docsType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    docsType iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docsType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    docsType iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pkd xmlns="http://www.intertrust.ru/schema/palette/pkd">
+  <queue name="На исполнение" stacks="true" id="exampleOnExec">
+    <task-filter>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonTask) && T(ru.intertrust.cmj.pkd.domain.events.EventEntity.Direction).INPUT == #this.getEventDirection() && !isDeleted() && !isInTrash() && !getEventInfo().isDeleted() && !getEventInfo().isInTrash() && T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).IN_ARCHIVE != getEventInfo().getArchiveStatus() &&  (getEventInfo().getEventCode().getEventCodeId().equals("EXEC1_11") || getEventInfo().getEventCode().getEventCodeId().equals("SEND1_21") && getEventInfo().getDocument() != null && (getEventInfo().getDocument().getTypeDatabase().startsWith('Tasks') || !getEventInfo().getDocument().getParentUnid().equals(getEventInfo().getDocument().getRootUnid()))) &&  (getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).NOT_DONE || getEventInfo().getProcessStatus() == T(ru.intertrust.cmj.pkd.domain.PkdEntity.EventStatus).RETURNED) && !isDeferred()]]></script>
+    </task-filter>
+    <filters>
+      <filter-ref ref="byPerson"/>
+      <filter-ref ref="byDocType"/>
+      <filter-ref ref="onControl"/>
+      <filter-ref ref="byDate"/>
+      <filter-ref ref="byAddressee"/>
+      <filter-ref ref="arbitFilter"/>
+      <filter-ref ref="byLabel"/>
+      <filter-ref applicable="true" ref="byDBType"/>
+      <filter-ref ref="onlyNew"/>
+    </filters>
+    <sorts>
+      <sort-ref applicable="true" ref="byCreatedDate"/>
+      <sort-ref ref="byDate"/>
+    </sorts>
+  </queue>
+</pkd>

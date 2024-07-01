@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="standart-form" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="495" leftMargin="50" rightMargin="50" topMargin="50" bottomMargin="20" uuid="fc7c6e94-c162-45b8-a0d7-3cc80a05a857">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="13"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT f_dp_rkkbase.type AS viewDoc
+	,CONCAT (
+		f_dp_rkk.regnumprist
+		,f_dp_rkk.regnumcnt
+		,f_dp_rkk.regnumfin
+		) AS number
+	,f_dp_rkk.regdate AS DATE
+	,(
+		SELECT STRING_AGG(x.a, CHR(13))
+		FROM (
+			SELECT CONCAT (
+					link.eventdoclinktypename
+					,' '
+					,link.eventdocname
+					) AS a
+			FROM f_dp_rkkworegandctrl_ulev link
+			WHERE link.OWNER = f_dp_rkkbase.id
+				AND link.eventdocdirection = '1'
+			) x
+		) AS fromwho
+	,f_dp_rkkbase.subject AS title
+	,(
+		SELECT STRING_AGG((
+					CASE
+						WHEN int_adr.orig_shortname IS NOT NULL
+							THEN int_adr.orig_shortname
+						WHEN inp_adr.orig_shortname IS NOT NULL
+							THEN inp_adr.orig_shortname
+						WHEN f_dp_outputrkk_orginf.id IS NOT NULL
+							THEN (
+									SELECT STRING_AGG(out_adr.orig_shortname, ' : ')
+									FROM f_dp_outputrkk_orginfaddr
+									LEFT JOIN so_beard out_adr ON out_adr.id = f_dp_outputrkk_orginfaddr.addressee
+									WHERE f_dp_outputrkk_orginfaddr.OWNER = f_dp_outputrkk_orginf.id
+									)
+						WHEN req_adr.orig_shortname IS NOT NULL
+							THEN req_adr.orig_shortname
+						WHEN ord_adr.orig_shortname IS NOT NULL
+							THEN ord_adr.orig_shortname
+						ELSE ''
+						END
+					), CHR(13)) AS addressees
+		FROM f_dp_rkkbase
+		LEFT JOIN f_dp_intrkk_addressee ON f_dp_rkkbase.id = f_dp_intrkk_addressee.OWNER
+		LEFT JOIN so_beard int_adr ON int_adr.id = f_dp_intrkk_addressee.addressee
+		LEFT JOIN f_dp_inputrkk_addressee ON f_dp_rkkbase.id = f_dp_inputrkk_addressee.OWNER
+		LEFT JOIN so_beard inp_adr ON inp_adr.id = f_dp_inputrkk_addressee.addressee
+		LEFT JOIN f_dp_outputrkk_orginf ON f_dp_rkkbase.id = f_dp_outputrkk_orginf.OWNER
+		LEFT JOIN f_dp_requestrkk_addressee ON f_dp_rkkbase.id = f_dp_requestrkk_addressee.OWNER
+		LEFT JOIN so_beard req_adr ON req_adr.id = f_dp_requestrkk_addressee.addressee
+		LEFT JOIN f_dp_ordrkk_sendtocurr ON f_dp_rkkbase.id = f_dp_ordrkk_sendtocurr.OWNER
+		LEFT JOIN so_beard ord_adr ON ord_adr.id = f_dp_ordrkk_sendtocurr.sendtocurr
+		WHERE f_dp_rkk.id = f_dp_rkkbase.id
+		) AS addressees
+	,(
+		SELECT STRING_AGG((
+					CASE
+						WHEN int_sign.orig_shortname IS NOT NULL
+							THEN int_sign.orig_shortname
+						WHEN inp_sign.orig_shortname IS NOT NULL
+							THEN inp_sign.orig_shortname
+						WHEN out_sign.orig_shortname IS NOT NULL
+							THEN out_sign.orig_shortname
+						WHEN req_sign.orig_shortname IS NOT NULL
+							THEN req_sign.orig_shortname
+						WHEN ord_sign.orig_shortname IS NOT NULL
+							THEN ord_sign.orig_shortname
+						ELSE ''
+						END
+					), CHR(13)) AS sign
+		FROM f_dp_rkkbase
+		LEFT JOIN f_dp_intrkk ON f_dp_intrkk.id = f_dp_rkkbase.id
+		LEFT JOIN so_beard int_sign ON f_dp_intrkk.signsigner = int_sign.id
+		LEFT JOIN f_dp_inputrkk_author ON f_dp_inputrkk_author.OWNER = f_dp_rkkbase.id
+		LEFT JOIN so_beard inp_sign ON f_dp_inputrkk_author.author = inp_sign.id
+		LEFT JOIN f_dp_outputrkk ON f_dp_outputrkk.id = f_dp_rkkbase.id
+		LEFT JOIN so_beard out_sign ON f_dp_outputrkk.signsigner = out_sign.id
+		LEFT JOIN f_dp_requestrkk ON f_dp_requestrkk.id = f_dp_rkkbase.id
+		LEFT JOIN so_beard req_sign ON f_dp_requestrkk.ctrlsigner = req_sign.id
+		LEFT JOIN f_dp_ordrkk ON f_dp_ordrkk.id = f_dp_rkkbase.id
+		LEFT JOIN so_beard ord_sign ON f_dp_ordrkk.signsigner = ord_sign.id
+		WHERE f_dp_rkk.id = f_dp_rkkbase.id
+		) AS sign
+	,(
+		SELECT STRING_AGG((
+					CASE
+						WHEN int_perf.orig_shortname IS NOT NULL
+							THEN int_perf.orig_shortname
+						WHEN inp_perf.orig_shortname IS NOT NULL
+							THEN inp_perf.orig_shortname
+						WHEN out_perf.orig_shortname IS NOT NULL
+							THEN out_perf.orig_shortname
+						WHEN ord_perf.orig_shortname IS NOT NULL
+							THEN ord_perf.orig_shortname
+						ELSE ''
+						END
+					), CHR(13)) AS performer
+		FROM f_dp_rkkbase
+		LEFT JOIN f_dp_intrkk_executor ON f_dp_intrkk_executor.OWNER = f_dp_rkkbase.id
+		LEFT JOIN so_beard int_perf ON f_dp_intrkk_executor.executor = int_perf.id
+		LEFT JOIN f_dp_inputrkk_executor ON f_dp_inputrkk_executor.OWNER = f_dp_rkkbase.id
+		LEFT JOIN so_beard inp_perf ON f_dp_inputrkk_executor.executor = inp_perf.id
+		LEFT JOIN f_dp_outputrkk_executor ON f_dp_outputrkk_executor.OWNER = f_dp_rkkbase.id
+		LEFT JOIN so_beard out_perf ON f_dp_outputrkk_executor.executor = out_perf.id
+		LEFT JOIN f_dp_ordrkk_executor ON f_dp_ordrkk_executor.OWNER = f_dp_rkkbase.id
+		LEFT JOIN so_beard ord_perf ON f_dp_ordrkk_executor.executor = ord_perf.id
+		WHERE f_dp_rkk.id = f_dp_rkkbase.id
+		) AS performer
+FROM f_dp_rkkbase
+LEFT JOIN f_dp_rkk ON f_dp_rkk.id = f_dp_rkkbase.id
+WHERE f_dp_rkkbase.id IN (SELECT Item FROM QR_Id_List WHERE Request = $P{request_id})
+ORDER BY f_dp_rkkbase.id]]>
+	</queryString>
+	<field name="viewdoc" class="java.lang.String"/>
+	<field name="number" class="java.lang.String"/>
+	<field name="date" class="java.sql.Timestamp"/>
+	<field name="fromwho" class="java.lang.String"/>
+	<field name="title" class="java.lang.String"/>
+	<field name="addressees" class="java.lang.String"/>
+	<field name="sign" class="java.lang.String"/>
+	<field name="performer" class="java.lang.String"/>
+	<detail>
+		<band height="617">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="153" width="495" height="20" uuid="6a95cd38-cbd2-462b-a33a-fe6c71234b99"/>
+				<textElement>
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{viewdoc} + " " + $F{number} + " от " +
+new java.text.SimpleDateFormat("dd MM yyyy").format($F{date})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="193" width="495" height="20" uuid="9274ea31-ee5b-4fae-bd89-021fce1f06a9"/>
+				<textElement>
+					<font fontName="Times New Roman" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fromwho}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="220" width="495" height="80" uuid="c6654c44-edd3-4e49-ac07-8ec28cd35b6d"/>
+				<textElement markup="none">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="0" y="320" width="80" height="20" uuid="0036a8c9-d258-481b-84ab-1d4f4ba095ff"/>
+				<textElement>
+					<font fontName="Times New Roman" size="14" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Адресаты: "]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="80" y="320" width="415" height="20" uuid="db29bb2d-f1c6-41f0-967d-d36f39739453"/>
+				<textElement>
+					<font fontName="Times New Roman" size="14" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{addressees}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="0" y="421" width="495" height="20" uuid="7fb5a001-6132-4b97-a1e9-7439d4258cad"/>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="14" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Подпись: " + $F{sign}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="0" y="573" width="80" height="20" uuid="f509e1a7-695b-4df7-bb92-64d667278d00"/>
+				<textElement>
+					<font fontName="Times New Roman" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Исполнитель: "]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="80" y="573" width="415" height="20" uuid="0142e28b-d549-4c47-96b9-704fdad0d411"/>
+				<textElement>
+					<font fontName="Times New Roman" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{performer}]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement x="0" y="616" width="100" height="1" uuid="b78390d9-4909-4802-a5ac-5f60bd5eba07"/>
+			</break>
+			<image>
+				<reportElement x="0" y="10" width="251" height="121" uuid="36b970ba-34dd-451f-82df-974e38f746d7"/>
+				<imageExpression><![CDATA["itertTrust.jpg"]]></imageExpression>
+			</image>
+		</band>
+	</detail>
+</jasperReport>

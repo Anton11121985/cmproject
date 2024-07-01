@@ -1,0 +1,287 @@
+<collection name="FileRegister_(vw_cmj_all_file_hasCopies)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+                        id,
+                        created_date,
+                        module,
+                        indexfile,
+                        titleFile,
+                        year,
+						branch,
+						orgType,
+                        dateOfEnd,
+                        dateOfBeginning,
+                        storagePeriod,
+                        spDescription,
+                        spDescription as description,
+                        statusGeneral,
+                        '<id>' AS self_1,
+                        '<idForSelfLink>' AS idForSelfLink_1,
+                        ':' AS self_2,
+                        '</>'  AS self_3,
+						'%' as self_4,
+			             '<invPrefix>' as invPrefix_tag,
+			             '<subject>' as subject_tag,
+			             '<header>' as header_tag,
+			             '<invNumber>' as invNumber_tag,
+			             '<number>' as number_tag,
+			             '<period>' as period_tag,
+                        unitId,
+                        departmentId,
+                        dep_created_date,
+                        hasattachments,
+                        fc_depId,
+                        invNumber,
+                       CASE
+                    		WHEN index1[1] is NULL
+                    		THEN indexfile
+                    		ELSE concat(lpad(index1[1], 20, '0'), rpad(index2[2], 30, '0'))
+                    	END AS indexFileForSort,
+                        indexfile as number,
+                        fc_subject,
+                        subject,
+                        titleFile as header,
+                        storagePeriod as period,
+                        invPrefix,
+                        fc_dep_shortName,
+                        fc_dep_fullName
+                    FROM(
+                            select
+                                s.id as id,
+                                s.created_date as created_date,
+                                s.module as module,
+                                s.indexfile as indexfile,
+                                s.titleFile as titleFile,
+                              	coalesce(to_char(s.dateOfBeginning, 'YYYY'), '<Не указано>') as year,
+                              	s.dateOfBeginning,
+                                s.dateOfEnd,
+                                s.indexprefix as invPrefix,
+                                substring(so.cmjunid, 0, 33) AS fc_depId,
+                                indexfile as invNumber,
+                                regexp_match(indexfile, '^\d+') AS index1,
+                   				regexp_split_to_array(indexfile, '^\d+') AS index2,
+                                titleFile as fc_subject,
+                                titleFile as subject,
+                                TRIM(so.orig_shortname) AS fc_dep_shortName,
+		                        TRIM(coalesce(su.fullname, so.orig_postname, '')) AS fc_dep_fullName,
+                               coalesce( spd.Period, s.storagePeriod) as storagePeriod,
+						                 CASE WHEN spd.id is null THEN s.spDescription
+						                    ELSE (CONCAT(spd.NormDocShortName, ', ', spd.ArticleNum,  (CASE WHEN spd.Epk = 1 THEN ', ЭПК'	ELSE '' END ),
+			                                (CASE WHEN spd.Comment is null or spd.Comment = '' THEN '' else CONCAT(', ', spd.Comment) END)))
+			                                END AS spDescription,
+                                (CASE s.StatusGeneral
+                       					    WHEN 'PROJECT' then 'Проект'
+                       					    WHEN 'FORMED' then 'Формируемое'
+                      				     WHEN 'RESERVED' then 'Резервное'
+                      				     WHEN 'COMPLETED' then 'Завершенное'
+                      				     WHEN 'DISBANDED' then 'Расформированное'
+                      				     WHEN 'NOT_STARTED' then 'Не заводилось'
+                      				     WHEN 'ARCHIVED' then 'Сдано в архив'
+                      				     WHEN 'DELETED' then 'Удалено'
+                   					        ELSE ''
+                   						     END) StatusGeneral,
+                                so.orig_postname as unitId,
+                                so.id as departmentId,
+                                so.created_date as dep_created_date,
+						  org.orig_type as orgType,
+						        (CASE
+							        WHEN org.orig_type = 0 then '<Не указано>'
+							        WHEN org.orig_shortname = 'Головной офис' THEN '<shortName>Головной офис</>'
+                       			  ELSE org.orig_shortname
+                   				END) branch,
+                                (
+                                    SELECT coalesce(max(a), CAST(0 AS SMALLINT))
+                                    FROM (
+                                            (
+                                            SELECT CAST(1 AS SMALLINT) a
+                                            FROM NdFr_ContentFiles CF
+                                            WHERE CF.fr_file = s.id
+                                            )
+
+                                         ) t
+                                    ) hasattachments
+                            from
+                                fr_file s
+									left join so_beard so on s.sounit = so.id
+                                    left join so_structureunit su on su.beard = so.id
+                                    left join SPD_Period spd on spd.id = s.shelfLife
+						            join so_beard org on s.organization = org.id
+						            JOIN ss_module ON ss_module.id=s.module
+                                where s.HasCopies=1 AND s.isdeleted != 1 AND s.StatusGeneral='FORMED'
+                        ) t
+WHERE 1=1
+    ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+           SELECT
+            COUNT(1)
+                    FROM(
+                            select
+                                s.id as id,
+                                s.created_date as created_date,
+                                s.module as module,
+                                s.indexfile as indexfile,
+                                s.titleFile as titleFile,
+                              	coalesce(to_char(s.dateOfBeginning, 'YYYY'), '<Не указано>') as year,
+                              	s.dateOfBeginning,
+                                s.dateOfEnd,
+                                s.indexprefix as invPrefix,
+                                substring(so.cmjunid, 0, 33) AS fc_depId,
+                                TRIM(so.orig_shortname) AS fc_dep_shortName,
+		                        TRIM(coalesce(su.fullname, so.orig_postname, '')) AS fc_dep_fullName,
+                               coalesce( spd.Period, s.storagePeriod) as storagePeriod,
+						                 CASE WHEN spd.id is null THEN s.spDescription
+						                    ELSE (CONCAT(spd.NormDocShortName, ', ', spd.ArticleNum,  (CASE WHEN spd.Epk = 1 THEN ', ЭПК'	ELSE '' END ),
+			                                (CASE WHEN spd.Comment is null or spd.Comment = '' THEN '' else CONCAT(', ', spd.Comment) END)))
+			                                END AS spDescription,
+                                (CASE s.StatusGeneral
+                       					    WHEN 'PROJECT' then 'Проект'
+                       					    WHEN 'FORMED' then 'Формируемое'
+                      				     WHEN 'RESERVED' then 'Резервное'
+                      				     WHEN 'COMPLETED' then 'Завершенное'
+                      				     WHEN 'DISBANDED' then 'Расформированное'
+                      				     WHEN 'NOT_STARTED' then 'Не заводилось'
+                      				     WHEN 'ARCHIVED' then 'Сдано в архив'
+                      				     WHEN 'DELETED' then 'Удалено'
+                   					        ELSE ''
+                   						     END) StatusGeneral,
+                                so.orig_postname as unitId,
+                                so.id as departmentId,
+                                so.created_date as dep_created_date,
+						  org.orig_type as orgType,
+						        (CASE
+							        WHEN org.orig_type = 0 then '<Не указано>'
+							        WHEN org.orig_shortname = 'Головной офис' THEN '<shortName>Головной офис</>'
+                       			  ELSE org.orig_shortname
+                   				END) branch,
+                                (
+                                    SELECT coalesce(max(a), CAST(0 AS SMALLINT))
+                                    FROM (
+                                            (
+                                            SELECT CAST(1 AS SMALLINT) a
+                                            FROM NdFr_ContentFiles CF
+                                            WHERE CF.fr_file = s.id
+                                            )
+
+                                         ) t
+                                    ) hasattachments
+                            from
+                                fr_file s
+									left join so_beard so on s.sounit = so.id
+                                    left join so_structureunit su on su.beard = so.id
+                                    left join SPD_Period spd on spd.id = s.shelfLife
+						            join so_beard org on s.organization = org.id
+						            JOIN ss_module ON ss_module.id=s.module
+                                where s.HasCopies=1 AND s.isdeleted != 1 AND s.StatusGeneral='FORMED'
+                        ) t
+WHERE 1=1
+                ::where-clause
+        ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                Module = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                Module = {0} and id = {1}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="description">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                description = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="description_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                description iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                subject = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                subject iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="fc_subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    fc_subject ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="fc_subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    fc_subject ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="fc_depId">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    fc_depId ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="fc_depId_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    fc_depId ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="fc_dep_fullName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    fc_dep_fullName ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="fc_dep_fullName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    fc_dep_fullName ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[(lower(fc_subject) like ('%' || lower({0}) || '%'))]]>
+        </criteria>
+    </filter>
+    <filter name="year">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                year = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="year_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                year iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="resolutions-on-control" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="702" leftMargin="70" rightMargin="70" topMargin="49" bottomMargin="70" isSummaryWithPageHeaderAndFooter="true" uuid="0f0e9e53-feae-4984-8c20-f65c525ceade">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT DISTINCT
+	f_dp_rkkbase.id AS doc_id,
+	so_beard_exec.orig_shortname AS executorname,
+	f_dp_rkkbase.type AS rkktype,
+	f_dp_rkk.regdate AS rkkdate,
+CONCAT(f_dp_rkk.regnumprist,f_dp_rkk.regnumcnt,f_dp_rkk.regnumfin) AS rkknum,
+
+(CASE
+	WHEN f_dp_rkkbase.complect = 'InputDocs' THEN
+		(SELECT STRING_AGG(f_dp_inputrkk_authorplain.authorplain,CHR(13))
+		 FROM f_dp_inputrkk
+		 INNER JOIN f_dp_inputrkk_authorplain ON f_dp_inputrkk_authorplain.owner = f_dp_inputrkk.id
+		 WHERE f_dp_inputrkk.id = f_dp_rkkbase.id)
+	WHEN f_dp_rkkbase.complect = 'InternalDocs' THEN
+		(SELECT so_beard.orig_shortname
+		 FROM f_dp_intrkk
+		 INNER JOIN so_beard ON so_beard.id = f_dp_intrkk.signsigner
+		 WHERE f_dp_intrkk.id = f_dp_rkkbase.id)
+	WHEN f_dp_rkkbase.complect = 'Missions' THEN
+		(SELECT so_beard.orig_shortname
+		 FROM f_dp_ordrkk
+		 INNER JOIN so_beard ON so_beard.id = f_dp_ordrkk.signsigner
+		 WHERE f_dp_ordrkk.id = f_dp_rkkbase.id)
+	WHEN f_dp_rkkbase.complect = 'Requests' THEN
+		(SELECT so_beard.orig_shortname
+		 FROM f_dp_requestrkk
+		 INNER JOIN so_beard ON so_beard.id = f_dp_requestrkk.corr
+		 WHERE f_dp_requestrkk.id = f_dp_rkkbase.id)
+ELSE '' END) AS corresp,
+
+	f_dp_rkkbase.subject AS subject,
+	moduleType.name AS docType
+
+FROM f_dp_resltnbase
+	LEFT JOIN so_beard so_beard_resauthor ON so_beard_resauthor.id = f_dp_resltnbase.author
+	LEFT JOIN f_dp_resolution ON f_dp_resolution.id = f_dp_resltnbase.id
+	LEFT JOIN f_dp_resltnbase_execcurr ON f_dp_resltnbase_execcurr.owner = f_dp_resltnbase.id
+	LEFT JOIN so_beard so_beard_exec ON so_beard_exec.id = f_dp_resltnbase_execcurr.executorcurr
+	LEFT JOIN f_dp_rkkbase ON f_dp_rkkbase.id = f_dp_resolution.hierroot
+	LEFT JOIN f_dp_rkk ON f_dp_rkk.id = f_dp_rkkbase.id
+	LEFT JOIN so_appointment ON so_appointment.beard = f_dp_resltnbase_execcurr.executorcurr
+	JOIN SS_Module module on module.id = f_dp_rkkbase.Module
+	JOIN SS_ModuleType moduleType on moduleType.id = module.Type
+
+WHERE f_dp_resolution.id in (SELECT Item
+						  FROM QR_Id_List
+						  WHERE Request = $P{request_id})]]>
+	</queryString>
+	<field name="doc_id" class="java.lang.Object"/>
+	<field name="executorname" class="java.lang.String"/>
+	<field name="rkktype" class="java.lang.String"/>
+	<field name="rkkdate" class="java.sql.Timestamp"/>
+	<field name="rkknum" class="java.lang.String"/>
+	<field name="corresp" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="docType" class="java.lang.String"/>
+	<variable name="sumcol3" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<variable name="sumcol4" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<variable name="sumcol5" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<variable name="sumcol7" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<variable name="sumcol9" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<variable name="sumcol10" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<variable name="sumcol11" class="java.lang.Long" incrementType="Column" calculation="Sum"/>
+	<group name="docType">
+		<groupExpression><![CDATA[$F{docType}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<textField>
+					<reportElement x="0" y="-5" width="750" height="25" uuid="3ee7c563-837a-4439-ba23-459b138e96f0">
+						<printWhenExpression><![CDATA[$F{docType} != null]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{docType}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="70" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="750" height="15" uuid="95fd292d-211c-4979-a857-82b16a6bd5e1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ПЕРЕЧЕНЬ"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="15" width="750" height="55" uuid="28264304-0cf4-4ae3-b893-fc46dd29dc4c"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="12" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["заданий, стоящих на контроле, \nпо состоянию на " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="45" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="40" height="40" backcolor="#E6E6E6" uuid="c43739a8-67e3-449b-9459-560718383017"/>
+				<box topPadding="5">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["№\nп/п"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="40" y="0" width="150" height="40" backcolor="#E6E6E6" uuid="9faf586c-b07b-44ca-bae5-541a5f860873"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Вид документа / дата /\nномер"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="190" y="0" width="100" height="40" backcolor="#E6E6E6" uuid="19adf04a-0ab3-41a8-a958-52ff6514636b"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Корреспондент\n / Подпись"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="290" y="0" width="120" height="40" backcolor="#E6E6E6" uuid="ae1681d7-bab1-462a-a374-1e3858cf4d64"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Краткое содержание\nдокумента"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="410" y="0" width="90" height="40" backcolor="#E6E6E6" uuid="2f76449a-d9dc-4233-9170-6e8e80b0b9c9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Поручение / \nрезолюция"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="580" y="0" width="70" height="40" backcolor="#E6E6E6" uuid="3ea4496d-c420-4c44-af80-3330ae9ece78"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Срок\nисп-ия"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="650" y="0" width="100" height="40" backcolor="#E6E6E6" uuid="9e892bae-4af1-4811-80a4-38da50788804"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Состояние\nисполнения"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="500" y="0" width="80" height="40" backcolor="#E6E6E6" uuid="c746e8bf-2667-42d0-ab41-a022520cbedc"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Исполнители"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Prevent">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="40" height="20" uuid="95176f35-caf8-46a6-9a5b-d459eee3d845"/>
+				<box topPadding="3" leftPadding="0" bottomPadding="3" rightPadding="0">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="40" y="0" width="150" height="20" uuid="2be01a73-4632-4911-8273-1f2281b1bc70"/>
+				<box topPadding="3" leftPadding="5" bottomPadding="3" rightPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{rkktype}!=null? $F{rkktype} : "" ) + " от " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{rkkdate}) + " №" +
+$F{rkknum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="190" y="0" width="100" height="20" uuid="46ac0360-b6d2-4302-ab00-4d50ff53343a"/>
+				<box topPadding="3" leftPadding="5" bottomPadding="3" rightPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{corresp}!=null? $F{corresp} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="290" y="0" width="120" height="20" uuid="d9d962b3-1e51-4f0e-9f0f-8631b7f9878d"/>
+				<box topPadding="3" leftPadding="5" bottomPadding="3" rightPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="410" y="0" width="340" height="20" uuid="e28b487e-875f-4d89-9b93-d67dd9ebeb6b"/>
+				<subreportParameter name="doc_id">
+					<subreportParameterExpression><![CDATA[$F{doc_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["sub1.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<summary>
+		<band height="30"/>
+	</summary>
+</jasperReport>

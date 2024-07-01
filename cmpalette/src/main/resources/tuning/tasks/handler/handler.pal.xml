@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <handler name="Поручение. Направить руководителю" id="ResolutionTasksResource_sendToApproving">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.resolution.ResolutionResource);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource)
+{
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    obj.sendToApproving(false);
+    SetValue(obj, "onApproving", "1");
+    SetValue(obj, "onApprovingSentBy", AFSession.get().currentUser().getBeard());
+    SetValue(obj, "onApprovingSentDate", AFDate.fromJavaDate(Calendar.getInstance().getTime(), false));
+    obj.save();
+
+    obj = appdp.getEntityByUNID(ids.get(0));
+    var resource = ResolutionResource.valueOf(obj);
+    returnResource.setResource(resource);
+}
+
+function SetValue(doc, fieldName, value) {
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+]]></script>
+    </handler>
+</ui>

@@ -1,0 +1,385 @@
+<collection name="ContractsLite_(vw_cmj_fin_by_lifecycle)" idField="id" replace="runtime">
+
+    <prototype>
+        <![CDATA[
+SELECT
+	id,
+	created_date,
+	Module,
+	self_1,
+	self_2,
+	self_3,
+	dogID,
+	dogStatusNotAnIcon,
+	regNumberDog,
+	dogDate,
+	dogFinNumber,
+	dogFinDate,
+	dogSigners,
+	subject,
+	contragent,
+	lifecycle
+FROM (
+	WITH financeStatus(indb, incolumn) AS (
+		SELECT 'действующий', 'Действ.'
+		UNION
+		SELECT 'недействующий', 'Недейств.'
+		UNION
+		SELECT 'проект', 'Проект'
+	),
+	lifecycles AS (
+		SELECT
+			UNNEST(ARRAY_REMOVE(ARRAY[
+				CASE WHEN (rkkbase.isDeleted = 1) THEN 'Удален' END,
+				-- Подписание
+				CASE
+					WHEN (dogCommon.signisrejected = 1 AND rkkbase.isDeleted = 0) THEN 'Отказано в подписании'
+					WHEN (dogCommon.signissigned = 1) THEN 'Подписан'
+					WHEN (rkk.sendtosignonpaper = 1) THEN 'На подписании на бумаге'
+					WHEN (dogCommon.signissentto = 1) THEN 'На подписании'
+					WHEN (dogCommon.signIsSentTo = 0 AND dogCommon.signSentToDt IS NOT NULL
+						  AND rkkbase.isDeleted = 0) THEN 'Отозван с подписания'
+				END,
+				-- Доработка
+				CASE WHEN (dogCommon.isOnRework = 1 AND rkkbase.isDeleted = 0) THEN 'На доработке' END,
+				-- Согласование
+				CASE
+					WHEN (dogCommon.apprIsUnder = 1
+						  AND dogCommon.apprReplicaId NOT IN (
+							  SELECT replica FROM SS_Module WHERE title = 'Снятие замечаний'
+						  )) THEN 'На согласовании'
+					WHEN (dogCommon.apprIsUnder = 0 AND dogCommon.wasUnderAppr = 1
+						  AND LEFT(dogCommon.appraddstatus, 3) <> 'IF_' AND rkkbase.isDeleted = 0) THEN 'Обработка согласования'
+				END,
+				-- Снятие замечаний
+				CASE
+					WHEN (dogCommon.apprIsUnder = 1
+						  AND dogCommon.apprReplicaId IN (
+							  SELECT replica FROM SS_Module WHERE title='Снятие замечаний'
+						  )) THEN 'Снятие замечаний'
+					WHEN (dogCommon.apprIsUnder = 0 AND dogCommon.wasUnderAppr = 1
+						  AND LEFT(dogCommon.appraddstatus, 3) = 'IF_' AND rkkbase.isDeleted = 0) THEN 'Снятие замечаний завершено или прекращено'
+				END,
+				-- Ознакомление
+				CASE
+					WHEN (NULLIF(dogCommon.reviewReplicaID,'') IS NOT NULL AND dogCommon.reviewIsUnder = 0
+						  AND rkkbase.isDeleted = 0) THEN 'Ознакомление завершено или прекращено'
+					WHEN (dogCommon.reviewIsUnder = 1) THEN 'На ознакомлении'
+				END
+			], NULL)) AS wnstate, finDoc.id
+		FROM F_DP_ContractFd finDoc
+		JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = finDoc.id
+		JOIN F_DP_RkkBase rkkbase ON rkkbase.id = finDoc.id
+		JOIN F_DP_Rkk rkk ON rkk.id = rkkbase.id
+	)
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		dogRkk.id																				AS dogID,
+		(SELECT incolumn FROM financeStatus WHERE financeStatus.indb = dogCommon.StatusDog)	AS dogStatusNotAnIcon,
+		rkk.regDate																				AS dogDate,
+		dogFin.regNumber																		AS dogFinNumber,
+		dogFin.regDate																			AS dogFinDate,
+				COALESCE(
+			lifecycles.wnstate,
+			'Инициирование')																	AS lifecycle,
+         CASE
+         WHEN rkk.regnumcnt IS NULL THEN '<regNumberPrefix></><regNumberCounter#Number></><regNumberSuffix></>'
+         ELSE
+           '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+           || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+           || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>'
+         END                                      AS regNumberDog,
+		COALESCE(
+			(SELECT sgnr FROM (
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Contract_Signers_Ext sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogFin.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+				UNION
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Rkk_SigningInfo sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogFin.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+			) sgnrs WHERE sgnr IS NOT NULL ORDER BY upd DESC LIMIT 1),
+			(SELECT sb.Orig_ShortName FROM SO_Beard sb WHERE sb.id = dogFin.signSigner))		AS dogSigners,
+		rkkbase.subject																			AS subject,
+		(SELECT sb.Orig_ShortName FROM SO_Beard sb
+		 WHERE sb.id = COALESCE(CASE WHEN dogRkk.party2type = 0 THEN dogRkk.party2ida
+			 				ELSE dogRkk.party2idb END, dogRkk.party2idext))						AS contragent
+	FROM F_DP_ContractFd dogFin
+	JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = dogFin.id
+	JOIN F_DP_ContractRkk dogRkk ON dogRkk.id = dogCommon.hierRoot
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogFin.id
+	LEFT JOIN lifecycles ON lifecycles.id = dogFin.id
+	WHERE rkkbase.IsDeleted <> 1
+) s
+WHERE
+	1 = 1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+            COUNT(*)
+            FROM (
+	WITH financeStatus(indb, incolumn) AS (
+		SELECT 'действующий', 'Действ.'
+		UNION
+		SELECT 'недействующий', 'Недейств.'
+		UNION
+		SELECT 'проект', 'Проект'
+	),
+	lifecycles AS (
+		SELECT
+			UNNEST(ARRAY_REMOVE(ARRAY[
+				CASE WHEN (rkkbase.isDeleted = 1) THEN 'Удален' END,
+				-- Подписание
+				CASE
+					WHEN (dogCommon.signisrejected = 1 AND rkkbase.isDeleted = 0) THEN 'Отказано в подписании'
+					WHEN (dogCommon.signissigned = 1) THEN 'Подписан'
+					WHEN (rkk.sendtosignonpaper = 1) THEN 'На подписании на бумаге'
+					WHEN (dogCommon.signissentto = 1) THEN 'На подписании'
+					WHEN (dogCommon.signIsSentTo = 0 AND dogCommon.signSentToDt IS NOT NULL
+						  AND rkkbase.isDeleted = 0) THEN 'Отозван с подписания'
+				END,
+				-- Доработка
+				CASE WHEN (dogCommon.isOnRework = 1 AND rkkbase.isDeleted = 0) THEN 'На доработке' END,
+				-- Согласование
+				CASE
+					WHEN (dogCommon.apprIsUnder = 1
+						  AND dogCommon.apprReplicaId NOT IN (
+							  SELECT replica FROM SS_Module WHERE title = 'Снятие замечаний'
+						  )) THEN 'На согласовании'
+					WHEN (dogCommon.apprIsUnder = 0 AND dogCommon.wasUnderAppr = 1
+						  AND LEFT(dogCommon.appraddstatus, 3) <> 'IF_' AND rkkbase.isDeleted = 0) THEN 'Обработка согласования'
+				END,
+				-- Снятие замечаний
+				CASE
+					WHEN (dogCommon.apprIsUnder = 1
+						  AND dogCommon.apprReplicaId IN (
+							  SELECT replica FROM SS_Module WHERE title='Снятие замечаний'
+						  )) THEN 'Снятие замечаний'
+					WHEN (dogCommon.apprIsUnder = 0 AND dogCommon.wasUnderAppr = 1
+						  AND LEFT(dogCommon.appraddstatus, 3) = 'IF_' AND rkkbase.isDeleted = 0) THEN 'Снятие замечаний завершено или прекращено'
+				END,
+				-- Ознакомление
+				CASE
+					WHEN (NULLIF(dogCommon.reviewReplicaID,'') IS NOT NULL AND dogCommon.reviewIsUnder = 0
+						  AND rkkbase.isDeleted = 0) THEN 'Ознакомление завершено или прекращено'
+					WHEN (dogCommon.reviewIsUnder = 1) THEN 'На ознакомлении'
+				END
+			], NULL)) AS wnstate, finDoc.id
+		FROM F_DP_ContractFd finDoc
+		JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = finDoc.id
+		JOIN F_DP_RkkBase rkkbase ON rkkbase.id = finDoc.id
+		JOIN F_DP_Rkk rkk ON rkk.id = rkkbase.id
+	)
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		dogRkk.id																				AS dogID,
+		(SELECT incolumn FROM financeStatus WHERE financeStatus.indb = dogCommon.StatusDog)	AS dogStatusNotAnIcon,
+		rkk.regDate																				AS dogDate,
+		dogFin.regNumber																		AS dogFinNumber,
+		dogFin.regDate																			AS dogFinDate,
+				COALESCE(
+			lifecycles.wnstate,
+			'Инициирование')																	AS lifecycle,
+         CASE
+         WHEN rkk.regnumcnt IS NULL THEN '<regNumberPrefix></><regNumberCounter#Number></><regNumberSuffix></>'
+         ELSE
+           '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+           || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+           || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>'
+         END                                      AS regNumberDog,
+		COALESCE(
+			(SELECT sgnr FROM (
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Contract_Signers_Ext sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogFin.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+				UNION
+				(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';') AS sgnr, MAX(updated_date) AS upd
+				 FROM (SELECT sb.Orig_ShortName AS s, sign.updated_date
+					   FROM F_DP_Rkk_SigningInfo sign
+					   JOIN SO_Beard sb ON sb.id = sign.signer
+					   WHERE sign.owner = dogFin.id
+					   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx, sign.updated_date
+					   ORDER BY idx) s)
+			) sgnrs WHERE sgnr IS NOT NULL ORDER BY upd DESC LIMIT 1),
+			(SELECT sb.Orig_ShortName FROM SO_Beard sb WHERE sb.id = dogFin.signSigner))		AS dogSigners,
+		rkkbase.subject																			AS subject,
+		(SELECT sb.Orig_ShortName FROM SO_Beard sb
+		 WHERE sb.id = COALESCE(CASE WHEN dogRkk.party2type = 0 THEN dogRkk.party2ida
+			 				ELSE dogRkk.party2idb END, dogRkk.party2idext))						AS contragent
+	FROM F_DP_ContractFd dogFin
+	JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = dogFin.id
+	JOIN F_DP_ContractRkk dogRkk ON dogRkk.id = dogCommon.hierRoot
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogFin.id
+	LEFT JOIN lifecycles ON lifecycles.id = dogFin.id
+	WHERE rkkbase.IsDeleted <> 1
+) s
+WHERE
+	1 = 1
+            ::where-clause
+        ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="lifecycle">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    lifecycle = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="lifecycle_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(lifecycle) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogStatusNotAnIcon_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(dogStatusNotAnIcon) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(dogDate, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogDate IS NULL
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="regNumberDog">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regNumberDog = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumberDog_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(regNumberDog) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogFinNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogFinNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogFinNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(dogFinNumber) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogFinDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(dogFinDate, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dogFinDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    dogFinDate IS NULL
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogSigners_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(dogSigners) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(subject) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="contragent_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(contragent) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="dogFinDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(dogFinDate as date) >= cast({0} as date) and cast(dogFinDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

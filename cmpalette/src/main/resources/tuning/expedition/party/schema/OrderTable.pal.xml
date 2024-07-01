@@ -1,0 +1,184 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema recalc="true" name="OrderTable">
+        <meta>
+            <category name="Система\Делопроизводство\Экспедиция\Таблицы"/>
+        </meta>
+        <schema-ref name="Order" ref="Order" null-empty="true" temporal="true"/>
+        <string name="OrderID"/>
+        <string name="Subject"/>
+        <string name="OrderNum">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[OrderNum != null ? OrderNum : (OrderID == null ? null : (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.tuning()?.getValues()?.get('docNumber')?.getValue()?.toString()?:' '))]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="sendingDate" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[
+                    OrderID == null ? null : (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.tuning()?.getValues()?.get('docDate')?.getValue()?.toString()?:'')
+                ]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="address" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[
+                    OrderID == null ? null : (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.tuning()?.getValues()?.get('address')?.getValue()?.toString()?:'')
+                ]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="addressee" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[
+                    OrderID == null ? null : (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.tuning()?.getValues()?.get('recepient')?.getValue()?.toString( T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME)?: '')
+                ]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="sendingInitiator" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[
+                    OrderID == null ? null : (
+                    (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.executors?.getValue()?.toString( T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME)?: '') + ' ' +
+                    (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.execDepartment?.toString( T(ru.intertrust.cmj.af.so.SOBeard.ToStringFormat).CMDOMINO_SHORT_NAME)?: '')
+                    )
+                ]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="TypeRPOName">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[
+                    TypeRPOName != null ? TypeRPOName : (OrderID == null ? null : (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).getEntityByUNID(OrderID)?.tuning()?.getValues()?.get('valueTypeRPO')?.getValue()?.toString()?:' '))
+                ]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="СategoryRPOName">
+        </string>
+
+        <hyperlink temporal="true" name="OrderLink">
+            <calc-values>
+                <script lang="SPEL" event="open">
+                    <![CDATA[OrderID == null ? null : T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink(Subject + '~#' + T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + OrderID + '~#newTab~#local')]]></script>
+            </calc-values>
+        </hyperlink>
+        <integer name="RowNumber"/>
+        <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.emb.HistoryEmb);
+importClass(Packages.ru.intertrust.cmj.af.history.record.BasicText);
+importClass(Packages.ru.intertrust.cmj.af.history.record.NameList);
+importClass(Packages.ru.intertrust.cmj.af.history.record.TextList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.dp.DPException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMPurchaseContracts);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfo);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfoComment);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RKKSigning);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.af.prvz.AFHasHead);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.SaveListener);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFSigning);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.Helper);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity.TaskEntity.Status);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration.Operation.Recall);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+
+function querySave(object, document)
+{
+    return true;
+}
+
+function recalc(object, changedField)
+{
+    process(object, changedField);
+}
+
+function process(object, changedField)
+{
+    var Order = GetValue(object, "Order");
+    if (Order == null)
+        return;
+    var id = Order.get("id");
+    var OrderNumber = Order.get("docNumber");
+    var Subject = Order.get("subject");
+    var sendingDate = Order.get("sendingDate");
+    var address = Order.get("address");
+    var addressee = Order.get("addressee");
+    var TypeRPOName = Order.get("TypeRPOName");
+    var СategoryRPOName = Order.get("СategoryRPOName");
+    var sendingInitiator = Order.get("sendingInitiator");
+
+    SetValue(object, "OrderID", id)
+    SetValue(object, "OrderNum", OrderNumber);
+    SetValue(object, "Subject", Subject);
+    SetValue(object, "sendingDate", sendingDate);
+    SetValue(object, "address", address);
+    SetValue(object, "addressee", addressee);
+    SetValue(object, "TypeRPOName", TypeRPOName);
+    SetValue(object, "СategoryRPOName", СategoryRPOName);
+    SetValue(object, "sendingInitiator", sendingInitiator);
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValues();
+}
+
+function SetValue(doc, fileName, value)
+{
+    if (value == null)
+        return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, "<Не указано>");
+    else
+        return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function postSave(object, document)
+{}
+]]></custom-event-handler>
+    </schema>
+</schemas>

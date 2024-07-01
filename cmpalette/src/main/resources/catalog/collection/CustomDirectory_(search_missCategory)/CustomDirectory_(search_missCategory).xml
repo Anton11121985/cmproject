@@ -1,0 +1,192 @@
+<collection name="CustomDirectory_(search_missCategory)" replace="runtime" idField="id" useClone="false">
+	<prototype>
+		<![CDATA[
+SELECT ClsValue,
+       id,
+       created_date,
+       Module,
+       self_1,
+       self_2,
+       self_3
+FROM (WITH tempCategory AS (
+    SELECT cls.id                   AS id,
+           NULL                     AS parent,
+           (SELECT complex.title AS number
+            FROM clscom_tag clst
+                     LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = clst.id
+                     LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                     LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+            WHERE deleted <> 1
+              AND schema = 'ComplectClassifierCategoryMissions'
+              AND alias = 'number'
+              AND clst.id = cls.id) AS number,
+           complex.title            AS category
+    FROM clscom_tag cls
+             LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = cls.id
+             LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+             LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+    WHERE deleted <> 1
+      AND schema = 'ComplectClassifierCategoryMissions'
+      AND alias = 'category'),
+           tempSubSection AS (
+               SELECT cls.id                                                   AS id,
+                      complex.title                                            AS subSection,
+                      (SELECT complex.title AS category
+                       FROM clscom_tag clst
+                                LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = clst.id
+                                LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                                LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+                       WHERE deleted <> 1
+                         AND schema = 'ComplectClassifierSubSectionMissions'
+                         AND alias = 'category'
+                         AND clst.id = cls.id)                                 AS subCategory,
+                      (SELECT id
+                       FROM tempCategory
+                       WHERE tempCategory.category = (SELECT complex.title AS category
+                                                      FROM clscom_tag clst
+                                                               LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = clst.id
+                                                               LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                                                               LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+                                                      WHERE deleted <> 1
+                                                        AND schema = 'ComplectClassifierSubSectionMissions'
+                                                        AND alias = 'category'
+                                                        AND clst.id = cls.id)) AS parent
+               FROM clscom_tag cls
+                        LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = cls.id
+                        LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                        LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+
+               WHERE deleted <> 1
+                 AND schema = 'ComplectClassifierSubSectionMissions'
+                 AND alias = 'subSection')
+      SELECT cls.id                                               AS id,
+             cls.created_date                                     AS created_date,
+             cls."module"                                         AS Module,
+             '<id>'                                               AS self_1,
+             ':'                                                  AS self_2,
+             '</>'                                                AS self_3,
+             tempCategory.number || '. ' || tempCategory.category AS ClsValue,
+             1                                                    AS cat
+
+      FROM tempCategory
+               LEFT JOIN clscom_tag cls ON cls.id = tempCategory.id
+      WHERE tempCategory.parent IS NULL
+        AND deleted <> 1
+      UNION
+      SELECT cls.id                    AS id,
+             cls.created_date          AS created_date,
+             cls."module"              AS Module,
+             '<id>'                    AS self_1,
+             ':'                       AS self_2,
+             '</>'                     AS self_3,
+             tempSubSection.subSection AS ClsValue,
+             2                         AS cat
+
+      FROM tempSubSection
+               LEFT JOIN tempCategory ON tempCategory.id = tempSubSection.parent
+               LEFT JOIN clscom_tag cls ON cls.id = tempSubSection.id
+      WHERE deleted <> 1
+     ) s
+WHERE 1 = 1
+
+ORDER BY cat, ClsValue
+::where-clause
+		]]>
+	</prototype> 
+	<counting-prototype>
+		<![CDATA[
+SELECT
+    count(1)
+FROM (WITH tempCategory AS (
+    SELECT cls.id                   AS id,
+           NULL                     AS parent,
+           (SELECT complex.title AS number
+            FROM clscom_tag clst
+                     LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = clst.id
+                     LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                     LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+            WHERE deleted <> 1
+              AND schema = 'ComplectClassifierCategoryMissions'
+              AND alias = 'number'
+              AND clst.id = cls.id) AS number,
+           complex.title            AS category
+    FROM clscom_tag cls
+             LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = cls.id
+             LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+             LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+    WHERE deleted <> 1
+      AND schema = 'ComplectClassifierCategoryMissions'
+      AND alias = 'category'),
+           tempSubSection AS (
+               SELECT cls.id                                                   AS id,
+                      complex.title                                            AS subSection,
+                      (SELECT complex.title AS category
+                       FROM clscom_tag clst
+                                LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = clst.id
+                                LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                                LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+                       WHERE deleted <> 1
+                         AND schema = 'ComplectClassifierSubSectionMissions'
+                         AND alias = 'category'
+                         AND clst.id = cls.id)                                 AS subCategory,
+                      (SELECT id
+                       FROM tempCategory
+                       WHERE tempCategory.category = (SELECT complex.title AS category
+                                                      FROM clscom_tag clst
+                                                               LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = clst.id
+                                                               LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                                                               LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+                                                      WHERE deleted <> 1
+                                                        AND schema = 'ComplectClassifierSubSectionMissions'
+                                                        AND alias = 'category'
+                                                        AND clst.id = cls.id)) AS parent
+               FROM clscom_tag cls
+                        LEFT JOIN clscom_to_tag to_tag ON to_tag.tag = cls.id
+                        LEFT JOIN classifier_complex complex ON complex.id = to_tag.classifier
+                        LEFT JOIN cls_typeComp typecom ON typecom.id = complex.owner
+
+               WHERE deleted <> 1
+                 AND schema = 'ComplectClassifierSubSectionMissions'
+                 AND alias = 'subSection')
+      SELECT cls.id                                               AS id,
+             cls.created_date                                     AS created_date,
+             cls."module"                                         AS Module,
+             '<id>'                                               AS self_1,
+             ':'                                                  AS self_2,
+             '</>'                                                AS self_3,
+             tempCategory.number || '. ' || tempCategory.category AS ClsValue,
+             1                                                    AS cat
+
+      FROM tempCategory
+               LEFT JOIN clscom_tag cls ON cls.id = tempCategory.id
+      WHERE tempCategory.parent IS NULL
+        AND deleted <> 1
+      UNION
+      SELECT cls.id                    AS id,
+             cls.created_date          AS created_date,
+             cls."module"              AS Module,
+             '<id>'                    AS self_1,
+             ':'                       AS self_2,
+             '</>'                     AS self_3,
+             tempSubSection.subSection AS ClsValue,
+             2                         AS cat
+
+      FROM tempSubSection
+               LEFT JOIN tempCategory ON tempCategory.id = tempSubSection.parent
+               LEFT JOIN clscom_tag cls ON cls.id = tempSubSection.id
+      WHERE deleted <> 1
+     ) s
+WHERE 1 = 1
+
+ORDER BY cat, ClsValue
+::where-clause
+		]]>
+	</counting-prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				Module = {0}
+			]]>
+		</criteria>
+	</filter>
+</collection>

@@ -1,0 +1,109 @@
+<search-area name="gs_signal_search_uicoll" replace="runtime">
+    <target-domain-object type="gs_signal">
+
+        <indexed-field name="created">
+            <doel>created_date</doel>
+        </indexed-field>
+        <indexed-field name="updatedTime">
+            <doel>updated_time</doel>
+        </indexed-field>
+        <indexed-field name="process_Time">
+            <doel>process_time</doel>
+        </indexed-field>
+
+        <indexed-field name="HeadId" search-by="substring">
+            <doel>parent_id</doel>
+        </indexed-field>
+
+        <indexed-field name="OperationType" search-by="substring">
+            <script>
+                var type = ctx.get('type');
+                switch (type) {
+                case 0:
+                ctx.setResult('Создание подразделения');
+                break;
+                case 1:
+                ctx.setResult('Изменение данных подразделения');
+                break;
+                case 2:
+                ctx.setResult('Удаление подразделения');
+                break;
+                case 3:
+                ctx.setResult('Создание работника');
+                break;
+                case 4:
+                ctx.setResult('Изменение данных работника');
+                break;
+                case 5:
+                ctx.setResult('Удаление работника');
+                break;
+                case 6:
+                ctx.setResult('Создание РВЗ');
+                break;
+                case 7:
+                ctx.setResult('Изменение данных РВЗ');
+                break;
+                case 8:
+                ctx.setResult('Удаление РВЗ');
+                break;
+                case 9:
+                ctx.setResult('Изменение информации об отсутствии работника');
+                break;
+                }
+            </script>
+            <filter>
+                <doel>type:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <indexed-field name="objectHR" search-by="substring">
+            <script>
+                if (ctx.get('full_name')) {
+                ctx.setResult(ctx.get('full_name'));
+                } else if (ctx.get('tab_num')) {
+                ctx.setResult(ctx.get('post_name') + ' (' + ctx.get('last_name') + ' ' + ctx.get('first_name') + ' ' +
+                ctx.get('middle_name') + ')');
+                } else {
+                ctx.setResult(ctx.get('post_name'));
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="sysCodePersonId" search-by="substring">
+            <script>
+                if (ctx.get('tab_num')) {
+                ctx.setResult(ctx.get('hr_id'));
+                } else if (ctx.get('post_name')) {
+                ctx.setResult(ctx.get('post_code'));
+                } else {
+                ctx.setResult(ctx.get('hr_code'));
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="refCodeTabnum" search-by="substring">
+            <script>
+                if (ctx.get('tab_num')) {
+                ctx.setResult(ctx.get('tab_num'));
+                } else {
+                ctx.setResult(ctx.get('dep_code'));
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="area" search-by="substring">
+            <doel>net.name</doel>
+        </indexed-field>
+
+
+        <linked-domain-object type="gs_changed_fields">
+            <indexed-field name="changedFields" search-by="substring">
+                <doel>fieldname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+</search-area>

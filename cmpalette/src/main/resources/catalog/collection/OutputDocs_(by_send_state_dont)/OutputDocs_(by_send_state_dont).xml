@@ -1,0 +1,375 @@
+<collection name="OutputDocs_(by_send_state_dont)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+                SELECT id,
+       created_date,
+       module,
+       hasattachments,
+       rnumber,
+       self_1,
+       self_2,
+       self_3,
+       sendingStatus,
+       regnumber,
+       numberWOTags,
+       docDate,
+       reqtype,
+       signerName,
+       executorName,
+       correspondentName,
+       subject,
+       extSendWay
+FROM (
+         SELECT rkkbase.id,
+                rkkbase.created_date,
+                module,
+                sendingStatus.sendStatus                                                                     AS sendingStatus,
+                regnumcnt                                                                                               rnumber,
+                '<regNumberPrefix>' || COALESCE(rkk.regnumprist, '') || '</>' || '<regNumberCounter#Number>' ||
+                COALESCE(CAST(rkk.regnumcnt AS varchar), '') || '</>' || '<regNumberSuffix>' ||
+                COALESCE(rkk.regnumfin, '') ||
+                '</>'                                                                                                AS regNumber,
+                regdate                                                                                              as docDate,
+                rkkbase.type                                                                                            reqtype,
+                COALESCE(rkk.regnumprist, '') || COALESCE(CAST(rkk.regnumcnt AS varchar), '') ||
+                COALESCE(rkk.regnumfin, '')                                                                          AS numberWOTags,
+                rkkbase.subject,
+                '<id>'                                                                                                  self_1,
+                ':'                                                                                                     self_2,
+                '</>'                                                                                                   self_3,
+                (SELECT COALESCE(MAX(a), CAST(0 AS SMALLINT))
+                 FROM ((SELECT CAST(1 AS SMALLINT) a FROM f_contentfiles_rkk CF WHERE CF.f_dp_rkkbase = rkk.id)
+                 UNION
+                 (SELECT CAST(1 AS SMALLINT) FROM f_contentrichtext_rkk CRT WHERE CRT.f_dp_rkkbase = rkk.id)
+                 UNION
+                 (SELECT CAST(1 AS SMALLINT)
+                  FROM f_verifyimage_rkk VI
+                  WHERE VI.f_dp_rkk = rkk.id)) t) hasattachments,
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                     (SELECT string_agg(signers.orig_shortname, ',')
+                      FROM (SELECT orig_shortname
+                            FROM F_DP_Rkk_SigningInfo
+                            JOIN so_beard on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                            WHERE outputrkk.id = F_DP_Rkk_SigningInfo.owner ORDER BY F_DP_Rkk_SigningInfo.idx LIMIT 4) as signers) ||
+                     (SELECT CASE when (SELECT count(orig_shortname)
+                                        FROM F_DP_Rkk_SigningInfo
+                                        JOIN so_beard on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                        WHERE outputrkk.id = F_DP_Rkk_SigningInfo.owner) > 4
+                                      then ',...' ELSE '' END)
+                 END                                                                                              AS signerName,
+                (SELECT string_agg(executor.orig_shortname, ', ') FROM (SELECT executor.orig_shortname FROM F_DP_OutputRkk_Executor outrkkexec
+                    JOIN so_beard executor on executor.id = outrkkexec.executor
+                    WHERE outrkkexec.owner = outputrkk.id ORDER BY executor.orig_shortname) executor
+                )                                                                                                 AS executorName,
+                (SELECT string_agg(s.dispatchType, ', ')
+                    FROM (select DISTINCT dispatchType from F_DP_OutputRkk_Sender
+                        where F_DP_OutputRkk_Sender.owner = rkk.id and F_DP_OutputRkk_Sender.dispatchType <> '' limit 4) s
+                )
+                || (SELECT CASE when (SELECT count(*) FROM (select DISTINCT dispatchType from F_DP_OutputRkk_Sender
+                        where F_DP_OutputRkk_Sender.owner = rkk.id and F_DP_OutputRkk_Sender.dispatchType <> '') s) > 4
+                    then '...' ELSE '' END)                                                                     AS extSendWay,
+                COALESCE((SELECT STRING_AGG(CASE
+                                                WHEN beard.orig_shortname IS NULL THEN 'Физическое лицо'
+                                                ELSE beard.orig_shortname END || '->' ||
+                                            COALESCE((SELECT STRING_AGG(CASE
+                                                                            WHEN orig_type = 10
+                                                                                THEN 'Нет адресатов'
+                                                                            ELSE beard.orig_shortname END,
+                                                                        '; ')
+                                                      FROM f_dp_outputrkk_orginfaddr addr
+                                                               JOIN so_beard beard ON beard.id = addr.addressee
+                                                      WHERE addr.OWNER = org.id),
+                                                     'Нет адресатов'), ', ')
+                          FROM f_dp_outputrkk_orginf org
+                                   LEFT JOIN so_beard beard ON beard.id = org.firmid
+                          WHERE org.OWNER = outputrkk.id))                                                           AS correspondentName
+         FROM f_dp_outputrkk outputrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = outputrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                  LEFT JOIN So_BEARD signerName ON signerName.id = outputrkk.SignSigner
+                  JOIN lateral (select DISTINCT sendStatus
+                        from F_DP_OutputRkk_Sender where F_DP_OutputRkk_Sender.owner = rkk.id ) sendingStatus on 1=1
+         WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NOT NULL
+         AND (select sendStatus from F_DP_OutputRkk_Sender
+            where F_DP_OutputRkk_Sender.owner = rkk.id
+            AND (sendStatus = '' OR sendStatus is null OR sendStatus = 'Отказано' OR sendStatus = 'Отправка прекращена'
+            OR sendStatus = 'Отправка отменена') limit 1) is not null
+         ) t
+         WHERE sendingStatus = 'Не отправлен'
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(*)
+                FROM (
+         SELECT rkkbase.id,
+                rkkbase.created_date,
+                module,
+                sendingStatus.sendStatus                                                                     AS sendingStatus,
+                regnumcnt                                                                                               rnumber,
+                '<regNumberPrefix>' || COALESCE(rkk.regnumprist, '') || '</>' || '<regNumberCounter#Number>' ||
+                COALESCE(CAST(rkk.regnumcnt AS varchar), '') || '</>' || '<regNumberSuffix>' ||
+                COALESCE(rkk.regnumfin, '') ||
+                '</>'                                                                                                AS regNumber,
+                regdate                                                                                              as docDate,
+                rkkbase.type                                                                                            reqtype,
+                COALESCE(rkk.regnumprist, '') || COALESCE(CAST(rkk.regnumcnt AS varchar), '') ||
+                COALESCE(rkk.regnumfin, '')                                                                          AS numberWOTags,
+                rkkbase.subject,
+                '<id>'                                                                                                  self_1,
+                ':'                                                                                                     self_2,
+                '</>'                                                                                                   self_3,
+                (SELECT COALESCE(MAX(a), CAST(0 AS SMALLINT))
+                 FROM ((SELECT CAST(1 AS SMALLINT) a FROM f_contentfiles_rkk CF WHERE CF.f_dp_rkkbase = rkk.id)
+                 UNION
+                 (SELECT CAST(1 AS SMALLINT) FROM f_contentrichtext_rkk CRT WHERE CRT.f_dp_rkkbase = rkk.id)
+                 UNION
+                 (SELECT CAST(1 AS SMALLINT)
+                  FROM f_verifyimage_rkk VI
+                  WHERE VI.f_dp_rkk = rkk.id)) t) hasattachments,
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                     (SELECT string_agg(signers.orig_shortname, ',')
+                      FROM (SELECT orig_shortname
+                            FROM F_DP_Rkk_SigningInfo
+                            JOIN so_beard on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                            WHERE outputrkk.id = F_DP_Rkk_SigningInfo.owner ORDER BY F_DP_Rkk_SigningInfo.idx LIMIT 4) as signers) ||
+                     (SELECT CASE when (SELECT count(orig_shortname)
+                                        FROM F_DP_Rkk_SigningInfo
+                                        JOIN so_beard on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                        WHERE outputrkk.id = F_DP_Rkk_SigningInfo.owner) > 4
+                                      then ',...' ELSE '' END)
+                 END                                                                                              AS signerName,
+                COALESCE((SELECT STRING_AGG(CASE
+                                                WHEN beard.orig_shortname IS NULL THEN 'Физическое лицо'
+                                                ELSE beard.orig_shortname END || '->' ||
+                                            COALESCE((SELECT STRING_AGG(CASE
+                                                                            WHEN orig_type = 10
+                                                                                THEN 'Нет адресатов'
+                                                                            ELSE beard.orig_shortname END,
+                                                                        '; ')
+                                                      FROM f_dp_outputrkk_orginfaddr addr
+                                                               JOIN so_beard beard ON beard.id = addr.addressee
+                                                      WHERE addr.OWNER = org.id),
+                                                     'Нет адресатов'), ', ')
+                          FROM f_dp_outputrkk_orginf org
+                                   LEFT JOIN so_beard beard ON beard.id = org.firmid
+                          WHERE org.OWNER = outputrkk.id))                                                           AS correspondentName
+         FROM f_dp_outputrkk outputrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = outputrkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                  LEFT JOIN So_BEARD signerName ON signerName.id = outputrkk.SignSigner
+                  JOIN lateral (select DISTINCT sendStatus
+                        from F_DP_OutputRkk_Sender where F_DP_OutputRkk_Sender.owner = rkk.id ) sendingStatus on 1=1
+         WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NOT NULL
+            AND (select sendStatus from F_DP_OutputRkk_Sender
+            where F_DP_OutputRkk_Sender.owner = rkk.id
+            AND (sendStatus = '' OR sendStatus is null OR sendStatus = 'Отказано' OR sendStatus = 'Отправка прекращена'
+            OR sendStatus = 'Отправка отменена') limit 1) is not null
+         ) t
+         WHERE sendingStatus = 'Не отправлен'
+                    ::where-clause
+        	]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(created_date as date) >= cast({0} as date) and cast(created_date as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    rNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	rNumber < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	rNumber >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	rNumber iLIKE {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regnumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    numberWOTags iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	regNumber < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	regNumber >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(docDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDate_partial"> <!-- Функционал фильра другой, но называть их по как хочется не разрешает схема валидации -->
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (docDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(docDate as date) >= cast({0} as date) and cast(docDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signerName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signerName ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentName ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="extSendWay">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    extSendWay iLIKE {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="extSendWay_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    extSendWay ~* ('(^|\W)'||{0})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+</collection>

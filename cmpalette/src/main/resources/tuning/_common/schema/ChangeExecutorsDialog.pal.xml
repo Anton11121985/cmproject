@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema extends="Dialog" name="ChangeExecutorsDialog" recalc="true">
+    <meta>
+      <category name="Диалоги"/>
+      <documentation>Контроль исполенения</documentation>
+    </meta>
+    <actor name="executorToDelete"/>
+    <actor name="executorToAdd"/>
+    <boolean name="isResponsible"/>
+    <string name="timeShift" default-value="0">
+      <validate>
+        <regex>^-?[0-9]+$</regex>
+      </validate>
+    </string>
+    <string name="reason"/>
+    <boolean name="isDeletedChosen" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[executorToDelete == null]]></script>
+      </calc-values>
+    </boolean>
+    <string array="true" name="ids"/>
+    <string name="counter"/>
+    <custom-event-handler lang="JavaScript" ><![CDATA[
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+function recalc(object, changedField) {
+    if (changedField == "timeShift") {
+         if (object.tuning().getValues().get('timeShift') == null || object.tuning().getValues().get('timeShift').getValue() == null || (object.tuning().getValues().get('timeShift').getValue() != null && !object.tuning().getValues().get('timeShift').getValue().matches("^-?[0-9]+$"))) {
+           throw ("Введите положительные или отрицательные целые числа!");
+        }
+    }
+}
+        ]]></custom-event-handler>
+  </schema>
+</schemas>

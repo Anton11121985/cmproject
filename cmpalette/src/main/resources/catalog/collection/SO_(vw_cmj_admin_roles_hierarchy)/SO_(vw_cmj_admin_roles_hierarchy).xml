@@ -1,0 +1,71 @@
+<collection name="SO_(vw_cmj_admin_roles_hierarchy)" idField="id">
+    <prototype>
+        <![CDATA[
+                     SELECT distinct
+					  role.id,
+					  so_unit.created_date as created_date,
+					  '<id>'               as self_1,
+					  ':'                  as self_2,
+					  '</>'                as close_tag,
+					  concat(CASE WHEN coalesce(role.code,'') <> '' THEN concat(role.code,'. ')  ELSE '-' END, role.fullname, ' (', role.shortname, ') (тип:', CASE WHEN coalesce(role.type,'') <> '' THEN role.type ELSE '-' END, ')')  as soName,
+					  'SORoleTunableColumn' as schema,
+					   ss_module_org.Module,
+					  role.fullname  as title,
+					  so_unit.updated_date as updated_date,
+					  CASE WHEN EXISTS
+	                		(SELECT 1 FROM so_role r WHERE r.hierparent = role.id) THEN 1 ELSE 0
+	                	END AS hasChilds,
+	                  role.hierparent as parent,
+	                  case
+	                	  when receivers.owner is null then '28'
+	                	  else ''
+	                  end as iconNoticesId,
+	                  case
+	                	  when receivers.owner is null then 'Не получает уведомления'
+	                	  else ''
+	                  end as iconNoticesHint
+	                FROM
+	                    so_role role
+	                    join so_unit on so_unit.id = role.id
+	                    left join so_role parent on parent.id = role.hierparent and parent.id_type = role.hierparent_type
+	                    left join SO_NoticesReceiverWork receivers on receivers.owner = role.id
+	                	::from-clause
+	                WHERE
+	                	role.accessredirect is null
+	                    ::where-clause
+            ]]>
+    </prototype>
+    <filter name="MODULE">
+        <reference placeholder="from-clause">
+            <![CDATA[
+                	join SS_ModuleOrg ss_module_org on ss_module_org.Organization = role.organization
+                ]]>
+        </reference>
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ss_module_org.Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="UNID">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    role.id = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="parent">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    role.hierparent = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nullParent">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    role.hierparent is null
+                ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="file-verification-sheet-sub" pageWidth="468" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="468" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" scriptletClass="FileDocumentsInternalInventoryScriptlet" whenResourceMissingType="Empty" uuid="ed095dcf-49eb-4c54-8b97-674b2d74529c">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="26"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="974"/>
+	<parameter name="FileId" class="java.lang.Object" isForPrompting="false"/>
+	<parameter name="indexFile" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="responsiblePost" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="responsibleName" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+	ROW_NUMBER() OVER () AS num,
+	docIndex,
+	docDate,
+	subject,
+	countSheets,
+	countAppSheets,
+	comments
+FROM (
+	SELECT
+		COALESCE(
+			(COALESCE(contractDS.RegNumber, contractFD.RegNumber) || ' к Договору №'
+				   || CONCAT(rootDog.regnumprist, rootDog.regnumcnt, rootDog.regnumfin)),
+			CONCAT(r.regnumprist, r.regnumcnt, r.regnumfin)
+		) AS docIndex,
+		COALESCE(TO_CHAR(r.regDate, 'DD.MM.YYYY'), '') AS docDate,
+		rb.subject,
+		CAST(NULLIF(REGEXP_REPLACE(rWOrAc.exemplarsPagesCount, '\D', '', 'g'), '') AS integer) AS countSheets,
+		CAST(NULLIF(REGEXP_REPLACE(rWOrAc.appedixesPagesCount, '\D', '', 'g'), '') AS integer) AS countAppSheets,
+		COALESCE(rWOrAc.comments, '') AS comments,
+		rs.created_date AS addedDate
+	FROM FR_Section s
+	LEFT JOIN FR_Tome t ON s.parent = t.id
+	RIGHT JOIN FR_RkkToSection rs ON s.id = rs.section
+	LEFT JOIN F_DP_RkkBase rb ON rs.owner = rb.id
+	LEFT JOIN F_DP_Rkk r ON r.id = rb.id
+	LEFT JOIN F_DP_RkkWORegAndCtrl rWOrAc ON rWOrAc.id = rb.id
+	LEFT JOIN F_DP_InputRkk_Author inRkkAuthor ON inRkkAuthor.owner = rb.id
+	LEFT JOIN F_DP_OutputRkk outRkk ON outRkk.id = r.id
+	LEFT JOIN F_DP_OrdRkk ordRkk ON ordRkk.id = r.id
+	LEFT JOIN F_DP_IntRkk intRkk ON intRkk.id = r.id
+	LEFT JOIN F_DP_RequestRkk reqRkk ON reqRkk.id = r.id
+	LEFT JOIN F_DP_ContractRkk dogRkk ON rb.id = dogRkk.id AND dogRkk.StatusDog IN ('актив', 'архив')
+	LEFT JOIN F_DP_ContractCommon dogCommon ON dogCommon.id = rb.id AND dogCommon.StatusDog IN ('актив', 'архив')
+	LEFT JOIN F_DP_Rkk rootDog ON rootDog.id = dogCommon.hierroot
+	LEFT JOIN F_DP_ContractDoc contractDoc ON contractDoc.id = rb.id
+	LEFT JOIN F_DP_ContractDS contractDS ON contractDS.id = rb.id
+	LEFT JOIN F_DP_ContractFD contractFD ON contractFD.id = rb.id
+	WHERE r.regnumcnt IS NOT NULL AND rs.isIncluded = 1 AND (s.parent = $P{FileId} OR t.parent = $P{FileId})
+
+	UNION ALL
+
+	SELECT
+		COALESCE(psRkk.numdoc, '') AS docIndex,
+		COALESCE(TO_CHAR(psRkk.dateReg, 'DD.MM.YYYY'), '') AS docDate,
+		psRkk.title AS subject,
+		psRkk.countSheets AS countSheets,
+		0 AS countAppSheets,
+		COALESCE(psRkk.comment, '') AS comments,
+		psRkk.created_date AS addedDate
+	FROM FR_Pseudo_Rkk psRkk
+	WHERE COALESCE(psRkk.isDeleted, 0) <> 1 AND psRkk.isDeleted = 0 AND psRkk.parentFile = $P{FileId}
+	
+	ORDER BY addedDate DESC
+) rkks]]>
+	</queryString>
+	<field name="num" class="java.lang.Integer"/>
+	<field name="docIndex" class="java.lang.String"/>
+	<field name="docDate" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="countSheets" class="java.lang.Integer"/>
+	<field name="countAppSheets" class="java.lang.Integer"/>
+	<field name="comments" class="java.lang.String"/>
+	<variable name="Rkk_Count" class="java.lang.Integer" resetType="None" calculation="Highest">
+		<variableExpression><![CDATA[$F{num}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="55">
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="0" y="14" width="468" height="18" uuid="b1628225-7968-4b28-857a-2a377af3c525"/>
+				<box bottomPadding="1"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Внутренняя опись"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="0" y="33" width="468" height="10" uuid="09921fe1-3795-4d1e-910a-823ab27994c1"/>
+				<box leftPadding="4" bottomPadding="1" rightPadding="4"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["документов дела № " + $P{indexFile}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="21">
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="0" y="0" width="31" height="21" uuid="e502e798-3571-472e-9ad1-b9c08bbbc056"/>
+				<box padding="5">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["№\nп/п"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="31" y="0" width="70" height="21" uuid="cc9e6e50-e3f5-41f8-a54a-51be1cb4b264"/>
+				<box padding="5">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Индекс\nдокумента"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="101" y="0" width="63" height="21" uuid="54848928-faac-4453-947c-2304f5a31cf3"/>
+				<box padding="5">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Дата\nдокумента"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="164" y="0" width="170" height="21" uuid="68598bb2-1855-4a53-9d10-3dee10d9bee2"/>
+				<box padding="5">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Заголовок документа"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="334" y="0" width="49" height="21" uuid="9dd3a815-c84b-4750-8602-54d768826921"/>
+				<box padding="5">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Номера\nлистов\nдела"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="383" y="0" width="70" height="21" uuid="eefae66c-e614-4702-ad30-9b0821a24ec4"/>
+				<box padding="5">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Примечание"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="31" height="15" isPrintWhenDetailOverflows="true" uuid="dfcb7f72-4ed8-4958-a9f5-6c72e1828cf7"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="1" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="31" y="0" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="e66383a9-cc23-4b3e-a215-37b867bf3f7f"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="1" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["2"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="101" y="0" width="63" height="15" isPrintWhenDetailOverflows="true" uuid="2103315d-39fb-4a6f-a480-904f5bf377ff"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="1" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["3"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="164" y="0" width="170" height="15" isPrintWhenDetailOverflows="true" uuid="22b16dab-7aa6-42be-9d24-35f97bbb42e3"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="1" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["4"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="334" y="0" width="49" height="15" isPrintWhenDetailOverflows="true" uuid="3853fcb3-7b73-4c71-8dee-8fba899597a8"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="1" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["5"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="383" y="0" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="03f597fd-f3a1-4fc8-a2ee-d65c6bc89580"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="1" rightPadding="0">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["6"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Immediate">
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="31" height="15" isPrintWhenDetailOverflows="true" uuid="eef7369b-5b4a-4b1b-8e11-17fa985ff997"/>
+				<box topPadding="1" leftPadding="4" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{num} + "."]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="31" y="0" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="8678792b-de3e-4ccb-825d-49ec7391178a"/>
+				<box topPadding="1" leftPadding="4" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docIndex} != null ? $F{docIndex} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="101" y="0" width="63" height="15" isPrintWhenDetailOverflows="true" uuid="82b9bb40-f41a-4898-aeef-b5d91b879212"/>
+				<box topPadding="1" leftPadding="4" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docDate} != null ? $F{docDate} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="164" y="0" width="170" height="15" isPrintWhenDetailOverflows="true" uuid="9de518d1-0782-417e-81f9-069ef0548a48"/>
+				<box topPadding="1" leftPadding="4" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subject} != null ? $F{subject} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="334" y="0" width="49" height="15" isPrintWhenDetailOverflows="true" uuid="df4ba329-89be-4832-8892-3ce803b198e7"/>
+				<box topPadding="1" leftPadding="4" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{REPORT_SCRIPTLET}.getPageNumbersRange($F{countSheets}, $F{countAppSheets})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="383" y="0" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="bd74f1fc-4ce0-4c26-ad7c-81633dfa2c9a"/>
+				<box topPadding="1" leftPadding="4" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{comments} != null ? $F{comments} : ""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="149" splitType="Prevent">
+			<frame>
+				<reportElement positionType="Float" x="0" y="12" width="468" height="15" isPrintWhenDetailOverflows="true" uuid="1376197a-3937-4309-bee8-49525a397900"/>
+				<textField>
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="38" height="14" isPrintWhenDetailOverflows="true" uuid="a0942f97-fe63-4b14-96b1-ad0ca55d0485"/>
+					<box leftPadding="4" bottomPadding="1" rightPadding="0"/>
+					<textElement textAlignment="Left" verticalAlignment="Bottom">
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Итого "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="38" y="0" width="244" height="14" isPrintWhenDetailOverflows="true" uuid="620e894b-ab11-41cd-bf26-b38a665c176d"/>
+					<box bottomPadding="1">
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Rkk_Count} != null ? $V{Rkk_Count} + $P{REPORT_SCRIPTLET}.getNumberInWords($V{Rkk_Count}) : 0 + $P{REPORT_SCRIPTLET}.getNumberInWords(0)]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="282" y="0" width="186" height="14" isPrintWhenDetailOverflows="true" uuid="274bd0db-9884-4bb1-a6bc-e97867f07f60"/>
+					<box leftPadding="5" bottomPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Bottom">
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{REPORT_SCRIPTLET}.getDocumentsNumDeclension($V{Rkk_Count}) + "."]]></textFieldExpression>
+				</textField>
+			</frame>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="38" y="27" width="244" height="11" isPrintWhenDetailOverflows="true" uuid="9b386d82-4637-4f48-bc2c-7ba7d6858336"/>
+				<box bottomPadding="1">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="9" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(цифрами и прописью)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="0" y="49" width="187" height="14" isPrintWhenDetailOverflows="true" uuid="90540332-f7d8-4501-aa67-0958df01e183"/>
+				<box leftPadding="4" bottomPadding="1"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Количество листов внутренней описи"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="187" y="49" width="150" height="14" isPrintWhenDetailOverflows="true" uuid="446ce166-0beb-4454-8699-e025713527be"/>
+				<box bottomPadding="1">
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER} + $P{REPORT_SCRIPTLET}.getNumberInWords($V{PAGE_NUMBER})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="187" y="64" width="150" height="11" isPrintWhenDetailOverflows="true" uuid="be1e69b3-23e8-46e3-ba06-82dc6b4c5c9b"/>
+				<box bottomPadding="1">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="9" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(цифрами и прописью)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="0" y="99" width="165" height="11" isPrintWhenDetailOverflows="true" uuid="0022148a-51cf-44aa-8260-ed530ab96dbb"/>
+				<box leftPadding="4" bottomPadding="1"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="9" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(наименование должности лица,\nсоставившего внутреннюю опись)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="179" y="99" width="110" height="11" isPrintWhenDetailOverflows="true" uuid="da97ee25-8d6d-4baf-8f54-1ad8e832aec0"/>
+				<box bottomPadding="1"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="9" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(подпись)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="314" y="99" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="c7845113-c2b0-4ea1-a5d6-b228c2c4198c"/>
+				<box bottomPadding="1" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="9" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(расшифровка подписи)"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" x="0" y="121" width="95" height="14" uuid="cd7fbd52-1715-43ea-96c8-23e1cc8f81a3"/>
+				<box leftPadding="4" bottomPadding="1"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new SimpleDateFormat("dd.MM.yyyy").format(new Date())]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement positionType="Float" x="0" y="84" width="468" height="15" isPrintWhenDetailOverflows="true" uuid="96d9c841-f32b-4c39-82c9-c25da87c2934"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="165" height="14" isPrintWhenDetailOverflows="true" uuid="a5bdbaf3-7178-44a4-aab9-88a604b237da"/>
+					<box leftPadding="4" bottomPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Bottom">
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{responsiblePost} != null ? $P{responsiblePost} : ""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="179" y="0" width="110" height="14" isPrintWhenDetailOverflows="true" uuid="4a7fa3cc-2aab-4b23-91ca-9c075c5073d3"/>
+					<box bottomPadding="1">
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="314" y="0" width="154" height="14" isPrintWhenDetailOverflows="true" uuid="4a00927b-364d-4f9b-8848-842d2cd08fe3"/>
+					<box bottomPadding="1" rightPadding="4"/>
+					<textElement textAlignment="Left" verticalAlignment="Bottom">
+						<font fontName="Times New Roman" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{responsibleName} != null ? $P{responsibleName} : ""]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</summary>
+</jasperReport>

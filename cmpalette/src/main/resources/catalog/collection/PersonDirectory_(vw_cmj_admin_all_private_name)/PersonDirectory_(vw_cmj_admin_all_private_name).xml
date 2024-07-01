@@ -1,0 +1,46 @@
+<collection name="PersonDirectory_(vw_cmj_admin_all_private_name)" idField="id" replace="runtime">
+	<prototype>
+		<![CDATA[
+			SELECT
+				  temp.id,
+	                temp.id_type,
+	                '<id>' as self_1,
+		            ':' as self_2,
+		            '</>' as self_3,
+	                temp.created_date,
+	                temp.Module,
+	                temp.name
+			FROM (
+				SELECT
+                    pers.id,
+                    pers.id_type as id_type,
+                    '<id>' as self_1,
+		        	':' as self_2,
+		        	'</>' as self_3,
+                    pers.created_date,
+                    persnonsys.Module,
+                    pers.lastname as name
+
+                    FROM
+                    so_personnonsysprivate persnon
+ 					inner join so_personnonsys persnonsys on persnon.id = persnonsys.id
+                    inner join so_person pers on persnonsys.id = pers.id
+                    WHERE
+                    persnonsys.edited is null AND persnonsys.replacedWith is null
+                    AND (persnonsys.RequestState is null OR persnonsys.RequestState <> 3) AND pers.isDeleted <> 1
+                    AND (persnonsys.isLiquidated is null OR persnonsys.isLiquidated <> 1)
+
+			) temp
+			WHERE
+				1 = 1
+				::where-clause			
+		]]>
+	</prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				Module = {0}
+			]]>
+		</criteria>
+	</filter>
+</collection>

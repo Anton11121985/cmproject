@@ -1,0 +1,148 @@
+<search-area name="FileRegister" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="titleFile" value="10.0"/>
+    </boost-every-where>
+    <!-- Дело -->
+    <target-domain-object type="FR_File">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Заголовок дела -->
+        <indexed-field name="titleFile" search-by="substring"/>
+        <!-- Индекс дела -->
+        <indexed-field name="indexFile" search-by="substring"/>
+        <!-- Статус -->
+        <indexed-field name="statusGeneral" search-by="exactmatch"/>
+        <!-- Срок хранения -->
+        <indexed-field name="storagePeriod" search-by="substring"/>
+        <!-- № статьи (обоснование срока хранения) -->
+        <indexed-field name="spDescription" search-by="substring"/>
+        <!-- Документ-основание -->
+        <indexed-field name="documentBase" search-by="substring">
+            <script>
+                var articlenum = ctx.get('ShelfLife.normdocshortname');
+                if (articlenum == null || ''.equals(articlenum)) {
+                ctx.get('spDescription');
+                } else {
+                articlenum += ' ' + ctx.get('ShelfLife.articlenum');
+                if (true.equals(ctx.get('ShelfLife.epk'))) {
+                articlenum += ' ЭПК';
+                }
+                articlenum;
+                }
+            </script>
+        </indexed-field>
+        <!-- Статус -->
+        <indexed-field name="statusGeneral" search-by="substring"/>
+        <!-- Вид дела -->
+        <indexed-field name="typeFile" search-by="substring">
+            <script>
+                true.equals(ctx.get('eFile')) ? 'DIGITAL' : 'PHYSICAL'
+            </script>
+        </indexed-field>
+        <!-- Направление деятельности -->
+        <indexed-field name="branchDivision" search-by="substring"/>
+        <!-- Подразделение -->
+        <indexed-field name="soUnit" search-by="substring">
+            <doel>SoUnit.orig_shortname</doel>
+        </indexed-field>
+        <!-- Дело начато -->
+        <indexed-field name="dateYear" search-by="substring">
+            <script>
+                var dateOfBeginning = ctx.get('dateOfBeginning');
+                if (dateOfBeginning != null) {
+                dateOfBeginning.getYear();
+                }
+            </script>
+        </indexed-field>
+        <!-- Ответственный за формирование (множественное)-->
+        <linked-domain-object type="FR_File_Responsibles">
+            <indexed-field name="responsibles_nd" search-by="substring">
+                <doel>Responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="FR_File_Extended">
+            <!-- Сопровождается в эл. виде -->
+            <indexed-field name="electronic" search-by="substring"/>
+            <!-- Переходящее дело -->
+            <indexed-field name="movable" search-by="substring"/>
+            <parent-link>
+                <doel>Parent</doel>
+            </parent-link>
+        </linked-domain-object>
+
+
+        <target-collection name="FileRegister_(search_nd)"/>
+    </target-domain-object>
+
+    <!-- НДП -->
+    <target-domain-object type="FR_UnitRegister">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Статус -->
+        <indexed-field name="statusGeneral" search-by="substring">
+            <script>
+                var statusExt = ctx.get('statusExtended');
+                if (statusExt != null) {
+                ctx.get('statusGeneral') + ' ' + statusExt;
+                }
+            </script>
+        </indexed-field>
+        <!-- Номенклатурный индекс -->
+        <indexed-field name="index" search-by="substring"/>
+        <!-- Подразделение -->
+        <indexed-field name="soUnit" search-by="substring">
+            <doel>SoUnit.orig_shortname</doel>
+        </indexed-field>
+        <!-- Направление деятельности -->
+        <indexed-field name="branchDivision" search-by="substring"/>
+        <!-- Год -->
+        <indexed-field name="dateYear" search-by="substring">
+            <script>
+                var dateYear = ctx.get('dateYear');
+                if (dateYear != null) {
+                dateYear.getYear();
+                }
+            </script>
+        </indexed-field>
+
+        <target-collection name="UnitRegister_(search_nd)"/>
+    </target-domain-object>
+
+    <!-- НДО -->
+    <target-domain-object type="FR_OrgRegister">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Статус -->
+        <indexed-field name="statusGeneral" search-by="substring">
+            <script>
+                var statusExt = ctx.get('statusExtended');
+                if (statusExt != null) {
+                ctx.get('statusGeneral') + ' ' + statusExt;
+                }
+            </script>
+        </indexed-field>
+        <!-- Год -->
+        <indexed-field name="dateYear" search-by="substring">
+            <script>
+                var dateYear = ctx.get('dateYear');
+                if (dateYear != null) {
+                dateYear.getYear();
+                }
+            </script>
+        </indexed-field>
+
+        <target-collection name="UnitRegister_(search_nd)"/>
+    </target-domain-object>
+
+</search-area>

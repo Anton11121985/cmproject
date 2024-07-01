@@ -1,0 +1,67 @@
+<collection name="SO_(vw_cmj_org_and_hasndo_deps_search)" idField="id">
+    <prototype>
+            <![CDATA[
+        SELECT s.id,
+               s.created_date,
+               s.Module,
+               s.self_1,
+               s.self_2,
+               s.self_3,
+               s.shortName
+        FROM (
+                 SELECT ss.id,
+                        u.created_date,
+                        '<id>' AS self_1,
+                        ':'    AS self_2,
+                        '</>'  AS self_3,
+                        ss.Module,
+                        shortName
+                 FROM (
+                          SELECT org.id,
+                                 ss_module_org.Module
+                          FROM so_orgsystem org
+                                   JOIN SS_ModuleOrg ss_module_org ON ss_module_org.Organization = org.id
+                          UNION
+                          SELECT dep.id,
+                                 ss_module_org.Module
+                          FROM SO_Department dep
+                                   JOIN SS_ModuleOrg ss_module_org ON ss_module_org.Organization = dep.HierRoot
+                          WHERE dep.accessRedirect IS NULL
+                            AND COALESCE(dep.hasNdo, 0) = 1
+                      ) ss
+                          JOIN so_unit u ON u.id = ss.id
+                          JOIN so_structureunit su ON su.id = ss.id
+             ) s
+        WHERE 1 = 1
+            ::where-clause
+        ]]>
+        </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   s.Module = {0}
+               ]]>
+        </criteria>
+    </filter>
+    <filter name="fullName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    LOWER(s.fullName) LIKE LOWER('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="shortName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    LOWER(s.shortName) LIKE LOWER('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    (LOWER(s.fullName) LIKE LOWER('%' || {0} || '%') OR LOWER(s.shortName) LIKE LOWER('%' || {0} || '%'))
+                ]]>
+        </criteria>
+    </filter>
+</collection>

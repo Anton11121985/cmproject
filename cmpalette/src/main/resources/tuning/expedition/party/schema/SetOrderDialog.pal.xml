@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema recalc="true" extends="ClientContextRequest" name="SetOrderDialog">
+    <meta>
+      <category name="Диалоги" />
+    </meta>
+    <schema-ref name="tmpOrderList" ref="Order" array="true" null-empty="true" />
+    <string name="type_and_category_rpo"/>
+    <string temporal="true" name="mode">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['dialog']]></script>
+      </calc-values>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.misc.HyperLink);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importPackage(Packages.java.util.Arrays);
+importPackage(Packages.java.util.HashMap);
+importPackage(Packages.java.util.Map);
+importPackage(Packages.java.util.Set);
+
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.lotus.domino.Database);
+importClass(Packages.lotus.domino.View);
+importClass(Packages.lotus.domino.Document);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.lotus.domino.DocumentCollection);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplicationImpl);
+
+function querySave(object, document) {
+
+    return true;
+}
+
+function postSave(object, document) { }
+
+function recalc(object, changedField) {
+
+    if(changedField == "type_and_category_rpo") {
+
+		var key = GetValue(object, "type_and_category_rpo");
+		if (key == null || key == "") {
+		  throw "Заполните поля Вид РПО и Категория РПО";
+		}
+		var ident = "ExpeditionOrders";
+		var isExists = isExistsInCollection(key, ident, "(ExpOrder_not_included_in_party)");
+
+		if(!isExists) {
+			throw "Отсутствуют подходящие заказы";
+		}
+    }
+}
+
+function isExistsInCollection(key, ident, view) {
+	var db = AFCMDomino.getDbByIdent(ident, "");
+	if (db == null) {
+		return null;
+	}
+
+	var coll = null;
+	var vw = db.getView(view);
+	var isExistsInCollection = null;
+
+	if (vw != null) {
+		try{
+		    vw.refresh();
+			coll = vw.getAllDocumentsByKey(key);
+			if(coll == null || coll.getCount() == 0) {
+				isExistsInCollection = false;
+			} else {
+				isExistsInCollection = true;
+			}
+			return isExistsInCollection;
+		} finally {
+			DominoUtils.recycle(coll);
+			DominoUtils.recycle(vw);
+		}
+	}
+	return isExistsInCollection;
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null){
+        return null;
+	}
+
+    return tmp.getValue();
+}
+]]></custom-event-handler>
+  </schema>
+</schemas>

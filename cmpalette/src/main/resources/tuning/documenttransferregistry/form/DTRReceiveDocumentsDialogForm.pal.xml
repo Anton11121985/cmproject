@@ -1,0 +1,312 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <form schema-ref="DTRReceiveDocumentsDialog" group="true" projection="default" id="DTRReceiveDocumentsDialogForm" name="${ui.form.DTRReceiveDocumentsDialogForm.name:Получение документов}">
+        <meta>
+            <category name="Система\Делопроизводство\Реестр передачи документов"/>
+        </meta>
+        <properties>
+            <hide condition-union="AND">
+                <negative-condition-ref ref="edit"/>
+                <negative-condition-ref ref="read"/>
+                <negative-condition-ref ref="dialog"/>
+            </hide>
+        </properties>
+        <appearance>
+            <dialog-mode height="70" width="70" unit="percent"/>
+        </appearance>
+        <component>
+            <section group="true" id="RegistryVariants">
+                <component>
+                    <field attribute-ref="selectionMode" recalc="true">
+                        <properties>
+                            <require condition-union="AND">
+                                <condition>true</condition>
+                            </require>
+                        </properties>
+                        <appearance importance="normal" digest-mode="radio" open-mode="radio" widget="radio">
+                            <field-style>
+                                <value-style value="barcode">
+                                    <style id="tunBold"/>
+                                </value-style>
+                                <value-style value="requisites">
+                                    <style id="tunBold"/>
+                                </value-style>
+                                <value-style value="manual">
+                                    <style id="tunBold"/>
+                                </value-style>
+                            </field-style>
+                        </appearance>
+                        <directories>
+                            <directory-ref ref="DTRReceivingDocSelectionModes"/>
+                        </directories>
+                    </field>
+                </component>
+                <appearance field-layout="horizontal"/>
+            </section>
+
+            <!-- подсказки серым цветом -->
+            <section id="labels" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                    <field attribute-ref="barcodeLabel">
+                        <appearance>
+                            <label-style>
+                                <style id="tunGray tunItalic"/>
+                            </label-style>
+                        </appearance>
+                        <properties>
+                            <read-only condition-union="AND">
+                                <condition>true</condition>
+                            </read-only>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                            </hide>
+                        </properties>
+                    </field>
+                    <field attribute-ref="requisitesLabel">
+                        <appearance>
+                            <label-style>
+                                <style id="tunGray tunItalic"/>
+                            </label-style>
+                        </appearance>
+                        <properties>
+                            <read-only condition-union="AND">
+                                <condition>true</condition>
+                            </read-only>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                            </hide>
+                        </properties>
+                    </field>
+                    <field attribute-ref="manualLabel">
+                        <appearance>
+                            <label-style>
+                                <style id="tunGray tunItalic"/>
+                            </label-style>
+                        </appearance>
+                        <properties>
+                            <read-only condition-union="AND">
+                                <condition>true</condition>
+                            </read-only>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTRManualInputType"/>
+                            </hide>
+                        </properties>
+                    </field>
+                </component>
+            </section>
+
+            <!-- выбор записи реестра из представления -->
+            <field attribute-ref="entriesForSelect" name="${ui.form.DTRReceiveDocumentsDialogForm.field.entriesForSelect.name:Записи}">
+                <properties>
+                    <hide>
+                        <negative-condition-ref ref="DTRRequisitesInputType"/>
+                    </hide>
+                </properties>
+                <appearance widget="grid"/>
+                <directories>
+                    <directory-category-custom-coll ref="DTRSelectTransmittedEnties" attribute-ref="registryUnid"/>
+                </directories>
+            </field>
+
+
+            <field attribute-ref="barCode" name="${ui.form.DTRReceiveDocumentsDialogForm.field.barCode.name:Код штрихкода:}" recalc="true">
+                <properties>
+                    <read-only condition-union="AND">
+                        <negative-condition-ref ref="DTRRequisitesInputType"/>
+                    </read-only>
+                    <hide>
+                        <negative-condition-ref ref="DTRBarcodeInputType"/>
+                    </hide>
+                </properties>
+            </field>
+            <!-- набор реквизитов выбранной записи/документа -->
+            <section id="requisitesGroup" group="true" name="${ui.form.DTRReceiveDocumentsDialogForm.section.requisitesGroup.field.correspondent.name:}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="DTRBarcodeInputType"/>
+                        <negative-condition-ref ref="DTRManualInputType"/>
+                    </hide>
+                </properties>
+                <component>
+                    <field attribute-ref="module" name="${ui.form.DTRReceiveDocumentsDialogForm.field.module.name:Модуль:}" recalc="true">
+                        <properties>
+                            <require>
+                                <condition-ref ref="DTRManualInputType"/>
+                            </require>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                            </read-only>
+                        </properties>
+                        <directories>
+                            <directory-ref ref="DTRDocumentModules"/>
+                        </directories>
+                    </field>
+                    <field attribute-ref="reqType" name="${ui.form.DTRReceiveDocumentsDialogForm.field.reqType.name:Вид документа:}">
+                        <properties>
+                            <require>
+                                <condition-ref ref="DTRManualInputType"/>
+                            </require>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                            </read-only>
+                        </properties>
+                    </field>
+                    <!--<field attribute-ref="documentType" name="${ui.form.DTRReceiveDocumentsDialogForm.field.documentType.name:Вид документа:}" recalc="true">
+                        <properties>
+                            <require>
+                                <condition-ref ref="DTRManualInputType"/>
+                            </require>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                            </read-only>
+                        </properties>
+                        <directories >
+                            <directory-ref ref="DTRDocumentType"/>
+                        </directories>
+                    </field>-->
+                    <field attribute-ref="regNumber" name="${ui.form.DTRReceiveDocumentsDialogForm.field.regNumber.name:Рег. номер:}">
+                        <properties>
+                            <require>
+                                <condition-ref ref="DTRManualInputType"/>
+                            </require>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                            </read-only>
+                        </properties>
+                    </field>
+                    <field attribute-ref="date" name="${ui.form.DTRReceiveDocumentsDialogForm.field.date.name:Дата:}">
+                        <properties>
+                            <require>
+                                <condition-ref ref="DTRManualInputType"/>
+                            </require>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                            </read-only>
+                        </properties>
+                    </field>
+                    <field attribute-ref="subject" name="${ui.form.DTRReceiveDocumentsDialogForm.field.subject.name:Заголовок:}">
+                        <properties>
+                            <require>
+                                <condition-ref ref="edit"/>
+                            </require>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                            </read-only>
+                        </properties>
+                    </field>
+                    <field attribute-ref="note" name="${ui.form.DTRReceiveDocumentsDialogForm.field.note.name:Примечание:}">
+                        <properties>
+                            <read-only condition-union="AND">
+                                <negative-condition-ref ref="DTRRequisitesInputType"/>
+                                <negative-condition-ref ref="DTRBarcodeInputType"/>
+                            </read-only>
+                        </properties>
+                    </field>
+                    <section id="correspondentSection" group="true" name="${ui.form.DTRReceiveDocumentsDialogForm.section.correspondentSection.name:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isOutput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInputNotRegistered"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isContract"/>
+                            </hide>
+                        </properties>
+                        <appearance field-layout="horizontal"/>
+                        <component>
+                            <field attribute-ref="correspondentText" name="${ui.form.DTRReceiveDocumentsDialogForm.section.correspondentSection.field.correspondent.name:Корреспондент/ Контрагент:}">
+                                <properties>
+                                    <read-only condition-union="AND">
+                                        <negative-condition-ref ref="DTRRequisitesInputType"/>
+                                        <negative-condition-ref ref="DTRBarcodeInputType"/>
+                                    </read-only>
+                                </properties>
+                                <appearance multiline="true">
+                                    <limit max-height-scroll="5"/>
+                                </appearance>
+                            </field>
+                            <field recalc="true" attribute-ref="correspondentForAdd">
+                                <properties>
+                                    <hide condition-union="OR">
+                                        <condition-ref ref="DTRRequisitesInputType"/>
+                                        <condition-ref ref="DTRBarcodeInputType"/>
+                                    </hide>
+                                </properties>
+                                <appearance location="subform" align="right" importance="normal">
+                                    <label-style field-width="8" field-unit="symbol"/>
+                                    <field-style group="true"/>
+                                </appearance>
+                            </field>
+                        </component>
+                    </section>
+                    <section id="addInfoSection" group="true" name="${ui.form.DTRReceiveDocumentsDialogForm.section.addInfoSection.name:}">
+                        <properties>
+                            <hide condition-union="AND">
+                                <negative-condition-ref ref="DTREntrySubObject_isInput"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isInputNotRegistered"/>
+                                <negative-condition-ref ref="DTREntrySubObject_isContract"/>
+                            </hide>
+                        </properties>
+                        <appearance field-layout="horizontal"/>
+                        <component>
+                            <field attribute-ref="addInfoText" name="${ui.form.DTRReceiveDocumentsDialogForm.section.addInfoSection.field.addInfoText.name:Допинфо:}">
+                                <properties>
+                                    <read-only condition-union="OR">
+                                        <negative-condition-ref ref="DTRRequisitesInputType"/>
+                                        <negative-condition-ref ref="DTRBarcodeInputType"/>
+                                    </read-only>
+                                </properties>
+                                <appearance multiline="true">
+                                    <limit max-height-scroll="5"/>
+                                </appearance>
+                            </field>
+                            <field recalc="true" attribute-ref="addInfoForAdd">
+                                <properties>
+                                    <hide condition-union="AND">
+                                        <condition-ref ref="DTRRequisitesInputType"/>
+                                        <condition-ref ref="DTRBarcodeInputType"/>
+                                    </hide>
+                                </properties>
+                                <appearance location="subform" align="right" importance="normal">
+                                    <label-style field-width="8" field-unit="symbol"/>
+                                    <field-style group="true"/>
+                                </appearance>
+                            </field>
+                        </component>
+                    </section>
+                </component>
+
+            </section>
+
+            <!-- кнопки -->
+            <button name="${ui.form.DTRReceiveDocumentsDialogForm.button.MarkReceiving.name:Отметить получение}">
+                <hint-pop-up>${ui.form.DTRReceiveDocumentsDialogForm.button.MarkReceiving.hintPopUp:Отметить получение}</hint-pop-up>
+                <properties>
+                    <disabled>
+                        <negative-condition-ref ref="DTRReceiveDocumentsDialog_showMarkReceivedButton"/>
+                    </disabled>
+                </properties>
+                <action>
+                    <system name="submit"/>
+                </action>
+            </button>
+            <button name="${ui.form.DTRReceiveDocumentsDialogForm.button.MarkReceivingByFact.name:Отметить получение по факту}">
+                <hint-pop-up>${ui.form.DTRReceiveDocumentsDialogForm.button.MarkReceivingByFact.hintPopUp:Отметить получение по факту}</hint-pop-up>
+                <properties>
+                    <disabled>
+                        <negative-condition-ref ref="DTRReceiveDocumentsDialog_showMarkReceivedByFactButton"/>
+                    </disabled>
+                </properties>
+                <action>
+                    <system name="submit"/>
+                </action>
+            </button>
+        </component>
+    </form>
+</ui>

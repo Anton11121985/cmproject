@@ -1,0 +1,435 @@
+<collection name="Requests_(vw_cmj_authortype)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+         SELECT
+  id,
+  created_date,
+  Module,
+  isMEDO,
+  self_1,
+  self_2,
+  self_3,
+  rNumber,
+  rkkExecutionStatus,
+  hasAttachments,
+  resOfRkkExecutionStatus,
+  regNumber,
+  numberWOTags,
+  regDate,
+  correspondent,
+  addressInfo,
+  question,
+  linkedDoc,
+  subject,
+  regPlace,
+  sendertype,
+  addresseesName,
+  dueTime
+
+FROM (
+       SELECT
+         request.id           AS               id,
+         rkkbase.created_date AS               created_date,
+         rkkbase.module       AS               Module,
+         case when rkkbase.Medo_Doc_Guid<>'' then '<iconHint>МЭДО</><iconId>122</>' else '' end AS isMEDO,
+         coalesce(case request.authortype when 0 then 'Индивидуальное' when 1 then 'Коллективное' when 2 then 'Без ФИО и адреса' when 3 then 'Объединение граждан' end, 'Неизвестно') as sendertype,
+         '<id>'               AS               self_1,
+         ':'                  AS               self_2,
+         '</>'                AS               self_3,
+
+         CASE
+         WHEN (rkk.CtrlDateExecution IS NOT NULL) THEN 'executed'
+         WHEN (request.CtrlState = '1' AND Date(rkk.CtrlDeadLine) < Date(now())) THEN 'RKKSpecExpired'
+         WHEN (request.CtrlState = '2' AND Date(rkk.CtrlDeadLine) < Date(now())) THEN 'RKKExpired'
+         WHEN request.CtrlState = '1' THEN 'onSpecControl'
+         WHEN request.CtrlState = '2' THEN 'onControl'
+         ELSE ''
+         END                  AS               rkkExecutionStatus,
+
+         (SELECT
+         coalesce(max(a), cast(0 AS SMALLINT))
+          FROM (
+                 SELECT
+                   cast(1 AS SMALLINT) a
+                 FROM f_ContentFiles_Rkk CF
+                 WHERE CF.f_dp_rkkbase = rkk.id
+                 UNION SELECT
+                         cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                 UNION SELECT
+                         cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+               ) t
+         )                    AS               hasAttachments,
+
+         CASE
+         WHEN (request.resolutionsstate = 'complete') THEN 'executed'
+         WHEN (request.resolutionsstate = 'control') THEN 'onControl'
+         WHEN (request.resolutionsstate = 'old') THEN 'expired'
+         WHEN (request.resolutionsstate = 'work') THEN 'exist'
+         ELSE ''
+         END                  AS               resOfRkkExecutionStatus,
+
+         CASE
+         WHEN (RegPlace.orig_ShortName IS NULL) THEN 'Не указано'
+         ELSE RegPlace.orig_ShortName
+         END                                AS regPlace,
+
+         rkk.regnumcnt        AS               rNumber,
+
+         '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+         || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+         || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>'
+                                            AS regNumber,
+
+         CASE
+         WHEN rkk.regnumcnt IS NULL THEN ''
+         ELSE
+           coalesce(rkk.regnumprist, '') ||
+           coalesce(cast(rkk.regnumcnt AS VARCHAR), '') ||
+           coalesce(rkk.regnumfin, '')
+         END                                 AS numberWOTags,
+
+         rkk.regDate                        AS regDate,
+
+    (
+    '<id>'||case when request.CorrLastName<>'' then(
+	coalesce(
+	    nullif((SELECT substring(SO_Beard.cmjunid, 33, 48) || ':' || substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.Corr), ':'),
+            nullif(nullif('$' || (SELECT substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.Corr), '$'),''),
+        nullif((SELECT substring(SO_Beard.cmjunid, 33, 48) || ':' || substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.CorrOrganization), ':'), '')
+    ||'</>'||'<shortName>'||
+        CASE
+            WHEN request.typerequest = 2 THEN --Юр. лицо, Выводим организацию
+              coalesce( (select coalesce(orgname, orig_shortname) from so_beard where id = request.CorrOrganization),'')
+	        WHEN AuthorType = '0' THEN  coalesce(request.CorrLastName, '') || ' ' || coalesce(substring(nullif(request.CorrFirstName, ''), 1, 1) || '. ', '')  ||
+	            coalesce(substring(nullif(request.CorrMiddleName, ''), 1, 1) || '. ', '')
+            WHEN AuthorType = '1' THEN coalesce(request.CorrLastName, '')
+            WHEN AuthorType = '2' THEN 'Без ФИО и адреса'
+            WHEN AuthorType = '3' THEN request.CorrLastName
+            ELSE ''
+        END) else
+	coalesce(
+	    nullif((SELECT substring(SO_Beard.cmjunid, 33, 48) || ':' || substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.CorrOrganization), ':'),
+            nullif('$' || (SELECT substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.CorrOrganization), '$'),'')
+    ||'</>'||'<shortName>'||coalesce((SELECT coalesce(orgname, orig_shortname) FROM SO_Beard WHERE id = request.CorrOrganization),'') end ||'</>'
+    ) AS correspondent,
+
+    coalesce(
+         CASE
+           WHEN request.typerequest = 2 THEN --Юр. лицо, Выводим район/город из карточки организации
+             coalesce(
+               (SELECT coalesce(city,locality) from SO_AddressData addrData
+                JOIN SO_AddressData_Org_F addrDataF ON addrData.id=addrDataF.id
+                WHERE addrDataF.owner = (select id from SO_OrgDescriptionNonsys where beard = request.CorrOrganization ) ),
+               (SELECT coalesce(city,locality) from SO_AddressData addrData
+                JOIN SO_AddressData_Org_J addrDataJ ON addrData.id=addrDataJ.id
+                WHERE addrDataJ.owner = (select id from SO_OrgDescriptionNonsys where beard = request.CorrOrganization ) ),
+                '')
+           WHEN request.city != '' AND request.city IS NOT NULL THEN request.city
+           WHEN request.city = ''  and request.locality != '' AND request.locality IS NOT NULL THEN request.locality
+         END,'')                               AS addressInfo,
+
+         (SELECT
+         string_agg(
+         q.Question,';' )
+    FROM F_DP_RequestRkk_Question q
+    WHERE q.owner = request.id
+         )                AS question,
+         (SELECT
+         coalesce(string_agg((case when link.doclinktype='' then '<id></>' else (coalesce('<id>' || link.docreplid || ':' || link.docunid || '</>','<id>' ||to_char(cast((module.id_type * 10^12) as bigint) + module.id, 'FM0000000000000000')|| ':00000000000000000000000000000000'|| '</>') )end), ';'),'<id></>')
+          FROM F_DP_RkkWORegAndCtrl_ULnk link
+          LEFT JOIN ss_module module ON module.id = rkkbase.module
+          WHERE link.owner = request.id) AS linkedDoc,
+         rkkbase.subject                    AS subject,
+         (select case
+                         when count (*) = 0 then 'Не указано'
+                         else  array_to_string(array_agg( beardaddressee.orig_shortname), ' ', '')
+                         end
+              FROM
+                  f_dp_requestrkk_addressee reqaddress
+                      LEFT JOIN so_beard beardaddressee ON beardaddressee.id = reqaddress.Addressee
+              WHERE reqaddress.owner = request.id
+             )                                                                  AS addresseesName,
+             rkk.CtrlDeadline                                       AS dueTime
+
+       FROM F_DP_RequestRkk request
+         LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = request.id
+         LEFT JOIN f_dp_rkk rkk ON rkk.id = request.id
+         LEFT JOIN so_beard RegPlace ON RegPlace.id = rkkbase.RegCode
+       WHERE rkk.regnumcnt IS NOT NULL AND rkkbase.IsDeleted != 1
+     ) s
+WHERE
+  1 = 1
+        ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+             SELECT    COUNT(*)
+
+FROM (
+       SELECT
+         request.id           AS               id,
+         rkkbase.created_date AS               created_date,
+         rkkbase.module       AS               Module,
+         case when rkkbase.Medo_Doc_Guid<>'' then '<iconHint>МЭДО</><iconId>122</>' else '' end AS isMEDO,
+         coalesce(case request.authortype when 0 then 'Индивидуальное' when 1 then 'Коллективное' when 2 then 'Без ФИО и адреса' when 3 then 'Объединение граждан' end, 'Неизвестно') as sendertype,
+         '<id>'               AS               self_1,
+         ':'                  AS               self_2,
+         '</>'                AS               self_3,
+
+         CASE
+         WHEN (rkk.CtrlDateExecution IS NOT NULL) THEN 'executed'
+         WHEN (request.CtrlState = '1' AND Date(rkk.CtrlDeadLine) < Date(now())) THEN 'RKKSpecExpired'
+         WHEN (request.CtrlState = '2' AND Date(rkk.CtrlDeadLine) < Date(now())) THEN 'RKKExpired'
+         WHEN request.CtrlState = '1' THEN 'onSpecControl'
+         WHEN request.CtrlState = '2' THEN 'onControl'
+         ELSE ''
+         END                  AS               rkkExecutionStatus,
+
+         (SELECT
+         coalesce(max(a), cast(0 AS SMALLINT))
+          FROM (
+                 SELECT
+                   cast(1 AS SMALLINT) a
+                 FROM f_ContentFiles_Rkk CF
+                 WHERE CF.f_dp_rkkbase = rkk.id
+                 UNION SELECT
+                         cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                 UNION SELECT
+                         cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+               ) t
+         )                    AS               hasAttachments,
+
+         CASE
+         WHEN (request.resolutionsstate = 'complete') THEN 'executed'
+         WHEN (request.resolutionsstate = 'control') THEN 'onControl'
+         WHEN (request.resolutionsstate = 'old') THEN 'expired'
+         WHEN (request.resolutionsstate = 'work') THEN 'exist'
+         ELSE ''
+         END                  AS               resOfRkkExecutionStatus,
+
+         CASE
+         WHEN (RegPlace.orig_ShortName IS NULL) THEN 'Не указано'
+         ELSE RegPlace.orig_ShortName
+         END                                AS regPlace,
+
+         rkk.regnumcnt        AS               rNumber,
+
+         '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+         || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+         || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>'
+                                            AS regNumber,
+
+         CASE
+         WHEN rkk.regnumcnt IS NULL THEN ''
+         ELSE
+           coalesce(rkk.regnumprist, '') ||
+           coalesce(cast(rkk.regnumcnt AS VARCHAR), '') ||
+           coalesce(rkk.regnumfin, '')
+         END                                 AS numberWOTags,
+
+         rkk.regDate                        AS regDate,
+
+    (
+    '<id>'||case when request.CorrLastName<>'' then(
+	coalesce(
+	    nullif((SELECT substring(SO_Beard.cmjunid, 33, 48) || ':' || substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.Corr), ':'),
+            nullif(nullif('$' || (SELECT substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.Corr), '$'),''),
+        nullif((SELECT substring(SO_Beard.cmjunid, 33, 48) || ':' || substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.CorrOrganization), ':'), '')
+    ||'</>'||'<shortName>'||
+        CASE
+            WHEN request.typerequest = 2 THEN --Юр. лицо, Выводим организацию
+              coalesce( (select coalesce(orgname, orig_shortname) from so_beard where id = request.CorrOrganization),'')
+	        WHEN AuthorType = '0' THEN  coalesce(request.CorrLastName, '') || ' ' || coalesce(substring(nullif(request.CorrFirstName, ''), 1, 1) || '. ', '')  ||
+	            coalesce(substring(nullif(request.CorrMiddleName, ''), 1, 1) || '. ', '')
+            WHEN AuthorType = '1' THEN coalesce(request.CorrLastName, '')
+            WHEN AuthorType = '2' THEN 'Без ФИО и адреса'
+            WHEN AuthorType = '3' THEN request.CorrLastName
+            ELSE ''
+        END) else
+	coalesce(
+	    nullif((SELECT substring(SO_Beard.cmjunid, 33, 48) || ':' || substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.CorrOrganization), ':'),
+            nullif('$' || (SELECT substring(SO_Beard.cmjunid, 1, 32) FROM SO_Beard WHERE SO_Beard.id = request.CorrOrganization), '$'),'')
+    ||'</>'||'<shortName>'||coalesce((SELECT coalesce(orgname, orig_shortname) FROM SO_Beard WHERE id = request.CorrOrganization),'') end ||'</>'
+    ) AS correspondent,
+
+    coalesce(
+         CASE
+           WHEN request.typerequest = 2 THEN --Юр. лицо, Выводим район/город из карточки организации
+             coalesce(
+               (SELECT coalesce(city,locality) from SO_AddressData addrData
+                JOIN SO_AddressData_Org_F addrDataF ON addrData.id=addrDataF.id
+                WHERE addrDataF.owner = (select id from SO_OrgDescriptionNonsys where beard = request.CorrOrganization ) ),
+               (SELECT coalesce(city,locality) from SO_AddressData addrData
+                JOIN SO_AddressData_Org_J addrDataJ ON addrData.id=addrDataJ.id
+                WHERE addrDataJ.owner = (select id from SO_OrgDescriptionNonsys where beard = request.CorrOrganization ) ),
+                '')
+           WHEN request.city != '' AND request.city IS NOT NULL THEN request.city
+           WHEN request.city = ''  and request.locality != '' AND request.locality IS NOT NULL THEN request.locality
+         END,'')                               AS addressInfo,
+
+         (SELECT
+         string_agg(
+         q.Question,';' )
+    FROM F_DP_RequestRkk_Question q
+    WHERE q.owner = request.id
+         )                AS question,
+         (SELECT
+         coalesce(string_agg((case when link.doclinktype='' then '<id></>' else (coalesce('<id>' || link.docreplid || ':' || link.docunid || '</>','<id>' ||to_char(cast((module.id_type * 10^12) as bigint) + module.id, 'FM0000000000000000')|| ':00000000000000000000000000000000'|| '</>') )end), ';'),'<id></>')
+          FROM F_DP_RkkWORegAndCtrl_ULnk link
+          LEFT JOIN ss_module module ON module.id = rkkbase.module
+          WHERE link.owner = request.id) AS linkedDoc,
+         rkkbase.subject                    AS subject,
+         (select case
+                         when count (*) = 0 then 'Не указано'
+                         else  array_to_string(array_agg( beardaddressee.orig_shortname), ' ', '')
+                         end
+              FROM
+                  f_dp_requestrkk_addressee reqaddress
+                      LEFT JOIN so_beard beardaddressee ON beardaddressee.id = reqaddress.Addressee
+              WHERE reqaddress.owner = request.id
+             )                                                                  AS addresseesName,
+             rkk.CtrlDeadline                                       AS dueTime
+
+       FROM F_DP_RequestRkk request
+         LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = request.id
+         LEFT JOIN f_dp_rkk rkk ON rkk.id = request.id
+         LEFT JOIN so_beard RegPlace ON RegPlace.id = rkkbase.RegCode
+       WHERE rkk.regnumcnt IS NOT NULL AND rkkbase.IsDeleted != 1
+     ) s
+WHERE
+  1 = 1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="sendertype">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    sendertype = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="regNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    numberWOTags iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    numberWOTags iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="regDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (regDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(regDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(regDate as date) >= cast({0} as date) and cast(regDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regPlace_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regPlace iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondent_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondent iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="addressInfo_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addressInfo iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   subject iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="question_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   question iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dueTime">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    ('б/д' ilike '%'||{0}||'%' and (dueTime is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dueTime_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(dueTime as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="dueTime_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(dueTime as date) >= cast({0} as date) and cast(dueTime as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addresseesName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseesName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                addresseesName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+</collection>

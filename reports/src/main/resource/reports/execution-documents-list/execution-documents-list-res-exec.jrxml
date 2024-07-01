@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0-unknown  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="unexecuted-control-documents-resolutions" pageWidth="282" pageHeight="802" whenNoDataType="BlankPage" columnWidth="282" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4872fcac-b580-4822-b58c-344700c6da52">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="resid" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT
+string_agg(name, ', ') as name,
+Owner_id
+FROM
+(
+SELECT
+resExecExt.Owner as Owner_id,
+execExt.orig_shortname as name
+FROM
+F_DP_ResltnBase_ExecExt resExecExt
+JOIN SO_Beard execExt on execExt.id = resExecExt.ExecutorExt
+WHERE Owner=$P{resid}
+UNION
+SELECT
+resExecCurr.Owner as Owner_id,
+execCurr.orig_shortname as name
+FROM
+F_DP_ResltnBase_ExecCurr resExecCurr
+JOIN SO_Beard execCurr on execCurr.id = resExecCurr.ExecutorCurr
+WHERE Owner=$P{resid}
+)q
+group by q.Owner_id]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="0" y="0" width="282" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="6e372fd7-8525-49ba-8d5e-8c8956d49cee">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Исп: "+$F{name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

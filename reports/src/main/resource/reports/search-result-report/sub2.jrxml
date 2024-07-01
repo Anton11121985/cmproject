@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub2" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="08a96ca1-062e-4ced-9f73-1fc60e46820e">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="ID" class="java.lang.Object" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT id,string_agg(corresp,'') as corresp
+FROM (
+	SELECT rkkbase.id
+		,STRING_AGG((
+				CASE
+						WHEN in_corr.orig_shortname IS NOT NULL
+						THEN concat(in_corr.orig_shortname,chr(10),case when inputrkk.fromaddress is null then concat((case when adrdata.city is not null and adrdata.city!='' then concat('г. ',adrdata.city) end
+			),' ',(case when adrdata.street is not null and adrdata.street!='' then concat('ул. ',adrdata.street) end),' ',
+						(case when adrdata.house is not null and adrdata.house!='' then concat('д. ',adrdata.house) end),' ',
+						(case when adrdata.building is not null and adrdata.building!='' then concat('с. ',adrdata.building) end),chr(10)) else inputrkk.fromaddress end)
+					WHEN dog_corr.orig_shortname IS NOT NULL
+						THEN dog_corr.orig_shortname
+					WHEN ord_corr.orig_shortname IS NOT NULL
+						THEN ord_corr.orig_shortname
+         when out_corr.orig_shortname is not null then out_corr.orig_shortname
+        when out_corr.orig_shortname is null and form='output1' then 'Нет адресатов'
+        when out_corr.orig_shortname is null and form='Output' then 'Нет адресатов'
+					WHEN int_corr.orig_shortname IS NOT NULL
+						THEN int_corr.orig_shortname
+						WHEN og_corr.orig_shortname IS NULL and in_corr.orig_shortname IS NULL
+								 and dog_corr.orig_shortname IS NULL and ord_corr.orig_shortname IS NULL
+and int_corr.orig_shortname IS NULL
+						then case when (authorplain is null or authorplain='' and fromaddress is null) then concat('') else concat(authorplain,chr(10),fromaddress) end
+
+					END
+				), ', ') AS corresp
+	FROM F_DP_RkkBase rkkbase
+	--Входящий
+			Left JOIN f_dp_inputrkk_authorplain inprkkpln on inprkkpln.access_object_id=rkkbase.id
+	LEFT JOIN F_DP_InputRkk inputrkk ON inputrkk.id = rkkbase.id
+	LEFT JOIN SO_Beard in_corr ON in_corr.id = inputrkk.FromId
+	left JOIN so_orgdescriptionnonsys orgdessys on orgdessys.beard=inputrkk.fromid
+				 left join (select id,owner from so_addressdata_org_f )addrdataf on addrdataf.owner=orgdessys.id
+				 left join (select id,owner from so_addressdata_org_J )addrdataJ on addrdataJ.owner=orgdessys.id
+	left join so_addressdata adrdata on adrdata.id=(case when addrdataf.id is not null then addrdataf.id else addrdataJ.id end)
+	--ОГ
+	LEFT JOIN F_DP_RequestRkk ogrkk ON ogrkk.id = rkkbase.id
+	LEFT JOIN SO_Beard og_corr ON og_corr.id = ogrkk.Corr
+	--Договор
+	LEFT JOIN F_DP_ContractRkk contr ON contr.id = rkkbase.id
+	LEFT JOIN SO_Beard dog_corr ON dog_corr.id = contr.party2ida
+	--ОРД
+	LEFT JOIN F_DP_OrdRkk ordrkk ON ordrkk.id = rkkbase.id
+	LEFT JOIN SO_Beard ord_corr ON ord_corr.id = ordrkk.SignSigner
+	--Внутренний
+	LEFT JOIN F_DP_IntRkk intrkk ON intrkk.id = rkkbase.id
+	LEFT JOIN SO_Beard int_corr ON int_corr.id = intrkk.SignSigner
+        --Исходящий
+  	left join f_dp_outputrkk outrkk on rkkbase.id = outrkk.id
+  	left join so_beard out_corr on outrkk.signsigner = out_corr.id
+
+
+
+  WHERE rkkbase.form <> 'resolution'
+	GROUP BY rkkbase.id
+
+
+
+
+union
+	
+	SELECT ogrkk.id
+		,STRING_AGG((
+				CASE
+					WHEN og_corr.orig_shortname IS NOT NULL
+						THEN og_corr.orig_shortname
+					END
+				), ', ') AS corresp
+	from f_dp_rkkbase rkkbase
+		LEFT JOIN F_DP_RequestRkk ogrkk ON ogrkk.id = rkkbase.id
+		LEFT JOIN SO_Beard og_corr ON og_corr.id = ogrkk.Corr
+	GROUP BY ogrkk.id
+
+
+	UNION
+
+	SELECT resbase.id
+		,STRING_AGG((
+				CASE
+					WHEN resbase_author.orig_shortname IS NOT NULL
+						THEN resbase_author.orig_shortname
+					END
+				), ', ') AS corresp
+	FROM f_dp_resltnbase resbase
+	--Резолюция
+	LEFT JOIN SO_Beard resbase_author ON resbase_author.id = resbase.Author
+	GROUP BY resbase.id
+
+	UNION ALL
+
+	SELECT report.id
+		,STRING_AGG((
+				CASE
+					WHEN report_author.orig_shortname IS NOT NULL
+						THEN report_author.orig_shortname
+					END
+				), ', ') AS corresp
+	FROM F_DP_Report report
+	--Отчеты
+	LEFT JOIN SO_Beard report_author ON report_author.id = report.Author
+	GROUP BY report.id
+
+
+	UNION ALL
+
+select
+         rkkbase.id,concat(orig_shortname,chr(10),(case when city is not null and city!='' then concat('г. ',city) end
+			),' ',(case when street is not null and street!='' then concat('ул. ',street) end),' ',
+						(case when house is not null and house!='' then concat('д. ',house) end),' ',
+						(case when building is not null and building!='' then concat('с. ',building) end),chr(10)) as corresp
+
+       from F_DP_AdvinpRkk AdvinpRkk
+         join f_dp_rkkbase rkkbase on rkkbase.id = AdvinpRkk.id
+         join so_beard beard on beard.id=AdvinpRkk.fromid
+				 JOIN so_orgdescriptionnonsys orgdessys on orgdessys.beard=AdvinpRkk.fromid
+				 left join (select id,owner from so_addressdata_org_f )addrdataf on addrdataf.owner=orgdessys.id
+				 left join (select id,owner from so_addressdata_org_J )addrdataJ on addrdataJ.owner=orgdessys.id
+				join so_addressdata adrdata on adrdata.id=(case when addrdataf.id is not null then addrdataf.id else addrdataJ.id end )
+                  where rkkbase.id=$P{ID}
+                  
+         UNION ALL
+
+         select rkkbase.id,
+                STRING_AGG((
+                              CASE
+                                  WHEN beard.orig_shortname IS NOT NULL
+                                      THEN beard.orig_shortname
+                                  END
+                                          ), ', ')
+         from f_dp_rkkbase rkkBase
+                  JOIN f_dp_tasksresolution taskRes ON taskRes.id = rkkBase.id
+                  join so_beard beard on beard.id = taskRes.author
+         GROUP BY rkkbase.id
+
+
+	--Учетная карточка УВК
+	) q
+where id=$P{ID} and corresp is not null
+group by q.id]]>
+	</queryString>
+	<field name="corresp" class="java.lang.String"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="0" y="0" width="150" height="20" uuid="6f32c711-6331-4ba0-8f81-07504606c65f">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="Times New Roman" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{corresp}+"\n"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

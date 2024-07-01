@@ -1,0 +1,142 @@
+<search-area name="ContractsLite_uicoll_template" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object type="F_DP_ContractRkkTmpl">
+        <!-- Имя шаблона -->
+        <indexed-field name="Name"/>
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тип договора -->
+        <indexed-field name="contractType">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- Заголовок -->
+        <indexed-field name="Subject" />
+        <!-- 1-я сторона -->
+        <indexed-field name="COurName" search-by="substring" language="">
+            <doel>Party1Id.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- Подпись 1-я сторона -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="SignSigner" search-by="substring" language="">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Другие подписи (1 сторона) -->
+        <linked-domain-object type="F_DP_ContractRkkTmpl_SOtS">
+            <indexed-field name="SignOtherSigner" search-by="substring" language="">
+                <doel>SignOtherSigner.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- 2-я сторона -->
+        <indexed-field name="CFullName" search-by="substring" language="">
+            <doel>Party2IdA.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- Подпись 2-я сторона -->
+        <indexed-field name="Sign2Signer" search-by="substring" language="">
+            <doel>Sign2Signer.Orig_ShortName</doel>
+        </indexed-field>
+        <!-- Другие подписи (2 сторона) -->
+        <linked-domain-object type="F_DP_ContractRkkTmpl_SOS2">
+            <indexed-field name="Sign2OtherSigner" search-by="substring" language="">
+                <doel>Sign2OtherSigner.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тип отношений -->
+        <indexed-field name="RelationType" />
+        <!-- Подготовили -->
+        <linked-domain-object type="F_DP_ContractRkkTmpl_PrBy">
+            <indexed-field name="PreparedBy" search-by="substring" language="">
+                <doel>PreparedBy.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подразделение отв. за подготовку -->
+        <indexed-field name="DepResp" search-by="substring" language="">
+            <script>
+                var PreparedByUnit = ctx.get('preparedbyunit');
+                if(PreparedByUnit != null){
+                var collectionName = "ContractsLite_(GetSoBeardObject)";
+                var filter = session.createFilter();
+                filter.add("cmjunid", PreparedByUnit);
+                var idList = session.find(collectionName, filter);
+                if(idList.size() > 0) {
+                var beardObject = session.find(idList.get(0));
+                if(beardObject != null){
+                var origName = beardObject.get('orig_shortname');
+                ctx.setResult(origName);
+                } else {
+                ctx.setResult(null);
+                }
+                } else {
+                ctx.setResult(null);
+                }
+                }else{
+                ctx.setResult(null);
+                }
+            </script>
+            <filter>
+                <doel>preparedbyunit:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Подразделение - исполнитель -->
+        <indexed-field name="DepExec" search-by="substring" language="">
+            <script>
+                var ExecByUnit = ctx.get('execbyunit');
+                if(ExecByUnit != null){
+                var collectionName = "ContractsLite_(GetSoBeardObject)";
+                var filter = session.createFilter();
+                filter.add("cmjunid", ExecByUnit);
+                var idList = session.find(collectionName, filter);
+                if(idList.size() > 0) {
+                var beardObject = session.find(idList.get(0));
+                if(beardObject != null){
+                var origName = beardObject.get('orig_shortname');
+                ctx.setResult(origName);
+                } else {
+                ctx.setResult(null);
+                }
+                } else {
+                ctx.setResult(null);
+                }
+                }else{
+                ctx.setResult(null);
+                }
+            </script>
+            <filter>
+                <doel>execbyunit:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Ответственные за исполнение -->
+        <linked-domain-object type="F_DP_ContractRkkTmpl_Resp">
+            <indexed-field name="Responsible" search-by="substring" language="">
+                <doel>Responsible.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+</search-area>

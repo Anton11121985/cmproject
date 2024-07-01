@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<catalog xmlns="http://www.intertrust.ru/schema/palette/cat-ui">
+    <complex-column name="objectLink" extends="object">
+        <column-ref ref="tnUnid"/>
+    </complex-column>
+    <column name="secondPartyID" extends="string"/>
+    <column name="noticeType" subject="${catalog.column.noticeType.subject:Тип уведомления}" extends="string">
+        <meta>
+            <documentation>Тип уведомления</documentation>
+        </meta>
+        <eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument() == null ? null :
+    (#this.getEntity().getDocument().getTypeDatabase().equalsIgnoreCase('JobOrders') ? (
+    'SIGN1_11'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "На утверждение" :
+    'SIGN1_21'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Отказано в утверждении" :
+    'SIGN1_22'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Отмена утверждения" :
+    'SIGN1_23'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Отзыв с утверждения" :
+    'SIGN1_41'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Утвержден проект" :
+    #this.getEntity().getEventInfo().getEventCode().getEventMessage()) :
+    #this.getEntity().getEventInfo().getEventCode().getEventMessage())]]></eval-expression>
+    </column>
+    <column name="taskType" subject="${catalog.column.taskType.subject:Тип задачи}" extends="string">
+        <meta>
+            <documentation>Тип задачи</documentation>
+        </meta>
+        <eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument() == null ? null :
+    (#this.getEntity().getDocument().getTypeDatabase().equalsIgnoreCase('JobOrders') ? (
+    'SIGN1_11'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "На утверждение" :
+    'SIGN1_21'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Отказано в утверждении" :
+    'SIGN1_22'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Отмена утверждения" :
+    'SIGN1_23'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Отзыв с утверждения" :
+    'SIGN1_41'.equals(#this.getEntity().getEventInfo().getEventCode().getEventCodeId()) ? "Утвержден проект" :
+    #this.getEntity().getEventInfo().getEventCode().getEventMessage()) :
+    #this.getEntity().getEventInfo().getEventCode().getEventMessage())]]></eval-expression>
+    </column>
+    <column name="regFullOrProjectNumber" subject="${catalog.column.regFullNumberMain.subject:Номер}" extends="string">
+        <meta>
+            <documentation>Полный рег. номер или проектный номер</documentation>
+        </meta>
+        <eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument()==null? null:#this.getEntity().getDocument().getFullNumber() == null? #this.getEntity().getDocument().getProjectNumber():#this.getEntity().getDocument().getFullNumber()]]></eval-expression>
+    </column>
+    <column name="projectNumber" subject="${catalog.column.projectNumber.subject:Проектный номер}" extends="string">
+        <meta>
+            <documentation>Проектный номер</documentation>
+        </meta>
+    </column>
+    <column name="projectNumberBus" subject="${catalog.complex-column.projectNumberBus.subject:Номер}" extends="projectNumber">
+        <meta>
+            <documentation>Проектный номер, название "Номер"</documentation>
+        </meta>
+        <eval-expression lang="SPEL"><![CDATA[#this.getEntity().getDocument()==null ? null : #this.getEntity().getDocument().getFullNumber() == null ? #this.getEntity().getDocument().getProjectNumber() : null]]></eval-expression>
+    </column>
+    <column name="affirming" subject="${catalog.column.affirming.subject:Утверждающий}" extends="string">
+        <meta>
+            <documentation>Утверждающий</documentation>
+        </meta>
+    </column>
+    <column name="initiatorName" subject="${catalog.column.initiatorName.subject:Инициатор}" extends="string">
+        <meta>
+            <documentation>Инициатор</documentation>
+        </meta>
+    </column>
+    <column name="preparedBy_label" extends="string">
+        <eval-expression lang="SPEL"><![CDATA[('JobApps'.equals(#this.getEntity().getDocument().getTypeDatabase())) ? 'Корреспондент':
+         ('JobOrders'.equals(#this.getEntity().getDocument().getTypeDatabase())) ? 'Заказчик' : null]]></eval-expression>
+    </column>
+    <column name="preparedFor_label" extends="string">
+        <eval-expression lang="SPEL"><![CDATA[('JobApps'.equals(#this.getEntity().getDocument().getTypeDatabase())) ? 'Исполнитель' :
+         ('JobOrders'.equals(#this.getEntity().getDocument().getTypeDatabase())) ? 'Отв. за размещение' : null]]></eval-expression>
+    </column>
+    <column name="reqType" subject="${catalog.column.reqType.subject:Вид документа}" extends="string">
+        <meta>
+            <documentation>Вид документа</documentation>
+        </meta>
+        <eval-expression lang="SPEL"><![CDATA['JobApps'.equals(#this.getEntity().getDocument().getTypeDatabase()) || 'JobApps'.equals(#this.getEntity().getDocument().getRootTypeDatabase()) ?
+      (
+      'Заявка на исполнение'
+      ) :
+      'JobOrders'.equals(#this.getEntity().getDocument().getTypeDatabase()) || 'JobOrders'.equals(#this.getEntity().getDocument().getRootTypeDatabase()) ?
+      (
+      'Заказ'
+      ) :
+      #this.getEntity().getDocument().getReqType()]]></eval-expression>
+    </column>
+    <column name="regInfo" subject="${catalog.column.regInfo.subject:Рег. данные документа}" extends="string">
+        <meta>
+            <documentation>Рег. данные документа</documentation>
+        </meta>
+        <eval-expression lang="SPEL">
+            <![CDATA[
+      ("JobApps".equals(#this.getEntity().getDocument().getTypeDatabase()) || "JobOrders".equals(#this.getEntity().getDocument().getTypeDatabase())) ||
+      ("JobApps".equals(#this.getEntity().getDocument().getRootTypeDatabase()) || "JobOrders".equals(#this.getEntity().getDocument().getRootTypeDatabase())) ?
+      (#this.getEntity().getDocument()==null ? null : #this.getBuilder().getRegInfo(#this.getEntity().getDocument()).replaceAll("Проект №", "")) :
+      (#this.getEntity().getDocument()==null ? null : #this.getBuilder().getRegInfo(#this.getEntity().getDocument()))
+      ]]>
+        </eval-expression>
+    </column>
+    <column name="documentStatus" subject="${catalog.column.status.subject:Статус документа}" extends="string">
+        <meta>
+            <documentation>Статус документа</documentation>
+        </meta>
+        <eval-expression lang="SPEL"><![CDATA[
+    'JobOrders'.equals(#this.getEntity().getDocument().getTypeDatabase()) ?
+    (
+        "sent_to_sign".equalsIgnoreCase(#this.getEntity().getDocument().getDocumentStatus().name()) ? "На утверждении" :
+        "signing_rejected".equalsIgnoreCase(#this.getEntity().getDocument().getDocumentStatus().name()) ? "В утверждении отказано" :
+        "signed".equalsIgnoreCase(#this.getEntity().getDocument().getDocumentStatus().name()) ? "Утвержден" :
+        #this.getEntity().getDocument().getDocumentStatus().name()
+    ) :
+    'JobApps'.equals(#this.getEntity().getDocument().getTypeDatabase()) ?
+    (
+        (#this.getEntity().getDocument().getCustomFieldValue('customStatusJASave') != null && "Отклонена".equalsIgnoreCase(#this.getEntity().getDocument().getCustomFieldValue('customStatusJASave'))) ? "Отклонена" :
+        (#this.getEntity().getDocument().getCustomFieldValue('customStatusJASave') != null && "На доработке".equalsIgnoreCase(#this.getEntity().getDocument().getCustomFieldValue('customStatusJASave'))) ? "На доработке" :
+        #this.getEntity().getDocument().getDocumentStatus().name()
+    ) :
+    #this.getEntity().getDocument().getDocumentStatus().name()]]></eval-expression>
+    </column>
+</catalog>

@@ -1,0 +1,491 @@
+<collection name="Order_(archive)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    hasGriff,
+    hasAttachments,
+    orderStatus,
+    reqType,
+    subject,
+    hasLinkedDocuments,
+    --linkedDoc,
+    respForPlacementName,
+    execManagerName,
+    orderNumber,
+    orderDate,
+    consumerName,
+    orderDeadline,
+    plannedDeadline,
+    docDeadline,
+    vatSum,
+    theme,
+    fullRegNumber,
+    comment
+FROM (
+        SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rkk.regdate                                            AS orderDate,
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'consumer') as consumerName,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+             FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+            coalesce(CASE
+                WHEN (internalrkk.resolutionsstate = 'work') THEN 'На исполнении'
+                WHEN (rkk.regnumcnt IS NOT NULL) THEN 'Зарегистрирован'
+                WHEN (rkk.regisinprocess = 1) THEN 'На регистрации'
+                WHEN (rkk.regisrejected = 1) THEN 'Отказано в регистрации'
+                WHEN (rkk.isonrework = 1) THEN 'На доработке'
+                WHEN (internalrkk.isafterapproving = 1) THEN CASE
+                        WHEN (internalrkk.appraddstatus = 'APPROVED_POSITIVE') THEN 'Согласовано'
+                        WHEN (internalrkk.appraddstatus = 'APPROVED_COMMENTS') THEN 'Согласовано с замечаниями'
+                        WHEN (internalrkk.appraddstatus = 'APPROVED_NEGATIVE') THEN 'Не согласовано'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_INIT') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_ADMIN') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_EXPIRED') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_NEGATIVE') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_APPROVED_POSITIVE') THEN 'Замечания учтены'
+                        WHEN (internalrkk.appraddstatus = 'IF_APPROVED_NEGATIVE') THEN 'Замечания не учтены'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_INIT') THEN 'Снятие замечаний прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_ADMIN') THEN 'Снятие замечаний прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_EXPIRED') THEN 'Снятие замечаний прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_NEGATIVE') THEN 'Снятие замечаний прекращено'
+                        END
+                WHEN (internalrkk.apprisunder = 1) THEN 'На согласовании'
+                WHEN (internalrkk.signissigned = 1) THEN 'Утвержден'
+                WHEN (internalrkk.signissentto = 1) THEN 'На утверждении'
+                WHEN (internalrkk.signisrejected = 1) THEN 'В утверждении отказано'
+                WHEN (internalrkk.signissentto = 0 and internalrkk.signsenttodt is not null) THEN 'Отозван с утверждения'
+                WHEN ((SELECT tfs.value FROM TN_Field tnf
+							          JOIN TN_Field_String tfs ON tfs.id = tnf.id
+							          WHERE tnf.owner = rkk.id AND tnf.cmjfield = 'placementRejected') = '1') THEN 'Отказано в размещении'
+                WHEN ((SELECT tfs.value FROM TN_Field tnf
+							          JOIN TN_Field_String tfs ON tfs.id = tnf.id
+							          WHERE tnf.owner = rkk.id AND tnf.cmjfield = 'onPlacement') = '1') THEN 'На размещении'
+                END, 'Проект') AS orderStatus,
+
+            rkkbase.subject                                                    AS subject,
+
+            COALESCE(
+                (SELECT CAST(1 AS SMALLINT)
+                FROM F_DP_RkkWORegAndCtrl_ULnk ulnk
+                LEFT JOIN SS_Module mdl ON mdl.id = rkkbase.module
+                WHERE ulnk.owner = rkk.id LIMIT 1),
+                CAST(0 AS SMALLINT))																AS hasLinkedDocuments,
+
+            --(SELECT COALESCE(string_agg((CASE
+            -- WHEN link.doclinktype = '' THEN '<id></>'
+            -- ELSE (COALESCE(
+            -- '<id>' || link.docreplid || ':' || link.docunid || '</>',
+            -- '<id>' || to_char(
+            --             cast((module.id_type * 10 ^ 12) as bigint) + module.id,
+            --             'FM0000000000000000') ||
+            -- ':00000000000000000000000000000000' || '</>')) END), ';'),
+            --                 '<id></>')
+            -- FROM F_DP_RkkWORegAndCtrl_ULnk link
+            --          LEFT JOIN ss_module module ON module.id = rkkbase.module
+            -- WHERE link.owner = rkk.id)                                         AS linkedDoc,
+
+            COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                FROM F_DP_IntRkk_Executor intexec
+                LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS respForPlacementName,
+
+            (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'execManager') as execManagerName,
+
+            rkk.CtrlDeadline AS orderDeadline,
+
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.id = tfd.id
+                where tn_field."owner" = rkk.id
+                and tn_field.owner_type = rkk.id_type
+                and tn_field.cmjfield = 'plannedDeadline') as plannedDeadline,
+
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.id = tfd.id
+                where tn_field."owner" = rkk.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_documentLink.deadline') as docDeadline,
+
+            (select tfs."value" as v
+                from tn_field_decimal tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'vatSumSummary'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as vatSum,
+
+            coalesce(nullif(
+                coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, ''), ''),
+                concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin)) as orderNumber,
+
+            (select array_to_string(array_agg( theme), ';', '')
+                from f_dp_rkkbase_theme themes
+                where themes.owner = rkkbase.id) as theme,
+
+            coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, '') AS fullRegNumber,
+
+            rkkworeg.comments as comment
+
+        FROM
+            f_dp_intrkk internalrkk
+                JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
+        WHERE rkkbase.isdeleted = 0 and rkk.regnumcnt is not null and rkk.ctrldateexecution is not null
+    ) as s
+    WHERE 1=1
+                ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+        SELECT
+            COUNT(1)
+FROM (
+        SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             rkk.regdate                                            AS orderDate,
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'consumer') as consumerName,
+
+             case when rkkbase.security_stamp is not null then
+                             '<iconHint>Есть гриф</><iconId>165</>'
+             else ''
+             end AS hasGriff,
+
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+             FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                                AS hasAttachments,
+
+            coalesce(CASE
+                WHEN (rkk.regnumcnt IS NOT NULL) THEN 'Зарегистрирован'
+                WHEN (rkk.regisinprocess = 1) THEN 'На регистрации'
+                WHEN (rkk.regisrejected = 1) THEN 'Отказано в регистрации'
+                WHEN (rkk.isonrework = 1) THEN 'На доработке'
+                WHEN (internalrkk.isafterapproving = 1) THEN CASE
+                        WHEN (internalrkk.appraddstatus = 'APPROVED_POSITIVE') THEN 'Согласовано'
+                        WHEN (internalrkk.appraddstatus = 'APPROVED_COMMENTS') THEN 'Согласовано с замечаниями'
+                        WHEN (internalrkk.appraddstatus = 'APPROVED_NEGATIVE') THEN 'Не согласовано'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_INIT') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_ADMIN') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_EXPIRED') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'INTERRUPT_NEGATIVE') THEN 'Согласование прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_APPROVED_POSITIVE') THEN 'Замечания учтены'
+                        WHEN (internalrkk.appraddstatus = 'IF_APPROVED_NEGATIVE') THEN 'Замечания не учтены'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_INIT') THEN 'Снятие замечаний прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_ADMIN') THEN 'Снятие замечаний прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_EXPIRED') THEN 'Снятие замечаний прекращено'
+                        WHEN (internalrkk.appraddstatus = 'IF_INTERRUPT_NEGATIVE') THEN 'Снятие замечаний прекращено'
+                        END
+                WHEN (internalrkk.apprisunder = 1) THEN 'На согласовании'
+                WHEN (internalrkk.signissigned = 1) THEN 'Утвержден'
+                WHEN (internalrkk.signissentto = 1) THEN 'На утверждении'
+                WHEN (internalrkk.signisrejected = 1) THEN 'В утверждении отказано'
+                WHEN (internalrkk.signissentto = 0 and internalrkk.signsenttodt is not null) THEN 'Отозван с утверждения'
+                WHEN ((SELECT tfs.value FROM TN_Field tnf
+							          JOIN TN_Field_String tfs ON tfs.id = tnf.id
+							          WHERE tnf.owner = rkk.id AND tnf.cmjfield = 'placementRejected') = '1') THEN 'Отказано в размещении'
+                WHEN ((SELECT tfs.value FROM TN_Field tnf
+							          JOIN TN_Field_String tfs ON tfs.id = tnf.id
+							          WHERE tnf.owner = rkk.id AND tnf.cmjfield = 'onPlacement') = '1') THEN 'На размещении'
+                END, 'Проект') AS orderStatus,
+
+            rkkbase.subject                                                    AS subject,
+
+            COALESCE(
+                (SELECT CAST(1 AS SMALLINT)
+                FROM F_DP_RkkWORegAndCtrl_ULnk ulnk
+                LEFT JOIN SS_Module mdl ON mdl.id = rkkbase.module
+                WHERE ulnk.owner = rkk.id LIMIT 1),
+                CAST(0 AS SMALLINT))																AS hasLinkedDocuments,
+
+            --(SELECT COALESCE(string_agg((CASE
+            -- WHEN link.doclinktype = '' THEN '<id></>'
+            -- ELSE (COALESCE(
+            -- '<id>' || link.docreplid || ':' || link.docunid || '</>',
+            -- '<id>' || to_char(
+            --             cast((module.id_type * 10 ^ 12) as bigint) + module.id,
+            --             'FM0000000000000000') ||
+            -- ':00000000000000000000000000000000' || '</>')) END), ';'),
+            --                 '<id></>')
+            -- FROM F_DP_RkkWORegAndCtrl_ULnk link
+            --          LEFT JOIN ss_module module ON module.id = rkkbase.module
+            -- WHERE link.owner = rkk.id)                                         AS linkedDoc,
+
+            COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+                FROM F_DP_IntRkk_Executor intexec
+                LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+                WHERE intexec.owner = rkkbase.id), '<Не указано>')       AS respForPlacementName,
+
+            (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'execManager') as execManagerName,
+
+                rkk.CtrlDeadline AS orderDeadline,
+
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.id = tfd.id
+                where tn_field."owner" = rkk.id
+                and tn_field.owner_type = rkk.id_type
+                and tn_field.cmjfield = 'plannedDeadline') as plannedDeadline,
+
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.id = tfd.id
+                where tn_field."owner" = rkk.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_documentLink.deadline') as docDeadline,
+
+            (select tfs."value" as v
+                from tn_field_decimal tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'vatSumSummary'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type) as vatSum,
+
+            coalesce(nullif(
+                coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, ''), ''),
+                concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin)) as orderNumber,
+
+            (select array_to_string(array_agg( theme), ';', '')
+                from f_dp_rkkbase_theme themes
+                where themes.owner = rkkbase.id) as theme,
+
+            coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, '') AS fullRegNumber,
+
+            rkkworeg.comments as comment
+
+        FROM
+            f_dp_intrkk internalrkk
+                JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
+        WHERE rkkbase.isdeleted = 0 and rkk.regnumcnt is not null and rkk.ctrldateexecution is not null
+    ) as s
+    WHERE 1=1
+                ::where-clause
+    ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="orderStatus">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    orderStatus = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="orderStatus_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    orderStatus iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="consumerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    consumerName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="consumerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                consumerName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+<!--    <filter name="linkedDoc">-->
+<!--        <criteria placeholder="where-clause">-->
+<!--            <![CDATA[-->
+<!--                    linkedDoc = {0}-->
+<!--                ]]>-->
+<!--        </criteria>-->
+<!--    </filter>-->
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+<!--    <filter name="executorName">-->
+<!--        <criteria placeholder="where-clause">-->
+<!--            <![CDATA[-->
+<!--                    executorName = {0}-->
+<!--                ]]>-->
+<!--        </criteria>-->
+<!--    </filter>-->
+<!--    <filter name="executorNamer_partial">-->
+<!--        <criteria placeholder="where-clause">-->
+<!--            <![CDATA[-->
+<!--                executorName iLIKE ('%'||{0}||'%')-->
+<!--            ]]>-->
+<!--        </criteria>-->
+<!--    </filter>-->
+    <filter name="orderNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                orderNumber = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="theme">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    theme = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="theme_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    theme iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="orderDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(orderDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="orderDeadline">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(orderDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="plannedDeadline">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(plannedDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDeadline">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(docDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="orderDeadline_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(orderDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="plannedDeadline_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(plannedDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="docDeadline_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(docDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

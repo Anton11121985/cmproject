@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="file-documents-internal-inventory" pageWidth="595" pageHeight="842" columnWidth="468" leftMargin="85" rightMargin="42" topMargin="56" bottomMargin="56" scriptletClass="FileDocumentsInternalInventoryScriptlet" uuid="7674d8d7-12be-4c35-98a2-138ed3c85969">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+	fr.id AS file,
+	fr.indexFile,
+	sb.orig_postname AS responsiblePost,
+	CASE WHEN sb.orig_shortname LIKE '% %.'
+		THEN SUBSTRING(sb.orig_shortname, (STRPOS(sb.orig_shortname, ' ') + 1))
+				|| ' ' || SUBSTRING(sb.orig_shortname, 1, STRPOS(sb.orig_shortname, ' ') - 1)
+		ELSE sb.orig_shortname
+	END AS responsibleName
+FROM Fr_File_Extended fre
+JOIN Fr_File fr ON fr.id = fre.parent
+LEFT JOIN FR_File_Responsibles resp ON resp.owner = fr.id AND resp.idx = 0
+LEFT JOIN So_Beard sb ON sb.id = resp.responsible
+WHERE fre.parent IN (SELECT item FROM QR_Id_List WHERE request = $P{request_id})]]>
+	</queryString>
+	<field name="file" class="java.lang.Object"/>
+	<field name="indexFile" class="java.lang.String"/>
+	<field name="responsiblePost" class="java.lang.String"/>
+	<field name="responsibleName" class="java.lang.String"/>
+	<variable name="IntInvPagesCount" class="java.lang.Integer">
+		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
+	</variable>
+	<group name="File" isStartNewPage="true" isResetPageNumber="true">
+		<groupExpression><![CDATA[$F{file}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="36" splitType="Stretch">
+			<subreport>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="0" width="468" height="36" isPrintWhenDetailOverflows="true" uuid="4392d4f4-09a9-4125-b8cf-e156185104a1"/>
+				<subreportParameter name="FileId">
+					<subreportParameterExpression><![CDATA[$F{file}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="indexFile">
+					<subreportParameterExpression><![CDATA[$F{indexFile}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="responsiblePost">
+					<subreportParameterExpression><![CDATA[$F{responsiblePost}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="responsibleName">
+					<subreportParameterExpression><![CDATA[$F{responsibleName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["file-documents-internal-inventory-sub.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

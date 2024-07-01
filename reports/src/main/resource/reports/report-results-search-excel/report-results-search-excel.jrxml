@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report-results-search-excel" pageWidth="802" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="20" bottomMargin="20" isIgnorePagination="true" uuid="c6ec1858-0e3f-42bd-b63b-b46c8166a5a8">
+	<property name="ireport.zoom" value="1.1000000000000005"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter "/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[3188]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[with req_items as (SELECT Item as iid, Item_type as itype FROM QR_Id_List WHERE Request = $P{request_id})
+-- sub1
+SELECT
+    q1.id
+     ,q1.doc_type_id
+     ,CONCAT (
+        q1.regnumprist,
+        q1.regnumcnt,
+        q1.regnumfin
+    ) AS regNumber
+     ,q1.regnumprist
+     ,q1.regnumfin
+     ,q1.regnumcnt
+     ,q1.regdate
+     -- ,q1.module
+     ,q1.type
+
+     ,q1.subject
+     -- ,q1.form
+     ,q1.title
+     ,q1.corr
+FROM (
+         SELECT
+             f_dp_rkk.id
+              ,f_dp_rkk.id_type AS doc_type_id
+              ,f_dp_rkk.regnumprist
+              ,f_dp_rkk.regnumfin
+              ,f_dp_rkk.regnumcnt
+              ,f_dp_rkk.regdate
+
+
+              ,f_dp_rkkbase.module
+              ,f_dp_rkkbase.type
+              ,f_dp_rkkbase.subject
+              ,f_dp_rkkbase.form
+              ,ss_module.title
+              , (SELECT
+                     STRING_AGG((
+                                    CASE
+                                        WHEN in_corr.orig_shortname IS NOT NULL
+                                            THEN in_corr.orig_shortname
+                                        WHEN og_corr.orig_shortname IS NOT NULL
+                                            THEN og_corr.orig_shortname
+                                        WHEN dog_corr.orig_shortname IS NOT NULL
+                                            THEN dog_corr.orig_shortname
+                                        WHEN ord_corr.orig_shortname IS NOT NULL
+                                            THEN ord_corr.orig_shortname
+                                        WHEN int_corr.orig_shortname IS NOT NULL
+                                            THEN int_corr.orig_shortname
+                                        WHEN out_corr.orig_shortname IS NOT NULL
+                                            THEN out_corr.orig_shortname
+                                        WHEN og_corr.orig_shortname IS NULL and in_corr.orig_shortname IS NULL
+                                            and dog_corr.orig_shortname IS NULL and ord_corr.orig_shortname IS NULL
+                                            and int_corr.orig_shortname IS NULL
+                                            THEN case when (authorplain is null or authorplain='') then concat('') else concat(authorplain) end
+                                        ELSE ''
+                                        END
+                                    ), ', ') AS corr
+                 FROM F_DP_RkkBase rkkbase
+                          --Входящий
+                          LEFT JOIN F_DP_InputRkk inputrkk ON inputrkk.id = rkkbase.id
+                          LEFT JOIN SO_Beard in_corr ON in_corr.id = inputrkk.FromId
+                          LEFT JOIN f_dp_inputrkk_authorplain inprkkpln on inprkkpln.access_object_id=rkkbase.id
+                     --ОГ
+                          LEFT JOIN F_DP_RequestRkk ogrkk ON ogrkk.id = rkkbase.id
+                          LEFT JOIN SO_Beard og_corr ON og_corr.id = ogrkk.Corr
+                     --Договор
+                          LEFT JOIN F_DP_ContractRkk contr ON contr.id = rkkbase.id
+                          LEFT JOIN SO_Beard dog_corr ON dog_corr.id = contr.party2ida
+                     --ОРД
+                          LEFT JOIN F_DP_OrdRkk ordrkk ON ordrkk.id = rkkbase.id
+                          LEFT JOIN SO_Beard ord_corr ON ord_corr.id = ordrkk.SignSigner
+                     --Внутренний
+                          LEFT JOIN F_DP_IntRkk intrkk ON intrkk.id = rkkbase.id
+                          LEFT JOIN SO_Beard int_corr ON int_corr.id = intrkk.SignSigner
+                     --Исходящий
+                          LEFT JOIN f_dp_outputrkk outrkk ON outrkk.id = rkkbase.id
+                          LEFT JOIN SO_Beard out_corr ON out_corr.id = outrkk.signsigner
+                 WHERE rkkbase.form <> 'resolution'
+                   and rkkbase.id = f_dp_rkk.id and rkkbase.id_type = f_dp_rkk.id_type) as corr
+         FROM f_dp_rkk
+                  JOIN f_dp_rkkbase ON f_dp_rkk.id = f_dp_rkkbase.id
+                  JOIN ss_module ON f_dp_rkkbase.module = ss_module.id
+              -- JOIN ss_module ON f_dp_rkkbase.module = ss_module.id
+         WHERE (f_dp_rkk.id, f_dp_rkk.id_type) in (SELECT iid, itype FROM req_items)
+
+         UNION
+
+         SELECT
+             res.id
+              ,res.id_type AS doc_type_id
+              ,rkk.regnumprist
+              ,rkk.regnumfin
+              ,rkk.regnumcnt
+              ,rbase.created_date AS regdate
+              ,rkkbase.module AS module
+              ,cast('Резолюция' AS TEXT) AS type
+              ,rbase.resolution AS subject
+              ,rkkbase.form
+              ,cast('Резолюция' AS TEXT) AS title
+              , (
+             SELECT
+                 STRING_AGG((
+                                CASE
+                                    WHEN resbase_author.orig_shortname IS NOT NULL
+                                        THEN resbase_author.orig_shortname
+                                    ELSE ''
+                                    END
+                                ), ', ') AS corr
+             FROM f_dp_resltnbase resbase
+                      --Резолюция
+                      LEFT JOIN SO_Beard resbase_author ON resbase_author.id = resbase.Author
+             where resbase.id = res.id and resbase.id_type = res.id_type
+         ) as corr
+         FROM f_dp_resolution res
+                  join f_dp_resltnbase rbase on rbase.id = res.id
+                  JOIN f_dp_rkkbase rkkbase ON res.hierroot = rkkbase.id
+                  JOIN f_dp_rkk rkk ON rkk.id = rkkbase.id
+              -- JOIN ss_module ON rkkbase.module = ss_module.id
+         WHERE (res.id, res.id_type) in (SELECT iid, itype FROM req_items)
+
+
+         UNION
+
+
+
+         SELECT
+             report.id
+              ,report.id_type AS doc_type_id
+              ,'' AS regnumprist
+              ,'' AS regnumfin
+              ,NULL AS regnumcnt
+              ,rkkbase.created_date AS regdate
+              ,rkkbase.module AS module
+              ,cast('Отчет об исполнении' AS TEXT) AS type
+              ,report.TEXT AS subject
+              ,rkkbase.form
+              ,cast('Отчет об исполнении' AS TEXT) AS title
+              ,(
+             SELECT
+                 STRING_AGG((
+                                CASE
+                                    WHEN report_author.orig_shortname IS NOT NULL
+                                        THEN report_author.orig_shortname
+                                    ELSE ''
+                                    END
+                                ), ', ') AS corr
+             FROM F_DP_Report report1
+                      --Отчеты
+                      LEFT JOIN SO_Beard report_author ON report_author.id = report1.Author
+             where report1.id = report.id and report1.id_type = report.id_type
+         ) as corr
+         FROM F_DP_Report report
+                  JOIN f_dp_rkkbase rkkbase ON report.hierroot = rkkbase.id
+              -- JOIN ss_module ON rkkbase.module = ss_module.id
+         WHERE (report.id, report.id_type) in (SELECT iid, itype FROM req_items)
+     ) q1 order by q1.title, q1.regdate, q1.id]]>
+	</queryString>
+	<field name="id" class="java.lang.Object"/>
+	<field name="doc_type_id" class="java.lang.Object"/>
+	<field name="regNumber" class="java.lang.String"/>
+	<field name="regnumprist" class="java.lang.String"/>
+	<field name="regnumfin" class="java.lang.String"/>
+	<field name="regnumcnt" class="java.lang.Long"/>
+	<field name="regdate" class="java.sql.Timestamp"/>
+	<field name="type" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="title" class="java.lang.String"/>
+	<field name="corr" class="java.lang.String"/>
+	<variable name="SubReportIsEmpty" class="java.lang.Integer"/>
+	<group name="TypeDoc">
+		<groupExpression><![CDATA[$F{title}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<property name="local_mesure_unitheight" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<textField>
+					<reportElement x="0" y="0" width="802" height="20" uuid="c8852998-30e6-4b62-8bdd-8a4b2ba595c3">
+						<property name="local_mesure_unitheight" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+	 					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="73" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="0" y="0" width="802" height="43" uuid="393e0986-d1e9-4003-8748-93b3632f4203"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Отчет по результатам поиска"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="43" width="90" height="30" uuid="2134fee1-62cd-456e-91e3-0a9d189acda0">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Вид документа"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="43" width="160" height="30" uuid="d3691138-39e5-4075-b2fe-b39d334d4021">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Заголовок"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="250" y="43" width="70" height="30" uuid="f1b282d2-d7d3-4f32-8a55-d095bb99c524">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Дата"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="90" y="43" width="160" height="30" uuid="d5d03efc-9a12-4621-8962-ef45d260586f">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Номер"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="43" width="160" height="30" uuid="d5a7e587-c493-4fed-a27c-6f701fa4ca02">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Корреспондент\n/Автор"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="640" y="43" width="162" height="30" uuid="8c6ad72d-848e-4157-97bb-8128a40a39be">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Адресат"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="90" height="20" isPrintWhenDetailOverflows="true" uuid="a7956a0f-67b2-4edb-9a8f-5716dd460a6b">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{type}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="250" y="0" width="70" height="20" isPrintWhenDetailOverflows="true" uuid="cf70fa8d-41a3-4a4b-9b59-0a17bad52382">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{regdate})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="320" y="0" width="160" height="20" isPrintWhenDetailOverflows="true" uuid="98ea9a41-9dc3-4c33-be94-e01bc8e20b05">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{corr}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="90" y="0" width="160" height="20" isPrintWhenDetailOverflows="true" uuid="45e7c59d-9067-4b24-bbd8-ea979a40ea8b">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{regNumber}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="480" y="0" width="160" height="20" isPrintWhenDetailOverflows="true" uuid="135320c6-6490-483c-be53-f3c4aa078147">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="640" y="0" width="162" height="20" uuid="d891ff21-28f2-48ca-8ab9-68959eeec320">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$V{SubReportIsEmpty}==null]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Times New Roman" size="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["-"]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="640" y="0" width="0" height="20" isPrintWhenDetailOverflows="true" uuid="420dd729-1471-41d9-83c5-fecdb6d4dec7">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<subreportParameter name="ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="doc_type_id">
+					<subreportParameterExpression><![CDATA[$F{doc_type_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="REPORT_COUNT" toVariable="SubReportIsEmpty"/>
+				<subreportExpression><![CDATA["addressees.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

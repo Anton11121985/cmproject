@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <form schema-ref="CoveringLetterResource" id="CoveringLetterResourceForm" projection="default" showtabs="true">
+    <properties>
+      <hide condition-union="AND">
+        <negative-condition-ref ref="edit"/>
+        <negative-condition-ref ref="read"/>
+      </hide>
+    </properties>
+    <appearance widget="tabs"/>
+    <component>
+      <section id="Header">
+        <component>
+          <section id="row_1" group="true">
+            <component>
+              <field attribute-ref="showIdent">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="subject">
+            <properties>
+              <require condition-union="AND">
+                <condition>true</condition>
+              </require>
+            </properties>
+          </field>
+          <section id="link" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="lableLink">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance>
+                  <label-style field-width="34" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="selfHyperLink">
+                <appearance align="left">
+                  <label-style field-width="10" field-unit="symbol">
+                    <style id="tunUnderlineDotted"/>
+                    <style id="tunBlue"/>
+                    <style id="tunClickableRed"/>
+                  </label-style>
+                </appearance>
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="CoveringLetter_isHaveDocument"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="textLink">
+                <appearance align="left">
+                  <label-style>
+                    <style id="tunBold"/>
+                  </label-style>
+                </appearance>
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <condition-ref ref="CoveringLetter_isHaveDocument"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="fromLable">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="2" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="textDate">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style>
+                    <style id="tunBold"/>
+                  </label-style>
+                </appearance>
+              </field>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="Content" name="${ui.form.CoveringLetterResourceForm.section.Attributes.section.ContentRes.name:Содержание}">
+        <appearance turn="true" style="tunBorderBlueSection"/>
+        <component>
+          <field attribute-ref="$content">
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Content.field.content.hintPopUp:Содержание}</hint-pop-up>
+          </field>
+        </component>
+      </section>
+      <section id="Attributes" name="${ui.form.CoveringLetterResourceForm.section.Attributes.name:Реквизиты}">
+        <component>
+          <field attribute-ref="number" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.number.name:Номер письма:}">
+            <appearance importance="normal"/>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.number.name:Номер письма}</hint-pop-up>
+          </field>
+          <field attribute-ref="date" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.date.name:Дата письма:}">
+            <appearance importance="normal"/>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.date.name:Дата письма}</hint-pop-up>
+          </field>
+          <field attribute-ref="org" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.org.name:Корреспондент:}" recalc="true">
+            <appearance importance="normal"/>
+            <directories>
+              <directory-ref ref="NONSYS_ORGS_ONLY"/>
+              <directory-ref ref="PrivatePeople"/>
+              <directory-ref ref="FV_FOREIGN_ORG_NONSYS_ORG_PRIVATE_HUMAN"/>
+            </directories>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.org.name:Корреспондент}</hint-pop-up>
+          </field>
+          <field attribute-ref="authors" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.authors.name:Автор:}">
+            <appearance importance="normal"/>
+            <properties>
+              <hide>
+                <negative-condition-ref ref="corrIsOrganization"/>
+              </hide>
+            </properties>
+            <directories livesearch="true">
+              <directory-select-org attribute-ref="org" ref="ALIEN_BEARDS_WITTHOUT_ROLE"/>
+            </directories>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.authors.name:Автор}</hint-pop-up>
+          </field>
+          <field attribute-ref="executors" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.executors.name:Исполнитель:}">
+            <appearance importance="normal"/>
+            <properties>
+              <hide>
+                <negative-condition-ref ref="corrIsOrganization"/>
+              </hide>
+            </properties>
+            <directories livesearch="true">
+              <directory-select-org attribute-ref="org" ref="ALIEN_BEARDS_WITTHOUT_ROLE"/>
+            </directories>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.executors.name:Исполнитель}</hint-pop-up>
+          </field>
+          <field attribute-ref="execDate" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.execDate.name:Срок:}">
+            <appearance importance="normal"/>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.execDate.name:Срок}</hint-pop-up>
+          </field>
+          <field attribute-ref="execInstruction" name="${ui.form.CoveringLetterResourceForm.section.Attributes.field.execInstruction.name:Указания по исполнению:}">
+            <appearance importance="normal"/>
+            <directories manual-input="true">
+              <directory-ref ref="CoveringLetter_Instructions"/>
+            </directories>
+            <hint-pop-up>${ui.form.CoveringLetterResourceForm.section.Attributes.field.execInstruction.name:Указания по исполнению}</hint-pop-up>
+          </field>
+        </component>
+      </section>
+      <section id="History" name="${ui.form.CoveringLetterResourceForm.section.History.name:История}"/>
+    </component>
+  </form>
+</ui>

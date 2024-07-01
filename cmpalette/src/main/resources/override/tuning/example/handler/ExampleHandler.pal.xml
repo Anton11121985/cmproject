@@ -1,0 +1,2387 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <handler name="Пример сообщения" id="Example_Message">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+importClass(Packages.org.slf4j.LoggerFactory);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogInfo");
+	dialogNameList.add("SystemDialogInfo");
+
+    paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+    } else if (paramPackageId.equals("contextWithResource")) {
+	    process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return returnResource.resource;
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Проверка объекта на актуальность
+ * @id идентификатор объекта
+ * @version текущая версия контекста
+ * @return статус актуальности
+ */
+ function isActualObject(id, version){
+    var versionObj = "";
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+
+    var versionParts = version.split('$$');
+    var versionContext = versionParts[0];
+
+    if (obj != null){
+        versionObj = obj.getVersionStamp().toString();
+    }
+
+    return versionContext == versionObj;
+}
+
+/**
+ * Диалог Информации
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("SystemDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id")); //id объекта открытого в web
+    var ids = Utils.newArrayList();
+    ids.add(id);
+
+    //Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    var resultMessage = "Добро пожаловать в разработку на Палитре XML";
+	message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds")); //Идентификатор отрытого объекта
+    var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext")); //Версия открытого объекта
+
+    //Проверка на актуальность документа
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+	var obj = appdp.getEntityByUNID(ids.get(0));
+	var document = RkkResource.valueOf(obj);
+	returnResource.setResource(document);
+}]]></script>
+    </handler>
+    <handler name="Пример стандартного диалога" id="Example_Dialog_Standart">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogStandart");
+	dialogNameList.add("SystemDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+	    process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return returnResource.resource;
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Проверка объекта на актуальность
+ * @id идентификатор объекта
+ * @version текущая версия контекста
+ * @return статус актуальности
+ */
+ function isActualObject(id, version){
+    var versionObj = "";
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+
+    var versionParts = version.split('$$');
+    var versionContext = versionParts[0];
+
+    if (obj != null){
+        versionObj = obj.getVersionStamp().toString();
+    }
+
+    return versionContext == versionObj;
+}
+
+/**
+ * Диалог Информации
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("SystemDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id")); //id объекта открытого в web
+    var ids = Utils.newArrayList();
+    ids.add(id);
+
+    //Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("ExampleDialogStandart", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds")); //Идентификатор отрытого объекта
+    var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext")); //Версия открытого объекта
+
+    //Проверка на актуальность документа
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+	var obj = appdp.getEntityByUNID(ids.get(0));
+	var document = RkkResource.valueOf(obj);
+	returnResource.setResource(document);
+}]]></script>
+    </handler>
+    <handler name="Пример диалога c выбором файла" id="Example_Dialog_File">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogUpload");
+	dialogNameList.add("SystemDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+	    process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return returnResource.resource;
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Проверка объекта на актуальность
+ * @id идентификатор объекта
+ * @version текущая версия контекста
+ * @return статус актуальности
+ */
+ function isActualObject(id, version){
+    var versionObj = "";
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+
+    var versionParts = version.split('$$');
+    var versionContext = versionParts[0];
+
+    if (obj != null){
+        versionObj = obj.getVersionStamp().toString();
+    }
+
+    return versionContext == versionObj;
+}
+
+/**
+ * Диалог Информации
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("SystemDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id")); //id объекта открытого в web
+    var ids = Utils.newArrayList();
+    ids.add(id);
+
+    //Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("ExampleDialogUpload", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "confirmMsg", "Вы уверены, что хотите загрузить файл?");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds")); //Идентификатор отрытого объекта
+    var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext")); //Версия открытого объекта
+
+    //Проверка на актуальность документа
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+	var obj = appdp.getEntityByUNID(ids.get(0));
+	var document = RkkResource.valueOf(obj);
+	returnResource.setResource(document);
+}]]></script>
+    </handler>
+    <handler name="Пример диалога c обновлением контекста" id="Example_Dialog_Refresh_Context">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogRefreshContext");
+	dialogNameList.add("SystemDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+	    process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return returnResource.resource;
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Проверка объекта на актуальность
+ * @id идентификатор объекта
+ * @version текущая версия контекста
+ * @return статус актуальности
+ */
+ function isActualObject(id, version){
+    var versionObj = "";
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+
+    var versionParts = version.split('$$');
+    var versionContext = versionParts[0];
+
+    if (obj != null){
+        versionObj = obj.getVersionStamp().toString();
+    }
+
+    return versionContext == versionObj;
+}
+
+/**
+ * Диалог Информации
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("SystemDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id")); //id объекта открытого в web
+    var ids = Utils.newArrayList();
+    ids.add(id);
+
+    //Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("ExampleDialogRefreshContext", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("comment"));
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds")); //Идентификатор отрытого объекта
+    var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext")); //Версия открытого объекта
+
+    //Проверка на актуальность документа
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    var obj = appdp.getEntityByUNID(ids.get(0));
+    var propertyComments = obj.tuning().getSchema().getProperty("exampleComments");
+	var CommentsValue = TuningHelper.createPropertyValue(comment, propertyComments);
+	obj.tuning().getValues().put("exampleComments", CommentsValue);
+	obj.save()
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("ExampleDialogRefreshContext", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+}]]></script>
+    </handler>
+    <handler name="Пример диалога создания записи в EmbeddedView" id="Example_dlgRefresh_EV_Create">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleAddEntrySubObject");
+	dialogNameList.add("SystemDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+	    process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return returnResource.resource;
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Проверка объекта на актуальность
+ * @id идентификатор объекта
+ * @version текущая версия контекста
+ * @return статус актуальности
+ */
+ function isActualObject(id, version){
+    var versionObj = "";
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+
+    var versionParts = version.split('$$');
+    var versionContext = versionParts[0];
+
+    if (obj != null){
+        versionObj = obj.getVersionStamp().toString();
+    }
+
+    return versionContext == versionObj;
+}
+
+/**
+ * Диалог Информации
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("SystemDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id")); //id объекта открытого в web
+    var ids = Utils.newArrayList();
+    ids.add(id);
+
+    //Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("ExampleAddEntrySubObject", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds")); //Идентификатор отрытого объекта
+    var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext")); //Версия открытого объекта
+
+    //Проверка на актуальность документа
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+    var comments = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("comments"));
+    var valueDouble = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("summa"));
+    summa = new AFInstanceSimpleImpl(apl.getSchemaByName("Double"), valueDouble*1.0)
+    var subject = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("subject"));
+
+    var rkk = appdp.getEntityByUNID(ids.get(0));
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(rkk.getUNID(), "subobjects");
+
+    var newEntry = createNewEntry(rkk, subObjects);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "summa", summa);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "subject", subject);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "comments", comments);
+    newEntry.save();
+
+	rkk = appdp.getEntityByUNID(ids.get(0));
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "mode", "edit");
+	document = RkkResource.valueOf(rkk);
+    returnResource.setResource(document);
+}
+
+function createNewEntry(parent, subObjList) {
+    var tuneApp = AFSession.get().getApplication(TuningApplication.class);
+    var schema = tuneApp.getSchemaByName("ExampleEntrySubObject");
+    if (schema == null) {
+        throw new RuntimeException("Schema  " + this.scheme + " not found");
+    }
+
+    var rkkUnid = parent.getUNID();
+    var replicaId = AFCMDomino.getReplicaIdFromUNID(rkkUnid);
+    replicaId = AFCMDomino.getReplicaFromTNReplica(replicaId);
+    var ident = AFCMDomino.getIdent(replicaId);
+    var complect = AFCMDomino.getComplectByDbReplicaId(replicaId);
+    var tunObjApp = AFSession.get().getApplication(TunableObjectApplication.class);
+
+    var subObject = tunObjApp.composeApplicationTunableObject(schema, ident, complect, replicaId);
+
+    TunableObjectHelper.putAFInstanceValue(subObject, "type", "subobjects");
+    TunableObjectHelper.putAFInstanceValue(subObject, "parentUnid", parent.getUNID());
+    TunableObjectHelper.putAFInstanceValue(subObject, "$Ref", parent.getUNID().split(":")[1]);
+    TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "author", AFSession.get().currentUser().getBeard());
+
+    return subObject;
+}]]></script>
+    </handler>
+    <handler name="Пример диалога c обновлением записи в EmbeddedView (Утвердить)" id="Example_dlgRefresh_EV_Approve">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    }
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appTNObject.getEntityByUNID(ids.get(0));
+
+    var propertyCheckBox= obj.tuning().getSchema().getProperty("checkBox");
+	var CheckBoxValue = TuningHelper.createPropertyValue(true, propertyCheckBox);
+	obj.tuning().getValues().put("checkBox", CheckBoxValue);
+	obj.save()
+
+    var parentUnid = TunableObjectHelper.getStringValue(obj.tuning(), "parentUnid");
+    var rkk = appdp.getEntityByUNID(parentUnid);
+
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "mode", "read");
+	result = RkkResource.valueOf(rkk);
+    returnResource.setResource(result);
+}]]></script>
+    </handler>
+    <handler name="Пример диалога c обновлением записи в EmbeddedView (Отклонить)" id="Example_dlgRefresh_EV_Refuse">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must not be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_context(paramsResource, returnResource);
+    }
+}
+
+/**
+ * Обработка пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс контекстного документа
+ */
+function process_context(paramsResource, returnResource) {
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    var obj = appTNObject.getEntityByUNID(ids.get(0));
+
+    var propertyCheckBox= obj.tuning().getSchema().getProperty("checkBox");
+	var CheckBoxValue = TuningHelper.createPropertyValue(false, propertyCheckBox);
+	obj.tuning().getValues().put("checkBox", CheckBoxValue);
+	obj.save()
+
+    var parentUnid = TunableObjectHelper.getStringValue(obj.tuning(), "parentUnid");
+    var rkk = appdp.getEntityByUNID(parentUnid);
+
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "mode", "read");
+	result = RkkResource.valueOf(rkk);
+    returnResource.setResource(result);
+}]]></script>
+    </handler>
+    <handler name="Пример старта WF-процесса" id="Example_StartWF">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.PropertyImpl);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.wf.impl.WorkflowProcessServiceImpl);
+importClass(Packages.ru.intertrust.cmj.wf.api.ProcessVariables);
+importClass(Packages.ru.intertrust.cmj.wf.api.ProcessUserTask);
+importClass(Packages.ru.intertrust.cmj.wf.api.TaskVariables);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cm.core.business.api.dto.Filter);
+importClass(Packages.java.util.Collections);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importPackage(Packages.ru.intertrust.cm.core.business.api.dto.ReferenceValue);
+importClass(Packages.ru.intertrust.cm.core.business.api.dto.StringValue);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit_update")) {
+		process_refresh(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return process_exit(paramsResource, returnResource);
+	}
+
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Обновление объекта
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_refresh(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}
+
+/**
+ * Завершение обработки в случае ошибки
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_exit(paramsResource, returnResource) {
+	var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	returnResource.setResource(null);
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo_refresh(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit_update");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка контекста
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_context(paramsResource, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id"));
+	var ids = Utils.newArrayList();
+	ids.add(id);
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var version = paramsResource.getVersion();
+	var versionParts = version.split('$$');
+	var versionContext = versionParts[0];
+
+	var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+
+	if (versionContext != versionCurrent){
+		process_dlginfo_refresh(ids,"Изменена версия объекта.\nОбъект будет переоткрыт в актуальном состоянии.",returnResource);
+        return returnResource.resource;
+	}
+
+ 	// Необходимо выдать исключение, если объект удален или прекращен в WD
+    if ("Webdocs2.0".equals(AFSession.get().currentUser().extendedAttributes().get("ClientAlias"))) {
+        var isTerminate = obj.tuning().getValues().get("wf") == null ? false : obj.tuning().getValues().get("wf").getValues().get("stage") == null ? false : obj.tuning().getValues().get("wf").getValues().get("stage").getValue().equals("Прекращена") ? true : false;
+        if (obj.isDeleted() || isTerminate) {
+			 process_dlginfo(ids,"Документ был удален обратитесь к администратору",returnResource);
+			 return returnResource.resource;
+        }
+    }
+
+	var workflowProcessService = BeansUtils.getBean("workflowProcessServiceImpl");
+
+    var workflowProcessName = null;
+    if (obj.tuning().getValues().get("exampleWFName") != null && obj.tuning().getValues().get("exampleWFName").getValue() != null){
+        workflowProcessName = obj.tuning().getValues().get("exampleWFName").getValue();
+    }
+
+    if (workflowProcessName == null){
+        process_dlginfo(ids,"Для запуска процесса требуется указать схему процесса",returnResource);
+        return returnResource.resource;
+    }
+
+ 	//запустить процесс
+	var StartProcessResult = workflowProcessService.startProcess(workflowProcessName, ids.get(0), null);
+	if (StartProcessResult.hasError()) {
+		rollbackWF(appdp, ids.get(0), obj);
+		throw new RuntimeException("Не удалось запустить процесс. Обратитесь к администратору");
+	}
+
+	//переоткрываем документ
+	obj = appdp.getEntityByUNID(ids.get(0));
+
+	//запись в Жизненный цикл
+	var currentUser = AFSession.get().currentUser().getBeard();
+	var executor = currentUser;
+    var startDate = new AFDateTime(Calendar.getInstance());
+	var endDate = new AFDateTime(Calendar.getInstance());
+    var wf_status = "-";
+    var stage = "Запущен процесс";
+	var information = "-";
+
+	setLifeCycle(obj, startDate, endDate, wf_status, executor, currentUser, stage, information);
+
+	var time = new AFDateTime(Calendar.getInstance());
+	TunableObjectHelper.putAFInstanceValue(obj.tuning(), "wf.actiontime", time);
+
+	try {
+	    obj.save();
+	} catch (e) {
+		process_dlginfo_refresh(ids,"При сохранении произошел конфликт, сохранение изменений невозможно.\nОбъект будет переоткрыт в актуальном состоянии.",returnResource);
+	    return returnResource.resource;
+	}
+
+	obj = appdp.getEntityByUNID(ids.get(0));
+ 	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}
+
+/**
+ * Откатить статусное состояние WF
+ * @obj объект
+ * id идентификатор объекта
+ * @appdp приложение
+ */
+function rollbackWF(appdp, id, obj){
+	var document = appdp.getEntityByUNID(id);
+
+	var wf = obj.tuning().getValues().get("wf");
+
+	var assignee = null;
+	var task = "";
+	var status = "";
+	var stage = "Проект";
+	var duration = null;
+	var starttime = null;
+	var finishtime = null;
+
+	if (wf.getValues().get("assignee") != null) {
+		assignee = wf.getValues().get("assignee").getValues();
+		task = wf.getValues().get("task").getValue();
+		stage = wf.getValues().get("stage").getValue();
+		duration = wf.getValues().get("duration").getValue();
+		starttime = wf.getValues().get("starttime").getValue();
+		finishtime = wf.getValues().get("finishtime").getValue();
+	}
+
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.assignee", assignee);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.task", task);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.status", status);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.stage", stage);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.duration", duration);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.starttime", starttime);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.finishtime", finishtime);
+
+	document.save();
+}
+
+/**
+ * Запись в Жизненный цикл
+ * @obj объект
+ * @startDate дата начала действия
+ * @endDate дата окончания действия
+ * @action действие
+ * @assignee исполнитель
+ * @currentUser пользователь, выполнивший действие
+ * @result Результат
+ * @information Доп. информация
+ */
+function setLifeCycle(obj, startDate, endDate, action, assignee, currentUser, result, information) {
+
+	var propertyLifecycle = obj.tuning().getSchema().getProperty("wfLifeCycle");
+	var lifecycle = null;
+
+	if (obj.tuning().getValues().containsKey("wfLifeCycle") && obj.tuning().getValues().get("wfLifeCycle") != null) {
+		lifecycle = obj.tuning().getValues().get("wf_lifecycle").getValues();
+	} else {
+		lifecycle = Utils.newArrayList();
+	}
+	var propertyStartDate = propertyLifecycle.getSchema().getProperty("lifecycle_start_date");
+	var propertyDate = propertyLifecycle.getSchema().getProperty("lifecycle_date");
+	var propertyAction = propertyLifecycle.getSchema().getProperty("lifecycle_action");
+	var propertyAssignee = propertyLifecycle.getSchema().getProperty("lifecycle_assignee");
+	var propertyCurrentUser = propertyLifecycle.getSchema().getProperty("lifecycle_current_user");
+	var propertyResult = propertyLifecycle.getSchema().getProperty("lifecycle_result");
+	var propertyInformation = propertyLifecycle.getSchema().getProperty("lifecycle_information");
+
+	var startDateValue = TuningHelper.createPropertyValue(startDate, propertyStartDate);
+	var endDateValue = TuningHelper.createPropertyValue(endDate, propertyDate);
+	var actionValue = TuningHelper.createPropertyValue(action, propertyAction);
+	var currentUserValue = TuningHelper.createPropertyValue(currentUser, propertyCurrentUser);
+	var assigneeValue = TuningHelper.createPropertyValue(assignee, propertyAssignee);
+	var resultValue = TuningHelper.createPropertyValue(result, propertyResult);
+	var informationValue = TuningHelper.createPropertyValue(information, propertyInformation);
+
+	var wf_lifecycle = new AFInstanceObjectImpl(propertyLifecycle.getSchema());
+	wf_lifecycle.getValues().put("lifecycle_start_date", startDateValue);
+	wf_lifecycle.getValues().put("lifecycle_date", endDateValue);
+	wf_lifecycle.getValues().put("lifecycle_action", actionValue);
+	wf_lifecycle.getValues().put("lifecycle_assignee", assigneeValue);
+	wf_lifecycle.getValues().put("lifecycle_current_user", currentUserValue);
+	wf_lifecycle.getValues().put("lifecycle_result", resultValue);
+	wf_lifecycle.getValues().put("lifecycle_information", informationValue);
+
+	lifecycle.add(wf_lifecycle);
+
+	var lifecycleValue = new AFInstanceArrayImpl(propertyLifecycle.getSchema(), lifecycle);
+	obj.tuning().getValues().put("wfLifeCycle", lifecycleValue);
+}]]></script>
+    </handler>
+    <handler name="Пример выполнения WF-процесса. Параметр 'Да'" id="Example_CompleteWF_True">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.wf.impl.WorkflowProcessServiceImpl);
+importClass(Packages.ru.intertrust.cmj.wf.api.ProcessUserTask);
+importClass(Packages.ru.intertrust.cmj.wf.api.TaskVariables);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogStandart");
+	dialogNameList.add("ExampleDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+		process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit_update")) {
+		process_refresh(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return process_exit(paramsResource, returnResource);
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Обновление объекта
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_refresh(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}
+
+/**
+ * Завершение обработки в случае ошибки
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_exit(paramsResource, returnResource) {
+	var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	returnResource.setResource(null);
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo_refresh(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit_update");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id"));
+	var ids = Utils.newArrayList();
+	ids.add(id);
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(id);
+
+	//Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+	var versionParts = version.split('$$');
+	var versionContext = versionParts[0];
+
+	var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+    if (versionContext != versionCurrent){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+	var message = appTNObject.composeDialog("ExampleDialogStandart", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", versionContext);
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+	returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка данных первого диалога сценария
+ * @param paramsResource
+ * @return ресурс
+ */
+function process_context(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+	var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("comment"));
+	var versionContext = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+	if (versionContext != versionCurrent){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+	}
+
+	if (obj.tuning().getValues().containsKey("wf") && obj.tuning().getValues().get("wf") != null) {
+
+		var wf = obj.tuning().getValues().get("wf");
+		var task_name = wf.getValues().get("task").getValue();
+
+		var wf_status = "-";
+		if (wf.getValues().containsKey("status")  && wf.getValues().get("status") != null ) {
+			wf_status = wf.getValues().get("status").getValue();
+		}
+
+		var wf_starttime = new AFDateTime(Calendar.getInstance());
+		if (wf.getValues().containsKey("actiontime")  && wf.getValues().get("actiontime") != null ) {
+		  wf_starttime = wf.getValues().get("actiontime").getValue();
+		} else if (wf.getValues().containsKey("starttime")  && wf.getValues().get("starttime") != null ){
+		  wf_starttime = wf.getValues().get("starttime").getValue();
+		}
+
+		// Получаем задачу
+		var taskId = wf.getValues().get("task_id").getValue();
+		var workflowProcessService = BeansUtils.getBean("workflowProcessServiceImpl");
+		var task = workflowProcessService.getTaskById(taskId);
+
+		// Должна быть только одна задача, завершаем ее, установив переменную
+		if (task != null){
+
+		    //Запускаем WF
+			task.getTaskVariables().put(task_name + "Result", true);
+			var ProcessActionResult = workflowProcessService.completeUserTask(task);
+			if (ProcessActionResult.hasError()) {
+				rollbackWF(appdp, ids.get(0), obj);
+				var exception = ProcessActionResult.getException();
+				var stacktrace = ExceptionUtils.getStackTrace(exception);
+				throw new RuntimeException("Не удалось продолжить процесс. Обратитесь к администратору. Ошибка: " + stacktrace);
+			}
+
+			obj = appdp.getEntityByUNID(ids.get(0));
+
+			//запись в Жизненный цикл
+			var currentUser = AFSession.get().currentUser().getBeard();
+			var executors = wf.getValues().get("assignee").getValues();
+			var executor = executors.get(0).getValue();
+			var startDate = wf_starttime;
+			var endDate = new AFDateTime(Calendar.getInstance());
+			var result = "Исполнено";
+			var information = comment;
+
+			setLifeCycle(obj, startDate, endDate, wf_status, executor, currentUser, result, information);
+
+            var time = new AFDateTime(Calendar.getInstance());
+	        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "wf.actiontime",time);
+
+			try {
+	             obj.save();
+	        } catch (e) {
+		        var resultMessage = "При сохранении произошел конфликт, сохранение изменений невозможно.\nБудет переоткрыт в актуальном состоянии."
+		        process_dlginfo(ids,resultMessage,returnResource);
+	            return returnResource.resource;
+	        }
+
+			obj = appdp.getEntityByUNID(ids.get(0));
+			var res = RkkResource.valueOf(obj);
+			returnResource.setResource(res);
+		} else {
+			throw new RuntimeException("Не найдена задача. Обратитесь к администратору. Идентификатор: " + taskId);
+		}
+	} else {
+		throw new RuntimeException("Не запущен процесс согласования. Обратитесь к администратору. Идентификатор: " + ids.get(0));
+	}
+}
+
+/**
+ * Откатить статусное состояние WF
+ * @obj объект
+ * id идентификатор объекта
+ * @appdp приложение
+ */
+function rollbackWF(appdp, id, obj){
+	var document = appdp.getEntityByUNID(id);
+
+	var wf = obj.tuning().getValues().get("wf");
+
+	var assignee = null;
+	var task = "";
+	var status = wf.getValues().get("status").getValue();
+	var stage = "";
+	var duration = null;
+	var starttime = null;
+	var finishtime = null;
+
+	if (wf.getValues().get("assignee") != null) {
+		assignee = wf.getValues().get("assignee").getValues();
+		task = wf.getValues().get("task").getValue();
+		stage = wf.getValues().get("stage").getValue();
+		duration = wf.getValues().get("duration").getValue();
+		starttime = wf.getValues().get("starttime").getValue();
+		if (wf.getValues().get("finishtime") != null) {
+			finishtime = wf.getValues().get("finishtime").getValue();
+		}
+	}
+
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.assignee", assignee);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.task", task);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.status", status);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.stage", stage);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.duration", duration);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.starttime", starttime);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.finishtime", finishtime);
+
+	document.save();
+}
+
+/**
+ * Запись в Жизненный цикл
+ * @obj объект
+ * @startDate дата начала действия
+ * @endDate дата окончания действия
+ * @action действие
+ * @assignee исполнитель
+ * @currentUser пользователь, выполнивший действие
+ * @result Результат
+ * @information Доп. информация
+ */
+function setLifeCycle(obj, startDate, endDate, action, assignee, currentUser, result, information) {
+
+	var propertyLifecycle = obj.tuning().getSchema().getProperty("wfLifeCycle");
+	var lifecycle = null;
+
+	if (obj.tuning().getValues().containsKey("wfLifeCycle") && obj.tuning().getValues().get("wfLifeCycle") != null) {
+		lifecycle = obj.tuning().getValues().get("wfLifeCycle").getValues();
+	} else {
+		lifecycle = Utils.newArrayList();
+	}
+
+	var propertyStartDate = propertyLifecycle.getSchema().getProperty("lifecycle_start_date");
+	var propertyDate = propertyLifecycle.getSchema().getProperty("lifecycle_date");
+	var propertyAction = propertyLifecycle.getSchema().getProperty("lifecycle_action");
+	var propertyAssignee = propertyLifecycle.getSchema().getProperty("lifecycle_assignee");
+	var propertyCurrentUser = propertyLifecycle.getSchema().getProperty("lifecycle_current_user");
+	var propertyResult = propertyLifecycle.getSchema().getProperty("lifecycle_result");
+	var propertyInformation = propertyLifecycle.getSchema().getProperty("lifecycle_information");
+
+	var startDateValue = TuningHelper.createPropertyValue(startDate, propertyStartDate);
+	var endDateValue = TuningHelper.createPropertyValue(endDate, propertyDate);
+	var actionValue = TuningHelper.createPropertyValue(action, propertyAction);
+	var currentUserValue = TuningHelper.createPropertyValue(currentUser, propertyCurrentUser);
+	var assigneeValue = TuningHelper.createPropertyValue(assignee, propertyAssignee);
+	var resultValue = TuningHelper.createPropertyValue(result, propertyResult);
+	var informationValue = TuningHelper.createPropertyValue(information, propertyInformation);
+
+	var wf_lifecycle = new AFInstanceObjectImpl(propertyLifecycle.getSchema());
+	wf_lifecycle.getValues().put("lifecycle_start_date", startDateValue);
+	wf_lifecycle.getValues().put("lifecycle_date", endDateValue);
+	wf_lifecycle.getValues().put("lifecycle_action", actionValue);
+	wf_lifecycle.getValues().put("lifecycle_assignee", assigneeValue);
+	wf_lifecycle.getValues().put("lifecycle_current_user", currentUserValue);
+	wf_lifecycle.getValues().put("lifecycle_result", resultValue);
+	wf_lifecycle.getValues().put("lifecycle_information", informationValue);
+
+	lifecycle.add(wf_lifecycle);
+
+	var lifecycleValue = new AFInstanceArrayImpl(propertyLifecycle.getSchema(), lifecycle);
+	obj.tuning().getValues().put("wfLifeCycle", lifecycleValue);
+}]]></script>
+    </handler>
+    <handler name="Пример выполнения WF-процесса. Параметр 'Нет'" id="Example_CompleteWF_False">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.wf.impl.WorkflowProcessServiceImpl);
+importClass(Packages.ru.intertrust.cmj.wf.api.ProcessUserTask);
+importClass(Packages.ru.intertrust.cmj.wf.api.TaskVariables);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogStandart");
+	dialogNameList.add("ExampleDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+		process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit_update")) {
+		process_refresh(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return process_exit(paramsResource, returnResource);
+	}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Обновление объекта
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_refresh(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}
+
+/**
+ * Завершение обработки в случае ошибки
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_exit(paramsResource, returnResource) {
+	var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	returnResource.setResource(null);
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo_refresh(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit_update");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id"));
+	var ids = Utils.newArrayList();
+	ids.add(id);
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(id);
+
+	//Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+	var versionParts = version.split('$$');
+	var versionContext = versionParts[0];
+
+	var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+    if (versionContext != versionCurrent){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+	var message = appTNObject.composeDialog("ExampleDialogStandart", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", versionContext);
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+	returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка данных первого диалога сценария
+ * @param paramsResource
+ * @return ресурс
+ */
+function process_context(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+	var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("comment"));
+	var versionContext = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+	if (versionContext != versionCurrent){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+	}
+
+	if (obj.tuning().getValues().containsKey("wf") && obj.tuning().getValues().get("wf") != null) {
+
+		var wf = obj.tuning().getValues().get("wf");
+		var task_name = wf.getValues().get("task").getValue();
+
+		var wf_status = "-";
+		if (wf.getValues().containsKey("status")  && wf.getValues().get("status") != null ) {
+			wf_status = wf.getValues().get("status").getValue();
+		}
+
+		var wf_starttime = new AFDateTime(Calendar.getInstance());
+		if (wf.getValues().containsKey("actiontime")  && wf.getValues().get("actiontime") != null ) {
+		  wf_starttime = wf.getValues().get("actiontime").getValue();
+		} else if (wf.getValues().containsKey("starttime")  && wf.getValues().get("starttime") != null ){
+		  wf_starttime = wf.getValues().get("starttime").getValue();
+		}
+
+		// Получаем задачу
+		var taskId = wf.getValues().get("task_id").getValue();
+		var workflowProcessService = BeansUtils.getBean("workflowProcessServiceImpl");
+		var task = workflowProcessService.getTaskById(taskId);
+
+		// Должна быть только одна задача, завершаем ее, установив переменную
+		if (task != null){
+
+		    //Запускаем WF
+			task.getTaskVariables().put(task_name + "Result", false);
+			var ProcessActionResult = workflowProcessService.completeUserTask(task);
+			if (ProcessActionResult.hasError()) {
+				rollbackWF(appdp, ids.get(0), obj);
+				var exception = ProcessActionResult.getException();
+				var stacktrace = ExceptionUtils.getStackTrace(exception);
+				throw new RuntimeException("Не удалось продолжить процесс. Обратитесь к администратору. Ошибка: " + stacktrace);
+			}
+
+			obj = appdp.getEntityByUNID(ids.get(0));
+
+			//запись в Жизненный цикл
+			var currentUser = AFSession.get().currentUser().getBeard();
+			var executors = wf.getValues().get("assignee").getValues();
+			var executor = executors.get(0).getValue();
+			var startDate = wf_starttime;
+			var endDate = new AFDateTime(Calendar.getInstance());
+			var result = "Не исполнено";
+			var information = comment;
+
+			setLifeCycle(obj, startDate, endDate, wf_status, executor, currentUser, result, information);
+
+            var time = new AFDateTime(Calendar.getInstance());
+	        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "wf.actiontime",time);
+
+			try {
+	             obj.save();
+	        } catch (e) {
+		        var resultMessage = "При сохранении произошел конфликт, сохранение изменений невозможно.\nБудет переоткрыт в актуальном состоянии."
+		        process_dlginfo(ids,resultMessage,returnResource);
+	            return returnResource.resource;
+	        }
+
+			obj = appdp.getEntityByUNID(ids.get(0));
+			var res = RkkResource.valueOf(obj);
+			returnResource.setResource(res);
+		} else {
+			throw new RuntimeException("Не найдена задача. Обратитесь к администратору. Идентификатор: " + taskId);
+		}
+	} else {
+		throw new RuntimeException("Не запущен процесс согласования. Обратитесь к администратору. Идентификатор: " + ids.get(0));
+	}
+}
+
+/**
+ * Откатить статусное состояние WF
+ * @obj объект
+ * id идентификатор объекта
+ * @appdp приложение
+ */
+function rollbackWF(appdp, id, obj){
+	var document = appdp.getEntityByUNID(id);
+
+	var wf = obj.tuning().getValues().get("wf");
+
+	var assignee = null;
+	var task = "";
+	var status = wf.getValues().get("status").getValue();
+	var stage = "";
+	var duration = null;
+	var starttime = null;
+	var finishtime = null;
+
+	if (wf.getValues().get("assignee") != null) {
+		assignee = wf.getValues().get("assignee").getValues();
+		task = wf.getValues().get("task").getValue();
+		stage = wf.getValues().get("stage").getValue();
+		duration = wf.getValues().get("duration").getValue();
+		starttime = wf.getValues().get("starttime").getValue();
+		if (wf.getValues().get("finishtime") != null) {
+			finishtime = wf.getValues().get("finishtime").getValue();
+		}
+	}
+
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.assignee", assignee);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.task", task);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.status", status);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.stage", stage);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.duration", duration);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.starttime", starttime);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.finishtime", finishtime);
+
+	document.save();
+}
+
+/**
+ * Запись в Жизненный цикл
+ * @obj объект
+ * @startDate дата начала действия
+ * @endDate дата окончания действия
+ * @action действие
+ * @assignee исполнитель
+ * @currentUser пользователь, выполнивший действие
+ * @result Результат
+ * @information Доп. информация
+ */
+function setLifeCycle(obj, startDate, endDate, action, assignee, currentUser, result, information) {
+
+	var propertyLifecycle = obj.tuning().getSchema().getProperty("wfLifeCycle");
+	var lifecycle = null;
+
+	if (obj.tuning().getValues().containsKey("wfLifeCycle") && obj.tuning().getValues().get("wfLifeCycle") != null) {
+		lifecycle = obj.tuning().getValues().get("wfLifeCycle").getValues();
+	} else {
+		lifecycle = Utils.newArrayList();
+	}
+
+	var propertyStartDate = propertyLifecycle.getSchema().getProperty("lifecycle_start_date");
+	var propertyDate = propertyLifecycle.getSchema().getProperty("lifecycle_date");
+	var propertyAction = propertyLifecycle.getSchema().getProperty("lifecycle_action");
+	var propertyAssignee = propertyLifecycle.getSchema().getProperty("lifecycle_assignee");
+	var propertyCurrentUser = propertyLifecycle.getSchema().getProperty("lifecycle_current_user");
+	var propertyResult = propertyLifecycle.getSchema().getProperty("lifecycle_result");
+	var propertyInformation = propertyLifecycle.getSchema().getProperty("lifecycle_information");
+
+	var startDateValue = TuningHelper.createPropertyValue(startDate, propertyStartDate);
+	var endDateValue = TuningHelper.createPropertyValue(endDate, propertyDate);
+	var actionValue = TuningHelper.createPropertyValue(action, propertyAction);
+	var currentUserValue = TuningHelper.createPropertyValue(currentUser, propertyCurrentUser);
+	var assigneeValue = TuningHelper.createPropertyValue(assignee, propertyAssignee);
+	var resultValue = TuningHelper.createPropertyValue(result, propertyResult);
+	var informationValue = TuningHelper.createPropertyValue(information, propertyInformation);
+
+	var wf_lifecycle = new AFInstanceObjectImpl(propertyLifecycle.getSchema());
+	wf_lifecycle.getValues().put("lifecycle_start_date", startDateValue);
+	wf_lifecycle.getValues().put("lifecycle_date", endDateValue);
+	wf_lifecycle.getValues().put("lifecycle_action", actionValue);
+	wf_lifecycle.getValues().put("lifecycle_assignee", assigneeValue);
+	wf_lifecycle.getValues().put("lifecycle_current_user", currentUserValue);
+	wf_lifecycle.getValues().put("lifecycle_result", resultValue);
+	wf_lifecycle.getValues().put("lifecycle_information", informationValue);
+
+	lifecycle.add(wf_lifecycle);
+
+	var lifecycleValue = new AFInstanceArrayImpl(propertyLifecycle.getSchema(), lifecycle);
+	obj.tuning().getValues().put("wfLifeCycle", lifecycleValue);
+}]]></script>
+    </handler>
+    <handler name="Пример прекращения WF-процесса" id="Example_StopWF">
+        <meta>
+            <category name="Разработка и Аналитика"/>
+            <documentation>Данный обработчик событий предназначен для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.wf.impl.WorkflowProcessServiceImpl);
+importClass(Packages.ru.intertrust.cmj.wf.api.ProcessUserTask);
+importClass(Packages.ru.intertrust.cmj.wf.api.TaskVariables);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang3.exception.ExceptionUtils);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+	var dialogNameList = new ArrayList();
+	dialogNameList.add("ClientContextRequest");
+	dialogNameList.add("ExampleDialogStandart");
+	dialogNameList.add("ExampleDialogInfo");
+
+	paramPackageId = "";
+	paramSchemaName = paramsResource.tuning().getSchema().getName();
+	if (dialogNameList.contains(paramSchemaName)) {
+		paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	} else {
+		paramPackageId = "contextWithResource";
+	}
+
+	if (paramPackageId.equals("context")) {
+		createContextResourceRequest(returnResource);
+	} else if (paramPackageId.equals("contextWithResource")) {
+		process_dialog(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit_update")) {
+		process_refresh(paramsResource, returnResource);
+	} else if (paramPackageId.equals("exit")) {
+		return process_exit(paramsResource, returnResource);
+	}
+
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Обновление объекта
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_refresh(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}
+
+/**
+ * Завершение обработки в случае ошибки
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_exit(paramsResource, returnResource) {
+	var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	returnResource.setResource(null);
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo_refresh(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit_update");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Диалог Информации c обновлением документа
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("ExampleDialogInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Обработка контекста
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog(paramsResource, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id"));
+	var ids = Utils.newArrayList();
+	ids.add(id);
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var version = paramsResource.getVersion();
+	var versionParts = version.split('$$');
+	var versionContext = versionParts[0];
+
+	var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+    if (versionContext != versionCurrent){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+    }
+
+	var message = appTNObject.composeDialog("ExampleDialogStandart", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", versionContext);
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+	returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка к
+ * @param paramsResource
+ * @return ресурс
+ */
+function process_context(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+	var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("comment"));
+	var versionContext = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext"));
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var versionCurrent = '';
+	try {
+	   versionCurrent = obj.getVersionStamp().toString();
+	} catch (e) {
+	   versionCurrent = versionContext;
+	}
+
+	if (versionContext != versionCurrent){
+        process_dlginfo(ids,"Данная версия объекта/документа была изменена. Требуется обновить!",returnResource);
+        return returnResource.resource;
+	}
+
+	// Необходимо выдать исключение, если объект удален или прекращен в WD
+    if ("Webdocs2.0".equals(AFSession.get().currentUser().extendedAttributes().get("ClientAlias"))) {
+        var isTerminate = obj.tuning().getValues().get("wf") == null ? false : obj.tuning().getValues().get("wf").getValues().get("stage") == null ? false : obj.tuning().getValues().get("wf").getValues().get("stage").getValue().equals("Прекращена") ? true : false;
+        if (obj.isDeleted() || isTerminate) {
+			 process_dlginfo(ids,"Документ был удален обратитесь к администратору",returnResource);
+			 return returnResource.resource;
+        }
+    }
+
+	if (obj.tuning().getValues().containsKey("wf") && obj.tuning().getValues().get("wf") != null) {
+
+		var wf = obj.tuning().getValues().get("wf");
+		var task_name = wf.getValues().get("task").getValue();
+
+		var wf_status = "-";
+		if (wf.getValues().containsKey("status")  && wf.getValues().get("status") != null ) {
+			wf_status = wf.getValues().get("status").getValue();
+		}
+
+		var wf_starttime = new AFDateTime(Calendar.getInstance());
+		if (wf.getValues().containsKey("actiontime")  && wf.getValues().get("actiontime") != null ) {
+		  wf_starttime = wf.getValues().get("actiontime").getValue();
+		} else if (wf.getValues().containsKey("starttime")  && wf.getValues().get("starttime") != null ){
+		  wf_starttime = wf.getValues().get("starttime").getValue();
+		}
+
+		// Получаем задачу
+		var taskId = wf.getValues().get("task_id").getValue();
+		var workflowProcessService = BeansUtils.getBean("workflowProcessServiceImpl");
+		var task = workflowProcessService.getTaskById(taskId);
+
+
+        var workflowProcessName = null;
+        if (obj.tuning().getValues().get("exampleWFName") != null && obj.tuning().getValues().get("exampleWFName").getValue() != null){
+            workflowProcessName = obj.tuning().getValues().get("exampleWFName").getValue();
+        }
+
+        if (workflowProcessName == null){
+            process_dlginfo(ids,"Для прекращения процесса требуется указать схему процесса",returnResource);
+            return returnResource.resource;
+        }
+
+		// Должна быть только одна задача, завершаем ее, установив переменную
+		if (task != null){
+
+		    var workflowProcessService = BeansUtils.getBean("workflowProcessServiceImpl");
+		    workflowProcessService.sendProcessMessage(workflowProcessName, "END_PROCESS", ids.get(0), null);
+
+			obj = appdp.getEntityByUNID(ids.get(0));
+
+			//запись в Жизненный цикл
+			var currentUser = AFSession.get().currentUser().getBeard();
+			var executors = wf.getValues().get("assignee").getValues();
+			var executor = executors.get(0).getValue();
+			var startDate = wf_starttime;
+			var endDate = new AFDateTime(Calendar.getInstance());
+			var result = "Прекращена";
+			var information = comment;
+
+			setLifeCycle(obj, startDate, endDate, wf_status, executor, currentUser, result, information);
+
+            var time = new AFDateTime(Calendar.getInstance());
+	        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "wf.actiontime",time);
+
+			try {
+	             obj.save();
+	        } catch (e) {
+		        var resultMessage = "При сохранении произошел конфликт, сохранение изменений невозможно.\nБудет переоткрыт в актуальном состоянии."
+		        process_dlginfo_refresh(ids,resultMessage,returnResource);
+	            return returnResource.resource;
+	        }
+
+			obj = appdp.getEntityByUNID(ids.get(0));
+			var res = RkkResource.valueOf(obj);
+			returnResource.setResource(res);
+		} else {
+			throw new RuntimeException("Не найдена задача. Обратитесь к администратору. Идентификатор: " + taskId);
+		}
+	} else {
+		throw new RuntimeException("Не запущен процесс согласования. Обратитесь к администратору. Идентификатор: " + ids.get(0));
+	}
+}
+
+/**
+ * Откатить статусное состояние WF
+ * @obj объект
+ * id идентификатор объекта
+ * @appdp приложение
+ */
+function rollbackWF(appdp, id, obj){
+	var document = appdp.getEntityByUNID(id);
+
+	var wf = obj.tuning().getValues().get("wf");
+
+	var assignee = null;
+	var task = "";
+	var status = wf.getValues().get("status").getValue();
+	var stage = "";
+	var duration = null;
+	var starttime = null;
+	var finishtime = null;
+
+	if (wf.getValues().get("assignee") != null) {
+		assignee = wf.getValues().get("assignee").getValues();
+		task = wf.getValues().get("task").getValue();
+		stage = wf.getValues().get("stage").getValue();
+		duration = wf.getValues().get("duration").getValue();
+		starttime = wf.getValues().get("starttime").getValue();
+		if (wf.getValues().get("finishtime") != null) {
+			finishtime = wf.getValues().get("finishtime").getValue();
+		}
+	}
+
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.assignee", assignee);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.task", task);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.status", status);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.stage", stage);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.duration", duration);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.starttime", starttime);
+	TunableObjectHelper.putAFInstanceValue(document.tuning(), "wf.finishtime", finishtime);
+
+	document.save();
+}
+
+/**
+ * Запись в Жизненный цикл
+ * @obj объект
+ * @startDate дата начала действия
+ * @endDate дата окончания действия
+ * @action действие
+ * @assignee исполнитель
+ * @currentUser пользователь, выполнивший действие
+ * @result Результат
+ * @information Доп. информация
+ */
+function setLifeCycle(obj, startDate, endDate, action, assignee, currentUser, result, information) {
+
+	var propertyLifecycle = obj.tuning().getSchema().getProperty("wfLifeCycle");
+	var lifecycle = null;
+
+	if (obj.tuning().getValues().containsKey("wfLifeCycle") && obj.tuning().getValues().get("wfLifeCycle") != null) {
+		lifecycle = obj.tuning().getValues().get("wfLifeCycle").getValues();
+	} else {
+		lifecycle = Utils.newArrayList();
+	}
+
+	var propertyStartDate = propertyLifecycle.getSchema().getProperty("lifecycle_start_date");
+	var propertyDate = propertyLifecycle.getSchema().getProperty("lifecycle_date");
+	var propertyAction = propertyLifecycle.getSchema().getProperty("lifecycle_action");
+	var propertyAssignee = propertyLifecycle.getSchema().getProperty("lifecycle_assignee");
+	var propertyCurrentUser = propertyLifecycle.getSchema().getProperty("lifecycle_current_user");
+	var propertyResult = propertyLifecycle.getSchema().getProperty("lifecycle_result");
+	var propertyInformation = propertyLifecycle.getSchema().getProperty("lifecycle_information");
+
+	var startDateValue = TuningHelper.createPropertyValue(startDate, propertyStartDate);
+	var endDateValue = TuningHelper.createPropertyValue(endDate, propertyDate);
+	var actionValue = TuningHelper.createPropertyValue(action, propertyAction);
+	var currentUserValue = TuningHelper.createPropertyValue(currentUser, propertyCurrentUser);
+	var assigneeValue = TuningHelper.createPropertyValue(assignee, propertyAssignee);
+	var resultValue = TuningHelper.createPropertyValue(result, propertyResult);
+	var informationValue = TuningHelper.createPropertyValue(information, propertyInformation);
+
+	var wf_lifecycle = new AFInstanceObjectImpl(propertyLifecycle.getSchema());
+	wf_lifecycle.getValues().put("lifecycle_start_date", startDateValue);
+	wf_lifecycle.getValues().put("lifecycle_date", endDateValue);
+	wf_lifecycle.getValues().put("lifecycle_action", actionValue);
+	wf_lifecycle.getValues().put("lifecycle_assignee", assigneeValue);
+	wf_lifecycle.getValues().put("lifecycle_current_user", currentUserValue);
+	wf_lifecycle.getValues().put("lifecycle_result", resultValue);
+	wf_lifecycle.getValues().put("lifecycle_information", informationValue);
+
+	lifecycle.add(wf_lifecycle);
+
+	var lifecycleValue = new AFInstanceArrayImpl(propertyLifecycle.getSchema(), lifecycle);
+	obj.tuning().getValues().put("wfLifeCycle", lifecycleValue);
+}]]></script>
+    </handler>
+</ui>

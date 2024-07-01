@@ -1,0 +1,796 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <handler id="regCopyes" name="Зарегистрированные копии">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+
+importClass(Packages.ru.intertrust.cmj.af.core.AFObject);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPMAdvInput);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.rest.misc.PermitHelper);
+importClass(Packages.ru.intertrust.cmj.rest.bf.BFHelper);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.CopyRkkAction);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.fdnd.FDSharedToolsD);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+
+importClass(Packages.java.lang.System);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	if (paramPackageId.equals("context")) {
+		process_context(paramsResource, returnResource);
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var message = appTNObject.composeDialog("CreateCopyRegDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message, "count", "");
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer1");
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	var resource = TunableObjectREST.Resource.create(message);
+	//ссылка на следующий обработчик
+	resource.link.add(new ResourceLink(OperationJScriptREST.OperationReference.REL, new OperationJScriptREST.OperationReference("regCopyesAsync")));
+	returnResource.resource = resource;
+}
+
+	]]></script>
+    </handler>
+    <async-handler name="Зарегистрированные копииAsync" id="regCopyesAsync">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+
+importClass(Packages.ru.intertrust.cmj.af.core.AFObject);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPMAdvInput);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.rest.misc.PermitHelper);
+importClass(Packages.ru.intertrust.cmj.rest.bf.BFHelper);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.CopyRkkAction);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.fdnd.FDSharedToolsD);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.processes.service.MonitorProcessingService);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.processes.service.MonitorProcessingServiceImpl);
+importClass(Packages.ru.intertrust.cmj.tunable.object.processes.IProcessMonitor);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+
+importClass(Packages.java.lang.System);
+
+function processAsync(monitorId) {
+	var monitorService = MonitorProcessingServiceImpl.get();
+	var paramsResource = monitorService.getData(monitorId);
+    process_dialog1(monitorId);
+}
+
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog1(monitorId) {
+	var monitorService = MonitorProcessingServiceImpl.get();
+	var paramsResource = monitorService.getData(monitorId);
+
+	/////////////////////
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = paramsResource.tuning().getValues().get("selectIds").getValues().get(0).getValue();
+	var newids = new ArrayList();
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+    var count = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("count"));
+	var service = BeansUtils.getBean("BarcodeGenerationService");
+	var user = AFSession.get().currentUser().getBeard();
+	var source = BFHelper.get(id);
+	var barcode = "";
+    for (var i = 0; i < count; i++) {
+		barcode = "";
+		var rkk = source.composeRKKAsCopy().getRKK();
+		source.copyTo(rkk);
+		rkk.content().getFileItems().clear();
+        rkk.content().setRichText(null);
+		rkk.content().specification().setExemplarsCount("");
+		rkk.content().specification().setExemplarsPagesCount("");
+		rkk.content().specification().setAppendixesCount("");
+		rkk.content().specification().setAppendixesPagesCount("");
+		rkk.setSecurityStamp(source.getSecurityStamp());
+		TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "barCode", "")
+		rkk.setLinkAccessDisabled(source.isLinkAccessDisabled());
+	    rkk.control().setControlled(source.control().isControlled());
+        rkk.control().setControllersExt(source.control().getControllers());
+        rkk.control().setDeadline(source.control().getDeadline());
+        rkk.control().setDeadlineExt(source.control().getDeadline());
+        rkk.control().setExecutionExt(source.control().execution());
+		rkk.registration().saveWithRegistration();
+
+		var document = AFCMDomino.getDocByUNID(rkk.getUNID());
+		barcode = service.generate(document, user);
+		document.replaceItemValue("barCode", barcode);
+        // специальный костыль для сохранения несистемного поля "barCode" ----
+		var vector = document.getItemValue("$TNLN_Fields"); //Vector<String>
+        vector.add("barCode");
+        AFCMDomino.replaceItemValue(document, "$TNLN_Fields", vector);
+        // -----
+		AFCMDomino.saveDoc(document);
+		//TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "barCode", barcode);
+		//rkk.save();
+		newids.add(rkk.getUNID())
+		monitorService.updateProgress(monitorId, count, i+1);   //актуализируем прогресс для пользователя
+	}
+	////////////////////////
+	//новый диалог с вопросом о штрихкодах
+	var message = appTNObject.composeDialog("CreateCopyBarcodeDialog", null, null, null); //AnyTunableObject
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "messageText", "Распечатать штрихкоды для созданных документов?");
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", newids);
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer2");
+
+	var resource = TunableObjectREST.Resource.create(message);
+	//ссылка на следующий обработчик. Он будет уже синхронный для того, чтобы запустить процесс печати отчёта
+	resource.link.add(new ResourceLink(OperationJScriptREST.OperationReference.REL, new OperationJScriptREST.OperationReference("regCopyesPrintReport", monitorId)));
+
+	var params = new HashMap(); //Map<String, String>
+    params.put("ids", id);
+	monitorService.updateByHandler(monitorId, IProcessMonitor.Command.SHOW_DIALOG, "Входящие РКК созданы и зарегистрированы", resource, params);
+
+}
+
+function rollback(monitorId) {
+
+}
+]]></script>
+    </async-handler>
+    <handler name="Зарегистрированные копии. Печать отчёта" id="regCopyesPrintReport">
+        <script lang="JavaScript"><![CDATA[
+ importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.processes.service.MonitorProcessingService);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.processes.service.MonitorProcessingServiceImpl);
+importClass(Packages.ru.intertrust.cmj.tunable.object.processes.IProcessMonitor);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationResource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationListResource);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.TypifiedObject);
+importClass(Packages.ru.intertrust.cmj.af.json.DateOnly);
+importPackage(Packages.java.io);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.StartResource);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.ReportResource);
+importClass(Packages.ru.intertrust.cmj.reporter.Reporter);
+
+
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    //var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var monitorId = paramsResource.tuning().getValues().get("monitorId").getValue();
+
+	var boolValue = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("boolValue"));
+	var boolValue2 = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("boolValue2"));
+    if (boolValue) {
+		runPrintReportAndFinish(monitorId, returnResource, paramsResource);
+    } else if(boolValue2) {
+        var monitorService = MonitorProcessingServiceImpl.get();
+        finishProcess(monitorId, monitorService);
+		returnResource.setResource(null);
+    }
+}
+
+
+function runPrintReportAndFinish(monitorId, returnResource, paramsResource) {
+	var monitorService = MonitorProcessingServiceImpl.get();
+	var params = monitorService.getParams(monitorId);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+	var map;
+	map = null;
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+	var reportName = getReportNameByDescription("barcode-print-form");
+	var replica = getReportReplicaByDescription("barcode-print-form");
+	var result = printRegistry(reportName, replica, ids, map);
+	returnResource.setResource(result);
+
+	finishProcess(monitorId, monitorService);
+}
+
+
+function finishProcess(monitorId, monitorService) {
+	monitorService.markFinished(monitorId);
+	monitorService.sendToClient(monitorId);
+    monitorService.markDeleted(monitorId);
+}
+
+// Вспомогательный: получение информации об отчете
+function getReportNameByDescription(description) {
+    var query = "select t.name  from report_template t where t.name = '" + description + "'";
+    var cs = BeansUtils.getBean("collectionsService");
+    var coll = cs.findCollectionByQuery(query);
+    if (coll.size() > 0) {
+        if (coll.size() > 1) throw "Найдено больше одного шаблона отчета с именем " + description;
+        return coll.get(0).getString("name");
+    } else {
+		throw "Не найдено шаблонов отчета для " + description;
+	}
+}
+
+
+// Вспомогательный: получение информации об ЦО
+function getReportReplicaByDescription(description) {
+    var query = "select module.replica, module.id_type || '0000000000' || module.id as replica2 " +
+	"from report_template templ " +
+	"left join qr_report report on report.template = templ.id " +
+	"left join ss_module module on module.id = report.module " +
+	"where templ.name = '" + description + "'";
+    var cs = BeansUtils.getBean("collectionsService");
+    var coll = cs.findCollectionByQuery(query);
+    if (coll.size() > 0) {
+		if (coll.get(0).getString("replica") != null && !"".equals(coll.get(0).getString("replica"))) {
+			return coll.get(0).getString("replica");
+		} else {
+			return "1015000000000047";
+		}
+    } else {
+		throw "Не удалось получить реплику бд Центра отчетов";
+	}
+}
+
+
+// Шаг: Последний: Метод печати
+function printRegistry(reportName, replica, ids, map) {
+	//var monitorService = MonitorProcessingServiceImpl.get();
+	//monitorService.updateProgress(monitorId, 100, 100);   //актуализируем прогресс для пользователя
+
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkkListLink;
+	if (map == null) {
+		var rkkReference = new RkkReference(appdp.getEntityByUNID(ids[0]));
+		var resLink = new ResourceLink(rkkReference);
+		rkkListLink = new ArrayList();
+		rkkListLink.add(resLink);
+		//если выбрано несколько документов
+		if(ids.size() > 1) {
+			 for (var i = 0; i < ids.size(); i++)
+			{
+				var rkk = appdp.getEntityByUNID(ids.get(i));
+				var rkkRef = new RkkReference(rkk);
+				var rl = new ResourceLink(rkkRef);
+				rkkListLink.add(rl);
+			}
+		}
+		//в параметрах указываем,
+		//что нужна сортировка по рег.номеру
+		map = new HashMap();
+		map.put("order_by_regnumber", new TypifiedObject(true));
+	} else {
+		rkkListLink = null;
+	}
+
+    var body = new StartResource(map, rkkListLink, null, null);
+    var reporter = AFSession.get().getApplication(Reporter.class);
+    var report = reporter.getReport(reportName);
+    var reportResource = new ReportResource(report, replica);
+    var resourceLink = reportResource.link.get(0);
+    var operationUrl = new ResourceLink("http://intertrust.ru/cmj/relations#print.report", resourceLink.getHref(), resourceLink.getTitle());
+    //var operationResource = new OperationResource(body, operationUrl);
+    var operationResource = new OperationResource("print-report", body, operationUrl);
+    var operations = new ArrayList();
+    operations.add(operationResource);
+
+
+    return new OperationListResource(operations);
+}
+	]]></script>
+    </handler>
+    <handler name="Печать ПФ Штрихкод с доп. реквизитами с проверкой наличия штрихкода"
+             id="PrintExtendedBarcodeHandler">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        printBarcode(paramsResource, returnResource);
+    }
+}
+
+function printBarcode(paramsResource, returnResource) {
+    var tnObjectApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = tnObjectApp.getClientContextIds(paramsResource.tuning());
+    var singleSelect = ids.size() < 2;
+
+    var params = new HashMap();
+    params.put("selectIds", ids);
+    params.put("reportAlias", "barcode-extended-print-form");
+
+    var printBarcode = createTunableObject("PrintBarcode", params, tnObjectApp);
+
+    returnResource.setResource(createResource(printBarcode, singleSelect));
+}
+
+function createTunableObject(schemeName, values, tnObjectApp) {
+    var tuningApp = AFSession.get().getApplication(TuningApplication.class);
+    var schema = tuningApp.getSchemaByName(schemeName);
+
+    var tunableObject = tnObjectApp.composeTunableObject(schema);
+
+    if (values != null && !values.isEmpty()) {
+        var valuesIterator = values.entrySet().iterator();
+        while(valuesIterator.hasNext()){
+            var valueEntry = valuesIterator.next();
+            var key = valueEntry.getKey();
+            var value = valueEntry.getValue();
+            TunableObjectHelper.putAFInstanceValue(tunableObject.tuning(), key, value);
+        }
+    }
+
+    return tunableObject;
+}
+
+function createResource(tunableObject, singleSelect) {
+    var resource = TunableObjectREST.Resource.create(tunableObject);
+    var operationRef = new OperationJScriptREST.OperationReference(singleSelect ? "CheckBarcodeHandler" : "CheckBarcodeAsyncHandler");
+    var operationLink = new ResourceLink(OperationJScriptREST.OperationReference.REL, operationRef);
+    resource.link.add(operationLink);
+
+    return resource;
+}]]></script>
+    </handler>
+    <handler name="Печать ПФ Штрихкод с проверкой наличия штрихкода" id="PrintBarcodeHandler">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+     if (paramPackageId.equals("context")) { // обработка первого пакета данных с клиента
+            return printBarcode(paramsResource, returnResource);
+     }
+     return null;
+
+}
+
+function printBarcode(paramsResource, returnResource) {
+    var tnObjectApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = tnObjectApp.getClientContextIds(paramsResource.tuning());
+    var singleSelect = ids.size() < 2;
+
+    var params = new HashMap();
+    params.put("selectIds", ids);
+    params.put("reportAlias", "barcode-print-form");
+
+    var printBarcode = createTunableObject("PrintBarcode", params, tnObjectApp);
+
+    returnResource.setResource(createResource(printBarcode, singleSelect));
+}
+
+function createTunableObject(schemeName, values, tnObjectApp) {
+    var tuningApp = AFSession.get().getApplication(TuningApplication.class);
+    var schema = tuningApp.getSchemaByName(schemeName);
+
+    var tunableObject = tnObjectApp.composeTunableObject(schema);
+
+    if (values != null && !values.isEmpty()) {
+        var valuesIterator = values.entrySet().iterator();
+        while(valuesIterator.hasNext()){
+            var valueEntry = valuesIterator.next();
+            var key = valueEntry.getKey();
+            var value = valueEntry.getValue();
+            TunableObjectHelper.putAFInstanceValue(tunableObject.tuning(), key, value);
+        }
+    }
+
+    return tunableObject;
+}
+
+function createResource(tunableObject, singleSelect) {
+    var resource = TunableObjectREST.Resource.create(tunableObject);
+    var operationRef = new OperationJScriptREST.OperationReference(singleSelect ? "CheckBarcodeHandler" : "CheckBarcodeAsyncHandler");
+    var operationLink = new ResourceLink(OperationJScriptREST.OperationReference.REL, operationRef);
+    resource.link.add(operationLink);
+
+    return resource;
+}]]></script>
+    </handler>
+
+    <handler name="Печать отчета или ПФ с проверкой наличия штрихкода" id="CheckBarcodeHandler">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    return checkBarcode(paramsResource, returnResource);
+}
+
+function checkBarcode(paramsResource, returnResource) {
+    var paramsValues = paramsResource.tuning().getValues();
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsValues.get("selectIds"));
+    var reportAlias = TunableObjectHelper.getAFInstanceValue(paramsValues.get("reportAlias"));
+    var singleSelect = ids.size() == 1;
+
+    var dpApp = AFSession.get().getApplication(DPApplication.class);
+    var tnObjectApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tuningApp = AFSession.get().getApplication(TuningApplication.class);
+
+    var selectIds = new ArrayList();
+    var rkkWithoutBarcode = new ArrayList();
+
+    for (var i = 0; i < ids.size(); i++) {
+        var id = ids.get(i);
+        var rkk = dpApp.getEntityByUNID(id);
+        var barcodeField = rkk.tuning().getValues().get("barCode");
+        var barcodeValue = barcodeField != null ? barcodeField.getValue() : null;
+        if (StringUtils.isBlank(barcodeValue)) {
+            var rkkNumber = null;
+            if (rkk.registration() != null) {
+                if (rkk.registration().getRegisteredInfo() != null &&
+                    rkk.registration().getRegisteredInfo().getNumber() != null) {
+                    rkkNumber = rkk.registration().getRegisteredInfo().getNumber().toString();
+                } else if (rkk.registration().getReservedNumber() != null) {
+                    rkkNumber = rkk.registration().getReservedNumber().toString();
+                }
+            } else if (rkk.projectNumber() != null) {
+                rkkNumber = rkk.projectNumber();
+            } else {
+                rkkNumber = id;
+            }
+            rkkWithoutBarcode.add(rkkNumber);
+        } else {
+            selectIds.add(id);
+        }
+    }
+
+    var params = new HashMap();
+    params.put("selectIds", ids);
+    params.put("reportAlias", "barcode-print-form");
+
+    var resource = null;
+    if (rkkWithoutBarcode.size() > 0) {
+        resource = showDialog(selectIds, rkkWithoutBarcode, reportAlias, tnObjectApp, tuningApp, singleSelect);
+    } else {
+        resource = operation(selectIds, reportAlias, tnObjectApp, tuningApp);
+    }
+
+    returnResource.setResource(resource);
+}
+
+function listToString(list, separator) {
+    var joiner = new StringJoiner(separator);
+    for (var i = 0; i < list.size(); i++) {
+        joiner.add(list.get(i));
+    }
+
+    return joiner.toString();
+}
+
+function showDialog(selectIds, rkkWithoutBarcode, reportAlias, tnObjectApp, tuningApp, singleSelect) {
+    var dialogMessageText = "";
+    if (singleSelect) {
+        dialogMessageText = "В электронной карточке не заполнено поле \"Штрихкод\". Штамп не будет сформирован.";
+    } else if (selectIds.size() > 0) {
+        dialogMessageText = "В электронных карточках " + listToString(rkkWithoutBarcode, ", ") +
+            " не заполнено поле \"Штрихкод\". Для этих карточек не будут сформированы штампы. Продолжить?";
+    } else {
+        dialogMessageText = "В выбранных электронных карточках не заполнено поле \"Штрихкод\". Штампы не будут сформированы.";
+    }
+    var messageDialog = tnObjectApp.composeDialog("DialogInfoCommon", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(messageDialog.tuning(), "message", dialogMessageText);
+    return TunableObjectREST.Resource.create(messageDialog);
+}
+
+function operation(selectIds, reportAlias, tnObjectApp, tuningApp) {
+    var params = new HashMap();
+    params.put("selectIds", selectIds);
+    params.put("reportAlias", reportAlias);
+    params.put("counter", "startOperation");
+
+    var printBarcode = createTunableObject("PrintBarcode", params, false, tnObjectApp, tuningApp);
+
+    return createResource(printBarcode);
+}
+
+function createTunableObject(schemeName, values, dialog, tnObjectApp, tuningApp) {
+    var tunableObject;
+    if (dialog) {
+        tunableObject = tnObjectApp.composeDialog(schemeName, null, null, null);
+    } else {
+        var schema = tuningApp.getSchemaByName(schemeName);
+        tunableObject = tnObjectApp.composeTunableObject(schema);
+    }
+
+    if (values != null && !values.isEmpty()) {
+        var valuesIterator = values.entrySet().iterator();
+        while (valuesIterator.hasNext()) {
+            var valueEntry = valuesIterator.next();
+            var key = valueEntry.getKey();
+            var value = valueEntry.getValue();
+            TunableObjectHelper.putAFInstanceValue(tunableObject.tuning(), key, value);
+        }
+    }
+
+    return tunableObject;
+}
+
+function createResource(tunableObject) {
+    var resource = TunableObjectREST.Resource.create(tunableObject);
+    var operationRef = new OperationJScriptREST.OperationReference("PrintReportHandler");
+    var operationLink = new ResourceLink(OperationJScriptREST.OperationReference.REL, operationRef);
+    resource.link.add(operationLink);
+
+    return resource;
+}]]></script>
+    </handler>
+    <async-handler name="Печать отчета или ПФ с проверкой наличия штрихкода (асинхронный)" id="CheckBarcodeAsyncHandler">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.processes.service.MonitorProcessingServiceImpl);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.processes.IProcessMonitor);
+
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+
+function processAsync(monitorId) {
+    checkBarcode(monitorId);
+}
+
+function rollback(monitorId) {
+
+}
+
+function checkBarcode(monitorId) {
+    var monitorService = MonitorProcessingServiceImpl.get();
+    var paramsResource = monitorService.getData(monitorId);
+    var paramsValues = paramsResource.tuning().getValues();
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsValues.get("selectIds"));
+    var reportAlias = TunableObjectHelper.getAFInstanceValue(paramsValues.get("reportAlias"));
+    var singleSelect = ids.size() == 1;
+
+    var dpApp = AFSession.get().getApplication(DPApplication.class);
+    var tnObjectApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tuningApp = AFSession.get().getApplication(TuningApplication.class);
+
+    var selectIds = new ArrayList();
+    var rkkWithoutBarcode = new ArrayList();
+
+    for (var i = 0; i < ids.size(); i++) {
+        var id = ids.get(i);
+        var rkk = dpApp.getEntityByUNID(id);
+        var barcodeField = rkk.tuning().getValues().get("barCode");
+        var barcodeValue = barcodeField != null ? barcodeField.getValue() : null;
+        if (StringUtils.isBlank(barcodeValue)) {
+            var rkkNumber = null;
+            if (rkk.registration() != null) {
+                if (rkk.registration().getRegisteredInfo() != null &&
+                    rkk.registration().getRegisteredInfo().getNumber() != null) {
+                    rkkNumber = rkk.registration().getRegisteredInfo().getNumber().toString();
+                } else if (rkk.registration().getReservedNumber() != null) {
+                    rkkNumber = rkk.registration().getReservedNumber().toString();
+                }
+            } else if (rkk.projectNumber() != null) {
+                rkkNumber = rkk.projectNumber();
+            } else {
+                rkkNumber = id;
+            }
+            rkkWithoutBarcode.add(rkkNumber);
+        } else {
+            selectIds.add(id);
+        }
+    }
+
+    if (rkkWithoutBarcode.size() > 0) {
+        showDialog(monitorService, monitorId, selectIds, rkkWithoutBarcode, reportAlias, tnObjectApp, tuningApp, singleSelect);
+    } else {
+        operation(monitorService, monitorId, selectIds, reportAlias, tnObjectApp, tuningApp);
+    }
+}
+
+function listToString(list, separator) {
+    var joiner = new StringJoiner(separator);
+    for (var i = 0; i < list.size(); i++) {
+        joiner.add(list.get(i));
+    }
+
+    return joiner.toString();
+}
+
+function showDialog(monitorService, monitorId, selectIds, rkkWithoutBarcode, reportAlias, tnObjectApp, tuningApp, singleSelect) {
+    var counter = "message";
+    var dialogMessageText = "";
+    if (singleSelect) {
+        dialogMessageText = "В электронной карточке не заполнено поле \"Штрихкод\". Штамп не будет сформирован.";
+    } else if (selectIds.size() > 0) {
+        counter = "answer";
+        dialogMessageText = "В электронных карточках " + listToString(rkkWithoutBarcode, ", ") +
+            " не заполнено поле \"Штрихкод\". Для этих карточек не будут сформированы штампы. Продолжить?";
+    } else {
+        dialogMessageText = "В выбранных электронных карточках не заполнено поле \"Штрихкод\". Штампы не будут сформированы.";
+    }
+
+    var params = new HashMap();
+    params.put("messageText", dialogMessageText);
+    params.put("selectIds", selectIds);
+    params.put("reportAlias", reportAlias);
+    params.put("counter", counter);
+
+    var printBarcodeDialog = createTunableObject("PrintBarcodeDialog", params, true, tnObjectApp, tuningApp);
+
+    runNextOperation(monitorService, monitorId, IProcessMonitor.Command.SHOW_DIALOG, printBarcodeDialog);
+}
+
+function operation(monitorService, monitorId, selectIds, reportAlias, tnObjectApp, tuningApp) {
+    var params = new HashMap();
+    params.put("selectIds", selectIds);
+    params.put("reportAlias", reportAlias);
+    params.put("counter", "startOperation");
+
+    var printBarcode = createTunableObject("PrintBarcode", params, false, tnObjectApp, tuningApp);
+
+    runNextOperation(monitorService, monitorId, IProcessMonitor.Command.OPERATION, printBarcode);
+}
+
+function runNextOperation(monitorService, monitorId, operation, tunableObj) {
+    var resource = TunableObjectREST.Resource.create(tunableObj);
+    var operationRef = new OperationJScriptREST.OperationReference("PrintReportHandler", monitorId);
+    var operationLink = new ResourceLink(OperationJScriptREST.OperationReference.REL, operationRef);
+    resource.link.add(operationLink);
+
+    monitorService.updateByHandler(monitorId, operation, "Проверка на наличие штрихкода выполнена", resource);
+}
+
+function createTunableObject(schemeName, values, dialog, tnObjectApp, tuningApp) {
+    var tunableObject;
+    if (dialog) {
+        tunableObject = tnObjectApp.composeDialog(schemeName, null, null, null);
+    } else {
+        var schema = tuningApp.getSchemaByName(schemeName);
+        tunableObject = tnObjectApp.composeTunableObject(schema);
+    }
+
+    if (values != null && !values.isEmpty()) {
+        var valuesIterator = values.entrySet().iterator();
+        while (valuesIterator.hasNext()) {
+            var valueEntry = valuesIterator.next();
+            var key = valueEntry.getKey();
+            var value = valueEntry.getValue();
+            TunableObjectHelper.putAFInstanceValue(tunableObject.tuning(), key, value);
+        }
+    }
+
+    return tunableObject;
+}]]></script>
+    </async-handler>
+</ui>

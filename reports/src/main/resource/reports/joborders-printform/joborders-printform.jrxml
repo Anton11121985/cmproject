@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="joborders-printform" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" uuid="ec5b3057-a313-4984-9fb7-c1884a4392fd">
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="207"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="784"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+    id,
+    created_date,
+    orderNumber,
+    orderDate,
+    consumerName,
+    documentLinkName,
+    documentLinkDeadLine,
+    signerName,
+    signerPost
+FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.module                                         AS Module,
+             to_char(rkk.regdate,'DD.MM.YYYY')                      AS orderDate,
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'consumer') as consumerName,
+			 (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_documentLink.name') as documentLinkName,
+			 to_char((select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.access_object_id = tfd.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_documentLink.deadline'),'DD.MM.YYYY') as documentLinkDeadLine,
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                     (SELECT array_to_string(array_agg(orig_shortname), ' ', '')
+                     FROM so_beard
+                         LEFT JOIN F_DP_Rkk_SigningInfo on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                     WHERE internalrkk.id = F_DP_Rkk_SigningInfo.owner)
+                 END AS signerName,
+ 		     CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_postname
+                 ELSE
+                     (SELECT array_to_string(array_agg(orig_postname), ' ', '')
+                     FROM so_beard
+                         LEFT JOIN F_DP_Rkk_SigningInfo on F_DP_Rkk_SigningInfo.signer = So_beard.id
+                     WHERE internalrkk.id = F_DP_Rkk_SigningInfo.owner)
+                 END AS signerPost,
+             coalesce(nullif(
+             coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, ''), ''),
+             concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin)) as orderNumber
+         FROM
+             f_dp_intrkk internalrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 LEFT JOIN So_BEARD signerName ON signerName.id = InternalRkk.SignSigner
+                 LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
+         WHERE rkkbase.isdeleted = 0 and internalrkk.id in (SELECT Item FROM QR_Id_List WHERE Request =  $P{request_id})
+         AND
+	module in (SELECT m.id
+        FROM ss_module m
+        JOIN ss_moduletype mt ON mt.id = m.type AND mt.alias ilike 'JobOrders')
+     ) as s]]>
+	</queryString>
+	<field name="orderNumber" class="java.lang.String"/>
+	<field name="orderDate" class="java.lang.String"/>
+	<field name="consumerName" class="java.lang.String"/>
+	<field name="documentLinkName" class="java.lang.String"/>
+	<field name="documentLinkDeadLine" class="java.lang.String"/>
+	<field name="signerName" class="java.lang.String"/>
+	<field name="signerPost" class="java.lang.String"/>
+	<field name="id" class="java.lang.Object"/>
+	<variable name="ecp" class="java.io.InputStream"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="50">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="0" y="0" width="554" height="50" uuid="13b489fb-f4a4-41c8-a2a0-ce174d171c6e"/>
+				<textElement>
+					<font fontName="Times New Roman" size="18"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Заказ № " + ($F{orderNumber} != null ? $F{orderNumber} :"") + " от " + ($F{orderDate} != null ? $F{orderDate} :"")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="0" y="0" width="170" height="20" uuid="1ec43ac1-cd1b-4a7c-850c-0b8fe516ed00">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Заказчик: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="170" y="0" width="384" height="20" uuid="0f9d0ff4-ed4e-491d-bcb4-bec1d3a56d14">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{consumerName} != null ?$F{consumerName} :"")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="0" y="0" width="170" height="20" uuid="1ec43ac1-cd1b-4a7c-850c-0b8fe516ed00">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Договор/ДС/Спецификация: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="170" y="0" width="389" height="20" uuid="0f9d0ff4-ed4e-491d-bcb4-bec1d3a56d14">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{documentLinkName} != null ?$F{documentLinkName} :"")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="0" y="0" width="170" height="20" uuid="1ec43ac1-cd1b-4a7c-850c-0b8fe516ed00">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Срок по документу: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="170" y="0" width="384" height="20" uuid="0f9d0ff4-ed4e-491d-bcb4-bec1d3a56d14">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{documentLinkDeadLine} != null ?$F{documentLinkDeadLine} :"")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="40">
+			<subreport>
+				<reportElement x="0" y="0" width="554" height="20" uuid="94640736-675a-435f-95b9-1e1a97884e99">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<subreportParameter name="id">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["joborders-printform-sub.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="20">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="0" y="0" width="176" height="15" uuid="187c57ab-8072-4378-ad29-6a454ade1fee">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{signerPost}!=null ?$F{signerPost}:""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="380" y="0" width="176" height="15" uuid="01171503-e90c-4089-b4ac-0ea4cc336e94">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Times New Roman" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{signerName}!= null ?$F{signerName}:""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

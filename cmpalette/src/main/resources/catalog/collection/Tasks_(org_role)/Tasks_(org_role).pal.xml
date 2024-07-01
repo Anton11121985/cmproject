@@ -1,0 +1,59 @@
+<collection name="Tasks_(org_role)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT orgid,
+       soFullName,
+       s.id,
+       beard,
+       s.created_date,
+       self_1,
+       self_2,
+       self_3
+from(
+    SELECT
+           role.organization orgid,
+           role.fullname AS soFullName,
+           beard.id           as id,
+           beard.created_date           as created_date,
+           '<id>' as self_1,
+           ':' as self_2,
+           '</>' as self_3,
+                    concat(SUBSTRING(beard.cmjunid, 33, 16), ':' ,SUBSTRING(beard.cmjunid, 1, 32)) as beard
+    FROM so_beard beard
+    JOIN SO_Role role on role.beard = beard.id
+
+) s
+::from-clause
+              WHERE
+                1 = 1
+                ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+              SELECT
+			     COUNT(*)
+                    from(
+    SELECT role.organization orgid, role.fullname, beard.id           as id,
+                    concat(SUBSTRING(beard.cmjunid, 33, 16), ':' ,SUBSTRING(beard.cmjunid, 1, 32)) as unid
+    FROM so_beard beard
+    JOIN SO_Role role on role.beard = beard.id
+
+) s
+WHERE 1 = 1
+                ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <reference placeholder="from-clause">
+            <![CDATA[
+                   join SS_ModuleOrg sm on sm.Organization = s.orgid
+               ]]>
+        </reference>
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   sm.Module = {0}
+               ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,48 @@
+<search-area name="InternalDocs_context" replace="runtime">
+
+    <solr-server-url>search.context.solr.server</solr-server-url>
+    <content-search-by>words</content-search-by>
+    <target-filter-name>CNTX_ID_FILTER</target-filter-name>
+
+    <highlighting-config hl-require-match="true"  hl-frag-size="255" hl-post-tag="&lt;/b&gt;" hl-pre-tag="&lt;b&gt;">
+    </highlighting-config>
+
+    <target-domain-object type="F_DP_IntRkk">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <indexed-field name="regDate"/>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject" search-by="substring" index-boost-value="1.0" show-in-results="true">
+            <doel>Subject</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk" parent-fk-field="f_dp_rkkbase" index-boost-value="2.0">
+            <content-field target-field-name="rt_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt_length" type="length" show-in-results="true"/>
+            <content-field target-field-name="rt_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt_description" type="description"/>
+            <content-field target-field-name="rt_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_Rkk" parent-fk-field="f_dp_rkkbase" index-boost-value="3.0">
+            <content-field target-field-name="content_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="content_mimetype" type="mimetype"/>
+            <content-field target-field-name="content_length" type="length" show-in-results="true"/>
+            <content-field target-field-name="content_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="content_description" type="description"/>
+            <content-field target-field-name="content_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <target-collection name="InternalDocs_(searchContextualWithSchema)"/>
+
+        <filter>
+            <doel>Module.Type.Alias:in("InternalDocs", "InternalDocsPrev")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

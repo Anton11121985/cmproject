@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="RkkResourceInternal" name="RkkResourceApplication">
+        <meta>
+            <category name="Система\Договора"/>
+            <documentation>основная схема "Заявки"</documentation>
+        </meta>
+        <string name="pagename" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Заявка']]></script>
+            </calc-values>
+        </string>
+        <string name="showIdent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Заявка']]></script>
+            </calc-values>
+        </string>
+        <string name="showIdentFull" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Заявка на исполнение']]></script>
+            </calc-values>
+        </string>
+        <string name="showState" temporal="true">
+            <calc-values>
+                <!--        <script event="open" lang="SPEL"><![CDATA[#root.isDeleted == true ? 'Удален' : (registration==null || registration.number==null)? 'Проект' : 'Зарегистрирован']]></script>-->
+                <script event="open" lang="SPEL">
+                    <![CDATA[#this.isAfterApproving ? #this.approveAddState?.state?.title() : #this.apre == T(ru.intertrust.cmj.rest.rkk.APREStatus).ON_APPROVING ? 'На согласовании' : (isOnRework?:false) ? 'На доработке' : (#root?.signature?.signIsRecalled?:false) ? ('Отозван с подписания') : "rejected".equals(signature?.state?.status) ? 'Отказано в подписании' : "sent".equals(signature?.state?.status) ? 'На подписании' : "signed".equals(signature?.state?.status) ? 'Подписано' : 'Проект']]></script>
+            </calc-values>
+        </string>
+        <actor name="correspondent">
+            <storage-field name="correspondent"/>
+        </actor>
+        <string name="outNumber">
+            <storage-field name="outnumber"/>
+        </string>
+        <date name="outDate">
+            <storage-field name="outdate"/>
+        </date>
+        <string name="dialogueCommentName" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Причина повторной отправки на подписание: ']]></script>
+            </calc-values>
+        </string>
+        <string name="signatureTextRejectName" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Причина отказа в подписании: ']]></script>
+            </calc-values>
+        </string>
+        <boolean name="showProjectNumber" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(projectNumber?.projectNumber?:'') != '']]></script>
+            </calc-values>
+        </boolean>
+        <actor name="signersWithOtherSigners" temporal="true" array="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(org.apache.commons.collections.ListUtils).union((signers != null ? signers : #this?.signature?.signer != null ? T(java.util.Collections).singletonList(#this?.signature?.signer) : T(java.util.Collections).emptyList()),
+        (#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP) && advSigner != null ? advSigner : T(java.util.Collections).emptyList()))]]></script>
+            </calc-values>
+        </actor>
+        <string name="from" temporal="true"  computed="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[' от ']]></script>
+            </calc-values>
+        </string>
+        <boolean name="approveAddStateTextNotIsEmpty" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this.tuning()!=null && #this.tuning().getValues()!=null && #this.tuning().getValues().get("approveAddStateText")!=null && !approveAddStateText.equals("")]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="showOnReworkButton" temporal="true">
+            <meta>
+                <documentation>Отобразить кнопку "На доработку"</documentation>
+            </meta>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[{
+#session = T(ru.intertrust.cmj.af.core.AFSession).get(),
+#curUser = #session.currentUser(),
+#tuning = #this.tuning().getValues(),
+
+(#this.isNew() || (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'isDeleted') && #this.isDeleted)
+ || (#this.isOnRework != null && #this.isOnRework) || #this.apre == T(ru.intertrust.cmj.rest.rkk.APREStatus).ON_APPROVING
+ || (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature')
+	 &&  ("sent".equals(#this?.signature?.state?.status) || "signed".equals(#this?.signature?.state?.status)))) ? false :
+(((#this.isAfterApproving != null && #this.isAfterApproving) || approveAddStateTextNotIsEmpty || "rejected".equals(#this?.signature?.state?.status))
+&& (((#session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)?.getAuthor() != null
+&& #curUser.getBeard().getUNID().equalsIgnoreCase(#session.getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(#this.id)?.getAuthor()?.getUNID()))
+|| (T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#root, 'preparedBy') && #root.preparedBy != null && !#root.preparedBy.isEmpty()
+&& (#curUser.getBeard().equals(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#root.preparedBy.get(0))) ||
+#curUser.getSubstituteOf().contains(T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard.apply(#root.preparedBy.get(0)))))))) ? true : false
+}[3]]]></script>
+            </calc-values>
+        </boolean>
+        <string name="rejectedComment">
+            <storage-field name="rejectedComment"/>
+        </string>
+        <string name="stateCommentWarn" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature') && #this.signature?.lastRefuseInfo?.comment != null ? #this.signature.lastRefuseInfo.comment:
+        T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signatureContracts') && #this.signatureContracts?.ours?.state?.comment != null ? #this.signatureContracts.ours.state.comment:
+        T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'registration') && #this.registration?.state?.comment != null ? #this.registration.state.comment:
+        (#this.rejected?:false) ? rejectedComment:'']]></script>
+            </calc-values>
+        </string>
+        <string name="stateCommentLabelWarn" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature') && #this.signature?.lastRefuseInfo?.comment != null ? 'Причина отказа в подписании:':
+        T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signatureContracts') && #this.signatureContracts?.ours?.state?.comment != null?  'Причина отказа в утверждении:':
+        T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'registration') && #this.registration?.state?.comment != null?  'Причина отказа в регистрации:':
+        (#this.rejected?:false) ? 'Причина отклонения:':'']]></script>
+            </calc-values>
+        </string>
+        <boolean name="rejected" default-value="false">
+            <storage-field name="rejected"/>
+            <storage-string value="1"/>
+        </boolean>
+        <boolean name="curUserIsExecutor" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+{
+	#curUsr = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser(),
+	executor != null && (executor.contains(#curUsr.getBeard()) || executor.?[T(com.google.common.collect.Lists).transform(#this, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSubstituteOf(#this)].size() > 0].size() > 0)
+}[1]
+        ]]></script>
+            </calc-values>
+        </boolean>
+        <string name="stateRejected" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Отклонена']]></script>
+            </calc-values>
+        </string>
+        <boolean name="currentUserIsSigner" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[signature != null && (signature.signer != null || signature.signers != null) && (signature?.signingMode == T(ru.intertrust.cmj.af.core.SigningMode).STD ?
+		(T(com.google.common.collect.Lists).transform(#this?.signature?.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) ||
+			T(com.google.common.collect.Lists).transform(#this?.signature?.signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(#this)].size() > 0
+		):(
+		#this?.signature?.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).contains(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard())].size() > 0 ||
+		#this?.signature?.signers.?[T(com.google.common.collect.Lists).transform(signer, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(#this)].size() > 0].size() > 0)
+		)]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$needRemoveEditAccessLink" temporal="true">
+            <meta>
+                <documentation>Управление видимостью кнопки "Редактировать". Для WD удалена кнопка, те не продполагается редактирование</documentation>
+            </meta>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[((("sent".equals(signature?.state?.status) && !(currentUserIsSigner != null && currentUserIsSigner)) || "signed".equals(signature?.state?.status)) && !#hasRole(#this, 'Supervisor') ||
+                'Webdocs2.0'.equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().extendedAttributes().getOrDefault('ClientAlias', ''))) && link.?[rel=='edit'].size()>0 ? link.remove(link.?[rel=='edit'][0]) : false]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$needRemoveSendToApprovingAccessLink" temporal="true">
+            <meta>
+                <documentation>Управление видимостью кнопки "Отправить на согласование"</documentation>
+            </meta>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].size() > 0  &&
+                                                          !curUserIsExecutor && !#hasRole(#this, 'Supervisor') ? link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'][0]) : false]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="isExecutorOrSupervisor" temporal="true">
+            <meta>
+                <documentation>Исполнитель или пользователь с ролью Supervisor</documentation>
+            </meta>
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[curUserIsExecutor || #hasRole(#this, 'Supervisor')]]></script>
+            </calc-values>
+        </boolean>
+        <string name="outDateAndOutNumberStr" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[(outNumber == null ? '' : (outNumber + ' ')) + (outDate == null ? '' : ('от ' + outDate.toString()))]]></script>
+            </calc-values>
+        </string>
+        <actor name="correspondentWD">
+            <meta>
+                <documentation>Дублирование поля для отображения в карточке WD</documentation>
+            </meta>
+            <storage-field name="correspondentWD"/>
+            <calc-values>
+                <script event="save" lang="SPEL"><![CDATA[correspondent == null ? null : correspondent]]></script>
+            </calc-values>
+        </actor>
+        <actor name="executorWD" array="true">
+            <meta>
+                <documentation>Дублирование поля для отображения в карточке WD</documentation>
+            </meta>
+            <storage-field name="executorWD"/>
+            <calc-values>
+                <script event="save" lang="SPEL"><![CDATA[#this.executor == null ? null : #this.executor]]></script>
+            </calc-values>
+        </actor>
+        <string name="regInfoWithoutProjectLabel" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.rest.rkk.RkkResourceDP) ? ((#this.registration.number == null ?
+ (#this.projectNumber.projectNumber) :
+(#this.registration.number.prefix + #this.registration.number.number + #this.registration.number.suffix))
++ ' от ' + (#this.registration.number == null || #this.registration.date == null ?
+T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(T(java.util.Date).from(#this.creationDate.toInstant())) :
+T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate(#this.registration.date))) : '']]></script>
+            </calc-values>
+        </string>
+        <string name="customStatusJA" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+rejected != null && rejected ? "Отклонена" :
+isOnRework != null && isOnRework ? "На доработке" :
+documentStatus.get('main')]]></script>
+            </calc-values>
+        </string>
+        <string name="customStatusJASave">
+            <calc-values>
+                <script event="save" lang="SPEL"><![CDATA[
+rejected != null && rejected ? "Отклонена" :
+documentStatus.get('main')]]></script>
+            </calc-values>
+        </string>
+        <schema-ref name="documentStatusWD" ref="CustomStatusJobApps"/>
+        <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+function queryCreate(object){
+    object.sendToRegisterAfterSigned = false;
+
+}
+
+function querySave(object, document) {
+    var log = LoggerFactory.getLogger("RSHBWPRequest.RkkResourceApplication");
+
+	log.trace("querySave.Статус для WD");
+	setStatusWD(object);
+
+    log.trace("querySave.Запись истории");
+	writeHistory(object, document);
+	log.trace("querySave.Завершение сохранения");
+
+}
+
+function writeHistory(object, document) {
+
+	var hist = object.history();
+
+	if (!object.isNew()) {
+		writeTextHistory(object, document, hist, "correspondent", "correspondent", "correspondent.change","arrayb","act");
+	}
+	object.history = hist;
+}
+
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName, typeField, typeProperty) {
+	var oldValue = getFieldValue(document, fieldName, typeField);
+	var newValue = getPropertyValue(object, propertyName, typeProperty);
+	if (!oldValue.equals(newValue)) {
+		TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+	}
+}
+function getFieldValue(document, fieldName, type) {
+	var value = "";
+	if(type.equals("str")) {
+		value = document.getItemValueString(fieldName);
+	} else if(type.equals("date")) {
+		if(!document.getItemValueDateTimeArray(fieldName).isEmpty())
+			value = document.getItemValueDateTimeArray(fieldName).firstElement();
+	} else if (type.equals("arrayb")) {
+		for (var i = 0; i < document.getItemValue(fieldName).size(); i++) {
+			var elem = getFieldValueName(document, fieldName);
+			if (value.equals("")){
+				value = elem;
+			} else {
+				value = value + ", " + elem;
+			}
+		}
+	}
+	return value;
+}
+
+function getFieldValueName(document, fieldName) {
+	var beardStr = document.getItemValueString(fieldName);
+	if (beardStr != null && !beardStr.equals("")) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var soBeard = soApp.getBeard(beardStr);
+        if (soBeard != null) {
+            value = soBeard.originalData().getShortName();
+        }
+	}
+	return value;
+}
+
+function getPropertyValue(object, propertyName, typeProperty) {
+    var value = null;
+    if (object != null &&
+        object.tuning().getValues().get(propertyName) != null &&
+        object.tuning().getValues().get(propertyName).getValue() != null) {
+        value = object.tuning().getValues().get(propertyName).getValue();
+        if ("act".equals(typeProperty) && value.originalData().getType().toString().equals("PRIVATE_HUMAN")) {
+            value =  value.originalData().getShortName()
+        }
+    }
+    return value != null ? value : "";
+}
+
+function setStatusWD(object) {
+    var values = object.tuning().getValues();
+    if (values.get("rejected") != null && values.get("rejected").getValue()) {
+        TunableObjectHelper.putAFInstanceValue(object, "customStatusJASave", "Отклонена");
+    }
+    if (object.isOnRework() != null && object.isOnRework()) {
+        TunableObjectHelper.putAFInstanceValue(object, "customStatusJASave", "На доработке");
+    }
+}
+]]></custom-event-handler>
+    </schema>
+</schemas>

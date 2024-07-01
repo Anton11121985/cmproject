@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="Dialog" name="WFDialogChangeVersion" recalc="true">
+        <meta>
+            <category name="Системное"/>
+        </meta>
+        <string name="counter" temporal="true"/>
+        <string name="newVersion" temporal="true"/>
+        <string name="schemaName" temporal="true"/>
+        <string name="currentVersion" temporal="true"/>
+        <string name="allVersion" array="true"/>
+        <string array="true" temporal="true" name="selectIds"/>
+        <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function queryCreate(object) {
+
+	var values = object.tuning().getValues();
+	var schemaName = values.get("schemaName").getValue();
+	var currentVersion = values.get("currentVersion").getValue();
+
+	var query ="select distinct replace(pd.version,'.','')::bigint as version, pd.version as name from act_re_procdef procdef inner join process_definition pd on procdef.id_ = pd.definition_id where procdef.id_ like '%"+schemaName+"%' and not pd.version is null and replace('"+currentVersion+"','.','')::bigint < replace(pd.version,'.','')::bigint and substring('"+currentVersion+"', '^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}') = substring(pd.version, '^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}') order by version asc";
+
+	var cs = BeansUtils.getBean("collectionsService");
+	var coll = cs.findCollectionByQuery(query);
+	var allVersion = "";
+
+	var allVersion = new ArrayList();
+
+	for(var i = 0 ;i < coll.size();i++) {
+        if (coll.get(i).getString("name") != null && !"".equals(coll.get(i).getString("name"))) {
+			allVersion.add(coll.get(i).getString("name"));
+		}
+    }
+
+    if (!allVersion.isEmpty()) {
+        TunableObjectHelper.putAFInstanceValue(object.tuning(), "newVersion", allVersion.get(0));
+	    TunableObjectHelper.putAFInstanceValue(object.tuning(), "allVersion", allVersion);
+    }
+}]]></custom-event-handler>
+    </schema>
+</schemas>

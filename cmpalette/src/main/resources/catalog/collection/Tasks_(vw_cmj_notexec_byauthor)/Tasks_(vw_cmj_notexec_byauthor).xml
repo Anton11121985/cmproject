@@ -1,0 +1,728 @@
+<collection name="Tasks_(vw_cmj_notexec_byauthor)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+    id,
+    created_date,
+    Module,
+    self_1,
+    self_2,
+    self_3,
+    hasAttachments,
+    rkkExecutionStatus as taskExecutionStatus,
+    resOfRkkExecutionStatus as resOfTaskExecutionStatus,
+    correspondentAuthorName,
+    executors,
+    exDate,
+    regNumber as regFullNumber,
+    linkedDoc,
+    text,
+    resDate,
+    hasGriff,
+    rnum
+FROM(
+        SELECT
+            resolution.id AS id,
+            rkkbase.created_date,
+            rkkbase.module AS Module,
+            '<id>' AS self_1,
+            ':' AS self_2,
+            '</>' AS self_3,
+
+            CAST (CASE WHEN SUM(
+                                    CASE
+                                        WHEN exists(SELECT CF.id FROM f_contentfiles_taskres CF WHERE CF.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT CRT.id FROM f_contentrichtext_taskres CRT WHERE  CRT.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT VI.id FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = resolution.id)
+                                            THEN 1
+                                        ELSE 0
+                                        END) > 0 then '1' else '0'
+                END  AS smallint) AS hasAttachments,
+            CASE
+                WHEN (resolution.ctrlDateExecution IS NOT NULL) THEN 'executed'
+                WHEN (resolution.ctrliscontrolled = 1 AND  Date(resolution.CtrlDateExecution) < Date(now())) THEN 'RKKSpecExpired'
+                WHEN (resolution.ctrliscontrolled = 1) THEN 'onControl'
+                ELSE ''
+                END AS rkkExecutionStatus,
+
+            case when (resolution.isIsp = 1) then 'executed' else
+                (select case when state = 0 then 'expired' when state = 1 then 'onControl' when state = 3 then 'executed' else 'exist' end from (
+                                                                                                                     select CASE
+                                                                                                                                WHEN resolutionr.ctrldeadline < coalesce(resolutionr.ctrlDateExecution, now()) THEN 0
+                                                                                                                                WHEN resolutionr.ctrldeadline > now() AND  resolutionr.ctrlDateExecution is null THEN 1
+                                                                                                                                WHEN resolutionr.ctrlDateExecution is not null AND resolutionr.executioncanceldate is null THEN 3
+                                                                                                                                else 2
+                                                                                                                                end state from f_dp_resolution resolutionr where resolutionr.hierroot = resolution.id and resolutionr.isproject = 0 order by 1 nulls last limit 1
+                                                                                                                 ) t
+                ) end resOfRkkExecutionStatus,
+            resolution.Date AS resDate,
+
+             coalesce(execbeard.Orig_ShortName) AS correspondentAuthorName,
+
+            (
+                SELECT
+                    DISTINCT coalesce(
+                                     string_agg(
+                                                                         '<id>' || substring(unid, 33, 48) || ':' || substring(unid, 1, 32)
+                                                             || '</><shortName>' || sname|| '</>' || '<responsible></>'
+                                         , ';'),
+                                     '<id></><shortName></><responsible></>'
+                                 )
+
+                FROM(
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_ec resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorcurr
+                        WHERE
+                                resexec.owner = resolution.id
+                        UNION
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_EE resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorext
+                        WHERE
+                                resexec.owner = resolution.id
+                    ) q
+            )                                        AS executors,
+
+            resolution.CtrlDeadline AS exDate,
+            coalesce(cast(resolution.regnumcnt AS varchar), '') as rnum,
+            '<regNumberPrefix>' || coalesce(resolution.regnumprist, '') || '</>'
+                || '<regNumberCounter#Number>' || coalesce(cast(resolution.regnumcnt AS varchar), '') || '</>'
+                || '<regNumberSuffix>' || coalesce(resolution.regnumfin, '') || '</>'
+                AS regNumber,
+            (SELECT
+                 coalesce(string_agg((case when link.doclinktype='' then '<id></>' else (coalesce('<id>' || link.docreplid || ':' || link.docunid || '</>','<id>' ||to_char(cast((module.id_type * 10^12) as bigint) + module.id, 'FM0000000000000000')|| ':00000000000000000000000000000000'|| '</>') )end), ';'),'<id></>')
+             FROM F_DP_TasksResolution_ULnk link
+                      LEFT JOIN ss_module module ON module.id = rkkbase.module
+             WHERE link.owner = resolution.id) AS linkedDoc,
+            resolution.resolution AS text,
+            case when rkkbase.security_stamp is not null then
+                     '<iconHint>Есть гриф</><iconId>165</>'
+                 else ''
+                end AS hasGriff
+
+        FROM f_dp_tasksresolution resolution
+
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resolution.id
+                 LEFT JOIN F_DP_TasksResolution_ULnk link ON link.owner = resolution.id
+                 LEFT JOIN SO_Beard execbeard ON execbeard.id = resolution.author
+
+                 LEFT JOIN (SELECT soapp.id                          AS id,
+                                    soapp.id_type                     AS id_type,
+                                    soapp.beard                       AS beard,
+                                    soapp.beard_type                  AS beard_type,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post
+                                        ELSE soapp_head.post END      AS post,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post_type
+                                        ELSE soapp_head.post_type END AS post_type
+                             FROM so_appointment soapp
+                                      LEFT JOIN so_appointmentplain soapp_plain
+                                                ON soapp.id = soapp_plain.id AND
+                                                   soapp.id_type = soapp_plain.id_type
+                                      LEFT JOIN so_appointmenthead soapp_head
+                                                ON soapp.id = soapp_head.id AND
+                                                   soapp.id_type = soapp_head.id_type) author_app
+                            ON execbeard.id = author_app.beard AND
+                               execbeard.id_type = author_app.beard_type
+                  LEFT JOIN so_post author_post
+                            ON author_app.post = author_post.id AND
+                               author_app.post_type = author_post.id_type
+
+                 JOIN F_DP_TasksResolution_ec executorr ON executorr.owner = resolution.id
+        WHERE rkkbase.isdeleted != 1 AND resolution.IsProject = 0 AND resolution.ctrlDateExecution IS NULL
+
+        GROUP BY
+            resolution.id,
+            rkkbase.created_date,
+            rkkbase.module,
+            execbeard.cmjunid,
+            execbeard.orig_shortname,
+            rkkbase.module_type,
+            resolution.resolution,
+            resolution.CtrlDeadline,
+            resolution.Date,
+            resolution.ctrldateexecution,
+            resolution.ctrliscontrolled,
+            resolution.isisp,
+            resolution.date,
+            resolution.regnumprist,
+            resolution.regnumfin,
+            resolution.ctrldeadline,
+            resolution.regnumcnt,
+            rkkbase.security_stamp
+        UNION
+        SELECT
+            resolution.id AS id,
+            rkkbase.created_date,
+            rkkbase.module AS Module,
+            '<id>' AS self_1,
+            ':' AS self_2,
+            '</>' AS self_3,
+
+            CAST (CASE WHEN SUM(
+                                    CASE
+                                        WHEN exists(SELECT CF.id FROM f_contentfiles_taskres CF WHERE CF.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT CRT.id FROM f_contentrichtext_taskres CRT WHERE  CRT.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT VI.id FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = resolution.id)
+                                            THEN 1
+                                        ELSE 0
+                                        END) > 0 then '1' else '0'
+                END  AS smallint) AS hasAttachments,
+            CASE
+                WHEN (resolution.ctrlDateExecution IS NOT NULL) THEN 'executed'
+                WHEN (resolution.ctrliscontrolled = 1 AND  Date(resolution.CtrlDateExecution) < Date(now())) THEN 'RKKSpecExpired'
+                WHEN (resolution.ctrliscontrolled = 1) THEN 'onControl'
+                ELSE ''
+                END AS rkkExecutionStatus,
+
+            case when (resolution.isIsp = 1) then 'executed' else
+                (select case when state = 0 then 'expired' when state = 1 then 'onControl' when state = 3 then 'executed' else 'exist' end from (
+                                                                                                                     select CASE
+                                                                                                                                WHEN resolutionr.ctrldeadline < coalesce(resolutionr.ctrlDateExecution, now()) THEN 0
+                                                                                                                                WHEN resolutionr.ctrldeadline > now() AND  resolutionr.ctrlDateExecution is null THEN 1
+                                                                                                                                WHEN resolutionr.ctrlDateExecution is not null AND resolutionr.executioncanceldate is null THEN 3
+                                                                                                                                else 2
+                                                                                                                                end state from f_dp_resolution resolutionr where resolutionr.hierroot = resolution.id and resolutionr.isproject = 0 order by 1 nulls last limit 1
+                                                                                                                 ) t
+                ) end resOfRkkExecutionStatus,
+            resolution.Date AS resDate,
+
+             coalesce(execbeard.Orig_ShortName) AS correspondentAuthorName,
+
+            (
+                SELECT
+                    DISTINCT coalesce(
+                                     string_agg(
+                                                                         '<id>' || substring(unid, 33, 48) || ':' || substring(unid, 1, 32)
+                                                             || '</><shortName>' || sname|| '</>' || '<responsible></>'
+                                         , ';'),
+                                     '<id></><shortName></><responsible></>'
+                                 )
+
+                FROM(
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_ec resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorcurr
+                        WHERE
+                                resexec.owner = resolution.id
+                        UNION
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_EE resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorext
+                        WHERE
+                                resexec.owner = resolution.id
+                    ) q
+            )                                        AS executors,
+
+            resolution.CtrlDeadline AS exDate,
+            coalesce(cast(resolution.regnumcnt AS varchar), '') as rnum,
+            '<regNumberPrefix>' || coalesce(resolution.regnumprist, '') || '</>'
+                || '<regNumberCounter#Number>' || coalesce(cast(resolution.regnumcnt AS varchar), '') || '</>'
+                || '<regNumberSuffix>' || coalesce(resolution.regnumfin, '') || '</>'
+                AS regNumber,
+            (SELECT
+                 coalesce(string_agg((case when link.doclinktype='' then '<id></>' else (coalesce('<id>' || link.docreplid || ':' || link.docunid || '</>','<id>' ||to_char(cast((module.id_type * 10^12) as bigint) + module.id, 'FM0000000000000000')|| ':00000000000000000000000000000000'|| '</>') )end), ';'),'<id></>')
+             FROM F_DP_TasksResolution_ULnk link
+                      LEFT JOIN ss_module module ON module.id = rkkbase.module
+             WHERE link.owner = resolution.id) AS linkedDoc,
+            resolution.resolution AS text,
+            case when rkkbase.security_stamp is not null then
+                     '<iconHint>Есть гриф</><iconId>165</>'
+                 else ''
+                end AS hasGriff
+
+        FROM f_dp_tasksresolution resolution
+
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resolution.id
+                 LEFT JOIN F_DP_TasksResolution_ULnk link ON link.owner = resolution.id
+                 LEFT JOIN SO_Beard execbeard ON execbeard.id = resolution.author
+
+                 LEFT JOIN (SELECT soapp.id                          AS id,
+                                    soapp.id_type                     AS id_type,
+                                    soapp.beard                       AS beard,
+                                    soapp.beard_type                  AS beard_type,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post
+                                        ELSE soapp_head.post END      AS post,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post_type
+                                        ELSE soapp_head.post_type END AS post_type
+                             FROM so_appointment soapp
+                                      LEFT JOIN so_appointmentplain soapp_plain
+                                                ON soapp.id = soapp_plain.id AND
+                                                   soapp.id_type = soapp_plain.id_type
+                                      LEFT JOIN so_appointmenthead soapp_head
+                                                ON soapp.id = soapp_head.id AND
+                                                   soapp.id_type = soapp_head.id_type) author_app
+                            ON execbeard.id = author_app.beard AND
+                               execbeard.id_type = author_app.beard_type
+                  LEFT JOIN so_post author_post
+                            ON author_app.post = author_post.id AND
+                               author_app.post_type = author_post.id_type
+
+                 JOIN F_DP_TasksResolution_EE executorr ON executorr.owner = resolution.id
+
+        WHERE rkkbase.isdeleted != 1 AND resolution.IsProject = 0 AND resolution.ctrlDateExecution IS NULL
+
+        GROUP BY
+            resolution.id,
+            rkkbase.created_date,
+            rkkbase.module,
+            execbeard.cmjunid,
+            execbeard.orig_shortname,
+            rkkbase.module_type,
+            resolution.resolution,
+            resolution.CtrlDeadline,
+            resolution.Date,
+            resolution.ctrldateexecution,
+            resolution.ctrliscontrolled,
+            resolution.isisp,
+            resolution.date,
+            resolution.regnumprist,
+            resolution.regnumfin,
+            resolution.ctrldeadline,
+            resolution.regnumcnt,
+            rkkbase.security_stamp
+        order by rnum
+
+    )s WHERE
+        1=1
+             ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(*)
+FROM(
+        SELECT
+            resolution.id AS id,
+            rkkbase.created_date,
+            rkkbase.module AS Module,
+            '<id>' AS self_1,
+            ':' AS self_2,
+            '</>' AS self_3,
+
+            CAST (CASE WHEN SUM(
+                                    CASE
+                                        WHEN exists(SELECT CF.id FROM f_contentfiles_taskres CF WHERE CF.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT CRT.id FROM f_contentrichtext_taskres CRT WHERE  CRT.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT VI.id FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = resolution.id)
+                                            THEN 1
+                                        ELSE 0
+                                        END) > 0 then '1' else '0'
+                END  AS smallint) AS hasAttachments,
+            CASE
+                WHEN (resolution.ctrlDateExecution IS NOT NULL) THEN 'executed'
+                WHEN (resolution.ctrliscontrolled = 1 AND  Date(resolution.CtrlDateExecution) < Date(now())) THEN 'RKKSpecExpired'
+                WHEN (resolution.ctrliscontrolled = 1) THEN 'onControl'
+                ELSE ''
+                END AS rkkExecutionStatus,
+
+            case when (resolution.isIsp = 1) then 'executed' else
+                (select case when state = 0 then 'expired' when state = 1 then 'onControl' when state = 3 then 'executed' else 'exist' end from (
+                                                                                                                     select CASE
+                                                                                                                                WHEN resolutionr.ctrldeadline < coalesce(resolutionr.ctrlDateExecution, now()) THEN 0
+                                                                                                                                WHEN resolutionr.ctrldeadline > now() AND  resolutionr.ctrlDateExecution is null THEN 1
+                                                                                                                                WHEN resolutionr.ctrlDateExecution is not null AND resolutionr.executioncanceldate is null THEN 3
+                                                                                                                                else 2
+                                                                                                                                end state from f_dp_resolution resolutionr where resolutionr.hierroot = resolution.id and resolutionr.isproject = 0 order by 1 nulls last limit 1
+                                                                                                                 ) t
+                ) end resOfRkkExecutionStatus,
+            resolution.Date AS resDate,
+
+             coalesce(execbeard.Orig_ShortName) AS correspondentAuthorName,
+
+            (
+                SELECT
+                    DISTINCT coalesce(
+                                     string_agg(
+                                                                         '<id>' || substring(unid, 33, 48) || ':' || substring(unid, 1, 32)
+                                                             || '</><shortName>' || sname|| '</>' || '<responsible></>'
+                                         , ';'),
+                                     '<id></><shortName></><responsible></>'
+                                 )
+
+                FROM(
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_ec resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorcurr
+                        WHERE
+                                resexec.owner = resolution.id
+                        UNION
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_EE resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorext
+                        WHERE
+                                resexec.owner = resolution.id
+                    ) q
+            )                                        AS executors,
+
+            resolution.CtrlDeadline AS exDate,
+            coalesce(cast(resolution.regnumcnt AS varchar), '') as rnum,
+            '<regNumberPrefix>' || coalesce(resolution.regnumprist, '') || '</>'
+                || '<regNumberCounter#Number>' || coalesce(cast(resolution.regnumcnt AS varchar), '') || '</>'
+                || '<regNumberSuffix>' || coalesce(resolution.regnumfin, '') || '</>'
+                AS regNumber,
+            (SELECT
+                 coalesce(string_agg((case when link.doclinktype='' then '<id></>' else (coalesce('<id>' || link.docreplid || ':' || link.docunid || '</>','<id>' ||to_char(cast((module.id_type * 10^12) as bigint) + module.id, 'FM0000000000000000')|| ':00000000000000000000000000000000'|| '</>') )end), ';'),'<id></>')
+             FROM F_DP_TasksResolution_ULnk link
+                      LEFT JOIN ss_module module ON module.id = rkkbase.module
+             WHERE link.owner = resolution.id) AS linkedDoc,
+            resolution.resolution AS text,
+            case when rkkbase.security_stamp is not null then
+                     '<iconHint>Есть гриф</><iconId>165</>'
+                 else ''
+                end AS hasGriff
+
+        FROM f_dp_tasksresolution resolution
+
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resolution.id
+                 LEFT JOIN F_DP_TasksResolution_ULnk link ON link.owner = resolution.id
+                 LEFT JOIN SO_Beard execbeard ON execbeard.id = resolution.author
+
+                 LEFT JOIN (SELECT soapp.id                          AS id,
+                                    soapp.id_type                     AS id_type,
+                                    soapp.beard                       AS beard,
+                                    soapp.beard_type                  AS beard_type,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post
+                                        ELSE soapp_head.post END      AS post,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post_type
+                                        ELSE soapp_head.post_type END AS post_type
+                             FROM so_appointment soapp
+                                      LEFT JOIN so_appointmentplain soapp_plain
+                                                ON soapp.id = soapp_plain.id AND
+                                                   soapp.id_type = soapp_plain.id_type
+                                      LEFT JOIN so_appointmenthead soapp_head
+                                                ON soapp.id = soapp_head.id AND
+                                                   soapp.id_type = soapp_head.id_type) author_app
+                            ON execbeard.id = author_app.beard AND
+                               execbeard.id_type = author_app.beard_type
+                  LEFT JOIN so_post author_post
+                            ON author_app.post = author_post.id AND
+                               author_app.post_type = author_post.id_type
+
+                 JOIN F_DP_TasksResolution_ec executorr ON executorr.owner = resolution.id
+        WHERE rkkbase.isdeleted != 1 AND resolution.IsProject = 0 AND resolution.ctrlDateExecution IS NULL
+
+        GROUP BY
+            resolution.id,
+            rkkbase.created_date,
+            rkkbase.module,
+            execbeard.cmjunid,
+            execbeard.orig_shortname,
+            rkkbase.module_type,
+            resolution.resolution,
+            resolution.CtrlDeadline,
+            resolution.Date,
+            resolution.ctrldateexecution,
+            resolution.ctrliscontrolled,
+            resolution.isisp,
+            resolution.date,
+            resolution.regnumprist,
+            resolution.regnumfin,
+            resolution.ctrldeadline,
+            resolution.regnumcnt,
+            rkkbase.security_stamp
+        UNION
+        SELECT
+            resolution.id AS id,
+            rkkbase.created_date,
+            rkkbase.module AS Module,
+            '<id>' AS self_1,
+            ':' AS self_2,
+            '</>' AS self_3,
+
+            CAST (CASE WHEN SUM(
+                                    CASE
+                                        WHEN exists(SELECT CF.id FROM f_contentfiles_taskres CF WHERE CF.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT CRT.id FROM f_contentrichtext_taskres CRT WHERE  CRT.f_dp_tasksresolution = resolution.id) OR
+                                             exists(SELECT VI.id FROM f_VerifyImage_Rkk VI WHERE VI.f_dp_rkk = resolution.id)
+                                            THEN 1
+                                        ELSE 0
+                                        END) > 0 then '1' else '0'
+                END  AS smallint) AS hasAttachments,
+            CASE
+                WHEN (resolution.ctrlDateExecution IS NOT NULL) THEN 'executed'
+                WHEN (resolution.ctrliscontrolled = 1 AND  Date(resolution.CtrlDateExecution) < Date(now())) THEN 'RKKSpecExpired'
+                WHEN (resolution.ctrliscontrolled = 1) THEN 'onControl'
+                ELSE ''
+                END AS rkkExecutionStatus,
+
+            case when (resolution.isIsp = 1) then 'executed' else
+                (select case when state = 0 then 'expired' when state = 1 then 'onControl' when state = 3 then 'executed' else 'exist' end from (
+                                                                                                                     select CASE
+                                                                                                                                WHEN resolutionr.ctrldeadline < coalesce(resolutionr.ctrlDateExecution, now()) THEN 0
+                                                                                                                                WHEN resolutionr.ctrldeadline > now() AND  resolutionr.ctrlDateExecution is null THEN 1
+                                                                                                                                WHEN resolutionr.ctrlDateExecution is not null AND resolutionr.executioncanceldate is null THEN 3
+                                                                                                                                else 2
+                                                                                                                                end state from f_dp_resolution resolutionr where resolutionr.hierroot = resolution.id and resolutionr.isproject = 0 order by 1 nulls last limit 1
+                                                                                                                 ) t
+                ) end resOfRkkExecutionStatus,
+            resolution.Date AS resDate,
+
+             coalesce(execbeard.Orig_ShortName) AS correspondentAuthorName,
+
+            (
+                SELECT
+                    DISTINCT coalesce(
+                                     string_agg(
+                                                                         '<id>' || substring(unid, 33, 48) || ':' || substring(unid, 1, 32)
+                                                             || '</><shortName>' || sname|| '</>' || '<responsible></>'
+                                         , ';'),
+                                     '<id></><shortName></><responsible></>'
+                                 )
+
+                FROM(
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_ec resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorcurr
+                        WHERE
+                                resexec.owner = resolution.id
+                        UNION
+                        SELECT
+                            execbeard.cmjunid as unid,
+                            execbeard.Orig_ShortName as sname
+                        FROM
+                            F_DP_TasksResolution_EE resexec
+                                LEFT JOIN so_beard execbeard ON execbeard.id = resexec.executorext
+                        WHERE
+                                resexec.owner = resolution.id
+                    ) q
+            )                                        AS executors,
+
+            resolution.CtrlDeadline AS exDate,
+            coalesce(cast(resolution.regnumcnt AS varchar), '') as rnum,
+            '<regNumberPrefix>' || coalesce(resolution.regnumprist, '') || '</>'
+                || '<regNumberCounter#Number>' || coalesce(cast(resolution.regnumcnt AS varchar), '') || '</>'
+                || '<regNumberSuffix>' || coalesce(resolution.regnumfin, '') || '</>'
+                AS regNumber,
+            (SELECT
+                 coalesce(string_agg((case when link.doclinktype='' then '<id></>' else (coalesce('<id>' || link.docreplid || ':' || link.docunid || '</>','<id>' ||to_char(cast((module.id_type * 10^12) as bigint) + module.id, 'FM0000000000000000')|| ':00000000000000000000000000000000'|| '</>') )end), ';'),'<id></>')
+             FROM F_DP_TasksResolution_ULnk link
+                      LEFT JOIN ss_module module ON module.id = rkkbase.module
+             WHERE link.owner = resolution.id) AS linkedDoc,
+            resolution.resolution AS text,
+            case when rkkbase.security_stamp is not null then
+                     '<iconHint>Есть гриф</><iconId>165</>'
+                 else ''
+                end AS hasGriff
+
+        FROM f_dp_tasksresolution resolution
+
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resolution.id
+                 LEFT JOIN F_DP_TasksResolution_ULnk link ON link.owner = resolution.id
+                 LEFT JOIN SO_Beard execbeard ON execbeard.id = resolution.author
+
+                 LEFT JOIN (SELECT soapp.id                          AS id,
+                                    soapp.id_type                     AS id_type,
+                                    soapp.beard                       AS beard,
+                                    soapp.beard_type                  AS beard_type,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post
+                                        ELSE soapp_head.post END      AS post,
+                                    CASE
+                                        WHEN soapp_plain.id IS NOT NULL THEN soapp_plain.post_type
+                                        ELSE soapp_head.post_type END AS post_type
+                             FROM so_appointment soapp
+                                      LEFT JOIN so_appointmentplain soapp_plain
+                                                ON soapp.id = soapp_plain.id AND
+                                                   soapp.id_type = soapp_plain.id_type
+                                      LEFT JOIN so_appointmenthead soapp_head
+                                                ON soapp.id = soapp_head.id AND
+                                                   soapp.id_type = soapp_head.id_type) author_app
+                            ON execbeard.id = author_app.beard AND
+                               execbeard.id_type = author_app.beard_type
+                  LEFT JOIN so_post author_post
+                            ON author_app.post = author_post.id AND
+                               author_app.post_type = author_post.id_type
+
+                 JOIN F_DP_TasksResolution_EE executorr ON executorr.owner = resolution.id
+
+        WHERE rkkbase.isdeleted != 1 AND resolution.IsProject = 0 AND resolution.ctrlDateExecution IS NULL
+
+        GROUP BY
+            resolution.id,
+            rkkbase.created_date,
+            rkkbase.module,
+            execbeard.cmjunid,
+            execbeard.orig_shortname,
+            rkkbase.module_type,
+            resolution.resolution,
+            resolution.CtrlDeadline,
+            resolution.Date,
+            resolution.ctrldateexecution,
+            resolution.ctrliscontrolled,
+            resolution.isisp,
+            resolution.date,
+            resolution.regnumprist,
+            resolution.regnumfin,
+            resolution.ctrldeadline,
+            resolution.regnumcnt,
+            rkkbase.security_stamp
+        order by rnum
+
+    )s WHERE
+        1=1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (created_date is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	executorName < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	executorName >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	executorName LIKE ({0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentAuthorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentAuthorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentAuthorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentAuthorName iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executors_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executors iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="exDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (exDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="exDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(exDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="exDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(exDate as date) >= cast({0} as date) and cast(exDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regFullNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regNumber iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="text_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    text iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="resDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (resDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="resDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(resDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="resDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(resDate as date) >= cast({0} as date) and cast(resDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

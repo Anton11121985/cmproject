@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="VersionAddAgreement" extends="VersionRkk">
+    <string temporal="true" name="showTypeName">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Доп. соглашение']]></script>
+      </calc-values>
+    </string>
+    <string array="true" name="category"/>
+    <string name="duration"/>
+    <string name="additionalNumber"/>
+    <string name="comment"/>
+    <actor name="execParentDepartment"/>
+    <actor name="execDepartment"/>
+    <string name="execPhone"/>
+    <string name="execPost"/>
+    <string name="subject">
+      <storage-field name="subject"/>
+    </string>
+    <schema-ref ref="PartiesAddAgr" name="parties"/>
+    <schema-ref ref="SignatureInfoContractsAgreementNotes" name="signatureContracts"/>
+    <string temporal="true" name="firstPartySignerTableName">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['Подписант (1-я сторона):']]></script>
+      </calc-values>
+    </string>
+    <boolean name="hasMultipleSigners">
+      <storage-field name="hasMultipleSigners"/>
+    </boolean>
+      <boolean name="addedLockerLinks" temporal="true">
+          <calc-values>
+              <script event="open">
+                  <![CDATA[#this.hasMultipleSigners != null && #this.hasMultipleSigners &&  T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).addLockerSignatureLinkImpl(#this, 'signatureContracts.this.signers', 'lockerSignatureID', T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.af.version.VersionApplication)), #this.id)]]>
+              </script>
+          </calc-values>
+      </boolean>
+    <boolean name="firstPartyIsCurrentOrg">
+      <storage-field name="firstPartyIsCurrentOrg"/>
+    </boolean>
+    <schema-ref ref="RegistrationInfo_ContractsNotes" name="regInfo"/>
+    <actor array="true" name="preparedBy"/>
+    <string temporal="true" name="otherPartiesTableName">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA['']]></script>
+      </calc-values>
+    </string>
+    <actor array="true" name="responsibles" />
+    <date name="started" >
+      <storage-field name="started"/>
+    </date>
+    <date name="finished" >
+      <storage-field name="finished"/>
+    </date>
+    <boolean name="firstPartyIsEmpty" >
+      <storage-field name="firstPartyIsEmpty"/>
+    </boolean>
+    <boolean name="isSignedOrOnSign">
+      <storage-field name="isSignedOrOnSign"/>
+    </boolean>
+    <boolean name="secondPartyIsEmpty">
+      <storage-field name="secondPartyIsEmpty"/>
+    </boolean>
+    <string name="secondPartySelectedType">
+      <storage-field name="secondPartySelectedType"/>
+    </string>
+    <schema-ref ref="OtherPartiesTableDisplay" name="otherPartiesTableDisplay" array="true" />
+    <boolean name="canCreateActualVersion" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).hasEditRoles(#this.parentUnid) ||
+        ("REGISTERED".equals((T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(#this.parentUnid)).registration().getState()?.toString())
+        && (("SIGNED".equals((T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(#this.parentUnid)).signing().getState()?.toString()))
+			|| (T(ru.intertrust.cmj.af.core.AFEntityStorage).getEntityByUNID(#this.parentUnid)).review().isProcessRun()))]]></script>
+      </calc-values>
+    </boolean>
+      <string name="parentConUnid">
+          <storage-field name="RootDocIdForVersion"/>
+      </string>
+  </schema>
+</schemas>

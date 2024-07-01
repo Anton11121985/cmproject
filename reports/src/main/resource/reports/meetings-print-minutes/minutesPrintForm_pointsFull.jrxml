@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="minutesPrintForm_pointsFull" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="19441d5a-d384-40f5-bc44-0ce4b700f3df">
+	<property name="net.sf.jasperreports.export.docx.flexible.row.height" value="true"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="CM5"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="261"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="732"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="785"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="206"/>
+	<parameter name="ID" class="java.lang.Object"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+	decision.pointText as pointText,
+	decision.pointnumber as pointNum,
+	reporter.reporterFIO as reporterFIO,
+	meet.id AS docId,
+	content.name as name,
+	CASE
+    WHEN decision.reporterscomment IS NOT NULL AND decision.reporterscomment!='' THEN decision.reporterscomment
+    ELSE null
+    END
+	AS reporterscomment,
+	opponented.opponentFIO as opponentFIO,
+	CASE
+    WHEN  decision.opponentscomment IS NOT NULL AND decision.opponentscomment!='' THEN decision.opponentscomment
+    ELSE null
+    END
+	AS opponentscomment,
+	CASE
+    WHEN votes.votes IS NOT NULL THEN votes.votes 
+    ELSE null
+    END
+	AS votes,
+	decision.text AS decisionText,
+	to_char(decision.res_deadline, 'DD.MM.YYYY') as res_date,
+	executor.executorFIO AS executorFIO,
+	CASE
+    WHEN decision.votecomment IS NOT NULL THEN decision.votecomment
+    ELSE null
+    END
+	as votecomment
+FROM
+	f_meetings_meeting meet
+	LEFT JOIN f_meetings_decision decision ON decision.meeting = meet.id AND meet.module = decision.module 
+	LEFT JOIN f_contentfiles_des content ON content.f_meetings_decision = decision.id
+	LEFT JOIN (
+        	SELECT
+                f_decision_reporters.owner AS owner,
+                string_agg(substring(SO_Person.firstname, 1, 1) || '. '
+                || substring(SO_Person.middlename, 1, 1) || '. '
+                || SO_Person.lastname, ', ') AS reporterFIO
+           FROM SO_Person
+                JOIN f_decision_reporters ON SO_Person.id in
+                	(SELECT appointment.person FROM SO_Appointment appointment WHERE appointment.beard = f_decision_reporters.reporter)
+                GROUP BY owner
+         ) AS reporter ON reporter.owner = decision.id
+	LEFT JOIN (
+        	SELECT
+                f_decision_opponents.owner AS owner,
+                string_agg(substring(SO_Person.firstname, 1, 1) || '. '
+                || substring(SO_Person.middlename, 1, 1) || '. '
+                || SO_Person.lastname, ', ') AS opponentFIO
+           FROM SO_Person
+                JOIN f_decision_opponents ON SO_Person.id in
+                	(SELECT appointment.person FROM SO_Appointment appointment WHERE appointment.beard = f_decision_opponents.opponent)
+                GROUP BY owner
+         ) AS opponented ON opponented.owner = decision.id
+        LEFT JOIN (
+        	SELECT
+                f_decision_res_exec.owner AS owner,
+                string_agg(substring(SO_Person.firstname, 1, 1) || '. '
+                || substring(SO_Person.middlename, 1, 1) || '. '
+                || SO_Person.lastname, ', ') AS executorFIO
+           FROM SO_Person
+                JOIN f_decision_res_exec ON SO_Person.id in
+                	(SELECT appointment.person FROM SO_Appointment appointment WHERE appointment.beard = f_decision_res_exec.executor)
+                GROUP BY owner
+         ) AS executor ON executor.owner = decision.id
+       LEFT JOIN (
+        	SELECT
+                vote.owner AS owner,
+               CASE
+                     WHEN  SUM(vote.count)!=0 THEN string_agg(vote.name || ' - '|| vote.count, '<br>') 
+          			 ELSE null
+           			 END
+               AS votes
+           FROM f_decision_votes vote 
+            GROUP BY owner
+             ORDER BY votes ASC
+         ) AS votes ON votes.owner = decision.id
+WHERE
+	meet.id = $P{ID}
+ORDER BY pointNum]]>
+	</queryString>
+	<field name="pointText" class="java.lang.String"/>
+	<field name="reporterFIO" class="java.lang.String"/>
+	<field name="reporterscomment" class="java.lang.String"/>
+	<field name="opponentFIO" class="java.lang.String"/>
+	<field name="opponentscomment" class="java.lang.String"/>
+	<field name="decisionText" class="java.lang.String"/>
+	<field name="res_date" class="java.lang.String"/>
+	<field name="executorFIO" class="java.lang.String"/>
+	<field name="votes" class="java.lang.String"/>
+	<field name="votecomment" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="docId" class="java.lang.Object"/>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="500" height="30" isRemoveLineWhenBlank="true" forecolor="#000000" uuid="9366df39-a64d-4df2-b5a3-ffc6744c0fc0">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="14" isBold="false"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25" spacingBefore="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<br><b>" + $V{REPORT_COUNT} + ". " + ($F{pointText} != null ? $F{pointText} : "") + "</b>" +
+($F{reporterFIO} != null ? ("<br>" + "ДОКЛАДЧИК:" + "<br>&emsp&emsp&emsp" + $F{reporterFIO}) : "") +
+($F{reporterscomment} != null ? ($F{reporterFIO} != null ? ". " + $F{reporterscomment} : ("<br>" + "ДОКЛАДЧИК:" + "<br>&emsp&emsp&emsp" + $F{reporterscomment})) : "") +
+($F{opponentFIO} != null ? ("<br>" + "ВЫСТУПИЛИ:" + "<br>&emsp&emsp&emsp" + $F{opponentFIO}) : "") +
+($F{opponentscomment} != null ? ($F{opponentFIO} != null ? (". " + $F{opponentscomment}) : ("<br>" + "ВЫСТУПИЛИ:" + "<br>&emsp&emsp&emsp" + $F{opponentscomment})) : "") +
+"<br>" + "РЕШИЛИ:" + "<br>&emsp&emsp&emsp" +
+($F{decisionText} != null ? $F{decisionText}  + ". ": "") +
+($F{res_date} != null ? "Срок: " + $F{res_date} + ". " : "") +
+($F{executorFIO} != null ? "Исполнитель: " + $F{executorFIO} : "") +
+(($F{votes}!=null && !$F{votes}.equals(""))
+	|| ($F{votecomment} != null && !$F{votecomment}.equals(""))
+	? "<br>" + "РЕЗУЛЬТАТЫ ГОЛОСОВАНИЯ:" : "") +
+($F{votes} != null && !$F{votes}.equals("") ? "<br>" + $F{votes} : "") +
+($F{votecomment} != null && !$F{votecomment}.equals("") ? "<br>" + $F{votecomment} : "")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

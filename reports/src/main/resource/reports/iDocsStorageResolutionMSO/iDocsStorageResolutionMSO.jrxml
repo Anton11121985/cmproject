@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-08-04T14:58:32 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="graphic-resolution-typical" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="25" bottomMargin="20" uuid="2d3e0d15-aa5e-4ca6-a8cc-f97f04de5c9a">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT
+			   	  res_base.resolution as resolutionText,
+				  (SELECT string_agg(exec_beard.orig_shortname, '<p>')
+				   FROM f_dp_resltnbase_execcurr res_exec
+					 JOIN so_beard exec_beard ON exec_beard.id = res_exec.executorcurr
+												 AND exec_beard.id_type = res_exec.executorcurr_type
+				   WHERE res_exec.owner = res_base.id AND res_exec.owner_type = res_base.id_type) as resExecutors,
+				  res.ctrldeadline as deadlineDate
+				FROM f_dp_resltnbase res_base
+				JOIN f_dp_resolution res ON res_base.id = res.id
+				JOIN QR_Id_List id_list ON res_base.id = id_list.item AND res_base.id_type = id_list.item_type
+				WHERE id_list.request = $P{request_id}]]>
+	</queryString>
+	<field name="resolutionText" class="java.lang.String"/>
+	<field name="deadlineDate" class="java.sql.Timestamp"/>
+	<field name="resExecutors" class="java.lang.String"/>
+	<group name="DeadlineDate">
+		<groupHeader>
+			<band height="30">
+				<textField>
+					<reportElement x="20" y="10" width="120" height="20" uuid="2ea54bdc-644a-49fa-98e5-d932bb80b148"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Срок исполнения:"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="150" y="10" width="230" height="20" uuid="f0f5d26f-cd6e-47ae-bf73-94d88d1aefa2"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{deadlineDate} != null ? (new SimpleDateFormat("dd.MM.yyyy")).format($F{deadlineDate}) : "")]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band height="45" splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="80" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="20" y="20" width="77" height="20" uuid="cd4cc5fd-819d-4a8d-9035-0f3235bd04b1"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Резолюция:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="110" y="20" width="670" height="20" uuid="7de9b7f6-16c8-48f8-b8c8-80682fc34d7e"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{resolutionText}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="40" width="100" height="20" uuid="515bd495-5f8a-4976-9e37-7a433c2bb219"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Исполнители:"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="20" y="60" width="160" height="20" uuid="ff2372f1-f56d-48d4-ae2b-a677e32038f6"/>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{resExecutors}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+</jasperReport>

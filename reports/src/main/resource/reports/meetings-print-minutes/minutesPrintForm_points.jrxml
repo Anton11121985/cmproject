@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="minutesPrintForm_points" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="19441d5a-d384-40f5-bc44-0ce4b700f3df">
+	<property name="net.sf.jasperreports.export.docx.flexible.row.height" value="true"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="CM5"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="287"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="706"/>
+	<parameter name="ID" class="java.lang.Object"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+	decision.pointText as pointText,
+	decision.pointnumber as pointNum,
+	reporter.reporterFIO as reporterFIO
+FROM
+	f_meetings_meeting meet
+	LEFT JOIN f_meetings_decision decision ON decision.meeting = meet.id AND meet.module = decision.module 
+	LEFT JOIN (
+        	SELECT
+                f_decision_reporters.owner AS owner,
+                string_agg(substring(SO_Person.firstname, 1, 1) || '. '
+                || substring(SO_Person.middlename, 1, 1) || '. '
+                || SO_Person.lastname, ', ') AS reporterFIO
+           FROM SO_Person
+                JOIN f_decision_reporters ON SO_Person.id in
+                	(SELECT appointment.person FROM SO_Appointment appointment WHERE appointment.beard = f_decision_reporters.reporter)
+                GROUP BY owner
+         ) AS reporter ON reporter.owner = decision.id
+WHERE
+	meet.id = $P{ID}
+ORDER BY pointNum]]>
+	</queryString>
+	<field name="pointText" class="java.lang.String"/>
+	<field name="reporterFIO" class="java.lang.String"/>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="501" height="30" forecolor="#000000" uuid="00d2a55a-6ef4-4db5-9d16-d9629c88a98d">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="14" isBold="false"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.25" spacingBefore="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + ". " + ($F{pointText} != null ? $F{pointText} : "") +
+($F{reporterFIO} != null ? ("<br>" + "Докладчик: " + $F{reporterFIO}) : "")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

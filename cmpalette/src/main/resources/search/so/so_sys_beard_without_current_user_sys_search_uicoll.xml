@@ -1,0 +1,334 @@
+<search-area name="so_sys_beard_without_current_user_sys_search_uicoll" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="origShortName" value="20.0"/>
+        <field-boost name="fullNameAdmin" value="20.0"/>
+        <field-boost name="soOrgShortNameOrOrgAdmin" value="20.0"/>
+        <field-boost name="postName" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_unit">
+        <indexed-field name="structureUnitShortName" search-by="substring">
+            <doel>shortname</doel>
+        </indexed-field>
+        <indexed-field name="structureUnitFullName" search-by="substring">
+            <doel>fullname</doel>
+        </indexed-field>
+        <indexed-field name="origShortName" search-by="substring">
+            <script>
+                <![CDATA[
+                var person = calcCurPers('so_appointmenthead^post');
+                if (person == null) {
+                    person = calcCurPers('so_appointmentplain^post');
+                }
+                if (person != null) {
+                  ctx.setResult(person.getString('lastname') + ' ' + person.getString('firstname') + ' ' + person.getString('middlename'));
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+
+        <indexed-field name="email" search-by="substring">
+            <script>
+                if (ctx.get('so_appointmenthead^post') != null) {
+                ctx.get('so_appointmenthead^post.person.so_email_person^owner.email');
+                } else {
+                ctx.get('so_appointmentplain^post.person.so_email_person^owner.email');
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="phoneMobile" search-by="substring">
+            <script>
+                if (ctx.get('so_appointmenthead^post') != null) {
+                ctx.get('so_appointmenthead^post.person.so_phone_person_m^owner.phone');
+                } else {
+                ctx.get('so_appointmentplain^post.person.so_phone_person_m^owner.phone');
+                }
+            </script>
+        </indexed-field>
+
+
+        <indexed-field name="phoneWork" search-by="substring">
+            <script>
+                if (ctx.get('so_appointmenthead^post') != null) {
+                ctx.get('so_appointmenthead^post.person.so_phone_person_w^owner.phone');
+                } else {
+                ctx.get('so_appointmentplain^post.person.so_phone_person_w^owner.phone');
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="postName" search-by="substring">
+            <script>
+                <![CDATA[
+                var beard = calcCurBeard('so_appointmenthead^post');
+                if (beard == null) {
+                    beard = calcCurBeard('so_appointmentplain^post');
+                }
+                if (beard != null) {
+                    var effName = beard.getString('eff_postname');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    } else {
+                        ctx.setResult(beard.getString('orig_postname'));
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurBeard(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('beard'));
+                        }
+                    }
+                    return null;
+                }
+
+                ]]>
+            </script>
+        </indexed-field>
+
+
+    </target-domain-object>
+
+    <target-domain-object type="so_orgdescriptionnonsys">
+
+        <!-- Содержание -->
+        <indexed-content type="F_AddFiles_OrgDesc"/>
+        <indexed-content type="OrgNonSys_files"/>
+        <!-- Полное название -->
+        <indexed-field name="fullNameAdmin" search-by="substring">
+            <doel>fullname</doel>
+        </indexed-field>
+        <!-- Краткое название -->
+        <indexed-field name="soOrgShortNameOrOrgAdmin">
+            <doel>shortName</doel>
+        </indexed-field>
+
+        <!-- Реплика СПО -->
+        <indexed-field name="replicaId" search-by="exactmatch">
+            <doel>module.replica</doel>
+        </indexed-field>
+        <!-- Адрес-->
+        <linked-domain-object type="SO_AddressData_Org_L">
+            <indexed-field name="address_l" search-by="substring">
+                <compound-field delimiter=" ">
+                    <field-part>
+                        <doel>streettype</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>street</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>house</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>corp</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>building</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>office</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>settlement</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>city</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>locality</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>country</doel>
+                    </field-part>
+                </compound-field>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Org_F">
+            <indexed-field name="address_f" search-by="substring">
+                <compound-field delimiter=" ">
+                    <field-part>
+                        <doel>streettype</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>street</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>house</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>corp</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>building</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>office</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>settlement</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>city</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>locality</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>country</doel>
+                    </field-part>
+                </compound-field>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Org_J">
+            <indexed-field name="address_j" search-by="substring">
+                <compound-field delimiter=" ">
+                    <field-part>
+                        <doel>streettype</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>street</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>house</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>corp</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>building</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>office</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>settlement</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>city</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>locality</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>region</doel>
+                    </field-part>
+                    <field-part>
+                        <doel>country</doel>
+                    </field-part>
+                </compound-field>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Телефон -->
+        <linked-domain-object type="SO_Phone_Org">
+            <indexed-field name="phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Email -->
+        <linked-domain-object type="SO_Email_Org">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Факс -->
+        <linked-domain-object type="SO_Fax_Org">
+            <indexed-field name="fax"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+    <!-- Организация СО -->
+    <target-domain-object type="so_orgdescriptionsys">
+        <!-- Полное название -->
+        <indexed-field name="fullNameAdmin" search-by="substring">
+            <script>
+                ctx.setResult(ctx.get('orgsystem.fullName'));
+            </script>
+        </indexed-field>
+        <!-- Краткое название -->
+        <indexed-field name="soOrgShortNameOrOrgAdmin" search-by="substring">
+            <script>
+                ctx.setResult(ctx.get('orgsystem.shortName'));
+            </script>
+        </indexed-field>
+
+        <!-- Телефон -->
+        <linked-domain-object type="SO_Phone_Org">
+            <indexed-field name="phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Email -->
+        <linked-domain-object type="SO_Email_Org">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Факс -->
+        <linked-domain-object type="SO_Fax_Org">
+            <indexed-field name="fax"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+
+</search-area>

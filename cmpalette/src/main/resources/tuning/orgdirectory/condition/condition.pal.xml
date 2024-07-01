@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <condition name="VCardOrg_isDeleted">
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref ref="isDeleted_VCard" value="true"/>
+    </schema-ref>
+  </condition>
+  <condition name="hasHeaderNameOrRequestStatusTitle">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="VCardResource.Organization" condition-union="OR">
+      <boolean-ref value="true" ref="hasHeaderName"/>
+      <boolean-ref value="true" ref="hasRequestStatusTitle"/>
+    </schema-ref>
+  </condition>
+  <condition name="isSpark">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="isSpark"/>
+    </schema-ref>
+  </condition>
+  <condition name="hasJoinOrOldInfo">
+    <modes>
+      <mode name="read"/>
+      <mode name="edit"/>
+    </modes>
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="hasJoinOrOldInfo"/>
+    </schema-ref>
+  </condition>
+  <condition name="TNObjectIsShowEditButtonInAdmin">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="false" ref="new"/>
+      <boolean-ref value="false" ref="openAtDirectory"/>
+      <boolean-ref value="true" ref="isOrgEditor" />
+    </schema-ref>
+  </condition>
+  <condition name="VCardResourceOrganizationShowSystemEditButton">
+    <roles>
+      <role name="Supervisor"/>
+      <role name="OrgEditor"/>
+    </roles>
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="false" ref="new"/>
+      <boolean-ref value="true" ref="openAtDirectory"/>
+      <boolean-ref value="true" ref="isOrgEditor" />
+    </schema-ref>
+  </condition>
+  <condition name="entityCanMakeSPOOld">
+    <roles>
+      <role name="Supervisor"/>
+      <role name="OrgEditor"/>
+    </roles>
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">
+      <string-ref value="юридическое лицо" ref="counterparty"/>
+      <boolean-ref value="true" ref="canMakeOld"/>
+    </schema-ref>
+  </condition>
+  <condition name="individualCanMakeSPOOld">
+    <roles>
+      <role name="Supervisor"/>
+      <role name="OrgEditor"/>
+    </roles>
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">
+      <string-ref value="индивидуальный предприниматель" ref="counterparty"/>
+      <boolean-ref value="true" ref="canMakeOld"/>
+    </schema-ref>
+  </condition>
+  <condition name="SparkCanRefreshFromSpark">
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref ref="canRefreshFromSpark" value="true"/>
+      <boolean-ref ref="isSpark" value="false"/>
+    </schema-ref>
+  </condition>
+  <condition name="SPO_RestoreOrganization">
+    <modes>
+      <mode name="read"/>
+    </modes>
+    <roles>
+      <role name="Supervisor"/>
+    </roles>
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="deleted"/>
+      <boolean-ref value="false" ref="openAtDirectory"/>
+      <boolean-ref value="false" ref="isJoined"/>
+    </schema-ref>
+  </condition>
+  <condition name="useSpark">
+    <modes>
+      <mode name="edit"/>
+      <mode name="dialog"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">
+      <boolean-ref value="true" ref="useSpark"/>
+    </schema-ref>
+  </condition>
+  <condition name="isSparkAndRole">
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="isHasSparkRole" />
+      <boolean-ref value="true" ref="useSpark" />
+      <boolean-ref value="false" ref="isOrgEditor" />
+    </schema-ref>
+  </condition>
+  <condition name="isIndividualentrepreneur">
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">
+      <string-ref value="индивидуальный предприниматель" ref="counterparty"/>
+    </schema-ref>
+  </condition>
+  <condition name="isSparkAndRoleOrSystem">
+    <schema-ref ref="VCardResource.Organization" condition-union="AND">
+      <boolean-ref value="true" ref="isSysOrOrgCreatorSPARK" />
+    </schema-ref>
+  </condition>
+  <condition name="isEnterpreneur">
+    <modes>
+      <mode name="dialog"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">
+      <string-ref value="индивидуальный предприниматель" ref="counterparty"/>
+    </schema-ref>
+  </condition>
+  <condition name="isOrgEditor">
+    <modes>
+      <mode name="dialog"/>
+    </modes>
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">
+      <boolean-ref value="false" ref="isOrgEditor"/>
+    </schema-ref>
+  </condition>
+  <condition name="editOrganization">
+    <roles>
+      <role name="Supervisor"/>
+      <role name="OrgEditor"/>
+    </roles>
+    <schema-ref ref="" condition-union="AND"/>
+  </condition>
+  <condition name="noEditGASFields">
+    <schema-ref condition-union="AND" ref="VCardResource.Organization">      
+      <boolean-ref value="true" ref="hasMedoStamps"/>
+	  <boolean-ref value="false" ref="isGASRole"/>
+    </schema-ref>
+  </condition>
+</ui>

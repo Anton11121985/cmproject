@@ -1,0 +1,87 @@
+<collection name="SS_(vw_cmj_custom_searchCount)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+                SELECT * FROM
+                (SELECT
+                  sc.id,
+                  sc.created_date,
+                  generalModule.id AS module,
+                  '<id>' AS self_1,
+                  ':' AS self_2,
+                  '</>' AS self_3,
+                  sc.searchFormula,
+                  classifierOrgDesc.orgsystem AS orgId,
+                  classifierOrgUnit.created_date AS orgCreated_date,
+                  classifierSu.shortname,
+                  CASE
+                    WHEN classifierModType.alias = 'InputDocs' THEN 'Входящие документы'
+                    WHEN classifierModType.alias = 'InternalDocs' THEN 'Внутренние документы'
+                    WHEN classifierModType.alias = 'OutputDocs' THEN 'Исходящие документы'
+                    WHEN classifierModType.alias = 'Missions' THEN 'ОРД'
+                    WHEN classifierModType.alias = 'ContractsLite' THEN 'Договоры'
+                    WHEN classifierModType.alias = 'Requests' THEN 'Обращения граждан'
+					WHEN classifierModType.alias = 'DTR' THEN 'РПД'
+                    WHEN classifierModType.alias = 'ExpeditionOrders' THEN 'Экспедиция\Заказы'
+                    WHEN classifierModType.alias = 'JobOrders' THEN 'Заказы на исполнение'
+                    WHEN classifierModType.alias = 'JobApps' THEN 'Заявки на исполнение'
+                    ELSE classifierModType.alias
+                    END AS alias
+                FROM
+                    ss_searchCount sc
+                    JOIN ss_moduleType generalModType ON generalModType.alias = 'SS'
+                    JOIN ss_module generalModule ON generalModule.type = generalModType.id
+                    JOIN ss_moduleOrg classifierModOrg ON sc.moduleOrg = classifierModOrg.id
+                    JOIN ss_module classifierMod ON classifierMod.id = classifierModOrg.module
+                    JOIN ss_moduleType classifierModType ON classifierModType.id = classifierMod.type
+                    JOIN so_unit classifierOrgUnit ON classifierModOrg.organization = classifierOrgUnit.id
+                    JOIN so_structureunit classifierSu ON classifierSu.id = classifierOrgUnit.id
+                    JOIN (SELECT
+                              orgsystem, orgsystem_type
+                          FROM
+                              SO_OrgDescriptionSys
+                          GROUP BY
+                              orgsystem, orgsystem_type) classifierOrgDesc ON classifierOrgDesc.orgsystem = classifierSu.id
+                WHERE
+                    sc.isDeleted <> 1) t
+                    WHERE 1=1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <filter name="orgIdAndAlias">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     classifierOrgDesc.id = {0}
+                     AND
+                     alias LIKE ('%' || {1})
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="UNID">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     sc.id = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="counterFormula_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     lower(searchFormula) LIKE lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="module_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     lower(alias) LIKE lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="soDlgExtName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     lower(shortname) LIKE lower('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

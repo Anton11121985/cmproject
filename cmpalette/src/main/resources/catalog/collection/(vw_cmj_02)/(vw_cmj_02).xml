@@ -1,0 +1,332 @@
+<collection name="(vw_cmj_02)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+    id,
+    created_date,
+    Module,
+    hasAttachments,
+    templateName,
+    self_1,
+    self_2,
+    self_3,
+    reqType,
+    signerName,
+    subject,
+    theme,
+    authorTemplate,
+    accessTypeColl
+FROM (
+         SELECT
+             rkkbase.id                             AS id,
+             rkkbase.created_date                   AS created_date,
+             rkkbase.module                         AS Module,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkkbase.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkkbase.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkkbase.id
+                   ) t
+             )                                      AS hasAttachments,
+             rkkT.Name                              AS templateName,
+             '<id>'                                 AS self_1,
+             ':'                                    AS self_2,
+             '</>'                                  AS self_3,
+             rkkbase.type                           AS reqType,
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                         (SELECT ARRAY_TO_STRING(ARRAY_AGG(orig_shortname), ', ', '')
+                          FROM (SELECT *
+                                FROM so_beard
+                                         LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                WHERE ordrkkT.id = F_DP_Rkk_SigningInfo.owner
+                                LIMIT 4) f) ||
+                         (CASE
+                              WHEN (SELECT COUNT(*)
+                                    FROM so_beard
+                                             LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                    WHERE ordrkkT.id = F_DP_Rkk_SigningInfo.owner) > 4 THEN ', ...'
+                              ELSE ''
+                             END)
+                 END                                                                         AS signername,
+             rkkbase.subject                        AS subject,
+           CASE
+                WHEN themes.theme IS NULL THEN '<Не указано>'
+                ELSE themes.theme
+                END                                                                as theme,
+
+             COALESCE(coalesce(
+                     (SELECT
+                          CASE WHEN authorBeard.orig_shortname IS NULL THEN '<Не указано>'
+                               ELSE authorBeard.orig_shortname
+                              END
+                      FROM so_beard authorBeard
+                      WHERE authorBeard.id = rkkT.authorBeard),
+                     CASE WHEN rkkT.authorBeard IS NULL THEN '<Не указано>' END
+                 ), '<Не указано>')  AS authorTemplate,
+             (CASE
+                  WHEN (SELECT count(lnfield)
+                        FROM (SELECT lnfield
+                              FROM dp_lnacc_ordrkkt
+                                       natural JOIN dp_lnacc
+                              WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnacc_ordrkkt.owner = ordrkkT.id
+                              UNION
+                              SELECT lnfield
+                              FROM  dp_lnaccrole_ordrkkt
+                                        natural JOIN dp_lnaccrole
+                              WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnaccrole_ordrkkt.owner = ordrkkT.id) pub) <> 0
+                      THEN 'Доступен всем'
+                  WHEN rkkT.isfavouritesaccess <> 0
+                      THEN 'Доступен выбранным'
+                  ELSE 'Личный доступ' END)                                                  AS accessTypeColl
+         FROM
+             F_DP_OrdRkkT ordrkkT
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = ordrkkT.id
+                 JOIN F_DP_RkkTemplate rkkT ON rkkT.id = ordrkkT.id
+                 JOIN So_BEARD signerName ON signerName.id = ordrkkT.SignSigner
+                 LEFT JOIN f_dp_rkkbase_theme themes ON themes.owner = rkkbase.id
+         WHERE rkkbase.isdeleted <> 1
+     ) s
+        WHERE 1 = 1
+       ::where-clause
+]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+SELECT count(*)
+FROM (
+         SELECT
+             rkkbase.id                             AS id,
+             rkkbase.created_date                   AS created_date,
+             rkkbase.module                         AS Module,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkkbase.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkkbase.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkkbase.id
+                   ) t
+             )                                      AS hasAttachments,
+             rkkT.Name                              AS templateName,
+             '<id>'                                 AS self_1,
+             ':'                                    AS self_2,
+             '</>'                                  AS self_3,
+             rkkbase.type                           AS reqType,
+             CASE
+                 WHEN (rkkbase.signingmode = 0) THEN signerName.orig_shortname
+                 ELSE
+                         (SELECT ARRAY_TO_STRING(ARRAY_AGG(orig_shortname), ', ', '')
+                          FROM (SELECT *
+                                FROM so_beard
+                                         LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                WHERE ordrkkT.id = F_DP_Rkk_SigningInfo.owner
+                                LIMIT 4) f) ||
+                         (CASE
+                              WHEN (SELECT COUNT(*)
+                                    FROM so_beard
+                                             LEFT JOIN F_DP_Rkk_SigningInfo ON F_DP_Rkk_SigningInfo.signer = So_beard.id
+                                    WHERE ordrkkT.id = F_DP_Rkk_SigningInfo.owner) > 4 THEN ', ...'
+                              ELSE ''
+                             END)
+                 END                                                                         AS signername,
+             rkkbase.subject                        AS subject,
+           CASE
+                WHEN themes.theme IS NULL THEN '<Не указано>'
+                ELSE themes.theme
+                END                                                                as theme,
+
+             COALESCE(coalesce(
+                     (SELECT
+                          CASE WHEN authorBeard.orig_shortname IS NULL THEN '<Не указано>'
+                               ELSE authorBeard.orig_shortname
+                              END
+                      FROM so_beard authorBeard
+                      WHERE authorBeard.id = rkkT.authorBeard),
+                     CASE WHEN rkkT.authorBeard IS NULL THEN '<Не указано>' END
+                 ), '<Не указано>')  AS authorTemplate,
+             (CASE
+                  WHEN (SELECT count(lnfield)
+                        FROM (SELECT lnfield
+                              FROM dp_lnacc_ordrkkt
+                                       natural JOIN dp_lnacc
+                              WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnacc_ordrkkt.owner = ordrkkT.id
+                              UNION
+                              SELECT lnfield
+                              FROM  dp_lnaccrole_ordrkkt
+                                        natural JOIN dp_lnaccrole
+                              WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnaccrole_ordrkkt.owner = ordrkkT.id) pub) <> 0
+                      THEN 'Доступен всем'
+                  WHEN rkkT.isfavouritesaccess <> 0
+                      THEN 'Доступен выбранным'
+                  ELSE 'Личный доступ' END)                                                  AS accessTypeColl
+         FROM
+             F_DP_OrdRkkT ordrkkT
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = ordrkkT.id
+                 JOIN F_DP_RkkTemplate rkkT ON rkkT.id = ordrkkT.id
+                 JOIN So_BEARD signerName ON signerName.id = ordrkkT.SignSigner
+                 LEFT JOIN f_dp_rkkbase_theme themes ON themes.owner = rkkbase.id
+         WHERE rkkbase.isdeleted <> 1
+     ) s
+        WHERE 1 = 1
+       ::where-clause
+]]>
+    </counting-prototype>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    templateName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	templateName < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	templateName >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="templateName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	templateName iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    reqType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="reqType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	reqType iLIKE'%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="accessTypeColl_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        accessTypeColl ~* ('(^|\W)'||{0})
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signerName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="signerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    signerName ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	subject iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="theme">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    theme = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="theme_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    theme iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorTemplate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    authorTemplate = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="authorTemplate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    authorTemplate iLIKE ('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

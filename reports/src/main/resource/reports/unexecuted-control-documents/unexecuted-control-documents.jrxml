@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="unexecuted-control-documents" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ca7ad1db-d65d-4806-8d0c-eae7172d5d79">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="doc-group-lines">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{DocGroup_COUNT} == 1 && ("" + $F{rescount}).equals("" + $V{DocGroup_COUNT})]]></conditionExpression>
+			<style>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</style>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{DocGroup_COUNT} == 1 && !("" + $F{rescount}).equals("" + $V{DocGroup_COUNT})]]></conditionExpression>
+			<style>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</style>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{DocGroup_COUNT} != 1 && ("" + $F{rescount}).equals("" + $V{DocGroup_COUNT})]]></conditionExpression>
+			<style>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</style>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{DocGroup_COUNT} != 1 && !("" + $F{rescount}).equals("" + $V{DocGroup_COUNT})]]></conditionExpression>
+			<style>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</style>
+		</conditionalStyle>
+	</style>
+	<subDataset name="Resolutions" uuid="4f3ea4d7-8cb4-4d78-a61b-dbf888a11af1">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+		<queryString>
+			<![CDATA[]]>
+		</queryString>
+	</subDataset>
+	<parameter name="controlDate.Start" class="java.util.Date"/>
+	<parameter name="controlDate.End" class="java.util.Date"/>
+	<queryString>
+		<![CDATA[with resltn as (
+ SELECT res.id as resolutionId,
+		res.id_type as resolutionId_type,
+		res.date as res_date,
+        res.hierroot as rootrkk, 
+        res.hierroot_type as rootrkktyp,
+	author.orig_shortname as res_author,
+	resbase.resolution,
+	res.ctrldeadline,
+	resbase.ctrliscontrolled,
+	string_agg(CAST(execcurr_name.orig_shortname AS text), ', ') as executor
+   FROM F_DP_Resolution res
+   JOIN F_DP_ResltnBase resbase on resbase.id = res.id
+   JOIN SO_Beard author on author.id = resbase.Author
+   left join F_DP_ResltnBase_ExecResp execresp on execresp.owner=res.id
+   left join so_beard AS execcurr_name ON execcurr_name.id = execResp.ExecutorResp
+  WHERE resbase.ctrliscontrolled = 1
+    AND resbase.isdeleted <> 1
+    AND res.ctrldateexecution IS NULL
+    AND res.isproject <> 1
+    AND res.ctrldeadline >= date($P{controlDate.Start})
+    AND res.ctrldeadline <= date($P{controlDate.End})
+  group by res.hierroot, 
+           res.hierroot_type,
+           res.id,
+           res.id_type,
+           author.orig_shortname,
+           res.date,
+           resbase.resolution,
+           res.ctrldeadline,
+           resbase.ctrliscontrolled
+)
+         SELECT	rkkId,
+		doc_date,
+		doc_module,
+		docType,
+		regnumprist,
+		regnumcnt,
+		regnumfin,
+		doc_author,
+		doc_subject,
+		doc_id,
+		ctrlDateExecution,
+		-- authorplain
+		-- ctrlDeadline,
+		-- ctrliscontrolled
+		resolutionId,
+     	        res_author,
+	 	res_date,
+		resolution,
+		ctrldeadline,
+		ctrliscontrolled,
+		executor,
+                (select count(1) from resltn where resltn.rootrkk = rkkid) as rescount
+FROM
+(
+	----------Входящие документы----------
+	SELECT
+			rkk.id AS rkkId,
+			rkk.RegDate AS doc_date,
+			moduleType.name AS doc_module,
+			CAST(rkkbase.type AS text) AS docType,
+			rkk.regnumprist,
+			rkk.regnumcnt,
+			rkk.regnumfin,
+    	(CASE WHEN author.orig_shortname = '' or author.orig_shortname is null THEN authorP.authorplain ELSE author.orig_shortname END) AS doc_author,
+			rkkbase.Subject AS doc_subject,
+	  	rkkbase.id AS doc_id,
+	  	-- rkk.CtrlDeadline,
+	  	-- authorP.authorplain,
+	  	rkk.ctrlDateExecution,
+	  	-- resolution.ctrldeadline AS controlled,
+	  	-- res_base.ctrliscontrolled
+		resltn.resolutionId,
+		resltn.res_author,
+		resltn.res_date,
+		resltn.resolution,
+		resltn.ctrldeadline,
+		resltn.ctrliscontrolled,
+		resltn.executor
+	FROM
+			F_DP_InputRkk inputrkk
+			JOIN F_DP_Rkk rkk ON rkk.id = inputrkk.id
+			JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkk.id
+			JOIN SS_Module module ON module.id = rkkbase.Module
+			JOIN SS_ModuleType moduleType ON moduleType.id = module.Type
+                        JOIN resltn on rkkbase.id = resltn.rootrkk and rkkbase.id_type = resltn.rootrkktyp
+			LEFT JOIN SO_Beard author ON author.id = inputrkk.FromId
+	 		LEFT JOIN F_DP_InputRkk_AuthorPlain authorP ON authorP.owner = rkk.id
+	WHERE rkkbase.isdeleted <> 1
+	--AND (rkkbase.id, rkkbase.id_type) in (select rootrkk, rootrkktyp from resltn)
+	UNION
+		---------Внутренние документы--------
+	SELECT
+			rkk.id AS rkkId,
+			rkk.RegDate AS doc_date,
+			moduleType.name AS doc_module,
+			CAST(rkkbase.type AS text) AS docType,
+			rkk.regnumprist,
+			rkk.regnumcnt,
+			rkk.regnumfin,
+    	(CASE WHEN author.orig_shortname = '' THEN NULL ELSE author.orig_shortname END) AS doc_author,
+			rkkbase.Subject AS doc_subject,
+	  	rkkbase.id AS doc_id,
+	  	-- rkk.CtrlDeadline,
+	  	-- authorP.authorplain,
+	  	rkk.ctrlDateExecution,
+	  	-- resolution.ctrldeadline AS controlled,
+	  	-- res_base.ctrliscontrolled
+		resltn.resolutionId,
+		resltn.res_author,
+		resltn.res_date,
+		resltn.resolution,
+		resltn.ctrldeadline,
+		resltn.ctrliscontrolled,
+		resltn.executor
+	FROM
+			F_DP_IntRkk internalrkk
+			JOIN F_DP_Rkk rkk ON rkk.id = internalrkk.id
+			JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkk.id
+			JOIN SS_Module module ON module.id = rkkbase.Module
+			JOIN SS_ModuleType moduleType ON moduleType.id = module.Type
+                        JOIN resltn on rkkbase.id = resltn.rootrkk and rkkbase.id_type = resltn.rootrkktyp
+	  	    LEFT JOIN SO_Beard author ON author.id = internalrkk.SignSigner
+	WHERE rkkbase.isdeleted <> 1
+	--AND (rkkbase.id, rkkbase.id_type) in (select rootrkk, rootrkktyp from resltn)
+
+	UNION
+		--------ОРД документы---------
+	SELECT
+				rkk.id AS rkkId,
+			rkk.RegDate AS doc_date,
+			moduleType.name AS doc_module,
+			CAST(rkkbase.type AS text) AS docType,
+			rkk.regnumprist,
+			rkk.regnumcnt,
+			rkk.regnumfin,
+    	(CASE WHEN author.orig_shortname = '' THEN NULL ELSE author.orig_shortname END) AS doc_author,
+			rkkbase.Subject AS doc_subject,
+	  	rkkbase.id AS doc_id,
+	  	-- rkk.CtrlDeadline,
+	  	-- authorP.authorplain,
+	  	rkk.ctrlDateExecution,
+	  	-- resolution.ctrldeadline AS controlled,
+	  	-- res_base.ctrliscontrolled
+		resltn.resolutionId,
+		resltn.res_author,
+		resltn.res_date,
+		resltn.resolution,
+		resltn.ctrldeadline,
+		resltn.ctrliscontrolled,
+		resltn.executor
+ 	FROM
+			F_DP_OrdRkk ordrkk
+			JOIN F_DP_Rkk rkk ON rkk.id = ordrkk.id
+			JOIN F_DP_RkkBase rkkbase ON rkkbase.id = rkk.id
+			JOIN SS_Module module ON module.id = rkkbase.Module
+			JOIN SS_ModuleType moduleType ON moduleType.id = module.Type
+                        JOIN resltn on rkkbase.id = resltn.rootrkk and rkkbase.id_type = resltn.rootrkktyp
+			LEFT JOIN SO_Beard author ON ordrkk.SignSigner = author.id
+	WHERE rkkbase.isdeleted <> 1
+	--AND (rkkbase.id, rkkbase.id_type) in (select rootrkk, rootrkktyp from resltn)
+	) q
+where ctrldateexecution is null
+GROUP BY
+		rkkId,
+		doc_date,
+		doc_module,
+		docType,
+		regnumprist,
+		regnumcnt,
+		regnumfin,
+		doc_author,
+		doc_subject,
+		doc_id,
+		ctrlDateExecution,
+		-- authorplain
+		-- ctrlDeadline,
+		-- ctrliscontrolled
+    		resolutionId,
+		res_author,
+		res_date,
+		resolution,
+		ctrldeadline,
+		ctrliscontrolled,
+		executor
+
+ORDER BY doc_module, doc_date, docType, doc_author, doc_subject, resolutionId]]>
+	</queryString>
+	<field name="doc_date" class="java.sql.Timestamp"/>
+	<field name="doc_module" class="java.lang.String"/>
+	<field name="docType" class="java.lang.String"/>
+	<field name="regnumprist" class="java.lang.String"/>
+	<field name="regnumcnt" class="java.lang.Long"/>
+	<field name="regnumfin" class="java.lang.String"/>
+	<field name="doc_author" class="java.lang.String"/>
+	<field name="doc_subject" class="java.lang.String"/>
+	<field name="doc_id" class="java.lang.Object"/>
+	<field name="res_author" class="java.lang.String"/>
+	<field name="res_date" class="java.sql.Timestamp"/>
+	<field name="resolution" class="java.lang.String"/>
+	<field name="ctrldeadline" class="java.sql.Timestamp"/>
+	<field name="resolutionId" class="java.lang.Object"/>
+	<field name="executor" class="java.lang.String"/>
+	<field name="rescount" class="java.lang.Object"/>
+	<variable name="DocCount" class="java.lang.Integer" incrementType="Group" incrementGroup="DocGroup" calculation="Count">
+		<variableExpression><![CDATA[1]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<group name="Group1">
+		<groupExpression><![CDATA[$F{doc_module}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<printWhenExpression><![CDATA[$F{docType} != null]]></printWhenExpression>
+				<textField>
+					<reportElement key="" stretchType="RelativeToTallestObject" x="26" y="0" width="750" height="20" uuid="18ba2125-5cc1-43be-930a-6bf08f58c7a0"/>
+					<box>
+						<pen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Arial"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{doc_module}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<group name="DocGroup">
+		<groupExpression><![CDATA[$F{doc_id}]]></groupExpression>
+	</group>
+	<title>
+		<band height="60" splitType="Stretch">
+			<textField>
+				<reportElement x="26" y="0" width="750" height="20" uuid="550b0da7-8c12-4a1d-81c8-86cefa90346a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ПЕРЕЧЕНЬ ДОКУМЕНТОВ"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="26" y="20" width="750" height="20" uuid="66194fdd-aa26-47c7-8f92-d264f2112aa5"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["с неисполненными контрольными резолюциями/поручениями сроком исполнения с " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{controlDate.Start}) +
+" по " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{controlDate.End})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="26" y="40" width="750" height="20" uuid="898768b1-5ddf-4736-8c1f-921b7b02affb"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["по состоянию на " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement mode="Transparent" x="26" y="0" width="26" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="ed826638-a7e1-4796-ad66-379a70f18c4f">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["№ п/п"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="52" y="0" width="94" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="c2f169d3-3989-49e6-8f47-c9f0fbe85913">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Вид документа дата номер"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="146" y="0" width="107" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="f55460f8-d4f6-4a24-b8b0-ccb42a158bd5">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitwidth" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Корреспондент / автор"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="253" y="0" width="134" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="20f00ecc-c2c9-439b-9c78-a503006f4817">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Краткое содержание документа"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="387" y="0" width="185" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="1937b80c-50cf-4e01-8d23-feb16edbb2f1">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Резолюция / поручение"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="572" y="0" width="87" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="603eecf5-eceb-4f85-a10e-b21d82906662">
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Срок исп-ия резолюции/поручения"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="659" y="0" width="117" height="40" forecolor="#000000" backcolor="#CCCCCC" uuid="e6ca4127-90e5-4202-82f4-5317f7cb4db3">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="11" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Отв. исполнители"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Prevent">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<printWhenExpression><![CDATA[true]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="doc-group-lines" stretchType="RelativeToTallestObject" mode="Transparent" x="52" y="0" width="94" height="20" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="6dcf66b1-c80f-46d7-9e74-30f686d5973f">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DocGroup_COUNT} == 1 ? (($F{docType} != null ? $F{docType} : "") +
+" от "+($F{doc_date} != null ? new SimpleDateFormat("dd.MM.yyyy").format($F{doc_date}):"") +
+" №" + ($F{regnumprist} != null ? $F{regnumprist} : "") +
+($F{regnumcnt}!= null ? $F{regnumcnt} : "") +
+($F{regnumfin} != null ? $F{regnumfin} : "")) : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="doc-group-lines" stretchType="RelativeToTallestObject" mode="Transparent" x="146" y="0" width="107" height="20" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="59357626-3627-4427-b51f-c11cb2b8bca9">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DocGroup_COUNT} == 1 ? (($F{doc_author} != null ? $F{doc_author} : "")) : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="doc-group-lines" stretchType="RelativeToTallestObject" mode="Transparent" x="253" y="0" width="134" height="20" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="5f276150-870b-4dc4-9951-05edcb89b85d">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DocGroup_COUNT} == 1 ? $F{doc_subject} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="doc-group-lines" stretchType="RelativeToTallestObject" mode="Transparent" x="26" y="0" width="26" height="20" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="ee5954bf-5f86-4453-ad3a-7c0bd0a37e17">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DocGroup_COUNT} == 1 ? $V{DocCount} : ""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="387" y="0" width="185" height="20" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="6e372fd7-8525-49ba-8d5e-8c8956d49cee">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{res_author} + " от " + ($F{res_date} != null ? (new SimpleDateFormat("dd.MM.yyyy")).format($F{res_date}) : "") + "\n" + $F{resolution}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="572" y="0" width="87" height="20" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="96f59417-2918-4efe-a5b6-c471b3034f5d">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{ctrldeadline} != null ? (new SimpleDateFormat("dd.MM.yyyy")).format($F{ctrldeadline}) : "")]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="659" y="0" width="117" height="20" isPrintWhenDetailOverflows="true" uuid="09de5431-9a9e-419f-a39e-d4483655ff96"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{executor}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="40">
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="26" y="0" width="750" height="40" isPrintWhenDetailOverflows="true" uuid="79924e52-4f81-45ba-a12b-7d09b96f0a28"/>
+				<textElement>
+					<font fontName="Arial" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[*Примечание: в отчет отбираются документы из модулей ВхД, ВнД, ОРД с неисполненными контрольными резолюциями/поручениями, срок исполнения которых попадает в указанный период. Анализируется состояние отобранных резолюций на текущий момент времени.]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

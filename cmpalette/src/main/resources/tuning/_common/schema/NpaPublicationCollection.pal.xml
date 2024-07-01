@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="NpaPublicationCollection">
+    <meta>
+      <category name="Создать публикацию НПА"/>
+    </meta>
+    <boolean name="canEdit" temporal="true"/>
+    <boolean name="isSupervisor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Supervisor')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isSuperUser" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'SuperUser')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isPublisher" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && #hasRole(#this, 'Publisher')]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="canCreate" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+                    isSupervisor || isSuperUser || isPublisher
+                ]]>
+        </script>
+      </calc-values>
+    </boolean>
+  </schema>
+</schemas>

@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<notifications xmlns="http://www.intertrust.ru/schema/palette/notifications">
+
+  <notification locale="RU" type="EXPD1_21">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Отправить заказ. Заказ от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if> № <#assign formula = "SELECT coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as varchar), '') || coalesce(rkk.prjnumfin, '') AS numberWOTags FROM f_dp_intrkk internalrkk JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id where rkkbase.isdeleted = 0 and complect='ExpeditionOrders' AND rkkbase.id = {0}"><#assign collection = session.findByQuery(formula, document.getId())><#if collection.get(0).getString("numberWOTags")??>${collection.get(0).getString("numberWOTags")}<#else></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<#assign formula = "SELECT coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as varchar), '') || coalesce(rkk.prjnumfin, '') AS numberWOTags FROM f_dp_intrkk internalrkk JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id where rkkbase.isdeleted = 0 and complect='ExpeditionOrders' AND rkkbase.id = {0}"><#assign collection = session.findByQuery(formula, document.getId())>
+<head><style>p { font-family: Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<body><p>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list></p>
+<p>Модуль: Экспедиция</p>
+<p>Заказ от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if> № <#if collection.get(0).getString("numberWOTags")??>${collection.get(0).getString("numberWOTags")}<#else></#if></p>
+<p>Краткое содержание: Поступил заказ на отправку документа.</p>
+<p>Открыть документ: <a href="${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}">ссылка</a></p>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="EXPD1_22">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Отправка отклонена. <#assign type = document.get("Type")><#if type??><#if (document.get("medogatestate")?? && (document.get("medogatestate")==2 || document.get("medogatestate")==3))><#assign colon = type?index_of(":")><#if colon == -1>${type}<#else>${type?substring(0, colon)}</#if><#else>${type}</#if><#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if></#if> «<#if document.get("Subject")??><#assign subl = document.get("Subject")?length><#if subl gt 60>${document.get("Subject")?substring(0,60)}...<#else>${document.get("Subject")}</#if><#else></#if>»]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<#assign recepient = cmjNotice.readStringField("Subject_WP")>
+<head><style>p { font-family: Microsoft Sans Serif;font-size: 10pt;}</style></head>
+<body><p>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list></p>
+<p>Модуль: Исходящие документы</p>
+<p>Заголовок: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if></#if> «<#if document.get("Subject")??>${document.get("Subject")}<#else></#if>»</p>
+<p>Краткое содержание: Отправка корреспонденту ${recepient} отклонена.</p>
+<p>Открыть документ: <a href="${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}">ссылка</a></p>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="EXPD1_23">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Завершена отправка документа: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Срок: <#if Sochi$Pkd.dueDate()??>${Sochi$Pkd.dueDate()?string["dd.MM.yyyy"]}<#else>не указан</#if>
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if></#if><#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if><#if document.get("prjnumcounter")??>${document.get("prjnumcounter")}<#else></#if><#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="EXPD1_24">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Возникла ошибка при отправке документа: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Срок: <#if Sochi$Pkd.dueDate()??>${Sochi$Pkd.dueDate()?string["dd.MM.yyyy"]}<#else>не указан</#if>
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if></#if><#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if><#if document.get("prjnumcounter")??>${document.get("prjnumcounter")}<#else></#if><#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+</notifications>

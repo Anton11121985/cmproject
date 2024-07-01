@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<notifications xmlns="http://www.intertrust.ru/schema/palette/notifications">
+  <notification locale="RU" type="FROR1_35">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Архивное дело сформировано ранее, операция вызвана повторно]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body><p style="font-family: Times New Roman; font-size: 16pt">Архивное дело сформировано ранее, операция вызвана повторно</p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ADMV1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Архивный документ перемещен в другое дело: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")> <#assign d0 = document.get("regdate")?last_index_of("-")> <#assign dy = document.get("regdate")?substring(0,d2)> <#assign dd = document.get("regdate")?substring(d0+1)> <#assign dm = document.get("regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Архивный документ перемещен в другое дело: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")> <#assign d0 = document.get("regdate")?last_index_of("-")> <#assign dy = document.get("regdate")?substring(0,d2)> <#assign dd = document.get("regdate")?substring(d0+1)> <#assign dm = document.get("regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="ARAD1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Архивное дело добавлено в Опись дел подразделения]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body><p style="font-family: Times New Roman; font-size: 16pt">Архивное дело добавлено в Опись дел подразделения</p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+
+  <notification locale="RU" type="DEPD1_01">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Опись дел подразделения<#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orgname")}<#else></#if> <#else> document.get("direction_work")</#if> утверждена]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Опись дел подразделения<#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orgname")}<#else></#if> <#else> document.get("direction_work")</#if>
+<#if document.get("Type_Inv")??>
+    <#if document.get("Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+    <#if document.get("Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get("Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get("Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+</#if><br>
+№<#if document.get("depdealnumber")??> ${document.get("depdealnumber")} </#if> утверждена<br><br>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="DEPD1_02">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Архивное дело "Архивное дело ${document.get("subject")}" принято в архив]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Архивное дело "Архивное дело ${document.get("subject")}",«крайние даты ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}» принято в архив
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+
+  <notification locale="RU" type="ANIN1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Проект Описи дел подразделения <#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orig_shortname")}<#else></#if> <#else> document.get("direction_work")</#if> включен в Годовой раздел]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Опись дел подразделения<#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orig_shortname")}<#else></#if> <#else> document.get("direction_work")</#if>
+<#if document.get("Type_Inv")??>
+<#if document.get("Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+<#if document.get("Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+<#if document.get("Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+<#if document.get("Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+</#if><br>
+№<#if document.get("depdealnumber")??> ${document.get("depdealnumber")} </#if> включена в годовой раздел описи дел<br><br>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_12">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Проект Описи дел подразделения <#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orig_shortname")}<#else></#if> <#else> document.get("direction_work")</#if> исключен из Годового раздела]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Опись дел подразделения<#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orig_shortname")}<#else></#if> <#else> document.get("direction_work")</#if>
+<#if document.get("Type_Inv")??>
+<#if document.get("Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+<#if document.get("Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+<#if document.get("Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+<#if document.get("Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+</#if><br>
+№<#if document.get("depdealnumber")??> ${document.get("depdealnumber")} </#if> исключена из годового раздела описи дел<br><br>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_13">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Опись дел подразделения <#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orgname")}<#else></#if> <#else> document.get("direction_work")</#if> возвращена на доработку]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Опись дел подразделения<#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orgname")}<#else></#if> <#else> document.get("direction_work")</#if>
+<#if document.get("Type_Inv")??>
+    <#if document.get("Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+    <#if document.get("Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get("Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get("Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+</#if><br>
+№<#if document.get("depdealnumber")??> ${document.get("depdealnumber")} </#if> возвращена на доработку<br><br>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_14">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел на ${document.get("year")} возвращен на доработку]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел ${document.get("year")} год, ${document.get("organization.orgname")} возвращен на доработку
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_15">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел на ${document.get("year")} утвержден]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел ${document.get("year")} год, ${document.get("organization.orgname")} утвержден
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_21">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел ${document.get("year")} год готов к вынесению на рассмотрение ЭК]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел ${document.get("year")} год, ${document.get("organization.orgname")} готов к вынесению на рассмотрение ЭК
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_22">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел на ${document.get("year")} год согласован ЭК]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел ${document.get("year")} год, ${document.get("organization.orgname")} согласован ЭК
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_23">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел постоянного хранения на ${document.get("year")} год согласован ЦЭК]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: Системы<br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел постоянного хранения ${document.get("year")} год, ${document.get("organization.orgname")} согласован ЦЭК
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_24">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел по личному составу на ${document.get("year")} год согласован ЦЭК]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: Системы<br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел по личному составу ${document.get("year")} год, ${document.get("organization.orgname")} согласован ЦЭК
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ANIN1_25">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Годовой раздел описи дел на ${document.get("year")} год, проверьте Итоговую запись]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br> Годовой раздел описи дел ${document.get("year")} год, ${document.get("organization.orgname")}, проверьте итоговую запись
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+
+  <notification locale="RU" type="ARC01_01">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Место хранения архивного дела ${document.get("subject")} доступно для заполнения]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: Системы<br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Укажите место хранения архивного дела "Архивное дело ${document.get("subject")}",«крайние даты ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}»
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="ARDD1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Подготовлен проект Описи дел подразделения <#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orig_shortname")}<#else></#if> <#else> document.get("direction_work")</#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Опись дел подразделения <#if document.get("isdepartment")> <#if document.get("department")??>${document.get("department.orig_shortname")}<#else></#if> <#else> document.get("direction_work")</#if>
+<#if document.get("Type_Inv")??>
+    <#if document.get("Type_Inv") == "PERMANENTLY">Опись дел постоянного срока хранения</#if>
+    <#if document.get("Type_Inv") == "LESS_TEN_YEAR">Опись дел временных (до 10 лет включительно) сроков хранения</#if>
+    <#if document.get("Type_Inv") == "OVER_TEN_YEAR">Опись дел временных (свыше 10 лет) сроков хранения</#if>
+    <#if document.get("Type_Inv") == "PERSONAL_COMPLECT">Опись дел по личному составу</#if>
+</#if><br>
+№<#if document.get("depdealnumber")??> ${document.get("depdealnumber")} </#if> готова к включению в годовой раздел описи дел<br><br>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+  <notification locale="RU" type="DEFO1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Архивное дело "Архивное дело ${document.get("subject")}" сформировано]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<head><style></style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+Краткое содержание:<br><br>
+ДОКУМЕНТ:
+<br>Архивное дело "Архивное дело ${document.get("subject")}","крайние даты ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}" сформировано и готово к просмотру
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+
+</notifications>

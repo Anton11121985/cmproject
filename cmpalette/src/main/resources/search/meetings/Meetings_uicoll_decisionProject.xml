@@ -1,0 +1,68 @@
+<search-area name="Meetings_uicoll_decisionProject" replace="runtime">
+
+    <!-- Проект решения -->
+    <target-domain-object type="f_meetings_decisionpr">
+        <!-- Модуль -->
+
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentFiles_DesPr"/>
+        <indexed-content type="F_ContentRT_DecPr"/>
+        <indexed-content type="F_ContentRTF_DecPr"/>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>point.setting.Subject</doel>
+        </indexed-field>
+
+        <!-- Дата создания -->
+        <indexed-field name="created">
+            <doel>created_date</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>point.meeting.meeting_date</doel>
+        </indexed-field>
+
+        <!-- Вопрос -->
+        <indexed-field name="questionText">
+            <doel>point.point</doel>
+        </indexed-field>
+
+        <!-- Докладчики -->
+        <linked-domain-object type="f_point_reporters">
+            <indexed-field name="reporter" search-by="substring">
+                <doel>reporter.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner.f_meetings_decisionpr^point</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <indexed-field name="decisionProject" search-by="substring">
+            <doel>text</doel>
+        </indexed-field>
+
+        <!-- Автор проекта решения -->
+        <indexed-field name="projectAuthor" search-by="substring">
+            <doel>author.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_Meetings_point_ULnk">
+            <indexed-field name="linkedDocs">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="Meetings_(search_Meetings)"/>
+    </target-domain-object>
+
+</search-area>

@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema recalc="true" name="SendRusPostRETable">
+        <meta>
+            <category name="Система\Делопроизводство\Отправка\Таблицы" />
+        </meta>
+
+        <boolean name="postCheckBox"/>
+        <actor name="postSelectCorr"/>
+        <string name="postSelectAddress"/>
+        <boolean name="postDeliveryNotice"/>
+        <boolean name="postHideDelivNotBox"/>
+
+        <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.emb.HistoryEmb);
+importClass(Packages.ru.intertrust.cmj.af.history.record.BasicText);
+importClass(Packages.ru.intertrust.cmj.af.history.record.NameList);
+importClass(Packages.ru.intertrust.cmj.af.history.record.TextList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.dp.DPException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMPurchaseContracts);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfo);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfoComment);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RKKSigning);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.af.prvz.AFHasHead);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.SaveListener);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFSigning);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.Helper);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity.TaskEntity.Status);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration.Operation.Recall);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+
+function recalc(object, changedField) {
+    if (changedField == "postCheckBox") {
+        var checkBox = GetSimpleValue(object, "postCheckBox");
+        if (checkBox) {
+            SetValue(object, "postHideDelivNotBox", false);
+        } else {
+            SetValue(object, "postHideDelivNotBox", true);
+        }
+    }
+}
+
+function queryCreate(object) {
+    SetValue(object, "postHideDelivNotBox", true);
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null) return null;
+
+    return tmp.getValue();
+}]]></custom-event-handler>
+    </schema>
+</schemas>

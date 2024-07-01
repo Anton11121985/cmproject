@@ -1,0 +1,416 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="RkkResourceInternal" name="RkkResourceExpeditionParty">
+        <meta>
+            <category name="Система\Партия"/>
+            <documentation>основная схема "Партия"</documentation>
+        </meta>
+        <string name="pagename" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Партия']]></script>
+            </calc-values>
+        </string>
+        <string name="showIdent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Партия']]></script>
+            </calc-values>
+        </string>
+        <schema-ref name="showPartyNumber" ref="PartyNumberInfo" temporal="true"/>
+        <string name="patry_status" createlog="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[!isNew ? stage : 'Проект']]></script>
+            </calc-values>
+            <storage-field name="patry_status"/>
+        </string>
+        <string name="postServiceNumber" tunable="true" createlog="true">
+            <storage-field name="postServiceNumber"/>
+        </string>
+        <string name="type_rpo" tunable="true">
+            <storage-field name="type_rpo"/>
+        </string>
+        <string name="category_rpo" tunable="true">
+            <storage-field name="category_rpo"/>
+        </string>
+
+        <string name="type_and_category_rpo"/>
+
+        <date name="date_shipment" tunable="true">
+            <storage-field name="date_shipment"/>
+        </date>
+        <boolean name="isCurUserClerkExpeditionOrders" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[!(T(ru.intertrust.cmj.rest.bf.ModuleID).INTERNAL.getModule().getRegplaces('ExpeditionOrders').isEmpty())]]></script>
+            </calc-values>
+        </boolean>
+		<schema-ref name="OrderTable" ref="OrderTable" null-empty="true" array="true"/>
+        <schema-ref name="tmpOrderList" ref="Order" array="true" null-empty="true" />
+
+        <boolean name="canEditRpoFileds"/>
+
+        <string name="orders" createlog="true" array="true">
+            <storage-field name="orders"/>
+        </string>
+        <actor name="orderInitiators" array="true">
+            <storage-field name="orderInitiators" substituties="AF$R_OrderInitiators"/>
+        </actor>
+        <actor name="mainExpeditorsBeards" array="true">
+            <storage-field name="mainExpeditorsBeards" substituties="AF$A_MainExpeditors" auditors="AF$R_MainExpeditors"/>
+        </actor>
+        <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.links.AFLinksApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.emb.HistoryEmb);
+importClass(Packages.ru.intertrust.cmj.af.history.record.BasicText);
+importClass(Packages.ru.intertrust.cmj.af.history.record.NameList);
+importClass(Packages.ru.intertrust.cmj.af.history.record.TextList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.dp.DPException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMPurchaseContracts);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfo);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.ActionInfoComment);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.Entity_);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RKKSigning);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.af.prvz.AFHasHead);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.SaveListener);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFSigning);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.Helper);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity.TaskEntity.Status);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFRegistration.Operation.Recall);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importPackage(Packages.java.util.Arrays);
+importPackage(Packages.java.util.HashMap);
+importPackage(Packages.java.util.Map);
+importPackage(Packages.java.util.Set);
+importPackage(Packages.java.util.Iterator);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.OrganizationUnit);
+
+function queryCreate(object){
+    canEditRpoFileds(object, "OrderTable");
+}
+
+function querySave(object, document)
+{
+    SetValue(object, "orders", null);
+    var Orders = GetValues(object, "OrderTable");
+    if(Orders != null && Orders.size() > 0) {
+        var value = GetValue(object, "patry_status");
+        if(value != "Отправка завершена") {
+            //установка статуса
+            var stageProperty = object.tuning().getSchema().getProperty("patry_status");
+            var stageValue = TunableObjectHelper.convertToAFInstance(stageProperty, false, "Подготовлена к отправке");
+            object.tuning().getValues().put("patry_status", stageValue);
+
+            var orderInitiators = new ArrayList();
+            var mainExpeditorsBeards = new ArrayList();
+            for(var t = 0; t < Orders.size(); t++) {
+                var Ord = Orders.get(t);
+                var ordID = Ord.getValues().get("OrderID").getValue();
+                var appdp = AFSession.get().getApplication(DPApplication.class);
+                var ord_rkk = appdp.getEntityByUNID(ordID);
+
+                var orderInitiators = ord_rkk.executor;
+                var expeditors = getDPforExpedition(ord_rkk);
+                if (expeditors != null && !expeditors.isEmpty()) {
+                    for (var i = 0; i < expeditors.size(); i++) {
+                        var expeditor = expeditors.get(i);
+                        if (expeditor != null && !mainExpeditorsBeards.contains(expeditor)) {
+                            mainExpeditorsBeards.add(expeditor);
+                        }
+                    }
+                }
+            }
+            SetValue(object, "orderInitiators", orderInitiators);
+            SetValue(object, "mainExpeditorsBeards", mainExpeditorsBeards);
+		}
+		var val = new ArrayList();
+		for (var i = 0; i < Orders.size(); i++) {
+		    val.add(Orders.get(i).getValues().get("OrderID").getValue());
+		}
+		SetValue(object, "orders", val);
+    } else {
+        throw "Cписок включённых заказов пуст";
+    }
+
+	createLink(object, "INCLUDES");
+
+	var listoldOrder = document.getItemValue("Tn$_OrderTable.OrderID");
+	var listnewOrder = new ArrayList();
+	for(var t = 0; t < Orders.size(); t++) {
+		listnewOrder.add(Orders.get(t).getValues().get("OrderID").getValue());
+	}
+	var addlist = new ArrayList();
+	for (var i = 0; i < listnewOrder.size(); i++) {
+		if (!listoldOrder.contains(listnewOrder.get(i))) {
+			var ord_rkk = appdp.getEntityByUNID(listnewOrder.get(i));
+			addlist.add("Заказ № " + ord_rkk.projectNumber() + " от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format(ord_rkk.created().getTime().getTime()));
+
+			//Заказ включен в партию
+			hist = ord_rkk.history();
+			TunableHistoryHelper.hist_addBasicText(hist, FieldBase.PARTY_ORDER_INCLUDED, "Партия № " + object.projectNumber() + " от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format(object.created().getTime().getTime()));
+			ord_rkk.history = hist;
+			ord_rkk.save();
+		}
+	}
+
+	var deletedlist = new ArrayList();
+	for (var i = 0; i < listoldOrder.size(); i++) {
+		if (!listnewOrder.contains(listoldOrder.get(i))) {
+			var ord_rkk = appdp.getEntityByUNID(listoldOrder.get(i));
+			//Изменен состав партии
+			deletedlist.add("Заказ № " + ord_rkk.projectNumber() + " от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format(ord_rkk.created().getTime().getTime()));
+
+			//Заказ исключен из партии
+			hist = ord_rkk.history();
+			TunableHistoryHelper.hist_addBasicText(hist, "expeditionorders.order.deleted", "Партия № " + object.projectNumber() + " от " + new java.text.SimpleDateFormat("dd.MM.yyyy").format(object.created().getTime().getTime()));
+			ord_rkk.history = hist;
+			ord_rkk.save();
+		}
+	}
+
+	//история
+	var hist = object.history();
+	var text = "";
+	if (addlist.size() > 0) {
+		text = addlist.toString().replace("[","").replace("]","") + " добавлен.";
+	}
+	if (deletedlist.size() > 0) {
+		if (!text.equals("")) {
+			text = text + " ";
+		}
+		text = text + deletedlist.toString().replace("[","").replace("]","") + " удален.";
+	}
+	if (!text.equals("")) {
+		//Изменен состав партии
+		TunableHistoryHelper.hist_addBasicText(hist, "expeditionparty.order.deleted", text);
+	}
+	object.history = hist;
+    return true;
+}
+
+function recalc(object, changedField) {
+    if (changedField == "type_rpo" && !object.isNew()) {
+        SetValue(object, "category_rpo", null);
+    }
+
+    if(changedField == "type_rpo" || changedField == "category_rpo") {
+		var t_c_rpo = "";
+		var type_rpo = GetValue(object, "type_rpo");
+		var category_rpo = GetValue(object, "category_rpo");
+		if(type_rpo != null) {
+			t_c_rpo = t_c_rpo.concat(type_rpo).concat(" ");
+		}
+		if(category_rpo != null) {
+			t_c_rpo = t_c_rpo.concat(category_rpo);
+		}
+
+        SetValue(object, "type_and_category_rpo", t_c_rpo);
+    } else if(changedField == "tmpOrderList") {
+        OrderListToTable(object);
+    } else if (changedField == "OrderTable") {
+        updateNumbers(object);
+        canEditRpoFileds(object, "OrderTable");
+    }
+}
+
+function createLink(rkk, STRLINK) {
+	var Orders = GetValues(rkk, "OrderTable");
+    if(Orders == null || Orders.size() <= 0) {
+		return;
+	}
+	var newLinks = Utils.newArrayList();
+	for(var t = 0; t < Orders.size(); t++) {
+        var Ord = Orders.get(t);
+        var ordID = Ord.getValues().get("OrderID").getValue();
+        var appdp = AFSession.get().getApplication(DPApplication.class);
+        var ord_rkk = appdp.getEntityByUNID(ordID);
+
+		var afLinks = AFSession.get().getApplication(AFLinksApplication.class);
+		var availableLinks = afLinks.getRegisteredLinksBySrcAndTrg(rkk, ord_rkk, false);
+		for (var i = 0; i < availableLinks.size(); i++) {
+			var link = availableLinks.get(i);
+			if (link.getType().equals(STRLINK)) {
+				newLinks.add(link);
+				break;
+			}
+		}
+	}
+	rkk.links().changeList(newLinks);
+}
+
+function canEditRpoFileds(object, field) {
+
+    var ot = GetValues(object, field);
+    if(ot != null && !ot.isEmpty()) {
+        SetValue(object, "canEditRpoFileds", false);
+    } else {
+        SetValue(object, "canEditRpoFileds", true);
+    }
+}
+
+function GetValues(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValues();
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValue();
+}
+
+function SetValue(doc, fileName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function updateNumbers(object) {
+    var orders = GetValues(object, "OrderTable");
+    if(orders == null || orders.size() == 0)
+        return;
+    var counter = 1;
+	var apl = AFSession.get().getApplication(TuningApplication.class);
+    for (var i = 0; i < orders.size(); i++) {
+        var number = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
+        counter ++;
+        orders.get(i).put("RowNumber", number);
+    }
+}
+
+function OrderListToTable(object) {
+
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var oldOrders = GetValues(object, "OrderTable");
+    var newOrders = GetValues(object, "tmpOrderList");
+
+    if(newOrders == null || newOrders.size() == 0)
+        return;
+
+    var counter = 1;
+
+    var newList = new ArrayList();
+    var idList = new ArrayList();
+
+    for (var i = 0; i < oldOrders.size(); i++) {
+        var order = oldOrders.get(i);
+        var number = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
+        counter ++;
+        order.put("RowNumber", number);
+        newList.add(order);
+
+        idList.add(order.getValues().get("OrderID").getValue());
+    }
+    for(var t = 0; t < newOrders.size(); t++)
+    {
+        var newOrd = newOrders.get(t).getValues();
+        var newID = newOrd.get("id").getValue();
+        if(idList.contains(newID))
+            continue;
+
+        var newp = new AFInstanceObjectImpl(apl.getSchemaByName("OrderTable"));
+        var number1 = new AFInstanceSimpleImpl(apl.getSchemaByName("Integer"), counter.intValue());
+        counter ++;
+        newp.put("RowNumber", number1);
+        newp.put("OrderNum", newOrd.get("docNumber"));
+        newp.put("OrderID", newOrd.get("id"));
+        newp.put("Subject", newOrd.get("subject"));
+        newp.put("sendingDate", newOrd.get("sendingDate"));
+        newp.put("address", newOrd.get("address"));
+        newp.put("addressee", newOrd.get("addressee"));
+        newp.put("TypeRPOName", newOrd.get("TypeRPOName"));
+        newp.put("СategoryRPOName", newOrd.get("СategoryRPOName"));
+        newp.put("sendingInitiator", newOrd.get("sendingInitiator"));
+        newList.add(newp);
+        idList.add(newID);
+    }
+    canEditRpoFileds(object, "tmpOrderList");
+    object.tuning().put("OrderTable", new AFInstanceArrayImpl(object.tuning().getSchema().getProperty("OrderTable").getSchema(), newList));
+    SetValue(object, "tmpOrderList", null);
+}
+
+/**
+   Вычисление ДП для МР модуля Экспедиции
+*/
+function getDPforExpedition(order) {
+
+    var dps = new ArrayList();
+
+	var regPlace = GetValue(order, "regplace");
+	if (regPlace == null) {
+	    return dps;
+	}
+
+	var rkkRPParty = regPlace.originalData().getParty();
+	var regSettings;
+	if (rkkRPParty instanceof AppointmentHead) {
+		regSettings = rkkRPParty.getPost().registrationSettingsRegplace();
+	} else if (rkkRPParty instanceof DepartmentUnit || rkkRPParty instanceof OrganizationUnit) {
+		regSettings = rkkRPParty.registrationSettingsRegplace();
+	}
+	var module = regSettings.custom("ExpeditionOrders");
+
+	var posts = module.getDPs();
+	if (!posts.isEmpty()) {
+		var bList = new ArrayList(posts);
+		for (var i = 0; i < bList.size(); i++) {
+			if (bList.get(i) == null) {
+			    continue;
+			}
+			if (bList.get(i).appointments().getCurrent() == null) {
+			    continue;
+			}
+			dps.add(bList.get(i).appointments().getCurrent().getBeard());
+		}
+	}
+
+	return dps;
+}
+]]></custom-event-handler>
+    </schema>
+</schemas>

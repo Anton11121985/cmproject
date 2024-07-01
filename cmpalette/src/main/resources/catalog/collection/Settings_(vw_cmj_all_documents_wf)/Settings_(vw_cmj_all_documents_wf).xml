@@ -1,0 +1,268 @@
+<collection name="Settings_(vw_cmj_all_documents_wf)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[SELECT
+                  id,
+                  created_date, --Дата создания документа
+                  updated_date,
+                  Module,
+                  self_1,
+                  self_2,
+                  self_3,
+                  SUBSTRING(task.proc_def_id_, '(\D*):') as wfProcessName, --Название wf-схемы
+                  var.text_ as wfVersion, -- Версия wf-схема
+				  wfStatus, --Статус wf
+				  wfStage, --Стадия wf
+                  wfSubject, -- Заголовок документа
+                  wfTerm, -- Срок
+                  wfTask, -- Задача
+                  wfNumber, --Номер документа
+				  wfAssignee --Исполнитель
+                FROM (
+                       select
+	rkkbase.id,
+    rkkbase.created_date,
+    rkkbase.updated_date,
+    rkkbase.module                                   AS Module,
+    '<id>'                                           AS self_1,
+    ':'                                              AS self_2,
+    '</>'                                            AS self_3,
+    rkkbase."type"                                   AS wfSubject,
+    CASE WHEN not rkk.regnumcnt is null then coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, '')
+	ELSE  coalesce(rkk.prjnumprist, '') || coalesce(cast(rkk.prjnumcounter as VARCHAR), '') || coalesce(rkk.prjnumfin, '') END as wfNumber,
+    (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'status') as wfStatus,
+    (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'stage') as wfStage,
+     (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'task') as wfTask,
+	(select tfs."value" as v
+        from tn_field
+        join tn_field_datetime tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'plannedfinishtime') as wfTerm,
+	(select distinct
+		coalesce(string_agg('<shortName>' || CASE  WHEN (shortname like '%дела принял от:%') THEN replace(substring(shortname,'дела принял от: (.*)'),')','') ELSE shortname END  || '</><id>' || cmjunid || '</>',';'), '<shortName></><id></>') as v
+        from (select
+		    substr(tfs."value", 1, strpos(tfs."value", '%') - 1) as shortname,
+		    coalesce(substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'%(.*)')
+    	    || ':' || substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'(.*)%')) as cmjunid
+            from tn_field
+            join tn_field_string tfs on tn_field.access_object_id = tfs.id
+            where tn_field."owner" = rkkbase.id
+            and tn_field.owner_type = rkkbase.id_type
+         and (tn_field.cmjfield = 'assignee')) as tmpAssignee)  as wfAssignee,
+    (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'task_id') as task_Id
+	FROM f_dp_rkk rkk
+    JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+    WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NULL
+		   ) s
+		   join act_ru_task task on task.id_ = s.task_Id
+		   join act_ru_variable var on task.proc_inst_id_ = var.proc_inst_id_ and var.name_ = 'version'
+                WHERE 1=1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+				COUNT(1)
+                FROM (
+                       select
+	rkkbase.id,
+    rkkbase.created_date,
+    rkkbase.updated_date,
+    rkkbase.module                                   AS Module,
+    '<id>'                                           AS self_1,
+    ':'                                              AS self_2,
+    '</>'                                            AS self_3,
+    rkkbase."type"                                   AS wfSubject,
+    (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'status') as wfStatus,
+    (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'stage') as wfStage,
+	(select tfs."value" as v
+        from tn_field
+        join tn_field_datetime tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'plannedfinishtime') as wfTerm,
+	(select distinct
+		coalesce(string_agg('<shortName>' || CASE  WHEN (shortname like '%дела принял от:%') THEN replace(substring(shortname,'дела принял от: (.*)'),')','') ELSE shortname END  || '</><id>' || cmjunid || '</>',';'), '<shortName></><id></>') as v
+        from (select
+		    substr(tfs."value", 1, strpos(tfs."value", '%') - 1) as shortname,
+		    coalesce(substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'%(.*)')
+    	    || ':' || substring(substring(substring(substring(tfs."value", '%(.*)'), '%(.*)'), '%(.*)'),'(.*)%')) as cmjunid
+            from tn_field
+            join tn_field_string tfs on tn_field.access_object_id = tfs.id
+            where tn_field."owner" = rkkbase.id
+            and tn_field.owner_type = rkkbase.id_type
+         and (tn_field.cmjfield = 'assignee')) as tmpAssignee)  as wfAssignee,
+    (select tfs."value" as v
+        from tn_field
+        join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        where tn_field."owner" = rkkbase.id
+        and tn_field.owner_type = rkkbase.id_type
+        and tn_field.cmjfield = 'task_id') as task_Id
+	FROM f_dp_rkk rkk
+    JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+    WHERE rkkbase.isdeleted <> 1 AND rkk.regnumcnt IS NULL
+		   ) s
+		   join act_ru_task task on task.id_ = s.task_Id
+		   join act_ru_variable var on task.proc_inst_id_ = var.proc_inst_id_ and var.name_ = 'version'
+		   WHERE 1=1
+            ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfSubject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    wfSubject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfSubject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                wfSubject ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfStage">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    wfStage = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfStage_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                wfStage ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfTask">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    wfTask = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfTask_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                wfTask ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    wfNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                wfNumber ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfStatus">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    wfStatus = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfStatus_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                wfStatus ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfTerm_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                  cast(wfTerm as date) = cast({0} as date)
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfAssignee">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    wfAssignee = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfAssignee_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                wfAssignee ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfProcessName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    proc_def_id_ = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfProcessName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                proc_def_id_ ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="wfVersion">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    text_ = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="wfVersion_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                text_ ilike '%'||{0}||'%'
+            ]]>
+        </criteria>
+    </filter>
+</collection>

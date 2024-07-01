@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Documents_SubReport" language="groovy" pageWidth="670" pageHeight="40" orientation="Landscape" columnWidth="670" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="28ce0094-9afd-4969-8735-1502ddb0d7e4">
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="380"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="609"/>
+	<parameter name="rkkID" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT 
+    	    number,
+    		reqType,
+    		'№' || regNumber || ' от ' || regDate as regdata,
+             case
+                WHEN deliveryStatus = 'Transferred' THEN 'Передано'
+                WHEN deliveryStatus = 'NotReceived' THEN 'Не получено'
+                WHEN deliveryStatus = 'Received' THEN 'Получено'
+                WHEN deliveryStatus = 'ReceivedByFact' THEN 'Получено по факту'
+                WHEN deliveryStatus = 'ReceivedWithoutMark' THEN 'Получено без отметки в РКК'
+                ELSE '' END as deliveryStatus,
+            subject,
+            comment,
+            correspondentContractorText,
+            addInfoText
+    FROM (
+        select
+        	(select tfs."value" as v
+                from tn_field
+                join tn_field_decimal tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = subobj.id
+                and tn_field.owner_type = subobj.id_type
+                and tn_field.cmjfield = 'index') as number,
+            (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'reqType') as reqType,
+             (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'regNumber') as regNumber,           		
+             to_char(
+             (select tfs."value" as v
+        		from tn_field
+        		join tn_field_dateonly tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'regDate'), 
+        		'dd.MM.yyyy') as regDate,   
+            (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'deliveryStatus') as deliveryStatus,
+            (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'subject') as subject,    		
+             (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'comment') as comment,       		
+             (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'correspondentContractorText') as correspondentContractorText,       		
+            (select tfs."value" as v
+        		from tn_field
+        		join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        		where tn_field."owner" = subobj.id
+        		and tn_field.owner_type = subobj.id_type
+        		and tn_field.cmjfield = 'addInfoText') as addInfoText     		
+	    FROM EmbeddedCollSubObject subobj
+            where subobj.hierroot = $P{rkkID} and subobj.subobjecttype = 'documents'
+            order by number
+        ) s]]>
+	</queryString>
+	<field name="number" class="java.lang.String"/>
+	<field name="reqType" class="java.lang.String"/>
+	<field name="regdata" class="java.lang.String"/>
+	<field name="deliveryStatus" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="comment" class="java.lang.String"/>
+	<field name="correspondentContractorText" class="java.lang.String"/>
+	<field name="addInfoText" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="40" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<frame>
+				<reportElement x="0" y="0" width="670" height="40" uuid="1fa52802-f8ec-447f-aadd-2a5c9a679066">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="0" y="0" width="30" height="40" uuid="5391d358-98b0-4464-b58b-faa49e6e9d84">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{number} != null ? $F{number} : "0"]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="30" y="0" width="90" height="40" uuid="870a66df-7e73-461c-8d01-6891e89f05da">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{reqType} != null ? $F{reqType} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="120" y="0" width="90" height="40" uuid="d56128ed-12ea-451e-8432-252f28a709af">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{regdata} != null ? $F{regdata} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="210" y="0" width="190" height="40" uuid="1dac6157-82f5-418e-bed4-65bcc2097080">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{subject} != null ? $F{subject} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="400" y="0" width="80" height="40" uuid="18bdf943-bc6f-4391-bfdc-ae2f73491c68">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.spacingBefore" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{correspondentContractorText} != null ? $F{correspondentContractorText}: ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="480" y="0" width="90" height="40" uuid="21274f73-de29-4e7e-be4b-5aeafadaea2b">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{addInfoText} != null ? $F{addInfoText} : ""]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement stretchType="ElementGroupHeight" x="570" y="0" width="100" height="40" uuid="48bec080-971e-4559-bc8b-eb6a58aacdce">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement>
+						<paragraph leftIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{deliveryStatus} != null ? $F{deliveryStatus} : ""]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

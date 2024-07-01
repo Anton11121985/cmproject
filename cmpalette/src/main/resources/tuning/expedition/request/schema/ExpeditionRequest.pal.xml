@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema extends="RkkResourceInternal" name="ExpeditionRequest">
+        <meta>
+            <category name="Экспедиции\Запрос формирования партий ОПР"/>
+            <documentation>основная схема "Запрос формирования партий ОПР"</documentation>
+        </meta>
+        <string name="showIdent" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['Запрос на формирования партий ОПР']]></script>
+            </calc-values>
+        </string>
+        <string name="stage" createlog="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[!isNew ? stage : 'Проект']]></script>
+            </calc-values>
+            <storage-field name="stage"/>
+        </string>
+        <date name="sendDate">
+            <storage-field name="sendDate"/>
+        </date>
+        <actor name="initiator">
+            <storage-field name="initiator"/>
+        </actor>
+        <schema-ref name="orders" ref="OrdersTable" array="true" null-empty="true"/>
+        <string name="noticeCode" temporal="true"/>
+        <string name="noticeSubject" temporal="true"/>
+        <custom-event-handler lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.java.util.Collections);
+
+function querySave(object, document) {
+    var orders = object.tuning().getValues().get("orders");
+    if (orders == null || orders.getValues() == null || orders.getValues().isEmpty()) {
+        throw("Таблица с заказами должна быть заполнена!");
+    }
+
+    var noticeCode = object.tuning().getValues().get("noticeCode");
+    var noticeSubject = "Партии не были сформированы. Обратитесь к администратору. Сервис Почты России не доступен.";
+    if (noticeCode != null && noticeCode.getValue() == "EXPD1_24" ) {
+        //отправить уведомление об ошибке отправки
+        var initiator = TunableObjectHelper.getAFInstanceValue(object.tuning().getValues().get("initiator"));
+        if (initiator != null) {
+            var oldSubject = object.getSubject();
+            object.setSubject(noticeSubject);
+            DPNotificationUtils.sendNotice(object, null, Collections.singletonList(initiator), "", "EXPD1_24", "EXPD1_24", "", null);
+            object.setSubject(oldSubject);
+        }
+    }
+}
+]]></custom-event-handler>
+    </schema>
+</schemas>

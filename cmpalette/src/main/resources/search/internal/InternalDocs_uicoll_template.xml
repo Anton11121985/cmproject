@@ -1,0 +1,61 @@
+<search-area name="InternalDocs_uicoll_template" replace="runtime">
+    <boost-every-where base="2.0">
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object  type="F_DP_IntRkkT">
+        <!-- Имя шаблона -->
+        <indexed-field name="Name"/>
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Вид документа -->
+        <indexed-field name="contractType">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- Заголовок -->
+        <indexed-field name="Subject"/>
+        <!-- Адресаты -->
+        <linked-domain-object type="F_DP_IntRkkT_Addressee">
+            <indexed-field name="To" search-by="substring">
+                <doel>Addressee.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Подпись -->
+        <indexed-field name="SignSigner" search-by="substring">
+            <doel>SignSigner.orig_shortname</doel>
+        </indexed-field>
+        <!-- Другие подписи -->
+        <linked-domain-object type="F_DP_IntRkkT_OtherSigner">
+            <indexed-field name="OtherSigner" search-by="substring">
+                <doel>OtherSigner.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Исполнители -->
+        <linked-domain-object type="F_DP_IntRkkT_Executor">
+            <indexed-field name="Executor" search-by="substring">
+                <doel>Executor.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <filter>
+            <doel>Module.Type.Alias:in("InternalDocs", "InternalDocsPrev")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

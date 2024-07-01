@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub1" pageWidth="90" pageHeight="802" columnWidth="90" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4872fcac-b580-4822-b58c-344700c6da52">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="InterTrust CM5"/>
+	<parameter name="docid" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[12107]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+f_dp_resltnbase.resolution AS resolution,
+f_dp_resolution.ctrldeadline AS deadline,
+(
+    SELECT STRING_AGG(name,'; ')
+    FROM (
+        SELECT so_beard.orig_shortname as name, f_dp_resltnbase_execcurr.idx as idx
+        FROM f_dp_resltnbase_execcurr
+            LEFT JOIN so_beard ON so_beard.id = f_dp_resltnbase_execcurr.executorcurr
+        WHERE f_dp_resltnbase_execcurr.owner = f_dp_resolution.id
+            UNION
+        SELECT so_beard.orig_shortname as name, resExecExt.idx as idx
+        FROM F_DP_ResltnBase_ExecExt resExecExt
+            LEFT JOIN SO_Beard ON so_beard.id = resExecExt.ExecutorExt
+        WHERE resExecExt.owner = f_dp_resolution.id order by idx
+    ) s
+    ) as ExecutorNameList
+
+FROM f_dp_resolution
+JOIN f_dp_resltnbase ON f_dp_resltnbase.id = f_dp_resolution.id
+WHERE
+f_dp_resolution.hierparent = $P{docid} AND
+f_dp_resltnbase.isdeleted = 0
+AND f_dp_resltnbase.module not in (SELECT module.id FROM SS_Module module JOIN SS_ModuleType moduletype on moduletype.id = module.type WHERE moduletype.Alias='TempStorage')]]>
+	</queryString>
+	<field name="resolution" class="java.lang.String"/>
+	<field name="deadline" class="java.sql.Timestamp"/>
+	<field name="ExecutorNameList" class="java.lang.String"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="0" y="0" width="90" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="6e372fd7-8525-49ba-8d5e-8c8956d49cee">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" bottomPadding="0" rightPadding="4">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Рез-я: " + $F{resolution} +
+"\nСрок исп.: " + ($F{deadline} != null ? new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{deadline}) : "") +
+"\nИсполнители: " + $F{ExecutorNameList}+"\n"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,425 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="DTRReceiveDocumentsDialog" extends="Dialog" recalc="true">
+        <meta>
+            <category name="Диалоги"/>
+            <documentation>Схема диалога получения документов реестра модуля "Реестр передачи документов"</documentation>
+        </meta>
+        <!-- системные поля -->
+        <string name="counter"/>
+        <string name="ids" array="true"/>
+        <string name="registryUnid"/>
+
+        <!-- поля способа выбора документа -->
+        <enum-ref ref="DTRDocSelectionMode" name="selectionMode">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['barcode']]></script>
+            </calc-values>
+        </enum-ref>
+        <string name="barcodeLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Введите штрихкод']]></script>
+            </calc-values>
+        </string>
+        <string name="requisitesLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Выберите документы']]></script>
+            </calc-values>
+        </string>
+        <string name="manualLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Укажите реквизиты документа']]></script>
+            </calc-values>
+        </string>
+
+        <!-- поля для выбора документа -->
+        <schema-ref name="transmittedDoc" ref="TransmittedDoc" null-empty="true"/>
+        <schema-ref name="selectTransmittedDoc" ref="SelectTransmittedDocResource" temporal="true"/>
+        <!--<boolean name="selectDocumentFlag" temporal="true"/>-->
+
+        <!-- UNID записи -->
+        <string name="registryEntryUnid"/>
+        <!-- поля реквизитов документа -->
+        <string name="documentUnid"/>
+        <string name="barCode"/>
+        <string name="savedBarCode"/> <!-- чтобы сохранить не обтображая -->
+        <enum-ref name="module" ref="DTRDocumentModule"/>
+        <enum-ref name="documentType" ref="DTRDocumentType"/>
+        <string name="reqType"/>
+        <string name="regNumber"/>
+        <date name="date"/>
+        <string name="subject"/>
+        <string name="note"/>
+        <schema-ref name="correspondentForAdd" ref="DTRCorrespondentResource"/>
+        <string name="correspondentText"/>
+        <schema-ref name="addInfoForAdd" ref="DTRAdditionalInfoResource"/>
+        <string name="addInfoText"/>
+
+        <schema-ref name="entriesForSelect" ref="DTREntryForSelect" array="true" null-empty="true"/>
+        <boolean name="isEntriesSelected" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[ entriesForSelect !=null && !entriesForSelect.isEmpty() ]]>
+                </script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="$addEntriesLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA[
+                link.?[rel=='http://intertrust.ru/cmj/relations#dtr.transmitted.entries.for.select'].size() > 0 ? true :
+#this.link.add(new ru.intertrust.cmj.rest.core.ResourceLink('http://intertrust.ru/cmj/relations#dtr.transmitted.entries.for.select',
+T(ru.intertrust.cmj.rest.core.ReferenceFactory).get().getReference("NodeListByAlias.ForProgrammed",
+"dp-DTR-select-transmitted-entries", registryUnid, false, true, "Записи реестра")))
+                ]]></script>
+            </calc-values>
+        </boolean>
+
+        <boolean name="showMarkReceivedButton">
+            <!--<calc-values>
+                <script event="open" lang="SPEL"><![CDATA[false]]></script>
+            </calc-values>-->
+        </boolean>
+        <boolean name="showMarkReceivedByFactButton">
+            <!--<calc-values>
+                <script event="open" lang="SPEL"><![CDATA[false]]></script>
+            </calc-values>-->
+        </boolean>
+        <custom-event-handler lang="JavaScript" ><![CDATA[
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.dp.DPBeardList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOOrganizationDescription);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.barcode.BarcodeSearchService);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.Addagr);
+importClass(Packages.ru.intertrust.cmj.dp.DPMInput);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.java.text);
+
+function queryCreate(object) {
+
+}
+
+function recalc(object, changedField){
+
+	var values = object.tuning().getValues();
+	var selectionMode = values.get('selectionMode').getValue();
+	if (changedField == 'selectionMode') {
+		clearRequisites(object);
+		if (selectionMode == "barcode") {
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedButton", false);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedByFactButton", false);
+		} else if (selectionMode == "requisites") {
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedButton", true);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedByFactButton", false);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", "InputDocs"); //в поле должно быть одно из знаений enum, чтобы прошла валидация. хотя в этом режиме поле не используется
+		} else if (selectionMode == "manual") {
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedButton", false);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedByFactButton", true);
+		}
+	}
+
+
+
+	if (selectionMode == "barcode" && changedField == 'barCode') {
+		if (values.get('barCode') != null && values.get('barCode').getValue() != null && !values.get('barCode').getValue().equals("")) {
+			var barcode = values.get('barCode').getValue();
+			var registryUnid = values.get('registryUnid').getValue();
+
+			var documentUnid;
+			var registryEntryUnid;
+			var documentModule;
+			var reqType;
+			var regNumber;
+			var date;
+			var subject;
+			var note;
+			var correspondentText = "";
+			var correspondentForAdd = null;
+			var addInfoText = "";
+			var addInfoForAdd = null;
+
+			//ищем подходящую запись в реестре
+			var registryEntry = findRegistryEntryByBarCode(registryUnid, barcode);
+
+			if (registryEntry != null) {
+				//заполняем поля значениями из реестра
+				//становится доступна кнопка "Отметить получение"
+				//ставим признак что документ выбран и реквизиты заполнены  - нужен такой признак???
+
+				var entryValues = registryEntry.tuning().getValues();
+
+				registryEntryUnid = registryEntry.getUNID();
+				documentUnid = entryValues.get("documentUnid") == null ? "" : entryValues.get("documentUnid").getValue();
+				documentModule = entryValues.get("module") == null ? "InputDocs" : entryValues.get("module").getValue();
+				reqType = entryValues.get("reqType") == null ? "Приказ" : entryValues.get("reqType").getValue();
+				regNumber = entryValues.get("regNumber") == null ? "" : entryValues.get("regNumber").getValue();
+				date = entryValues.get("regDate") == null ? null :entryValues.get("regDate").getValue();
+				subject = entryValues.get("subject") == null ? "" : entryValues.get("subject").getValue();
+				note = entryValues.get("comment") == null ? "" : entryValues.get("comment").getValue();
+				correspondentText = entryValues.get("correspondentContractorText") == null ? "" : entryValues.get("correspondentContractorText").getValue();
+				correspondentForAdd = null;
+				addInfoText = entryValues.get("addInfoText") == null ? "" : entryValues.get("addInfoText").getValue();
+				addInfoForAdd = null;
+
+			} else {
+				//в реестре нет такой записи, ищем документ в системе по шрихкоду
+				var rkk = findDocumentByBarCode(barcode);
+				if (rkk == null) {
+					//не нашли ни записи ни доумента по штрих коду, очищаем все поля, скрываем кнопку, выходим.
+					clearRequisites(object);
+					TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedButton", false);
+					return;
+
+				} else {
+					//заполняем поля значениями из документа
+					//ставим признак что документ выбран и реквизиты заполнены  - нужен такой признак???
+					//становится доступна кнопка "Отметить получение по факту", недоступна кнопка "Отметить получение"
+
+					documentModule = rkk.getDbIdent();
+					reqType = getReqType(rkk);
+					documentUnid = rkk.getUNID();
+					registryEntryUnid = "";
+					subject = rkk.getSubject() != null ? rkk.getSubject() : "";
+					date = rkk.registration().getDate();
+					note = rkk.getComment() != null ? rkk.getComment() : "";
+					var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+					if (documentModule.equals("WorkplaceRequests")) {
+						comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("wpComments"));
+						regNumber = rkk.projectNumber();
+					} else if (documentModule.equals("ServiceRequests")) {
+						comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("servComments"));
+						regNumber = rkk.projectNumber();
+					} else if (documentModule.equals("SendDocRequests")) {
+						comment = "";
+						regNumber = rkk.projectNumber();
+					} else if (documentModule.equals("ProcessRegistry")) {
+						if (TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")) != null) {
+							for (var i=0; i<TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")).size(); i++) {
+								comment+="\n"+TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")).get(i);
+							}
+						}
+						regNumber = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("Number"));
+					} else if (documentModule.equals("ProductRegistry")) {
+						comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("ProdComments"));
+						regNumber = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("Number"));
+					} else if (documentModule.equals("ContractsLite") && rkk instanceof DPMContracts.Addagr) {
+						regNumber = rkk.registrationSimple().getNumber();
+						date = rkk.registrationSimple().getDate();
+					} else if (documentModule.equals(Documents)) {
+						regNumber = "";
+						date = null;
+					} else {
+						regNumber = rkk.registration().getRegisteredInfo() != null ? rkk.registration().getRegisteredInfo().getNumber().toString() : "";
+					}
+
+					//корреспондент и допинфо
+					if (documentModule.equals("InputDocs")) {
+						if (rkk.correspondent()!=null) {
+							if (rkk.correspondent().getType() != null) {
+
+								if (rkk.correspondent().getType().toString().equals("NOT_SPECIFIED")) {
+									correspondentText = "Не указан";
+								} else if (rkk.correspondent().getType().toString().equals("ORGANIZATION")) {
+									correspondentText = rkk.correspondent().getOrganization().getOrganization().getFullName().toString();
+								} else {
+									correspondentText = rkk.correspondent().getAuthors().getList().get(0).toString();
+								}
+							}
+						}
+						if (rkk.addressees()!=null) {
+							for (var i=0; i<rkk.addressees().getList().size(); i++) {
+								addInfoText+="\n"+rkk.addressees().getList().get(i).toString();
+							}
+						}
+					} else if (documentModule.equals("OutputDocs")) {
+						if (rkk.addressees()!=null) {
+							correspondentText="";
+							for (var i=0; i<rkk.addressees().getBeardList().getList().size(); i++) {
+								correspondentText+="\n"+rkk.addressees().getBeardList().getList().get(i).toString();
+							}
+						}
+					} else if (documentModule.equals("ContractsLite")) {
+						correspondentText=rkk.signing2().getSigners().get(0).getBeard().toString();
+						addInfoText = rkk.getExecByUnit().toString();
+					}
+				}
+			}
+
+			//записываем вычисленные реквизиты
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "registryEntryUnid", registryEntryUnid);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "documentUnid", documentUnid);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", documentModule);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", reqType);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "subject", subject);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "date", (date == null ? null :AFDate.fromJavaDate(date, false)));
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "regNumber", regNumber);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "note", note);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentText", correspondentText);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentForAdd", correspondentForAdd);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoText", addInfoText);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoForAdd", addInfoForAdd);
+
+			//отображаем кнопку "Отметить получение"
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showMarkReceivedButton", true);
+		}
+
+	}
+
+	if (selectionMode == "manual") {
+
+		//заполняем объекты для выбора корреспондентов и доп.инфы, чтобы в них оказался выбор с учётом типа документа
+		if (changedField == 'module') {
+			var tunapp = AFSession.get().getApplication(TuningApplication.class);
+
+			var correspondentForAddObject = values.get('correspondentForAdd');
+			if (correspondentForAddObject == null) {
+				var schemaCorresp = tunapp.getSchemaByName("DTRCorrespondentResource");
+				correspondentForAddObject = new AFInstanceObjectImpl(schemaCorresp);
+			}
+			correspondentForAddObject.getValues().put("module", values.get("module"));
+			var addInfoForAddObject = values.get('addInfoForAdd');
+			if (addInfoForAddObject == null) {
+				var schemaAddInfo = tunapp.getSchemaByName("DTRAdditionalInfoResource");
+				addInfoForAddObject = new AFInstanceObjectImpl(schemaAddInfo);
+			}
+			addInfoForAddObject.getValues().put("module", values.get("module"));
+		}
+
+		// --------- заполняем корреспондентов после выбора по кнопке ----------
+		var correspondentText = values.get('correspondentText') == null ? "" : values.get('correspondentText').getValue();
+		if (changedField == 'correspondentForAdd') {
+			var correspondentForAdd = values.get('correspondentForAdd').getValues();
+
+			var correspondent = correspondentForAdd.get('correspondent') == null ? null : correspondentForAdd.get('correspondent').getValue();
+			if (correspondent != null) {
+				correspondentText = correspondent.toString();
+				values.put("correspondentText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentText")));
+			}
+
+			var correspondentList = correspondentForAdd.get('correspondentList') == null ? null :correspondentForAdd.get('correspondentList').getValues();
+			if (correspondentList != null && !correspondentList.isEmpty()) {
+				for (var i = 0; i < correspondentList.size(); i++) {
+					var correspondent = correspondentList.get(i).getValue();
+					if(correspondentText == "") {
+						correspondentText = correspondent.toString();
+					} else {
+						correspondentText = correspondentText + ", \n" + correspondent.toString();
+					}
+				}
+				values.put("correspondentText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentText")));
+			}
+
+			var correspondentForAddObject = values.get('correspondentForAdd');
+			correspondentForAdd.put("correspondent", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondent")));
+			correspondentForAdd.put("correspondentList", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondentList")));
+		}
+
+		// --------  заполняем допинфо после выбора по кнопке -------
+		var addInfoText = values.get('addInfoText') == null ? "" : values.get('addInfoText').getValue();
+		if (changedField == 'addInfoForAdd') {
+			var addInfoForAdd = values.get('addInfoForAdd').getValues();
+
+			var addInfo = addInfoForAdd.get('addInfo') == null ? null : addInfoForAdd.get('addInfo').getValue();
+			if (addInfo != null) {
+				addInfoText = addInfo.toString();
+				values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+			}
+
+			var addInfoList = addInfoForAdd.get('addInfoList') == null ? null :addInfoForAdd.get('addInfoList').getValues();
+			if (addInfoList != null && !addInfoList.isEmpty()) {
+				for (var i = 0; i < correspondentList.size(); i++) {
+					var addInfo = addInfoList.get(i).getValue();
+					if(addInfoText == "") {
+						addInfoText = addInfo.toString();
+					} else {
+						addInfoText = addInfoText + ", \n" + addInfo.toString();
+					}
+				}
+				values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+			}
+
+			addInfoForAdd.put("addInfo", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfo")));
+			addInfoForAdd.put("addInfoList", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfoList")));
+		}
+
+	}
+
+
+
+}
+
+/* Поиск в текущем реестре записи с указанным штрихкодом */
+function findRegistryEntryByBarCode(registryUnid, barcode) {
+	var entries = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(registryUnid, "documents");
+	for (var i=0; i<entries.size(); i++) {
+		var entryValues = entries.get(i).tuning().getValues();
+		if (entryValues.get("barcode") != null && barcode.equals(entryValues.get("barcode").getValue())) {
+			return entries.get(i);
+		}
+	}
+	return null;
+}
+
+/* Поиск в системе документа с указанным штрихкодом */
+function findDocumentByBarCode(barcode) {
+    var barcodeSearchService = BeansUtils.getBean("BarcodeSearchService");
+    var isBarcodeUnid = barcodeSearchService.support(barcode);
+    if (isBarcodeUnid) {
+        var doc = barcodeSearchService.search(barcode);
+        if (doc == null) {
+            return null;
+        }
+        var replicaID = doc.getParentDatabase().getReplicaID();
+        var unid = doc.getUniversalID();
+        var fullUnid = AFCMDomino.cmUNIDToORMUNID(unid, replicaID);
+        var appdp = AFSession.get().getApplication(DPApplication.class);
+        var documentEntity = appdp.getEntityByUNID(fullUnid);
+        return documentEntity;
+    } else {
+        return null;
+    }
+}
+
+/* Вычисляем вид документа */
+function getReqType(document) {
+	if (document instanceof DPMContracts.Addagr) {
+		return "Дополнительное соглашение";
+	}
+	if (document instanceof DPM.RKK) {
+		return document.getType();
+	}
+	return "";
+}
+
+/* Очищаем все реквизиты в диалоге, чтобы можно было искать документ заново */
+function clearRequisites(object) {
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "registryEntryUnid", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "documentUnid", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "subject", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "date", null);
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "regNumber", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "note", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentText", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentForAdd", null);
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoText", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoForAdd", null);
+}
+        ]]></custom-event-handler>
+    </schema>
+</schemas>

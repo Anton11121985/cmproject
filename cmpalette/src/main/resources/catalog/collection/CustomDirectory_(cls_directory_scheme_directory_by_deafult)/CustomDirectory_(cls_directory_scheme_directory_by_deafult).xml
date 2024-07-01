@@ -1,0 +1,42 @@
+<collection name="CustomDirectory_(cls_directory_scheme_directory_by_deafult)" replace="runtime" idField="id" useClone="false">
+    <prototype>
+        <![CDATA[
+			SELECT
+				id,
+				created_date,
+				self_1,
+				self_2,
+				self_3,
+				Module,
+				byDefault
+			FROM(
+				SELECT
+					tag.id,
+					tag.created_date,
+					'<id>' as self_1,
+					':' as self_2,
+					'</>' as self_3,
+					tag.module AS Module,
+				    (SELECT title FROM classifier_complex
+				        WHERE classifier_complex.id = (SELECT
+						    complex1.id
+						FROM clscom_tag tag1
+					        left join clscom_to_tag to_tag1 on to_tag1.tag = tag1.id
+					        left join classifier_complex complex1 on complex1.id = to_tag1.classifier
+					        left join cls_typeComp typecom1 on typecom1.id = complex1.owner
+						WHERE (tag1.schema = 'ComplectClassifierSchemeDirectoryMedoDoc'
+						    and typecom1.alias = 'byDefault' and tag1.id = tag.id))
+					)                                                                                                as byDefault
+
+				FROM
+					clscom_tag tag
+					left join clscom_to_tag to_tag on to_tag.tag = tag.id
+					left join classifier_complex complex on complex.id = to_tag.classifier
+					left join cls_typeComp typecom on typecom.id = complex.owner
+					where tag.schema = 'ComplectClassifierSchemeDirectoryMedoDoc'
+			)s
+			WHERE byDefault = '1';
+		]]>
+    </prototype>
+</collection>
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="executorResp" pageWidth="92" pageHeight="20" columnWidth="92" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5d0b0afa-0408-47c3-bdf2-f4f9e76c9e19">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="resId" class="java.lang.Object"/>
+	<parameter name="offset" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT string_agg(t.author_resp, ', ') AS author_resp
+FROM (SELECT author_resp.orig_shortname AS author_resp
+FROM F_DP_ResltnBase_ExecResp resp
+JOIN So_Beard author_resp ON author_resp.id = resp.ExecutorResp
+WHERE resp.owner = $P{resId}
+ORDER BY resp.idx asc) t]]>
+	</queryString>
+	<field name="author_resp" class="java.lang.String"/>
+	<detail>
+		<band height="18">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="92" height="18" uuid="39a48e40-e5db-4442-a582-d25a746e024d">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="styled">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ответственный исполнитель: " +
+"<u>"+ $F{author_resp}+"</u>"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

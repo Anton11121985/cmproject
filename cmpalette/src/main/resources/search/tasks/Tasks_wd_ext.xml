@@ -1,0 +1,173 @@
+<search-area name="Tasks_wd_ext" replace="runtime">
+
+    <solr-server-url>search.wd.solr.server</solr-server-url>
+    <content-search-by>words</content-search-by>
+    <target-filter-name>CNTX_ID_FILTER</target-filter-name>
+
+    <highlighting-config hl-require-match="true"  hl-frag-size="255" hl-post-tag="&lt;/b&gt;" hl-pre-tag="&lt;b&gt;">
+    </highlighting-config>
+
+    <target-domain-object type="F_DP_TasksResolution">
+
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject" show-in-results="true">
+            <doel>resolution</doel>
+        </indexed-field>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring" multi-valued="true"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Вложения -->
+        <indexed-content type="F_ContentRichText_TaskRes" parent-fk-field="f_dp_tasksresolution">
+            <content-field target-field-name="rt1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt1_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt1_length" type="length"/>
+            <content-field target-field-name="rt1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt1_description" type="description"/>
+            <content-field target-field-name="rt1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_ContentFiles_TaskRes" parent-fk-field="f_dp_tasksresolution">
+            <content-field target-field-name="cf1_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf1_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf1_length" type="length"/>
+            <content-field target-field-name="cf1_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf1_description" type="description"/>
+            <content-field target-field-name="cf1_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_RvzContentFilesTR" parent-fk-field="f_dp_tasksresolution">
+            <content-field target-field-name="rt2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="rt2_mimetype" type="mimetype"/>
+            <content-field target-field-name="rt2_length" type="length"/>
+            <content-field target-field-name="rt2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="rt2_description" type="description"/>
+            <content-field target-field-name="rt2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <indexed-content type="F_AddFiles_Rkk" parent-fk-field="f_dp_rkkbase">
+            <content-field target-field-name="cf2_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="cf2_mimetype" type="mimetype"/>
+            <content-field target-field-name="cf2_length" type="length"/>
+            <content-field target-field-name="cf2_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="cf2_description" type="description"/>
+            <content-field target-field-name="cf2_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+
+        <!-- Количество вложений (с учетом ричтекста) -->
+        <indexed-field name="contentCount" show-in-results="true" index-boost-value="0.1">
+            <script return-type="long">session.findByQuery('select id from F_AddFiles_Rkk where f_dp_rkkbase = {0} union select id from F_ContentRichText_TaskRes where f_dp_tasksresolution = {0} union select id from F_ContentFiles_TaskRes where f_dp_tasksresolution = {0} union select id from F_RvzContentFilesTR where f_dp_tasksresolution = {0}', ctx.getId()).size()</script>
+        </indexed-field>
+
+        <!-- Контрольный -->
+        <indexed-field name="isControlWD">
+            <doel>CtrlIsControlled</doel>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecutedWD">
+            <doel>CtrlDateExecution:isNotEmpty</doel>
+        </indexed-field>
+        <!-- Автор поручения -->
+        <indexed-field name="resTasksAuthor" show-in-results="true" search-by="substring">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+        <indexed-field name="Superior" show-in-results="true" search-by="substring">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Дата поручения -->
+        <indexed-field name="resDateWD">
+            <doel>Date</doel>
+        </indexed-field>
+        <!-- Срок поручения -->
+        <indexed-field name="resExDateWD">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+
+        <!-- Исполнитель поручения -->
+        <linked-domain-object type="F_DP_TasksResolution_EC">
+            <indexed-field name="resTasksExecutorWD" search-by="substring" index-boost-value="1.0" multi-valued="true">
+                <doel>ExecutorCurr.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="resTasksExecutorIdsWD" show-in-results="true" index-boost-value="0.1" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('ExecutorCurr');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>ExecutorCurr:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Исполнитель поручения (внешние) -->
+        <linked-domain-object type="F_DP_TasksResolution_EE">
+            <indexed-field name="resTasksExecutorWD" search-by="substring" index-boost-value="1.0" multi-valued="true">
+                <doel>ExecutorExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="resTasksExecutorExtIdsWD" show-in-results="true" index-boost-value="0.1" multi-valued="true">
+                <script return-type="string">
+                    var result = ctx.get('ExecutorExt');
+                    if (result != null) {
+                    var idx = ctx.get('Idx');
+                    result = result.toStringRepresentation() + '~' + idx;
+                    }
+                    result;
+                </script>
+                <filter>
+                    <doel>ExecutorExt:isNotEmpty</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!--Дата регистрации -->
+        <indexed-field name="regDate" show-in-results="true">
+            <doel>date</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate" show-in-results="true">
+            <doel>Date</doel>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" show-in-results="true">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }</script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Связанные документы -->
+        <linked-domain-object type="F_DP_TasksResolution_ULnk">
+            <indexed-field name="linkedDocs" multi-valued="true">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="Tasks_(searchContextual)"/>
+    </target-domain-object>
+</search-area>

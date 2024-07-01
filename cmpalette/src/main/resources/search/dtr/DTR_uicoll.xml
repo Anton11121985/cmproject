@@ -1,0 +1,112 @@
+<search-area name="DTR_uicoll">
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="F_DP_IntRkk">
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+            <!-- Отправитель -->
+            <indexed-field name="sender">
+                <doel>value:split("%"):getString("0")</doel>
+                <filter>
+                    <doel>cmjfield:in("sender")</doel>
+                </filter>
+            </indexed-field>
+            <!-- Получатель -->
+
+            <indexed-field name="receiver">
+                <doel>value:split("%"):getString("0")</doel>
+                <filter>
+                    <doel>cmjfield:in("receiver")</doel>
+                </filter>
+            </indexed-field>
+            <!-- Подразделение-получатель -->
+
+            <indexed-field name="receiverDep">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("receiverDepHierarchy")</doel>
+                </filter>
+            </indexed-field>
+            <!-- Статус -->
+            <indexed-field name="state" search-by="exactmatch">
+                <script>
+                        var stateIdent = ctx.get('value');
+                        switch (stateIdent) {
+                            case 'Draft':
+                                'Черновик';
+                                break;
+                            case 'Project':
+                                'Проект';
+                                 break;
+                             case 'Transmitted':
+                                'Передано';
+                                break;
+                            case 'Received':
+                                'Получено';
+                                break;
+                             case 'ReceivedPartially':
+                                'Получено частично';
+                                break;
+                            default:
+                                'Удален';
+                        }
+                </script>
+                <filter>
+                    <doel>cmjfield:in("state")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_Datetime" nested="true">
+            <!-- Дата отправления -->
+            <indexed-field name="sendingDate" solr-prefix="cm_dt">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("sendingDateTime")</doel>
+                </filter>
+            </indexed-field>
+            <!-- Дата получения -->
+            <indexed-field name="receivingDate" solr-prefix="cm_dt">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("receivingDateTime")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring" >
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }</script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Подразделение- отправитель (Фактически Место регистрации) -->
+        <indexed-field name="senderDep" search-by="substring" >
+            <script>
+                var code = ctx.get('RegCode.orig_shortname');
+                if (code == null) code;
+                var reg = ctx.get('RegRegistrator.orig_shortname');
+                if (reg != null) code += ' (' + reg + ')';
+                code;
+            </script>
+            <filter>
+                <doel>RegCode:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <filter>
+            <doel>Module.Type.Alias:in("DTR")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

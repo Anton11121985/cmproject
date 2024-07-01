@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://inttrust.ru/cmj">
+  <message id="END_PROCESS" name="END_PROCESS"></message>
+  <process id="example_process_script" name="Пример процесса с кодом" isExecutable="true">
+    <startEvent id="startEvent" name="Start"></startEvent>
+    <userTask id="taskOnPlace" name="На размещение" activiti:assignee="@DocumentField(@Variable(contextId); exampleActorWF1)" activiti:dueDate="PT2H"></userTask>
+    <userTask id="taskOnApproval" name="На согласовании" activiti:assignee="@DocumentField(@Variable(contextId); exampleActorWF2)" activiti:dueDate="PT2H"></userTask>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <scriptTask id="taskOnApprovalScript" name="На согласование" scriptFormat="javascript" activiti:autoStoreVariables="false">
+      <script><![CDATA[load("nashorn:mozilla_compat.js");
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.org.slf4j.LoggerFactory);
+
+var appDp = AFSession.get().getApplication(DPApplication.class);
+var document = appDp.getEntityByUNID(contextId);
+
+var wf = document.tuning().getValues().get('wf');
+
+var propertyStage = wf.getSchema().getProperty("stage");
+var stageValue = TuningHelper.createPropertyValue("На согласовании", propertyStage);
+wf.getValues().put("stage", stageValue);
+
+document.save();
+
+execution.setVariable("mainTaskEventId", "DFLT1_11");]]></script>
+    </scriptTask>
+    <sequenceFlow id="flow6" sourceRef="taskOnPlace" targetRef="taskOnApprovalScript"></sequenceFlow>
+    <scriptTask id="taskOnPlaceScript" name="На размещение" scriptFormat="javascript" activiti:autoStoreVariables="false">
+      <script><![CDATA[load("nashorn:mozilla_compat.js");
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.org.slf4j.LoggerFactory);
+
+var appDp = AFSession.get().getApplication(DPApplication.class);
+var document = appDp.getEntityByUNID(contextId);
+
+var wf = document.tuning().getValues().get('wf');
+
+var propertyStage = wf.getSchema().getProperty("stage");
+var stageValue = TuningHelper.createPropertyValue("На размещение",propertyStage);
+wf.getValues().put("stage", stageValue);
+
+document.save();
+
+execution.setVariable("mainTaskEventId", "DFLT1_11");]]></script>
+    </scriptTask>
+    <sequenceFlow id="flow8" sourceRef="startEvent" targetRef="taskOnPlaceScript"></sequenceFlow>
+    <sequenceFlow id="flow9" sourceRef="taskOnApprovalScript" targetRef="taskOnApproval"></sequenceFlow>
+    <sequenceFlow id="flow10" sourceRef="taskOnApproval" targetRef="endevent1"></sequenceFlow>
+    <sequenceFlow id="flow11" sourceRef="taskOnPlaceScript" targetRef="taskOnPlace"></sequenceFlow>
+    <dataObject id="version" name="version" itemSubjectRef="xsd:string">
+      <extensionElements>
+        <activiti:value>1.0.0.3</activiti:value>
+      </extensionElements>
+    </dataObject>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_example_process_script">
+    <bpmndi:BPMNPlane bpmnElement="example_process_script" id="BPMNPlane_example_process_script">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="35.0" width="35.0" x="60.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskOnPlace" id="BPMNShape_taskOnPlace">
+        <omgdc:Bounds height="61.0" width="111.0" x="310.0" y="117.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskOnApproval" id="BPMNShape_taskOnApproval">
+        <omgdc:Bounds height="55.0" width="105.0" x="630.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="790.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskOnApprovalScript" id="BPMNShape_taskOnApprovalScript">
+        <omgdc:Bounds height="55.0" width="105.0" x="480.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskOnPlaceScript" id="BPMNShape_taskOnPlaceScript">
+        <omgdc:Bounds height="55.0" width="105.0" x="160.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="421.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="147.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="95.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="160.0" y="147.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+        <omgdi:waypoint x="585.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="630.0" y="147.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+        <omgdi:waypoint x="735.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="790.0" y="147.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow11" id="BPMNEdge_flow11">
+        <omgdi:waypoint x="265.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="310.0" y="147.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

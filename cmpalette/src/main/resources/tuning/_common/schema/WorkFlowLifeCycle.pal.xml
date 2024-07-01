@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="WorkFlowLifeCycle">
+    <meta>
+      <category name="WorkFlow"/>
+    </meta>
+    <datetime name="lifecycle_start_date">
+      <meta>
+        <documentation>Дата начала</documentation>
+      </meta>
+      <storage-field name="lifecycle_start_date"/>
+    </datetime>
+    <datetime name="lifecycle_date">
+      <meta>
+        <documentation>Дата завершения</documentation>
+      </meta>
+      <storage-field name="lifecycle_date"/>
+    </datetime>
+    <string name="lifecycle_action">
+      <meta>
+        <documentation>Действие</documentation>
+      </meta>
+      <storage-field name="lifecycle_action"/>
+    </string>
+    <actor name="lifecycle_assignee">
+      <meta>
+        <documentation>Исполнитель, которому пришла задача</documentation>
+      </meta>
+      <storage-field name="lifecycle_assignee"/>
+    </actor>
+    <actor name="lifecycle_current_user">
+      <meta>
+        <documentation>Текущий пользователь</documentation>
+      </meta>
+      <storage-field name="lifecycle_current_user"/>
+    </actor>
+    <string name="lifecycle_result">
+      <meta>
+        <documentation>Результат</documentation>
+      </meta>
+      <storage-field name="lifecycle_result"/>
+    </string>
+    <string name="lifecycle_information">
+      <meta>
+        <documentation>Дополнительная информация</documentation>
+      </meta>
+      <storage-field name="lifecycle_information"/>
+    </string>
+    <string name="lifecycle_executor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+        lifecycle_current_user == null ? (lifecycle_assignee == null ? '-' : lifecycle_assignee.originalData().getShortName()) :
+        (lifecycle_assignee == null ? '- (' + lifecycle_current_user.originalData().getShortName() + ')' :
+        lifecycle_current_user.originalData().getPartyUNID() == lifecycle_assignee.originalData().getPartyUNID() ? lifecycle_assignee.originalData().getShortName() :
+        lifecycle_assignee.originalData().getShortName() + ' (' + lifecycle_current_user.originalData().getShortName() + ')')]]></script>
+      </calc-values>
+    </string>
+  </schema>
+</schemas>

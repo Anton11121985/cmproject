@@ -1,0 +1,838 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<notifications xmlns="http://www.intertrust.ru/schema/palette/notifications">
+
+  <!-- CCТУ -->
+  <notification locale="RU" type="SSTU1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Создан:${document.get("memoDateText")} Тип:${document.get("memoType")}]]></subject>
+      <body lang="FreeMarker"><![CDATA[${document.get("memoSubject")}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Создан: ${document.get("memoDateText")} Тип:${document.get("memoType")}]]></subject>
+      <body lang="FreeMarker"><![CDATA[${document.get("memoSubject")}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationByFinalReport">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Итоговый отчет об исполнении от <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if>  по <#if document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюции<#else>Поручению</#if> по документу <#if document.get("HierRoot.Type")??>${document.get("HierRoot.Type")}<#else></#if> № <#if document.get("HierRoot.RegNumPrist")??>${document.get("HierRoot.RegNumPrist")}<#else></#if><#if document.get("HierRoot.RegNumCnt")??>${document.get("HierRoot.RegNumCnt")}<#else></#if><#if document.get("HierRoot.RegNumFin")??>${document.get("HierRoot.RegNumFin")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if>
+
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("HierRoot.Type")??>${document.get("HierRoot.Type")}<#else></#if> № <#if document.get("HierRoot.RegNumPrist")??>${document.get("HierRoot.RegNumPrist")}<#else></#if><#if document.get("HierRoot.RegNumCnt")??>${document.get("HierRoot.RegNumCnt")}<#else></#if><#if document.get("HierRoot.RegNumFin")??>${document.get("HierRoot.RegNumFin")}<#else></#if> от <#if document.get("HierRoot.regDate")??><#assign d2 = document.get("HierRoot.regDate")?index_of("-")><#assign d0 = document.get("HierRoot.regDate")?last_index_of("-")><#assign dy = document.get("HierRoot.regDate")?substring(0,d2)><#assign dd = document.get("HierRoot.regDate")?substring(d0+1)><#assign dm = document.get("HierRoot.regDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("HierRoot.Subject")??>${document.get("HierRoot.Subject")}<#else></#if>
+
+
+<#if document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюция<#else>
+Поручение</#if> : <#if document.get("HierParent.Resolution")??>${document.get("HierParent.Resolution")}<#else></#if>
+
+
+СРОК: <#if document.get("Hierparent.ctrldeadline")??><#assign d2 = document.get("Hierparent.ctrldeadline")?index_of("-")><#assign d0 = document.get("Hierparent.ctrldeadline")?last_index_of("-")><#assign dy = document.get("Hierparent.ctrldeadline")?substring(0,d2)><#assign dd = document.get("Hierparent.ctrldeadline")?substring(d0+1)><#assign dm = document.get("Hierparent.ctrldeadline")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Исп.:  <#if document.get("Text")??>${document.get("Text")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Итоговый отчет об исполнении от <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if>  по <#if document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюции<#else>Поручению</#if> по документу <#if document.get("HierRoot.Type")??>${document.get("HierRoot.Type")}<#else></#if> № <#if document.get("HierRoot.RegNumPrist")??>${document.get("HierRoot.RegNumPrist")}<#else></#if><#if document.get("HierRoot.RegNumCnt")??>${document.get("HierRoot.RegNumCnt")}<#else></#if><#if document.get("HierRoot.RegNumFin")??>${document.get("HierRoot.RegNumFin")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("HierRoot.Type")??>${document.get("HierRoot.Type")}<#else></#if> № <#if document.get("HierRoot.RegNumPrist")??>${document.get("HierRoot.RegNumPrist")}<#else></#if><#if document.get("HierRoot.RegNumCnt")??>${document.get("HierRoot.RegNumCnt")}<#else></#if><#if document.get("HierRoot.RegNumFin")??>${document.get("HierRoot.RegNumFin")}<#else></#if> от <#if document.get("HierRoot.regDate")??><#assign d2 = document.get("HierRoot.regDate")?index_of("-")><#assign d0 = document.get("HierRoot.regDate")?last_index_of("-")><#assign dy = document.get("HierRoot.regDate")?substring(0,d2)><#assign dd = document.get("HierRoot.regDate")?substring(d0+1)><#assign dm = document.get("HierRoot.regDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("HierRoot.Subject")??>${document.get("HierRoot.Subject")}<#else></#if>
+
+
+<#if document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюция<#else>
+Поручение</#if> : <#if document.get("HierParent.Resolution")??>${document.get("HierParent.Resolution")}<#else></#if>
+
+
+СРОК: <#if document.get("Hierparent.ctrldeadline")??><#assign d2 = document.get("Hierparent.ctrldeadline")?index_of("-")><#assign d0 = document.get("Hierparent.ctrldeadline")?last_index_of("-")><#assign dy = document.get("Hierparent.ctrldeadline")?substring(0,d2)><#assign dd = document.get("Hierparent.ctrldeadline")?substring(d0+1)><#assign dm = document.get("Hierparent.ctrldeadline")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Исп.:  <#if document.get("Text")??>${document.get("Text")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Заявки в СпП и СпО-->
+  <notification locale="RU" type="NotificationByDossierRequest">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Создана заявка в <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if> Описание персоны: ${document.get("LastName")} ${document.get("FirstName")}]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+
+
+ Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+
+
+ Краткое содержание: <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if>. Заявка на описание персоны  ${document.get("LastName")}  ${document.get("FirstName")} ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Создана заявка в <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if> Описание персоны: ${document.get("LastName")} ${document.get("FirstName")}]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+ Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+
+
+ Краткое содержание: <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if>. Заявка на описание персоны  ${document.get("LastName")}  ${document.get("FirstName")} ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationByOrgRequest">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Создана заявка в <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if> <#if document.get("Edited")??>  на корректировку организации: <#else> на описание организации:</#if>${document.get("ShortName")}]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if document.get("updated_by.lastname")??> ${document.get("updated_by.lastname")}<#else> Система</#if>
+
+ Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+ Краткое содержание: <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if>. Заявка <#if document.get("Edited")??> на корректировку организации:<#else> на описание организации: </#if>  ${document.get("ShortName")} ${urlFormer.getUrl("cm-admingui", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Создана заявка в <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if> <#if document.get("Edited")??> на корректировку организации:<#else> на описание организации: </#if>${document.get("ShortName")}]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:  <#if document.get("updated_by.lastname")??> ${document.get("updated_by.lastname")}<#else> Система</#if>
+
+ Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+ Краткое содержание: <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if>. Заявка <#if document.get("Edited")??> на корректировку организации:<#else> на описание организации: </#if>  ${document.get("ShortName")} ${urlFormer.getUrl("cm-admingui", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Обсуждение-->
+  <notification locale="RU" type="Discussion#Discussion#Discussion">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Уведомление об обсуждении]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<#else></#if></#if>
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-disco", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Уведомление об обсуждении]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+<#else></#if></#if>
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-disco", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Ссылки на документы -->
+  <notification locale="RU" type="LinksMailNotificationType">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Ссылки на документы]]></subject>
+      <body lang="FreeMarker"><![CDATA[Ссылки на документы: ${item.get("Subject")} ${urlFormer.getUrl("cm-sochi", addressee.getId(), item.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel />
+  </notification>
+
+  <!--На оформление -->
+  <notification locale="RU" type="DRAW1_11">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[На оформление.<#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if> проект № <#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if><#if document.get("prjnumcounter")??>${document.get("prjnumcounter")}<#else></#if><#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if> «<#if document.get("Subject")??><#assign subl = document.get("Subject")?length><#if subl gt 60>${document.get("Subject")?substring(0,60)}...<#else>${document.get("Subject")}</#if><#else></#if>»]]></subject>
+      <body lang="FreeMarker"><![CDATA[Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")> <#assign d0 = document.get("regdate")?last_index_of("-")> <#assign dy = document.get("regdate")?substring(0,d2)> <#assign dd = document.get("regdate")?substring(d0+1)> <#assign dm = document.get("regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--На контроль -->
+  <notification locale="RU" type="NotificationByRKKControl">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Вы назначены контролером по документу <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if> <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:<#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("Owner.regnumprist")??>${document.get("Owner.regnumprist")}<#else></#if><#if document.get("Owner.regnumcnt")??>${document.get("Owner.regnumcnt")}<#else></#if><#if document.get("Owner.regnumfin")??>${document.get("Owner.regnumfin")}<#else></#if> от<#if document.get("Owner.regdate")??><#assign d2 = document.get("Owner.regdate")?index_of("-")> <#assign d0 = document.get("Owner.regdate")?last_index_of("-")> <#assign dy = document.get("Owner.regdate")?substring(0,d2)> <#assign dd = document.get("Owner.regdate")?substring(d0+1)> <#assign dm = document.get("Owner.regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if>
+
+
+Срок:<#if document.get("Owner.ctrldeadline")??><#assign d2 = document.get("Owner.ctrldeadline")?index_of("-")> <#assign d0 = document.get("Owner.ctrldeadline")?last_index_of("-")> <#assign dy = document.get("Owner.ctrldeadline")?substring(0,d2)> <#assign dd = document.get("Owner.ctrldeadline")?substring(d0+1)> <#assign dm = document.get("Owner.ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.get("Owner"))}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Вы назначены контролером по документу <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if> <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:<#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if>  № <#if document.get("Owner.regnumprist")??>${document.get("Owner.regnumprist")}<#else></#if><#if document.get("Owner.regnumcnt")??>${document.get("Owner.regnumcnt")}<#else></#if><#if document.get("Owner.regnumfin")??>${document.get("Owner.regnumfin")}<#else></#if> от<#if document.get("Owner.regdate")??><#assign d2 = document.get("Owner.regdate")?index_of("-")> <#assign d0 = document.get("Owner.regdate")?last_index_of("-")> <#assign dy = document.get("Owner.regdate")?substring(0,d2)> <#assign dd = document.get("Owner.regdate")?substring(d0+1)> <#assign dm = document.get("Owner.regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if>
+
+
+Срок:<#if document.get("Owner.ctrldeadline")??><#assign d2 = document.get("Owner.ctrldeadline")?index_of("-")> <#assign d0 = document.get("Owner.ctrldeadline")?last_index_of("-")> <#assign dy = document.get("Owner.ctrldeadline")?substring(0,d2)> <#assign dd = document.get("Owner.ctrldeadline")?substring(d0+1)> <#assign dm = document.get("Owner.ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.get("Owner"))}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationByRKKControl1">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Вы назначены контролером по документу <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if><#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:<#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if>  № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> от<#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")> <#assign d0 = document.get("regdate")?last_index_of("-")> <#assign dy = document.get("regdate")?substring(0,d2)> <#assign dd = document.get("regdate")?substring(d0+1)> <#assign dm = document.get("regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Срок:<#if document.get("ctrldeadline")??><#assign d2 = document.get("ctrldeadline")?index_of("-")> <#assign d0 = document.get("ctrldeadline")?last_index_of("-")> <#assign dy = document.get("ctrldeadline")?substring(0,d2)> <#assign dd = document.get("ctrldeadline")?substring(d0+1)> <#assign dm = document.get("ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Вы назначены контролером по документу <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if><#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:<#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Module.Title")??>${document.get("Module.Title")}<#else></#if>  № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> от<#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")> <#assign d0 = document.get("regdate")?last_index_of("-")> <#assign dy = document.get("regdate")?substring(0,d2)> <#assign dd = document.get("regdate")?substring(d0+1)> <#assign dm = document.get("regdate")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Срок:<#if document.get("ctrldeadline")??><#assign d2 = document.get("ctrldeadline")?index_of("-")> <#assign d0 = document.get("ctrldeadline")?last_index_of("-")> <#assign dy = document.get("ctrldeadline")?substring(0,d2)> <#assign dd = document.get("ctrldeadline")?substring(d0+1)> <#assign dm = document.get("ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationByRKKControl2">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Вы назначены контролером по <#if  document.get("Owner.Module.Type.Alias")=="Tasks">поручению № <#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if> от <#if document.get("Owner.Author.Orig_ShortName")??>${document.get("Owner.Author.Orig_ShortName")}<#else></#if> (срок <#if document.get("Owner.ctrldeadline")??><#assign d2 = document.get("Owner.ctrldeadline")?index_of("-")> <#assign d0 = document.get("Owner.ctrldeadline")?last_index_of("-")> <#assign dy = document.get("Owner.ctrldeadline")?substring(0,d2)> <#assign dd = document.get("Owner.ctrldeadline")?substring(d0+1)> <#assign dm = document.get("Owner.ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)<#else>документу <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if>  <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+Краткое содержание:
+
+<#if  document.get("Owner.Module.Type.Alias")=="Tasks">Поручение № <#if document.get("Owner.regnumprist")??>${document.get("Owner.regnumprist")}<#else></#if><#if document.get("Owner.regnumcnt")??>${document.get("Owner.regnumcnt")}<#else></#if><#if document.get("Owner.regnumfin")??>${document.get("Owner.regnumfin")}<#else></#if> : <#if document.get("Owner.Resolution")??>${document.get("Owner.Resolution")}<#else></#if> от <#if document.get("Owner.date")??><#assign d2 = document.get("Owner.date")?index_of("-")><#assign d0 = document.get("Owner.date")?last_index_of("-")><#assign dy = document.get("Owner.date")?substring(0,d2)><#assign dd = document.get("Owner.date")?substring(d0+1)><#assign dm = document.get("Owner.date")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<#else>ДОКУМЕНТ: <#if document.get("Owner.Module.Title")??>${document.get("Owner.Module.Title")}<#else></#if>  № <#if document.get("Owner.regnumprist")??>${document.get("Owner.regnumprist")}<#else></#if><#if document.get("Owner.regnumcnt")??>${document.get("Owner.regnumcnt")}<#else></#if><#if document.get("Owner.regnumfin")??>${document.get("Owner.regnumfin")}<#else></#if> от <#if document.get("Owner.regdate")??><#assign d2 = document.get("Owner.regdate")?index_of("-")><#assign d0 = document.get("Owner.regdate")?last_index_of("-")><#assign dy = document.get("Owner.regdate")?substring(0,d2)><#assign dd = document.get("Owner.regdate")?substring(d0+1)><#assign dm = document.get("Owner.regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+Заголовок: <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if></#if>
+
+
+Срок: <#if document.get("Owner.ctrldeadline")??><#assign d2 = document.get("Owner.ctrldeadline")?index_of("-")> <#assign d0 = document.get("Owner.ctrldeadline")?last_index_of("-")> <#assign dy = document.get("Owner.ctrldeadline")?substring(0,d2)> <#assign dd = document.get("Owner.ctrldeadline")?substring(d0+1)> <#assign dm = document.get("Owner.ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.get("Owner"))}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Вы назначены контролером по <#if  document.get("Owner.Module.Type.Alias")=="Tasks">поручению № <#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if> от <#if document.get("Owner.Author.Orig_ShortName")??>${document.get("Owner.Author.Orig_ShortName")}<#else></#if> (срок <#if document.get("Owner.ctrldeadline")??><#assign d2 = document.get("Owner.ctrldeadline")?index_of("-")> <#assign d0 = document.get("Owner.ctrldeadline")?last_index_of("-")> <#assign dy = document.get("Owner.ctrldeadline")?substring(0,d2)> <#assign dd = document.get("Owner.ctrldeadline")?substring(d0+1)> <#assign dm = document.get("Owner.ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)<#else>документу <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if>  <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+Краткое содержание:
+
+<#if  document.get("Owner.Module.Type.Alias")=="Tasks">Поручение № <#if document.get("Owner.regnumprist")??>${document.get("Owner.regnumprist")}<#else></#if><#if document.get("Owner.regnumcnt")??>${document.get("Owner.regnumcnt")}<#else></#if><#if document.get("Owner.regnumfin")??>${document.get("Owner.regnumfin")}<#else></#if> : <#if document.get("Owner.Resolution")??>${document.get("Owner.Resolution")}<#else></#if> от <#if document.get("Owner.date")??><#assign d2 = document.get("Owner.date")?index_of("-")><#assign d0 = document.get("Owner.date")?last_index_of("-")><#assign dy = document.get("Owner.date")?substring(0,d2)><#assign dd = document.get("Owner.date")?substring(d0+1)><#assign dm = document.get("Owner.date")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+<#else>ДОКУМЕНТ: <#if document.get("Owner.Module.Title")??>${document.get("Owner.Module.Title")}<#else></#if>  № <#if document.get("Owner.regnumprist")??>${document.get("Owner.regnumprist")}<#else></#if><#if document.get("Owner.regnumcnt")??>${document.get("Owner.regnumcnt")}<#else></#if><#if document.get("Owner.regnumfin")??>${document.get("Owner.regnumfin")}<#else></#if> от <#if document.get("Owner.regdate")??><#assign d2 = document.get("Owner.regdate")?index_of("-")><#assign d0 = document.get("Owner.regdate")?last_index_of("-")><#assign dy = document.get("Owner.regdate")?substring(0,d2)><#assign dd = document.get("Owner.regdate")?substring(d0+1)><#assign dm = document.get("Owner.regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+Заголовок: <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if></#if>
+
+
+Срок: <#if document.get("Owner.ctrldeadline")??><#assign d2 = document.get("Owner.ctrldeadline")?index_of("-")> <#assign d0 = document.get("Owner.ctrldeadline")?last_index_of("-")> <#assign dy = document.get("Owner.ctrldeadline")?substring(0,d2)> <#assign dd = document.get("Owner.ctrldeadline")?substring(d0+1)> <#assign dm = document.get("Owner.ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.get("Owner"))}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="CTRL4_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Доп. контроль]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Доп. контроль]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Перенос срока -->
+  <notification locale="RU" type="NotificationByChangeDeadlineTasks2">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Перенесен срок исполнения <#if  document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюция<#else>Поручение</#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("RegNumCnt")??>${document.get("RegNumCnt")}<#else></#if><#if document.get("RegNumFin")??>${document.get("RegNumFin")}<#else></#if></#if> от <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if> (срок <#if document.get("ctrldeadline")??><#assign d2 = document.get("ctrldeadline")?index_of("-")> <#assign d0 = document.get("ctrldeadline")?last_index_of("-")> <#assign dy = document.get("ctrldeadline")?substring(0,d2)> <#assign dd = document.get("ctrldeadline")?substring(d0+1)> <#assign dm = document.get("ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+
+<#if  document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюция<#else>Поручение</#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("RegNumCnt")??>${document.get("RegNumCnt")}<#else></#if><#if document.get("RegNumFin")??>${document.get("RegNumFin")}<#else></#if></#if>: <#if document.get("Resolution")??>${document.get("Resolution")}<#else></#if> от <#if document.get("date")??><#assign d2 = document.get("date")?index_of("-")> <#assign d0 = document.get("date")?last_index_of("-")> <#assign dy = document.get("date")?substring(0,d2)> <#assign dd = document.get("date")?substring(d0+1)> <#assign dm = document.get("date")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+СРОК: <#if document.get("ctrldeadline")??><#assign d2 = document.get("ctrldeadline")?index_of("-")> <#assign d0 = document.get("ctrldeadline")?last_index_of("-")> <#assign dy = document.get("ctrldeadline")?substring(0,d2)> <#assign dd = document.get("ctrldeadline")?substring(d0+1)> <#assign dm = document.get("ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Перенесен срок исполнения <#if  document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюция<#else>Поручение</#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("RegNumCnt")??>${document.get("RegNumCnt")}<#else></#if><#if document.get("RegNumFin")??>${document.get("RegNumFin")}<#else></#if></#if> от <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if> (срок <#if document.get("ctrldeadline")??><#assign d2 = document.get("ctrldeadline")?index_of("-")> <#assign d0 = document.get("ctrldeadline")?last_index_of("-")> <#assign dy = document.get("ctrldeadline")?substring(0,d2)> <#assign dd = document.get("ctrldeadline")?substring(d0+1)> <#assign dm = document.get("ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>)]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if document.get("Author.Orig_ShortName")??>${document.get("Author.Orig_ShortName")}<#else></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+
+<#if  document.get("Module.Type.Alias")=="InputDocs" ||document.get("Module.Type.Alias")=="InternalDocs" || document.get("Module.Type.Alias")=="Requests">Резолюция<#else>Поручение</#if> № <#if document.get("regnumber")??>${document.get("regnumber")}<#else><#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("RegNumCnt")??>${document.get("RegNumCnt")}<#else></#if><#if document.get("RegNumFin")??>${document.get("RegNumFin")}<#else></#if></#if>: <#if document.get("Resolution")??>${document.get("Resolution")}<#else></#if> от <#if document.get("date")??><#assign d2 = document.get("date")?index_of("-")> <#assign d0 = document.get("date")?last_index_of("-")> <#assign dy = document.get("date")?substring(0,d2)> <#assign dd = document.get("date")?substring(d0+1)> <#assign dm = document.get("date")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+СРОК: <#if document.get("ctrldeadline")??><#assign d2 = document.get("ctrldeadline")?index_of("-")> <#assign d0 = document.get("ctrldeadline")?last_index_of("-")> <#assign dy = document.get("ctrldeadline")?substring(0,d2)> <#assign dd = document.get("ctrldeadline")?substring(d0+1)> <#assign dm = document.get("ctrldeadline")?substring(d2+1,d0)> <#assign ddl = dd?length> <#assign dml = dm?length> <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationByChangeDeadlineRKK">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Перенесен срок исполнения по документу <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:<#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> от <#if document.get("regDate")??><#assign d2 = document.get("regDate")?index_of("-")><#assign d0 = document.get("regDate")?last_index_of("-")><#assign dy = document.get("regDate")?substring(0,d2)><#assign dd = document.get("regDate")?substring(d0+1)><#assign dm = document.get("regDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Перенесен срок исполнения по документу <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От:<#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if><#if document.get("regnumcnt")??>${document.get("regnumcnt")}<#else></#if><#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if> от <#if document.get("regDate")??><#assign d2 = document.get("regDate")?index_of("-")><#assign d0 = document.get("regDate")?last_index_of("-")><#assign dy = document.get("regDate")?substring(0,d2)><#assign dd = document.get("regDate")?substring(d0+1)><#assign dm = document.get("regDate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Доступ на чтение -->
+  <notification locale="RU" type="READ1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Добавлен доступ на чтение. <#assign moduleType = document.get("Module.Type.Alias")><#assign isContract = moduleType=="ContractsLite"><#assign isInput = moduleType=="InputDocs"><#if isContract><#assign dogForm = document.get("Form")><#if dogForm??><#if dogForm=="Dog">Договор<#else></#if><#if dogForm=="AddAgr">Доп. соглашение<#else></#if><#if dogForm=="DocDogovor">Документ к договору<#else></#if><#if dogForm=="Finance">Финансовый документ<#else></#if><#else></#if><#else><#if document.get("Type")??><#assign type = document.get("Type")><#if (document.get("medogatestate")?? && (document.get("medogatestate")==2 || document.get("medogatestate")==3))><#assign colon = type?index_of(":")><#if colon == -1>${type}<#else>${type?substring(0, colon)}</#if><#else>${type}</#if><#else><#if document.get("complect")?? && document.get("complect")=="NotRegistered">Нерегестрируемый документ<#else></#if></#if></#if><#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else><#if isInput><#if document.get("foreignregdate")??><#assign created = document.get("foreignregdate")><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if><#else><#if document.get("created_date")??><#assign created = document.get("created_date")?date?iso_utc><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if></#if></#if><#if document.get("regnumber")??> № ${document.get("regnumber")}<#else><#if document.get("regnumcnt")??> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if>${document.get("regnumcnt")}<#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if><#else><#if isInput><#if document.get("foreignnumber")??> проект № ${document.get("foreignnumber")}<#else></#if><#else><#if document.get("prjnumcounter")??> проект № <#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if>${document.get("prjnumcounter")}<#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if><#else></#if></#if></#if></#if><#if document.get("Subject")??> «<#assign subl = document.get("Subject")?length><#if subl gt 60>${document.get("Subject")?substring(0,60)}...<#else>${document.get("Subject")}</#if>»<#else></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<#assign moduleType = document.get("Module.Type.Alias")><#assign isInput = moduleType=="InputDocs">
+<head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body><p>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list></p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join f_dp_rkkbase fdr on fdr.module =sm.id left join ss_moduletype sm2 on sm2.id = sm.type WHERE fdr.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p>Заголовок: <#if document.get("Type")??>${document.get("Type")}<#else><#if document.get("complect")?? && document.get("complect")=="NotRegistered">Нерегестрируемый документ<#else></#if></#if><#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else><#if isInput><#if document.get("foreignregdate")??><#assign created = document.get("foreignregdate")><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if><#else><#if document.get("created_date")??><#assign created = document.get("created_date")?date?iso_utc><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if></#if></#if><#if document.get("regnumber")??> № ${document.get("regnumber")}<#else><#if document.get("regnumcnt")??> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if>${document.get("regnumcnt")}<#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if><#else><#if isInput><#if document.get("foreignnumber")??> проект № ${document.get("foreignnumber")}<#else></#if><#else><#if document.get("prjnumcounter")??> проект № <#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if>${document.get("prjnumcounter")}<#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if><#else></#if></#if></#if></#if><#if document.get("Subject")??> «${document.get("Subject")}»<#else></#if></p>
+<p>Краткое содержание: Добавлен доступ на чтение</p>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Добавлен доступ на чтение. <#assign moduleType = document.get("Module.Type.Alias")><#assign isContract = moduleType=="ContractsLite"><#assign isInput = moduleType=="InputDocs"><#if isContract><#assign dogForm = document.get("Form")><#if dogForm??><#if dogForm=="Dog">Договор<#else></#if><#if dogForm=="AddAgr">Доп. соглашение<#else></#if><#if dogForm=="DocDogovor">Документ к договору<#else></#if><#if dogForm=="Finance">Финансовый документ<#else></#if><#else></#if><#else><#if document.get("Type")??><#assign type = document.get("Type")><#if (document.get("medogatestate")?? && (document.get("medogatestate")==2 || document.get("medogatestate")==3))><#assign colon = type?index_of(":")><#if colon == -1>${type}<#else>${type?substring(0, colon)}</#if><#else>${type}</#if><#else><#if document.get("complect")?? && document.get("complect")=="NotRegistered">Нерегестрируемый документ<#else></#if></#if></#if><#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else><#if isInput><#if document.get("foreignregdate")??><#assign created = document.get("foreignregdate")><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if><#else><#if document.get("created_date")??><#assign created = document.get("created_date")?date?iso_utc><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if></#if></#if><#if document.get("regnumber")??> № ${document.get("regnumber")}<#else><#if document.get("regnumcnt")??> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if>${document.get("regnumcnt")}<#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if><#else><#if isInput><#if document.get("foreignnumber")??> проект № ${document.get("foreignnumber")}<#else></#if><#else><#if document.get("prjnumcounter")??> проект № <#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if>${document.get("prjnumcounter")}<#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if><#else></#if></#if></#if></#if><#if document.get("Subject")??> «<#assign subl = document.get("Subject")?length><#if subl gt 60>${document.get("Subject")?substring(0,60)}...<#else>${document.get("Subject")}</#if>»<#else></#if>]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[<#assign moduleType = document.get("Module.Type.Alias")><#assign isInput = moduleType=="InputDocs">
+<head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body><p>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list></p>
+<p>Модуль: <#assign formula = "SELECT name FROM ss_module sm left join f_dp_rkkbase fdr on fdr.module =sm.id left join ss_moduletype sm2 on sm2.id = sm.type WHERE fdr.id = {0}"> <#assign collection = session.findByQuery(formula, document.getId())> ${collection.get(0).getString("name")}</p>
+<p>Заголовок: <#if document.get("Type")??>${document.get("Type")}<#else><#if document.get("complect")?? && document.get("complect")=="NotRegistered">Нерегестрируемый документ<#else></#if></#if><#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else><#if isInput><#if document.get("foreignregdate")??><#assign created = document.get("foreignregdate")><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if><#else><#if document.get("created_date")??><#assign created = document.get("created_date")?date?iso_utc><#assign d2 = created?index_of("-")><#assign d0 = created?last_index_of("-")><#assign dy = created?substring(0,d2)><#assign dd = created?substring(d0+1)><#assign dm = created?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length> от <#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if></#if></#if><#if document.get("regnumber")??> № ${document.get("regnumber")}<#else><#if document.get("regnumcnt")??> № <#if document.get("regnumprist")??>${document.get("regnumprist")}<#else></#if>${document.get("regnumcnt")}<#if document.get("regnumfin")??>${document.get("regnumfin")}<#else></#if><#else><#if isInput><#if document.get("foreignnumber")??> проект № ${document.get("foreignnumber")}<#else></#if><#else><#if document.get("prjnumcounter")??> проект № <#if document.get("prjnumprist")??>${document.get("prjnumprist")}<#else></#if>${document.get("prjnumcounter")}<#if document.get("prjnumfin")??>${document.get("prjnumfin")}<#else></#if><#else></#if></#if></#if></#if><#if document.get("Subject")??> «${document.get("Subject")}»<#else></#if></p>
+<p>Краткое содержание: Добавлен доступ на чтение</p>
+<p>Открыть документ: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]></body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="READ3_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Добавлен доступ на чтение к архивному делу  «Архивное дело ${document.get("Subject")}»]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Добавлен доступ на чтение
+<br><#list Sochi$Pkd.beardsTo() as beard>
+${crudService.find(beard).getString("orig_shortname")}
+<#if beard_has_next >, <#else> </#if>
+</#list>
+ к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>»
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body> ]]>
+      </body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Добавлен доступ на чтение к архивному делу  «Архивное дело ${document.get("Subject")}»]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Добавлен доступ на чтение
+<p><#list Sochi$Pkd.beardsTo() as beard>
+${crudService.find(beard).getString("orig_shortname")}
+<#if beard_has_next >, <#else> </#if>
+</#list>
+к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>»
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body> ]]>
+      </body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="READ3_12">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Начался срок читательского доступа к архивному делу «Архивное дело ${document.get("Subject")}»]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: Системы
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Начался срок читательского доступа
+<#list Sochi$Pkd.beardsTo() as beard>
+${crudService.find(beard).getString("orig_shortname")}
+<#if beard_has_next >, <#else> </#if>
+</#list>
+к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>»
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+  ]]>
+      </body-html>
+    </email-channel>
+    <inputbox-channel>
+
+      <subject lang="FreeMarker"><![CDATA[Начался срок читательского доступа к архивному делу «Архивное дело ${document.get("Subject")}»]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: Системы
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Начался срок читательского доступа
+<#list Sochi$Pkd.beardsTo() as beard>
+${crudService.find(beard).getString("orig_shortname")}
+<#if beard_has_next >, <#else> </#if>
+</#list>
+к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>»
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+  ]]>
+      </body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="READ3_13">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Срок читательского доступа к архивному делу «Архивное дело ${document.get("Subject")}» изменен]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Срок читательского доступа к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>» изменен
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]>
+      </body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Срок читательского доступа к архивному делу «Архивное дело ${document.get("Subject")}» изменен]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+<br><br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Срок читательского доступа к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>» изменен
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]>
+      </body-html>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="READ3_14">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Срок доступ на чтение к архивному делу «Архивное дело ${document.get("Subject")}» истекает]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: Системы
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+Начался срок читательского доступа <#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>»
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>
+  ]]>
+      </body-html>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Срок доступ на чтение к архивному делу «Архивное дело ${document.get("Subject")}» истекает]]></subject>
+      <body-html lang="FreeMarker"><![CDATA[
+    <head><style>p { font-family: Verdana, Arial, Helvetica, sans-serif;font-size: 10pt;}</style></head>
+<body>
+От: <#if Sochi$Pkd.nameFrom()??> ${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??> ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if><br>
+<br>Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list><br><br>
+<br>Краткое содержание:
+<br>ДОКУМЕНТ:
+<br>Истекает срок читательского доступа к архивному делу «Ахивное дело <#if document.get("Subject")??>${document.get("Subject")}»<#else></#if>
+, «крайние даты <#if document.get("boundary_date_beg")??> ${document.get("boundary_date_beg")} - ${document.get("boundary_date_end")}<#else> не указаны </#if>» изменен
+<p>Открыть: <a href='${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}'>cсылка</a></p>
+</body>]]>
+      </body-html>
+    </inputbox-channel>
+  </notification>
+
+  <notification locale="RU" type="NotificationToReaders">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Добавлен доступ на чтение. <#if document.get("Owner.Module.Title")??>${document.get("Owner.Module.Title")}<#else></#if> <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("Owner.regnumber")??>${document.get("Owner.regnumber")}<#else><#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if></#if> (от <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>)]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+
+
+Краткое содержание:
+
+
+ДОКУМЕНТ: <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("Owner.regnumber")??>${document.get("Owner.regnumber")}<#else><#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if></#if> от <#if document.get("Owner.regdate")??><#assign d2 = document.get("Owner.regdate")?index_of("-")><#assign d0 = document.get("Owner.regdate")?last_index_of("-")><#assign dy = document.get("Owner.regdate")?substring(0,d2)><#assign dd = document.get("Owner.regdate")?substring(d0+1)><#assign dm = document.get("Owner.regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.get("Owner"))}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Добавлен доступ на чтение. <#if document.get("Owner.Module.Title")??>${document.get("Owner.Module.Title")}<#else></#if> <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("Owner.regnumber")??>${document.get("Owner.regnumber")}<#else><#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if></#if> (от <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>)]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: <#if Sochi$Pkd.nameFrom()??>${Sochi$Pkd.nameFrom()}<#else><#if Sochi$Pkd.beardFrom()??>${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}<#else></#if></#if>
+
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+
+
+Краткое содержание:
+
+
+ДОКУМЕНТ: <#if document.get("Owner.Type")??>${document.get("Owner.Type")}<#else></#if> № <#if document.get("Owner.regnumber")??>${document.get("Owner.regnumber")}<#else><#if document.get("owner.regnumprist")??>${document.get("owner.regnumprist")}<#else></#if><#if document.get("owner.regnumcnt")??>${document.get("owner.regnumcnt")}<#else></#if><#if document.get("owner.regnumfin")??>${document.get("owner.regnumfin")}<#else></#if></#if> от <#if document.get("Owner.regdate")??><#assign d2 = document.get("Owner.regdate")?index_of("-")><#assign d0 = document.get("Owner.regdate")?last_index_of("-")><#assign dy = document.get("Owner.regdate")?substring(0,d2)><#assign dd = document.get("Owner.regdate")?substring(d0+1)><#assign dm = document.get("Owner.regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Owner.Subject")??>${document.get("Owner.Subject")}<#else></#if>
+
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.get("Owner"))}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--ПКД-задача-->
+  <notification locale="RU" type="TRDR1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Вам перенаправлена задача: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+Краткое содержание:
+<#if document.get("Type")??>${document.get("Type")}<#else></#if> <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+Открыть документ: <#if urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())??>${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}<#else></#if>]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Вам перенаправлена задача: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else> </#if></#list>
+Краткое содержание:
+<#if document.get("Type")??>${document.get("Type")}<#else></#if> <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+Открыть документ: <#if urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())??>${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}<#else></#if>]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="TRDR1_21">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Ваша задача перенаправлена: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+<#if document.get("Type")??>${document.get("Type")}<#else></#if> <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Ваша задача перенаправлена: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: ${crudService.find(Sochi$Pkd.beardFrom()).getString("orig_shortname")}
+
+Для:<#list Sochi$Pkd.beardsTo() as beard> ${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else>. </#if></#list>
+
+Краткое содержание:
+<#if document.get("Type")??>${document.get("Type")}<#else></#if> <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+Открыть документ: ${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="RMND1_12">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о задаче: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о задаче: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Бизнес-процесс-->
+  <notification locale="RU" type="AFWF1_11">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Задача по бизнес-процессу: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if> . Ссылка на документ: ${urlFormer.getUrl("cm-afwf", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Задача по бизнес-процессу: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if> . Ссылка на документ: ${urlFormer.getUrl("cm-afwf", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="AFWF1_21">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Отменена задача по бизнес-процессу: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if> . Ссылка на документ: ${urlFormer.getUrl("cm-afwf", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Отменена задача по бизнес-процессу: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if> . Ссылка на документ: ${urlFormer.getUrl("cm-afwf", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="AFWF1_51">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Уведомление по бизнес-процессу: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if> . Ссылка на документ: ${urlFormer.getUrl("cm-afwf", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Уведомление по бизнес-процессу: <#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[<#if cmjNotice.readStringField("Subject_WP")??>${cmjNotice.readStringField("Subject_WP")}<#else></#if> . Ссылка на документ: ${urlFormer.getUrl("cm-afwf", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Напоминание о проектах-->
+  <notification locale="RU" type="NotificationProjectRemind_OutputRkk">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о проекте документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о проекте документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationProjectRemind_OrdRkk">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о проекте документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о проекте документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="NotificationProjectRemind_IntRkk">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о проекте документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </email-channel>
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Напоминание о проекте документа <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>]]></subject>
+      <body lang="FreeMarker"><![CDATA[От: Система
+
+Для: <#list Sochi$Pkd.beardsTo() as beard>${crudService.find(beard).getString("orig_shortname")}<#if beard_has_next >, <#else></#if></#list>
+
+
+Краткое содержание:
+
+ДОКУМЕНТ: <#if document.get("Type")??>${document.get("Type")}<#else></#if> от <#if document.get("regdate")??><#assign d2 = document.get("regdate")?index_of("-")><#assign d0 = document.get("regdate")?last_index_of("-")><#assign dy = document.get("regdate")?substring(0,d2)><#assign dd = document.get("regdate")?substring(d0+1)><#assign dm = document.get("regdate")?substring(d2+1,d0)><#assign ddl = dd?length><#assign dml = dm?length><#if ddl??><#if ddl==2>${dd}<#else>0${dd}</#if><#else></#if>.<#if dml??><#if dml==2>${dm}<#else>0${dm}</#if><#else></#if>.<#if dy??>${dy}<#else></#if><#else></#if>
+
+
+Заголовок: <#if document.get("Subject")??>${document.get("Subject")}<#else></#if>
+
+
+${urlFormer.getUrl("cm-sochi", addressee.getId(), document.getId())}]]></body>
+    </inputbox-channel>
+  </notification>
+
+  <!--Поступил документ -->
+  <notification locale="RU" type="ADDR1_21">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Поступил документ]]></subject>
+      <body lang="FreeMarker"><![CDATA[Поступил документ]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="OUTD1_11">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[Определите способ отправки]]></subject>
+      <body lang="FreeMarker"><![CDATA[Определите способ отправки]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="OUTD1_21">
+    <email-channel />
+    <inputbox-channel>
+      <subject lang="FreeMarker"><![CDATA[На отправку курьером]]></subject>
+      <body lang="FreeMarker"><![CDATA[На отправку курьером]]></body>
+    </inputbox-channel>
+  </notification>
+  <notification locale="RU" type="OUTD1_41">
+    <email-channel>
+      <subject lang="FreeMarker"><![CDATA[Сбой отправки]]></subject>
+      <body lang="FreeMarker"><![CDATA[Сбой отправки]]></body>
+    </email-channel>
+  </notification>
+</notifications>

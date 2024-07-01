@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="NpaPublicationDocument" extends="EmbeddedCollectionSubObject">
+        <meta>
+            <category name="Общее"/>
+        </meta>
+
+        <schema-ref name="selectedDoc" ref="NpaRkkInfo" null-empty="true" />
+        <schema-ref name="addLinkedDoc" ref="SelectLinkedDocDialogResource" temporal="true"/>
+        <boolean name="clearSelectLinkedDocs" temporal="true" default-value="false"/>
+        <string name="selectedFile" array="true"/>
+        <string name="fileNameList" array="true"/>
+        <string name="fileLinkList" array="true"/>
+        <string name="contentLinkWithoutIp" array="true"/>
+        <hyperlink name="contentLink" temporal="true" array="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[{
+                        #list = new java.util.ArrayList(),
+                        contentLinkWithoutIp == null ? #list = null : contentLinkWithoutIp.![#list.add(
+                                    T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink(#this.split("~#")[0] +
+                                    '~#' +
+                                    T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() +
+                                    #this.split("~#")[1]))],
+                        #list
+                    }[2]]]>
+                </script>
+            </calc-values>
+        </hyperlink>
+        <boolean name="AddModuleLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[parentUnid == null || T(ru.intertrust.cmj.af.core.AFCMDomino).getIdent(parentUnid.split(':')[0]) == null ? false : #this.link.add(new ru.intertrust.cmj.rest.core.ResourceLink(T(ru.intertrust.cmj.rest.core.ResourceLink).rel("module"), new ru.intertrust.cmj.rest.npapublication.action.CreateNpaPublicationAction.Reference(T(ru.intertrust.cmj.af.core.AFCMDomino).getComplectByDbReplicaId(parentUnid.split(':')[0]))))]]>
+                </script>
+            </calc-values>
+        </boolean>
+
+        <custom-event-handler lang="JavaScript"><![CDATA[
+            importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+            importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+            importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+            importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+            importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.EntityDigestRKK);
+            importPackage(Packages.java.util);
+            importPackage(Packages.java.lang);
+            importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+            importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+            importClass(Packages.ru.intertrust.cmj.rest.content.ContentResource);
+            importClass(Packages.ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder);
+            importClass(Packages.ru.intertrust.cmj.af.misc.HyperLink);
+
+            function recalc(object, changedField) {
+                if (changedField == 'addLinkedDoc') {
+                    recalcAddLinkedDoc(object);
+                } else if(changedField == "clearSelectLinkedDocs") {
+                    recalcClear(object);
+                }
+            }
+
+            function recalcAddLinkedDoc(object) {
+                recalcClear(object);
+
+                var addLinkedDoc = object.tuning().getValues().get('addLinkedDoc');
+                if (addLinkedDoc == null || addLinkedDoc.getValues().get("ids") == null) {
+                    return;
+                }
+                var ids = addLinkedDoc.getValues().get("ids").getValues();
+                if(ids.size() == 0){
+                    return;
+                }
+
+                var unid = getIdFromHref(ids.get(0).getValue());
+                if ("".equals(unid)) {
+                    return;
+                }
+
+                var appdp = AFSession.get().getApplication(DPApplication.class);
+                var rkk = appdp.getEntityByUNID(unid);
+
+                setSelectedDoc(object, rkk);
+                setContent(object, rkk);
+                setTuningValue(object, "addLinkedDoc", null);
+            }
+
+            function setContent(object, rkk) {
+                var fileNameList = new ArrayList();
+                var fileLinkList = new ArrayList();
+
+                var contentList = ContentResource.valueOf(rkk.content().getRichText().getContainer());
+                for each(var file in contentList) {
+                    fileLinkList.add(file.getTitle() + '~#' + file.getHref());
+                    fileNameList.add(file.getTitle());
+                }
+
+                var contentAddList = ContentResource.valueOf(rkk.tuning().getValues().get("contentAdd").files())
+                for each(var file in contentAddList) {
+                    fileLinkList.add(file.getTitle() + '~#' + file.getHref());
+                    fileNameList.add(file.getTitle());
+                }
+
+                var imageList = ContentResource.valueOf(rkk.verification().image().getFileItems());
+                for each(var file in imageList) {
+                    fileLinkList.add(file.getTitle() + '~#' + file.getHref());
+                    fileNameList.add(file.getTitle());
+                }
+
+                setTuningValue(object, "fileNameList", fileNameList);
+                setTuningValue(object, "fileLinkList", fileLinkList);
+            }
+
+            function setSelectedDoc(object, rkk) {
+                var selectedDocSchema = object.tuning().getSchema().getProperty("selectedDoc").getSchema();
+                var selDoc = new AFInstanceObjectImpl(selectedDocSchema);
+                selDoc.put("id", new AFInstanceSimpleImpl(selectedDocSchema.getProperty("id").getSchema(), rkk.getUNID()));
+                var title = new EntityDigestRKK(rkk).getDigest();
+                selDoc.put("title", new AFInstanceSimpleImpl(selectedDocSchema.getProperty("title").getSchema(), title));
+                setTuningValue(object, "selectedDoc", selDoc);
+            }
+
+            function recalcClear(object) {
+                setTuningValue(object, "selectedDoc", null);
+                setTuningValue(object, "selectedFile", null);
+                setTuningValue(object, "fileNameList", null);
+                setTuningValue(object, "fileLinkList", null);
+                setTuningValue(object, "contentLinkWithoutIp", null);
+            }
+
+            function getIdFromHref(href) {
+                var index = href.lastIndexOf("/", href.length())+1;
+                if (index < 0) {
+                    return href;
+                } else {
+                    return href.substring(index);
+                }
+            }
+
+            function setTuningValue(doc, fileName, value) {
+                return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+            }
+
+            function postSave(object, document) {
+            }
+
+            function querySave(object, document) {
+                setContentLinkWithoutIp(object);
+            }
+
+            function setContentLinkWithoutIp(object) {
+                var selectedFileList = TunableObjectHelper.getAFInstanceTypedValue(object.tuning().getValues().get("selectedFile"));
+
+                var fileLinkList = getTuningValue(object, "fileLinkList");
+                var links = new ArrayList();
+
+                for each(var fileLink in fileLinkList) {
+                    var fileLinkValue = fileLink.getValue();
+                    if (selectedFileList.contains(fileLinkValue.split("~#")[0])) {
+                        links.add(fileLinkValue);
+                    }
+                }
+
+                setTuningValue(object, "contentLinkWithoutIp", links);
+            }
+
+            function getTuningValue(doc, fieldName) {
+                var tmp = doc.tuning().getValues().get(fieldName);
+                if (tmp == null) {
+                    return null;
+                }
+
+                return tmp.getValues();
+            }
+        ]]></custom-event-handler>
+    </schema>
+</schemas>

@@ -1,0 +1,423 @@
+<collection name="ExpeditionOrders_(vw_cmj_all)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+			SELECT
+    id,
+    created_date,
+    Module,
+    hasAttachments,
+    self_1,
+    self_2,
+    self_3,
+    regPlace,
+    state,
+    rNumber,
+    expPrjNumber,
+    numberWOTags,
+    docSendDate,
+    valueTypeRPO,
+    receiver,
+    initiator,
+    expOrInitiator,
+    address,
+    docNumber,
+    expDocNumber,
+    valueCategoryRPO,
+    parcel,
+    linkeddoc,
+    expDocNumber AS expDocNumber_CMJLinks,
+    created_date AS expDocDate_CMJLinks
+FROM ( SELECT
+           rkkbase.id,
+           rkkbase.created_date,
+           rkkbase.created_date AS expDocDate_CMJLinks,
+           rkkbase.module                                   AS Module,
+           '<id>'                                           AS self_1,
+           ':'                                              AS self_2,
+           '</>'                                            AS self_3,
+           (SELECT
+                coalesce(max(a), cast(0 AS SMALLINT))
+            FROM (
+                     SELECT
+                         cast(1 AS SMALLINT) a
+                     FROM f_ContentFiles_Rkk CF
+                     WHERE CF.f_dp_rkkbase = rkk.id
+                     UNION SELECT
+                         cast(1 AS SMALLINT)
+                     FROM f_ContentRichText_Rkk CRT
+                     WHERE CRT.f_dp_rkkbase = rkk.id
+                     UNION SELECT
+                         cast(1 AS SMALLINT)
+                     FROM f_VerifyImage_Rkk VI
+                     WHERE VI.f_dp_rkk = rkk.id
+                 ) t
+           ) AS hasAttachments,
+
+           (SELECT split_part(tfs.value, '%', 1)
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'regplace'
+           )    AS regPlace,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'stage'
+           )  AS state,
+
+           cast(rkk.prjnumcounter as bigint) as rNumber,
+           '<regNumberPrefix>' || coalesce(rkk.prjnumprist, '') || '</>'
+               || '<regNumberCounter#Number>' || coalesce(cast(rkk.prjnumcounter as varchar), '') || '</>'
+               || '<regNumberSuffix>' || coalesce(rkk.prjnumfin, '') || '</>' AS expPrjNumber,
+           coalesce(rkk.prjnumprist, '') ||
+           coalesce(cast(rkk.prjnumcounter as varchar), '') ||
+           coalesce(rkk.prjnumfin, '') AS numberWOTags,
+
+           to_char((SELECT tfd.value
+                    FROM tn_field_dateonly tfd left join tn_field tf on tf.owner=rkk.id
+                    WHERE tf.id = tfd.id and tf.cmjfield = 'docDate'
+                   ), 'YYYY-MM-DD')  AS docSendDate,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'valueTypeRPO'
+           )  AS valueTypeRPO,
+
+           (SELECT case
+                       when count (*) = 0 then 'Не указано'
+                       else array_to_string(array_agg(
+                                                    case when split_part(tfs.value, '%', 1) = '$' then split_part(tfs.value, '%', 2)
+                                                         else split_part(tfs.value, '%', 1) || ' (' || split_part(tfs.value, '%', 2) || ')'
+                                                        end
+                                                ), ' ', '')
+                       end
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'recepient'
+           )  AS receiver,
+
+           (SELECT split_part(tfs.value, '%', 1)
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'expOrInitiator'
+           )  AS initiator,
+
+           (SELECT split_part(tfs.value, '%', 1)
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'expOrInitiator'
+           )  AS expOrInitiator,
+
+           (SELECT split_part(tfs.value, '%', 1)
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'address'
+           )  AS address,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+           )  AS docNumber,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+           )  AS expDocNumber,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+           )  AS expDocNumber_CMJLinks,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'party'
+           )  AS parcel,
+
+           (SELECT tfs.value
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'valueCategoryRPO'
+           )  AS valueCategoryRPO,
+           (SELECT COALESCE(STRING_AGG((CASE
+                                            WHEN link.doclinktype = '' THEN '<id></>'
+                                            ELSE (COALESCE(
+                                                                    '<id>' || link.docreplid || ':' || link.docunid || '</>',
+                                                                    '<id>' || TO_CHAR(
+                                                                                CAST((module.id_type * 10 ^ 12) AS bigint) + module.id,
+                                                                                'FM0000000000000000') ||
+                                                                    ':00000000000000000000000000000000' || '</>')) END), ';'),
+                            '<id></>')
+            FROM f_dp_rkkworegandctrl_ulnk link
+                     LEFT JOIN ss_module module ON module.id = rkkbase.module
+            WHERE link.OWNER = internalrkk.id)                                                                       linkeddoc
+
+       FROM   f_dp_intrkk internalrkk
+                  JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+       where rkkbase.isdeleted = 0 and complect='ExpeditionOrders' ) s
+WHERE state NOT IN ('Удален') and
+        1=1
+			::where-clause
+		]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+			SELECT
+				COUNT(1)
+			FROM ( SELECT
+			  rkkbase.id,
+				rkkbase.created_date,
+				rkkbase.created_date AS expDocDate_CMJLinks,
+				rkkbase.module                                   AS Module,
+				'<id>'                                           AS self_1,
+				':'                                              AS self_2,
+				'</>'                                            AS self_3,
+				(SELECT
+				coalesce(max(a), cast(0 AS SMALLINT))
+				FROM (
+				SELECT
+					cast(1 AS SMALLINT) a
+					FROM f_ContentFiles_Rkk CF
+					WHERE CF.f_dp_rkkbase = rkk.id
+					UNION SELECT
+					cast(1 AS SMALLINT)
+					FROM f_ContentRichText_Rkk CRT
+					WHERE CRT.f_dp_rkkbase = rkk.id
+					UNION SELECT
+					cast(1 AS SMALLINT)
+					FROM f_VerifyImage_Rkk VI
+					WHERE VI.f_dp_rkk = rkk.id
+					) t
+				) AS hasAttachments,
+
+			(SELECT split_part(tfs.value, '%', 1)
+            FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+            WHERE tf.id = tfs.id and tf.cmjfield = 'regplace'
+			 )    AS regPlace,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'stage'
+			)  AS state,
+
+			cast(rkk.prjnumcounter as bigint) as rNumber,
+			'<regNumberPrefix>' || coalesce(rkk.prjnumprist, '') || '</>'
+                        || '<regNumberCounter#Number>' || coalesce(cast(rkk.prjnumcounter as varchar), '') || '</>'
+                        || '<regNumberSuffix>' || coalesce(rkk.prjnumfin, '') || '</>' AS expPrjNumber,
+            coalesce(rkk.prjnumprist, '') ||
+            coalesce(cast(rkk.prjnumcounter as varchar), '') ||
+            coalesce(rkk.prjnumfin, '') AS numberWOTags,
+
+			to_char((SELECT tfd.value
+				FROM tn_field_dateonly tfd left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfd.id and tf.cmjfield = 'docDate'
+			 ), 'YYYY-MM-DD')  AS docSendDate,
+
+			(SELECT tfs.value
+				 FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				 WHERE tf.id = tfs.id and tf.cmjfield = 'valueTypeRPO'
+			)  AS valueTypeRPO,
+
+			(SELECT case
+							 when count (*) = 0 then 'Не указано'
+							 else array_to_string(array_agg(
+								case when split_part(tfs.value, '%', 1) = '$' then split_part(tfs.value, '%', 2)
+								else split_part(tfs.value, '%', 1) || ' (' || split_part(tfs.value, '%', 2) || ')'
+								end
+								), ' ', '')
+						 end
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'recepient'
+			)  AS receiver,
+
+			(SELECT split_part(tfs.value, '%', 1)
+				 FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				 WHERE tf.id = tfs.id and tf.cmjfield = 'expOrInitiator'
+			)  AS initiator,
+
+			(SELECT split_part(tfs.value, '%', 1)
+				 FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				 WHERE tf.id = tfs.id and tf.cmjfield = 'expOrInitiator'
+			)  AS expOrInitiator,
+
+			(SELECT split_part(tfs.value, '%', 1)
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'address'
+			)  AS address,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'Tn$_docNumber'
+			)  AS docNumber,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+			)  AS expDocNumber,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+			)  AS expDocNumber_CMJLinks,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'party'
+			)  AS parcel,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'valueCategoryRPO'
+			)  AS valueCategoryRPO
+
+			FROM   f_dp_intrkk internalrkk
+						JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+						JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+			where rkkbase.isdeleted = 0 and complect='ExpeditionOrders' ) s
+			WHERE state NOT IN ('Удален') and
+			1=1
+			::where-clause
+		]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="expPrjNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    expPrjNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="expPrjNumber_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    numberWOTags ilike '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="number">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    number = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="number_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					number ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="docSendDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				 cast(docSendDate as date) = cast({0} as date)
+			]]>
+        </criteria>
+    </filter>
+    <filter name="valueTypeRPO">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					valueTypeRPO = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="valueTypeRPO_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					valueTypeRPO ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="receiver">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    receiver = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="receiver_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					receiver ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="initiator">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					initiator = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="initiator_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					initiator ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="expOrInitiator">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					expOrInitiator = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="expOrInitiator_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					expOrInitiator ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="address">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					address = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="address_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					address ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="expDocNumber_CMJLinks">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    expDocNumber_CMJLinks = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="expDocNumber_CMJLinks_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+					expDocNumber_CMJLinks ilike '%'||{0}||'%'
+			]]>
+        </criteria>
+    </filter>
+    <filter name="expDocDate_CMJLinks">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(expDocDate_CMJLinks as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

@@ -1,0 +1,1583 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+   <handler name="RSHB Реестр предачи документов. Добавить запись" id="DTR_AddEntries">
+        <script lang="JavaScript">
+            <![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DominoConnector);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cm_sochi.srv.adapter.DocumentAdapter);
+importClass(Packages.ru.intertrust.cm_sochi.srv.adapter.DateTimeAdapter);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkReference);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationResource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationListResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importClass(Packages.ru.intertrust.cmj.af.json.DateOnly);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.io);
+
+
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+		var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues()
+			.get("counter"));
+		if (paramPackageId.equals("context")) {
+			selectDocument(paramsResource, returnResource);
+		} else if (paramPackageId.equals("addToRegisry")) {
+			addToRegisry(paramsResource, returnResource);
+		}
+}
+
+/*
+	Формирование диалога для выбора документа
+*/
+function selectDocument(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(ids.get(0));
+	var rkkValues = rkk.tuning().getValues();
+
+	/*var documentsCount = rkkValues.get("documentsCount") == null ? 0 : rkkValues.get("documentsCount").getValue();
+	if (documentsCount >= 100) {
+		throw ("Достигнуто предельное число записей в Реестре передачи документов!");
+	}*/
+
+    var dialog = appTNObject.composeDialog("DTRAddToRegistryDialog", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "ids", ids);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "addToRegisry");
+    returnResource.setResource(TunableObjectREST.Resource.create(dialog));
+}
+
+/*
+	добавление в реестр записи о выбранном документе
+*/
+function addToRegisry(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("ids"));
+
+	if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(ids.get(0));
+	var rkkValues = rkk.tuning().getValues();
+
+	var documentsCount = rkkValues.get("documentsCount") == null ? 0 : rkkValues.get("documentsCount").getValue();
+	/*if (documentsCount >= 100) {
+		throw ("Достигнуто предельное число записей в Реестре передачи документов!");
+	}*/
+
+	// параметры для создания
+	var paramValues = paramsResource.tuning().getValues();
+	var selectionMode = paramValues.get("selectionMode").getValue();
+
+	var number = Integer.valueOf(documentsCount + 1);
+	var byHand = (selectionMode == "manual");
+	var documentModule = paramValues.get("module").getValue();
+	var reqType = paramValues.get("reqType") == null ? "" : paramValues.get("reqType").getValue();
+	//var documentType = paramValues.get("documentType").getValue();
+	//var regData = "№" + paramValues.get("regNumber").getValue() + " от " + paramValues.get("date").getValue();
+	var regNumber = paramValues.get("regNumber") == null ? "" : paramValues.get("regNumber").getValue();
+	var regDate = paramValues.get("date") == null ? null : paramValues.get("date").getValue();
+	var subject = paramValues.get("subject") == null ? "" : paramValues.get("subject").getValue();
+	var documentUnid = TunableObjectHelper.getAFInstanceTypedValue(paramsResource.tuning(), "documentUnid"); //"transmittedDoc.id");
+	var documentLink = null; //пока нет ссылки. считаем что она формируется только для отображения
+	var deliveryStatus = null;
+	var comment = paramValues.get("note") == null ? "" : paramValues.get("note").getValue();
+	var correspondentContractorText = paramValues.get("correspondentText") == null ? "" : paramValues.get("correspondentText").getValue();
+	var addInfoText = paramValues.get("addInfoText") == null ? "" : paramValues.get("addInfoText").getValue();
+	var savedBarCode = paramValues.get("savedBarCode") == null ? "" : paramValues.get("savedBarCode").getValue();
+
+	//создание и заполнение новой записи в реестре
+	var newEntry = createNewRegistryEntry(rkk);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "number", number);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "index", number);
+	//TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "documentType", documentType);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "module", documentModule);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "reqType", reqType);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "regNumber", regNumber);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "regDate", regDate);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "subject", subject);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "documentUnid", documentUnid);
+	//TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "documentLink", documentLink);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", deliveryStatus);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "comment", comment);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "correspondentContractorText", correspondentContractorText);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "addInfoText", addInfoText);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "barcode", savedBarCode);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "byHand", byHand);
+	newEntry.save();
+
+	//обновление самого реестра
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "documentsCount", number);
+	rkk.save();
+	returnDialog(ids, returnResource, selectionMode)
+}
+
+/*
+	Создание записи в текущем реестре
+*/
+function createNewRegistryEntry (parent) {
+	var tuneApp = AFSession.get().getApplication(TuningApplication.class);
+    var schema = tuneApp.getSchemaByName("DTREntrySubObject");
+    if (schema == null) {
+        throw new RuntimeException("Schema  " + this.scheme + " not found");
+    }
+	var rkkUnid = parent.getUNID();
+	var replicaId = AFCMDomino.getReplicaIdFromUNID(rkkUnid);
+    replicaId = AFCMDomino.getReplicaFromTNReplica(replicaId);
+    var ident = AFCMDomino.getIdent(replicaId);
+    var complect = AFCMDomino.getComplectByDbReplicaId(replicaId);
+    var tunObjApp = AFSession.get().getApplication(TunableObjectApplication.class);
+
+	var subObject = tunObjApp.composeApplicationTunableObject(schema, ident, complect, replicaId);
+
+	TunableObjectHelper.putAFInstanceValue(subObject, "type", "documents");
+    TunableObjectHelper.putAFInstanceValue(subObject, "parentUnid", parent.getUNID());
+    TunableObjectHelper.putAFInstanceValue(subObject, "$Ref", parent.getUNID().split(":")[1]);
+	TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "author", AFSession.get().currentUser().getBeard());
+
+	var senderDepUnid = parent.registration().getPlace().getUNID();
+	var soApp = AFSession.get().getApplication(SOApplication.class);
+	var senderDep = soApp.getBeard(senderDepUnid);
+	TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "senderDep", senderDep);
+	subObject.tuning().getValues().put("receiverDep", parent.tuning().getValues().get("receiverDep"));
+	subObject.tuning().getValues().put("parentState", parent.tuning().getValues().get("state"));
+    return subObject;
+}
+
+/*
+	Формируем и возвращаем диалог для подолжения работы пользователя
+*/
+function returnDialog(ids, returnResource, selectionMode) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var dialog = appTNObject.composeDialog("DTRAddToRegistryDialog", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "ids", ids);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "addToRegisry");
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "selectionMode", selectionMode);
+    returnResource.setResource(TunableObjectREST.Resource.create(dialog));
+}
+]]>
+        </script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Отменить получение" id="DTR_RollbackReceiving" >
+        <meta>
+            <documentation>Открыть диалог</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    var tunableObject = appTNObject.getEntityByUNID(ids.get(0));
+    TunableObjectHelper.putAFInstanceValue(tunableObject.tuning(), "deliveryStatus", "Transferred");
+    tunableObject.save();
+
+	var parentUnid = tunableObject.tuning().getValues().get("parentUnid").getValue();
+
+	//заново заполняем получателя в реестре, если он не заполнен
+ 	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(parentUnid);
+	fillResultAmounts(rkk);
+
+	var curReceiver = AFSession.get().currentUser().getBeard();
+    var registryReceiver = rkk.tuning().getValues().get("receiver") == null ? null : rkk.tuning().getValues().get("receiver").getValue();
+    if (registryReceiver == null || !curReceiver.getUNID().equals(registryReceiver.getUNID())) {
+        TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "receiver", curReceiver);
+    }
+	rkk.save();
+	rkk = appdp.getEntityByUNID(parentUnid);
+
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "mode", "edit");
+	result = RkkResource.valueOf(rkk);
+    returnResource.setResource(result);
+}
+
+/* Обновляем итоговые поля с количеством записей по статусам */
+function fillResultAmounts(object) {
+	var values = object.tuning().getValues();
+
+	var transferredAmount = 0;
+    var receivedAmount = 0;
+    var notReceivedAmount = 0;
+    var receivedByFactAmount = 0;
+
+    //transferredAmount = TunableObjectHelper.getAFInstanceValue(values.get("totalSent"));
+
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+
+	for (var i=0; i<subObjects.size(); i++) {
+        var subObject = subObjects.get(i);
+        var deliveryStatus = TunableObjectHelper.getAFInstanceTypedValue(subObject.tuning(), "deliveryStatus");
+        if ("Received".equals(deliveryStatus)) {
+            receivedAmount = receivedAmount + 1;
+			transferredAmount =  transferredAmount + 1;
+        }
+        if ("ReceivedByFact".equals(deliveryStatus)) {
+            receivedByFactAmount = receivedByFactAmount + 1;
+        }
+        if ("Transferred".equals(deliveryStatus)) {
+            notReceivedAmount = notReceivedAmount + 1;
+			transferredAmount =  transferredAmount + 1;
+        }
+    }
+	transferredAmount = transferredAmount + receivedByFactAmount;
+
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalSent", Integer.valueOf(transferredAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalReceived", Integer.valueOf(receivedAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalReceivedByFact", Integer.valueOf(receivedByFactAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalNotReceived", Integer.valueOf(notReceivedAmount));
+}
+]]></script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Удалить запись" id="DTR_DeleteEntry">
+        <meta>
+            <documentation>Удалить запись реестра</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    var tunableObject = appTNObject.getEntityByUNID(ids.get(0));
+    var parentUnid = tunableObject.tuning().getValues().get("parentUnid").getValue();
+
+    appTNObject.deletePermanently(tunableObject);
+
+ 	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(parentUnid);
+
+    //если реестр на стадии получения документов, то при удалении пересчитываем итоговое количество
+	var state = rkk.tuning().getValues().get("state").getValue();
+	if (state == 'Transmitted') {
+		fillResultAmounts(object);
+		rkk.save();
+		var rkk = appdp.getEntityByUNID(parentUnid);
+	}
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "mode", "edit");
+	result = RkkResource.valueOf(rkk);
+    returnResource.setResource(result);
+}
+
+/* Обновляем итоговые поля с количеством записей по статусам */
+function fillResultAmounts(object) {
+	var values = object.tuning().getValues();
+
+	var transferredAmount = 0;
+    var receivedAmount = 0;
+    var notReceivedAmount = 0;
+    var receivedByFactAmount = 0;
+
+    //transferredAmount = TunableObjectHelper.getAFInstanceValue(values.get("totalSent"));
+
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(object.getUNID(), "documents");
+
+	for (var i=0; i<subObjects.size(); i++) {
+        var subObject = subObjects.get(i);
+        var deliveryStatus = TunableObjectHelper.getAFInstanceTypedValue(subObject.tuning(), "deliveryStatus");
+        if ("Received".equals(deliveryStatus)) {
+            receivedAmount = receivedAmount + 1;
+			transferredAmount =  transferredAmount + 1;
+        }
+        if ("ReceivedByFact".equals(deliveryStatus)) {
+            receivedByFactAmount = receivedByFactAmount + 1;
+        }
+        if ("Transferred".equals(deliveryStatus)) {
+            notReceivedAmount = notReceivedAmount + 1;
+			transferredAmount =  transferredAmount + 1;
+        }
+    }
+	transferredAmount = transferredAmount + receivedByFactAmount;
+
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalSent", Integer.valueOf(transferredAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalReceived", Integer.valueOf(receivedAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalReceivedByFact", Integer.valueOf(receivedByFactAmount));
+    TunableObjectHelper.putAFInstanceValue(object.tuning(), "totalNotReceived", Integer.valueOf(notReceivedAmount));
+}
+]]></script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Передать реестр" id="DTR_SendToRegistry">
+        <script lang="JavaScript">
+            <![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DominoConnector);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResourceInternal);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cm_sochi.srv.adapter.DocumentAdapter);
+importClass(Packages.ru.intertrust.cm_sochi.srv.adapter.DateTimeAdapter);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper)
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkReference);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationResource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationListResource);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.serialization.SchemaConcreteDefinition);
+
+importClass(Packages.ru.intertrust.cmj.reporter.Report);
+importClass(Packages.ru.intertrust.cmj.reporter.Reporter);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.ReportResource);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.ReportReference);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.StartResource);
+
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.lotus.domino.Document);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importClass(Packages.ru.intertrust.cmj.af.json.DateOnly);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+
+importClass(Packages.java.text.SimpleDateFormat);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.io);
+importClass(Packages.org.slf4j.LoggerFactory);
+
+
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+		var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues()
+			.get("counter"));
+		if (paramPackageId.equals("context")) {
+			registerAndTrasmit(paramsResource, returnResource);
+		} else if (paramPackageId.equals("finish")) {
+			finish(paramsResource, returnResource);
+		}
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_context(paramsResource, returnResource) {
+        var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+        var id = appTNObject.getClientContextResourceId(paramsResource.tuning()); //String
+        if (id == null) {
+            throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+        }
+        var message = appTNObject.composeDialog("DialogDTRReg", null, null, null);
+        TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Регистрация");
+        TunableObjectHelper.putAFInstanceValue(message.tuning(), "rkkId", id);
+        TunableObjectHelper.putAFInstanceValue(message.tuning(), "rdate", AFDate.createCurrent());
+        TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+        returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+function registerAndTrasmit(paramsResource, returnResource) {
+    var log = LoggerFactory.getLogger("handler.DTR_SendToRegistry");
+    log.debug("registerAndTrasmit");
+
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+
+	if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+
+	var rkkUnid = ids.get(0);
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(rkkUnid);
+
+	//меняем статус реестра и другие поля
+	var curentDateTime = Calendar.getInstance().getTime();
+    var sendingDateTime = AFDateTime.convertFromDate(curentDateTime);
+	var sender = AFSession.get().currentUser().getBeard();
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "state", "Transmitted");
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "sendingDateTime", sendingDateTime);
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "registrationDateTime", sendingDateTime);
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "sender", sender);
+	rkk.setType("Реестр передачи документов");
+
+    //проверки перед регистрацией
+    var keySearchFormula = getKeySearchFormula();
+    if (keySearchFormula == "") {
+        var message = "Невозможно зарегистрировать и передать реестр: отсутствует настройка способа поиска счетчика.";
+        log.debug(message);
+        return showStopDialog(returnResource, message);
+    }
+    var contextDoc = rkk.app.getNotesDocumentForGettingData(rkkUnid);
+    try {
+         var formulaEvaluation = AFCMDomino.getSession().evaluate(keySearchFormula, contextDoc);
+    } catch (e) {
+        var message = "Невозможно зарегистрировать и передать реестр: не удалось вычислить ключ поиска счетчика, проверьте настройки поиска счетчика в СО.";
+        log.debug(message, e);
+        return showStopDialog(returnResource, message);
+   }
+
+    //обновляем записи реестра
+	var totalSent = updateEntries(rkk, "Transferred", "Transmitted");
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "totalSent", totalSent.intValue());
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "totalNotReceived", totalSent.intValue());
+
+    //upd не сохраняем, так как при ошибке регистарции статуса не должен измениться
+	//сохраняем, чтобы зафиксировать изменения перед регистрацией.  если сейчас не сохранить, то после регистрации НР-поля будут неактуальные(
+	//rkk.save();
+	//rkk = appdp.getEntityByUNID(rkkUnid);
+
+	//регистрируем
+	var rdate = AFDate.createCurrent().toJavaDate();
+	rkk.registration().setDate(rdate);
+	var dateFormatter = new SimpleDateFormat("dd.MM.yyyy");
+	//rkk.setSubject("Реестр передачи документов от " + dateFormatter.format(rdate)); //записывается позде сразу в NotesDocument чтобы не генерировать лишнее событие в истории
+    try {
+	    rkk.registration().saveWithRegistration();
+    } catch (e) {
+        rollbackTransferStatus(rkkUnid);
+        throw new RuntimeException(e.getMessage(), e);
+    }
+
+    //зарегистрировали без ошибок
+	rkk = appdp.getEntityByUNID(rkkUnid);
+
+	/*var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("DialogRegNumOk", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Реестру передачи документов присвоен регистрационный номер № " + rkk.registration().getRegisteredInfo().getNumber().toString());
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "rkkUnid", ids.get(0));
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "finish");
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+	*/
+
+	//var sender = AFSession.get().currentUser().getBeard();
+	//TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "sender", sender);
+	//rkk.save();
+	//переподбираем зарегистрированный
+	//rkk = appdp.getEntityByUNID(rkkUnid);
+
+    //отправляем уведомления делопроизводителям подразделения-получателя
+	var receiverDepBeard = rkk.tuning().getValues().get("receiverDep").getValue();
+	var rsm = receiverDepBeard.getAccessUnit().registrationSettingsRegplace().custom("DTR"); //SOUnitParent.RegistrationSettingsRegplace.Module
+	var dpsSet = rsm.getDPs(); //Set<SOUnitPost>
+	var dpsList = new ArrayList(dpsSet); //List<SOUnitPost>
+    var receivers = new HashSet(); //Set<SOBeard>
+	for (var i=0; i<dpsList.size(); i++) {
+		 if (dpsList.get(i).appointments().getCurrent() != null) {
+			receivers.add(dpsList.get(i).appointments().getCurrent().getBeard());
+		}
+	}
+	var doc = rkk.app.getNotesDocumentForGettingData(rkkUnid); //Document
+	AFCMDomino.replaceItemValue(doc, "Subject", "Реестр передачи документов от " + dateFormatter.format(rdate));
+	AFCMDomino.saveDoc(doc);
+	if (!receivers.isEmpty()) {
+		DPNotificationUtils.sendNotice(doc, "START", "Необходимо получить документы на бумажном носителе", "DTR", "SEND", "Реестр передачи документов", "DTRR1_11", "", true, sender, "", false, true, receivers);
+	}
+
+	//событие передачи в истории
+	rkk = appdp.getEntityByUNID(rkkUnid);
+	var hist = rkk.history();
+	var comment = "Присвоен номер " + rkk.registration().getRegisteredInfo().getNumber().toString() +". Количество записей: " + totalSent;
+	TunableHistoryHelper.hist_addBasicText(hist, "dtr.transferred", comment);
+	rkk.history = hist;
+	rkk.save();
+
+	// пересчитываем схему
+	rkk = appdp.getEntityByUNID(rkkUnid);
+	var rkkRes = RkkResource.valueOf(rkk);
+	var definition = SchemaConcreteDefinition.defineReadSchema(rkkRes);
+    if (definition != null) {
+        rkkRes = definition.getResult();
+    }
+
+	//-------------------------chained-operations -----------------------------
+	var operationList = new ArrayList();
+	//open-document
+	var resourceLinkDoc = new ResourceLink(rkkRes);
+
+	var contentType = RkkResourceInternal.CONTENT_TYPE;
+	var operationOpenDoc = new OperationResource("open-document", rkkRes, resourceLinkDoc, contentType);
+	operationList.add(operationOpenDoc);
+
+	//print-report
+	var reporter = AFSession.get().getApplication(Reporter.class);
+	var replica = AFCMDomino.getReplicaIdFromUNID(rkkUnid);
+    var report = reporter.getReport("dtrPrintForm", replica);
+	var resourceLinkReport = new ResourceLink("http://intertrust.ru/cmj/relations#print.report", new ReportReference(report, replica));
+	var rkkListLink = new ArrayList();
+	rkkListLink.add(resourceLinkDoc);
+	var operationReportBody = new StartResource(null, rkkListLink, null, null);
+
+	var operationReport = new OperationResource("print-report", operationReportBody, resourceLinkReport);
+	operationList.add(operationReport);
+	var chainedOperationsList = new OperationListResource();
+	chainedOperationsList.putOperations(operationList);
+	returnResource.setResource(chainedOperationsList);
+}
+
+/**
+	Обновляем записи реестра
+*/
+function updateEntries(rkk, deliveryStatus, parentState) {
+    var updatedCount = 0;
+	var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(rkk.getUNID(), "documents");  //List<AnyTunableObject>
+	for (var i=0; i<subObjects.size(); i++) {
+		var subObject = subObjects.get(i);
+		TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "deliveryStatus", deliveryStatus);
+		TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "parentState", parentState);
+		subObject.save();
+		updatedCount++;
+	}
+	return updatedCount;
+}
+
+
+/**
+	Возвращаем реестр для обнолвения на клиент
+*/
+function finish(paramsResource, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("rkkUnid"));
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(id);
+	var resultResource = RkkResource.valueOf(rkk);
+
+	var definition = SchemaConcreteDefinition.defineReadSchema(resultResource);
+    if (definition != null) {
+        resultResource = definition.getResult();
+    }
+	returnResource.setResource(resultResource);
+}
+
+/**
+    Сообщение об ошибке, прерывающее операцию
+*/
+function showStopDialog(returnResource, messageText) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  	var message = appTNObject.composeDialog("ThrowDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "messageText", messageText);
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+    Вычисление ключа поиска счётчика текущего сотрудника
+*/
+function getKeySearchFormula() {
+    var formula = "";
+    var currApp = AFSession.get().currentUser().getPrimaryAppointment(); //SOAppointment
+    //var post = primApp.getPost(); //SOUnitPost
+    //var rsu = post.registrationSettingsUser(); //RegistrationSettingsUser
+    var customProperties = currApp.getPost().getCustomPropertiesByIdent("DTR"); //CustomProperties
+    if (customProperties!= null) {
+        formula = customProperties.getCounterFormula()
+    }
+    if (formula.startsWith("JS_")) {
+        formula = formula.substring(3);
+    }
+    return formula;
+}
+
+/**
+    Откатываем статус реестра при неудачной попытке регистарции и передачи
+*/
+function rollbackTransferStatus(rkkUnid) {
+    var doc = AFCMDomino.getDocByFullUNID(rkkUnid);
+    AFCMDomino.replaceItemValue(doc, "state", "Project");
+    AFCMDomino.replaceItemValue(doc, "totalSent", 0);
+    AFCMDomino.replaceItemValue(doc, "totalNotReceived", 0);
+
+    //откатываем записи реестра
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    rkk = appdp.getEntityByUNID(rkkUnid);
+    updateEntries(rkk, null, "Project");
+
+	doc.save();
+}
+
+]]>
+        </script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Получить документы" id="DTR_ReceiveDocuments">
+        <script lang="JavaScript">
+            <![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DominoConnector);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cm_sochi.srv.adapter.DocumentAdapter);
+importClass(Packages.ru.intertrust.cm_sochi.srv.adapter.DateTimeAdapter);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkReference);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationResource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationListResource);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importClass(Packages.ru.intertrust.cmj.af.json.DateOnly);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.io);
+
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+		var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+
+		if (paramPackageId.equals("context")) {
+			selectEntries(paramsResource, returnResource);
+		} else if (paramPackageId.equals("markEntriesReceived")) {
+			markEntriesReceived(paramsResource, returnResource);
+		}
+}
+
+function selectEntries(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var rkk = appdp.getEntityByUNID(ids.get(0));
+	var rkkValues = rkk.tuning().getValues();
+
+    var dialog = appTNObject.composeDialog("DTRReceiveDocumentsDialog", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "ids", ids); //заменить на registryUnid
+    TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "registryUnid", ids.get(0));
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "markEntriesReceived");
+
+	var dialogResource = TunableObjectREST.Resource.create(dialog);
+    /*dialogResource.link.add(new ResourceLink(ResourceLink.rel("dtr.transmitted.entries.for.select"), ReferenceFactory.get()
+            .getReference("NodeListByAlias.ForProgrammed", "dp-DTR-select-transmitted-entries", ids.get(0), false, true, "Записи реестра")));*/
+    returnResource.setResource(dialogResource);
+}
+
+function markEntriesReceived(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("ids"));
+	if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+
+	var registryUnid = ids.get(0);
+	var rkk = appdp.getEntityByUNID(ids.get(0));
+	var rkkValues = rkk.tuning().getValues();
+	var documentsCount = rkkValues.get("documentsCount") == null ? 0 : rkkValues.get("documentsCount").getValue();
+	var newEntryNumber = Integer.valueOf(documentsCount + 1);
+	var paramValues = paramsResource.tuning().getValues();
+	var selectionMode = paramValues.get("selectionMode").getValue();
+
+	if (selectionMode == "barcode") {
+		//выбор по штрихкоду:  может быть выбрана запись из реестра, а может быть документ без записи(в таком случае создаём запись)
+		//если указан Unid записи реестра. то меняем у этой записи статус,
+		//если указан только Unid документа, то  создаём запись в реестре с реквизитами
+		var entryId = paramValues.get("registryEntryUnid") == null ? "" : paramValues.get("registryEntryUnid").getValue();
+		var documentUnid = paramValues.get("documentUnid") == null ? "" : paramValues.get("documentUnid").getValue();
+		if (!entryId.equals("")) {
+			var entryObject = appTNObject.getEntityByUNID(entryId);
+			TunableObjectHelper.putAFInstanceValue(entryObject.tuning(), "deliveryStatus", "Received");
+			entryObject.save();
+		} else if (!documentUnid.equals("")) {
+			createRegistryEntry(rkk, documentUnid, paramsResource, newEntryNumber);
+			updateRegistry(rkk, newEntryNumber);
+		}
+
+	} else if (selectionMode == "requisites") {
+		//выбор из списка записей: выбраны записи
+		//меняем статус у выбранных записей реестра
+		var selectedEntries = paramValues.get("entriesForSelect").getValues();
+		if (selectedEntries !=null && !selectedEntries.isEmpty()) {
+			for (var i = 0; i < selectedEntries.size(); i++) {
+				var selectedEntry = selectedEntries.get(i);
+				var entryId = selectedEntry.getValues().get("id").getValue();
+				var entryObject = appTNObject.getEntityByUNID(entryId);
+
+				TunableObjectHelper.putAFInstanceValue(entryObject.tuning(), "deliveryStatus", "Received");
+				entryObject.save();
+			}
+		}
+		updateRegistry(rkk, newEntryNumber);
+
+	} else if (selectionMode == "manual") {
+		//выбор заполнением реквизитов: создаём запись (с признаком byHand)
+		createRegistryEntry(rkk, "", paramsResource, newEntryNumber);
+		updateRegistry(rkk, newEntryNumber);
+
+	} else {
+		throw new AFDaoBadParameterException("Некорректное знчение selectionMode=" + selectionMode + "!");
+	}
+
+	returnDialog(ids, returnResource)
+	return;
+}
+
+/* создание новой записи в реестре */
+function createRegistryEntry (rkk, documentUnid, paramsObject, number) {
+
+	var tuneApp = AFSession.get().getApplication(TuningApplication.class);
+    var schema = tuneApp.getSchemaByName("DTREntrySubObject");
+    if (schema == null) {
+        throw new RuntimeException("Schema  " + this.scheme + " not found");
+    }
+
+	var rkkUnid = rkk.getUNID();
+	var replicaId = AFCMDomino.getReplicaIdFromUNID(rkkUnid);
+    replicaId = AFCMDomino.getReplicaFromTNReplica(replicaId);
+    var ident = AFCMDomino.getIdent(replicaId);
+    var complect = AFCMDomino.getComplectByDbReplicaId(replicaId);
+    var tunObjApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var newEntry = tunObjApp.composeApplicationTunableObject(schema, ident, complect, replicaId);
+
+	var author = AFSession.get().currentUser().getBeard();
+	var byHand = (documentUnid == null || documentUnid.equals(""));
+
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "type", "documents");
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "parentUnid", rkkUnid);
+    TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "$Ref", rkkUnid.split(":")[1]);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "author", author);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "byHand", byHand);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "number", number);
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "deliveryStatus", byHand ? "ReceivedByFact" : "Received");
+	TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "documentUnid", documentUnid);
+	//TunableObjectHelper.putAFInstanceValue(newEntry.tuning(), "documentLink", createLink(documentUnid));
+
+	//заполняем реквизиты
+	var values = paramsObject.tuning().getValues();
+	newEntry.tuning().getValues().put("module", values.get("module"));
+	newEntry.tuning().getValues().put("reqType", values.get("reqType"));
+	newEntry.tuning().getValues().put("subject", values.get("subject"));
+	newEntry.tuning().getValues().put("regDate", values.get("date"));
+	newEntry.tuning().getValues().put("regNumber", values.get("regNumber"));
+	newEntry.tuning().getValues().put("comment", values.get("note"));
+	newEntry.tuning().getValues().put("correspondentContractorText", values.get("correspondentText"));
+	newEntry.tuning().getValues().put("addInfoText", values.get("addInfoText"));
+	newEntry.tuning().getValues().put("barCode", values.get("documentBarCode"));
+	newEntry.tuning().getValues().put("senderDep", rkk.tuning().getValues().get("senderDep"));
+	newEntry.tuning().getValues().put("receiverDep", rkk.tuning().getValues().get("receiverDep"));
+	newEntry.tuning().getValues().put("parentState", rkk.tuning().getValues().get("state"));
+    newEntry.save();
+}
+
+/* Формируем и возвращаем диалог для подолжения работы пользователя */
+function returnDialog(ids, returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var dialog = appTNObject.composeDialog("DTRReceiveDocumentsDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "ids", ids); //заменить на registryUnid
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "registryUnid", ids.get(0));
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "markEntriesReceived");
+	var dialogResource = TunableObjectREST.Resource.create(dialog);
+	/*dialogResource.link.add(new ResourceLink(ResourceLink.rel("dtr.transmitted.entries.for.select"), ReferenceFactory.get()
+		.getReference("NodeListByAlias.ForProgrammed", "dp-DTR-select-transmitted-entries", ids.get(0), false, true, "Записи реестра")));*/
+	returnResource.setResource(dialogResource);
+	return;
+}
+
+function createLink(documentUnid) {
+	return "";
+}
+
+/* актуализируем количество записей в реестре */
+function updateRegistry(rkk, number) {
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "documentsCount", number);
+
+	var curReceiver = AFSession.get().currentUser().getBeard();
+	var registryReceiver = rkk.tuning().getValues().get("receiver") == null ? null : rkk.tuning().getValues().get("receiver").getValue();
+	if (registryReceiver == null ||  !curReceiver.getUNID().equals(registryReceiver.getUNID())) {
+		TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "receiver", curReceiver);
+	}
+	rkk.save();
+}
+]]>
+        </script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Завершить получение" id="DTR_FinishReceiving">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.core.AFLogging);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importClass(Packages.ru.intertrust.cmj.af.core.AFEntityStorage);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+
+importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
+importClass(Packages.ru.intertrust.cmj.af.so.SOPartyAuthoritiesSenderRegplace);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent.RegistrationSettingsRegplace);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent.RegistrationSettingsRegplace.Module);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+
+importClass(Packages.ru.intertrust.cmj.pkd.session.TaskChangeInfo);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.PkdEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.domain.events.EventEntity);
+importClass(Packages.ru.intertrust.cmj.pkd.session.PkdSession);
+
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+
+importClass(Packages.lotus.domino.Document);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitOrganization);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var rkk = appdp.getEntityByUNID(ids.get(0));
+
+    var transferredAmount = 0;
+    var receivedAmount = 0;
+    var notReceivedAmount = 0;
+    var receivedByFactAmount = 0;
+
+    //transferredAmount = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("totalSent"));
+
+    var subObjects = AFSession.get().getApplication(TunableObjectApplication.class).getEmbeddedCollectionSubObjects(rkk.getUNID(), "documents");
+    var curUserParentBeard = AFSession.get().currentUser().getBeard().getParent();
+    var curentDateTime = Calendar.getInstance().getTime();
+    var receivingDateTime = AFDateTime.convertFromDate(curentDateTime);
+
+    //логирование запускам от имени системы, а не пользователя, чтобы не было проблем с доступом
+    // ---------- запуск кода от имени системы ------
+    var afSession = AFSession.get();
+    var runAsSystem = afSession.isRunAsSystem();
+    if (!runAsSystem) {
+        afSession.runAsSystem();
+    }
+    //--------------------------------------------
+
+    for (var i=0; i<subObjects.size(); i++) {
+        var subObject = subObjects.get(i);
+        var deliveryStatus = TunableObjectHelper.getAFInstanceTypedValue(subObject.tuning(), "deliveryStatus");
+        if ("ReceivedByFact".equals(deliveryStatus) || "Received".equals(deliveryStatus)) {
+            var documentUnid = TunableObjectHelper.getAFInstanceTypedValue(subObject.tuning(), "documentUnid");
+            if (documentUnid != null && !"".equals(documentUnid)) {
+                var	doc2 = AFCMDomino.getDocByFullUNID(documentUnid);
+                //if (doc2 != null) {
+                var numStr = "";
+                if (rkk.registration().getRegisteredInfo() != null) {numStr = rkk.registration().getRegisteredInfo().getNumber().toString();}
+                AFLogging.createReceiveLog(doc2, curUserParentBeard, rkk.getUNID(), numStr);
+                //}
+
+                if("AttorneyDocs".equals(doc2.getItemValueString("Complect"))){
+                    processAttorneyDocs(documentUnid, AFSession.get().currentUser().getBeard(), curentDateTime);
+                }
+            }
+        }
+		transferredAmount = transferredAmount + 1;
+
+        if ("Received".equals(deliveryStatus)) {
+            receivedAmount = receivedAmount + 1;
+        }
+        if ("ReceivedByFact".equals(deliveryStatus)) {
+            receivedByFactAmount = receivedByFactAmount + 1;
+        }
+        if ("Transferred".equals(deliveryStatus)) {
+            TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "deliveryStatus", "NotReceived");
+            notReceivedAmount = notReceivedAmount + 1;
+        }
+    }
+
+    //--------------------------------------------
+    if (!runAsSystem) {
+        afSession.closeSystem();
+    }
+    // ---------- конец кода от имени системы ------
+
+    //вычисляем статус Реестра и указыываем его во все записях
+    var rkkState = "";
+    if (notReceivedAmount > 0) {
+        rkkState = "ReceivedPartially";
+    } else {
+        rkkState = "Received";
+    }
+
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "state", rkkState);
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "totalSent", Integer.valueOf(transferredAmount));
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "totalReceived", Integer.valueOf(receivedAmount));
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "totalReceivedByFact", Integer.valueOf(receivedByFactAmount));
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "totalNotReceived", Integer.valueOf(notReceivedAmount));
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "receivingDateTime", receivingDateTime);
+    var hist = rkk.history();
+    TunableHistoryHelper.hist_addBasicText(hist, "dtr.received", null);
+    rkk.history = hist;
+    rkk.save();
+
+    for (var i=0; i<subObjects.size(); i++) {
+        var subObject = subObjects.get(i);
+        TunableObjectHelper.putAFInstanceValue(subObject.tuning(), "parentState", rkkState);
+        subObject.save();
+    }
+
+    //отправляем уведомления делопроизводителям подразделения-отправителя
+    var noticeSender = AFSession.get().currentUser().getBeard();
+    var receivers = getRegistrators(rkk.registration().getPlace()); //Set<SOBeard>
+    var doc = rkk.app.getNotesDocumentForGettingData(rkk.getUNID()); //Document
+    if (!receivers.isEmpty()) {
+        if (receivedByFactAmount > 0 || notReceivedAmount > 0) {
+            DPNotificationUtils.sendNotice(doc, "FINISH", "Прием документов завершен, есть расхождения по реестру", "DTR", "RECEIVE", "Реестр передачи документов", "DTRR1_42", "", false, noticeSender, "", false, true, receivers);
+        } else {
+            DPNotificationUtils.sendNotice(doc, "FINISH", "Прием документов завершен", "DTR", "RECEIVE", "Реестр передачи документов", "DTRR1_41", "", false, noticeSender, "", false, true, receivers);
+        }
+    }
+
+    //отмечаем задачу делопроизводителей подразделения-получателя выполненной
+    var receiverDepBeard = rkk.tuning().getValues().get("receiverDep").getValue();
+    var taskOwners = getRegistrators(receiverDepBeard);
+    completeTask(rkk, taskOwners, "DTRR1_11");
+
+    rkk = appdp.getEntityByUNID(rkk.getUNID());
+    var res = RkkResource.valueOf(rkk);
+    returnResource.setResource(res);
+}
+
+
+function completeTask(object, execBeards, eventcode) {
+    if (execBeards.isEmpty()) {
+        return;
+    }
+    var cmjEntity = AFEntityStorage.getEntityByUNID(object.getUNID());
+    var mainTaskInfo = new TaskChangeInfo(cmjEntity, execBeards, EventCode.getByString(eventcode),
+            PkdEntity.EventStatus.COMPLETED, EventEntity.TaskEntity.Status.NONE,
+            TaskChangeInfo.DEFAULT_FORMAT);
+    new PkdSession().changeProcessStatus(mainTaskInfo);
+}
+
+/*
+  получение списка делопроизводителей подразделения. принимает SOBeard.
+*/
+function getRegistrators(depBeard) {
+    var registrators = new HashSet();
+	if (depBeard == null) {
+		return registrators;
+	}
+    var rsm = depBeard.getAccessUnit().registrationSettingsRegplace().custom("DTR"); //SOUnitParent.RegistrationSettingsRegplace.Module
+    var dpsSet = rsm.getDPs(); //Set<SOUnitPost>
+    var dpsList = new ArrayList(dpsSet); //List<SOUnitPost>
+    for (var i=0; i<dpsList.size(); i++) {
+        if (dpsList.get(i).appointments().getCurrent() != null) {
+            registrators.add(dpsList.get(i).appointments().getCurrent().getBeard());
+        }
+    }
+    return registrators;
+}
+
+function processAttorneyDocs(documentUnid, curUserBeard, receivingDateTime){
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+    var rkk = appdp.getEntityByUNID(documentUnid);
+    var table = new ArrayList();
+    var tmpTable = rkk.tuning().getValues().get("movingCopiesTableAttorney");
+    if(tmpTable != null && tmpTable.getValues() != null){
+        table = tmpTable.getValues();
+    }
+    var schema = apl.getSchemaByName("MovingCopiesTableAttorney");
+    var row = new AFInstanceObjectImpl(schema);
+
+    var user = new AFInstanceSimpleImpl(schema.getProperty("movingCopiesReceiver").getSchema(), curUserBeard);
+    var date = new AFInstanceSimpleImpl(schema.getProperty("movingCopiesTransferDate").getSchema(), AFDate.fromJavaDate(receivingDateTime, false));
+
+    var tmpUserSP = getParentIndependentUnit(curUserBeard);
+    if(tmpUserSP != null){
+        var userSP = new AFInstanceSimpleImpl(schema.getProperty("movingCopiesReceiverSP").getSchema(), tmpUserSP);
+    }
+
+    row.put("movingCopiesReceiver", user);
+    row.put("movingCopiesTransferDate", date);
+    row.put("movingCopiesReceiverSP", userSP);
+    table.add(row);
+
+    rkk.tuning().put("movingCopiesTableAttorney", new AFInstanceArrayImpl(schema, table));
+
+    rkk.save();
+}
+
+function getParentIndependentUnit(beard) {
+    var parent = getParent(beard);
+
+    if(parent == null)
+        return null;
+
+    var party = parent.originalData().getParty();
+
+    if (party instanceof SOUnitStructure) {
+        if (party.isIndependent() || party.isSeparate()) {
+            return parent;
+        }
+    }
+    if (party instanceof SOUnitOrganization){
+        return parent;
+    }
+    return getParentIndependentUnit(parent);
+}
+
+function getParent(beard) {
+    var parent = beard.getParent();
+    if (parent != null) {
+        return parent;
+    }
+
+    var parentDocId = null;
+	var unit = beard.getAccessUnit();
+	if (unit == null) {
+		throw("Ошибка при поиске accessUnit для бороды " + beard.getUNID());
+	}
+    var unidArr = unit.getUNID().split(":");
+    var tnUnid = unidArr[0] + "-TN:" + unidArr[1];
+    var tunApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tnObj = tunApp.getEntityByUNID(tnUnid);
+    if (tnObj != null) {
+        var parentUnit = tnObj.tuning().getValues().get("parentUnit");
+        if (parentUnit != null && parentUnit.getValues().get("basedocid") != null) {
+            parentDocId = parentUnit.getValues().get("basedocid").getValue();
+        }
+    }
+    if (parentDocId != null) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var soObj = soApp.getEntityByUNID(unidArr[0] + ":" + parentDocId);
+        if (soObj != null) {
+            if (soObj instanceof SOParty) {
+                return soObj.getBeard();
+            } else if (soObj instanceof SOUnitPost && soObj.appointments().getCurrent() != null) {
+                return soObj.appointments().getCurrent().getBeard();
+            } else {
+                throw("Ошибка при поиске родительского элемента - soObj " + soObj.getClass().getName());
+            }
+        }
+    }
+    return null;
+}
+
+function SetValue(doc, fileName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+]]></script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Возврат в режим чтения при получении" id="DTR_ReturnToReadMode">
+    <script lang="JavaScript">
+        <![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var rkk = appdp.getEntityByUNID(ids.get(0));
+    var res = RkkResource.valueOf(rkk);
+    returnResource.setResource(res);
+}
+        ]]></script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Поиск по шрих-коду документа" id="DTR_SearchByBarCode">
+        <script lang="JavaScript">
+            <![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+
+importClass(Packages.org.apache.http.client.utils.URIBuilder);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.ReferenceHelper);
+
+importClass(Packages.ru.intertrust.cmj.rest.search.SearchWaitResults);
+importClass(Packages.ru.intertrust.cmj.rest.search.SearchWaitResults.SearchResultResource);
+importClass(Packages.ru.intertrust.cmj.rest.search.SearchWaitResults.SearchResultResource.Status);
+importClass(Packages.ru.intertrust.cmj.rest.collections.SearchNodeListResource);
+importClass(Packages.ru.intertrust.cmj.rest.search.ContextualSearchResultResource);
+importClass(Packages.ru.intertrust.cmj.af.search.cmapi.QueryParams);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.io);
+
+
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+		var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues()
+			.get("counter"));
+		if (paramPackageId.equals("context")) {
+			insertBarcode(paramsResource, returnResource);
+		} else if (paramPackageId.equals("findByBarcode")) {
+			findByBarcode(paramsResource, returnResource);
+		}
+}
+
+/*
+	Формирование диалога для ввода штрихкода
+*/
+function insertBarcode(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+
+    var dialog = appTNObject.composeDialog("DTRInsertBarcodeDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "findByBarcode");
+    returnResource.setResource(TunableObjectREST.Resource.create(dialog));
+}
+
+/*
+	Поиск документов по штрихкоду
+*/
+function findByBarcode(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var barcode = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("barCode"));
+
+	if (barcode== null || barcode.equals("")) {
+		returnDialogEmptyResult(returnResource);
+		return;
+	}
+	barcode = replaceCyrillicToLatinByKeyboard(barcode);
+
+	//1. формируем ресурс через nodeListByAliasReference только лишь для того, чтобы потом взять из него корректную ссылку для формирования NodeListReference.
+	var filters = new HashMap();
+    filters.put("barcode", barcode);
+    var nodeListByAliasReference = BeansUtils.getBean("NodeListByAliasReference", "dp-DTR-search-by-barcode-results", true, null, null, filters);
+    var nodeListResource = nodeListByAliasReference.readResource();  //readResourceFiltered
+
+	//2. здесь nodeListResource был сформирован без применения фильтра (особенность формирования коллекций), поэтому ниже перевычисляем нодлист уже с применением фильтра
+	var resourceLink = ReferenceHelper.getResourceLink(nodeListResource);
+	var href = resourceLink.getHref();
+    var builder = new URIBuilder(href);
+    var withoutParameters = builder.getPath(); //берем корректную ссылку для получения коллекции
+	var reference = ReferenceFactory.get().getReference(withoutParameters + "?f_barcode=" + barcode); // добавляем наш фильтр для поиска
+
+	//вычисляем искомый нодлист, полученный с применением фильтра
+	var resource = reference.readResource();
+
+	if (resource.nodes == null || resource.nodes.isEmpty()) {
+		returnDialogEmptyResult(returnResource);
+		return;
+	}
+    var count = resource.nodes.size();
+
+    //3. специальный ресурс именно контекстного поиска, так как он содержит необходимое поле queryParams ----------
+    var sourceQuery = new ArrayList();
+    var linkList = new ArrayList();
+    var queryParams = new QueryParams();
+    if (count==1) {
+       queryParams.setParams("Найден " + resource.nodes.size() + " реестр передачи документов по коду штрихкода \"" + barcode + "\"");
+    } else if (count==2 || count==3 || count==4) {
+        queryParams.setParams("Найдено " + resource.nodes.size() + " реестра передачи документов по коду штрихкода \"" + barcode + "\"");
+    } else {
+        queryParams.setParams("Найдено " + resource.nodes.size() + " реестров передачи документов по коду штрихкода \"" + barcode + "\"");
+    }
+    queryParams.setSearchInContent("Реестры передачи документов");
+
+    var searchResultNodeListResource = new SearchNodeListResource(resource);
+    var searchWaitResultsResource = new ContextualSearchResultResource(
+        searchResultNodeListResource,
+        sourceQuery,
+        SearchWaitResults.SearchResultResource.Status.DONE,
+        linkList,
+        null,
+        null,
+        null,
+        queryParams);
+
+	returnResource.setResource(searchWaitResultsResource);
+	return returnResource.resource;
+}
+
+
+/*
+	Формируем и возвращаем диалог для подолжения работы пользователя
+*/
+function returnDialog(returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var dialog = appTNObject.composeDialog("DTRInsertBarcodeDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "findByBarcode");
+    returnResource.setResource(TunableObjectREST.Resource.create(dialog));
+}
+
+/*
+	Формируем и возвращаем диалог с информацией о том что ничего не найдено
+*/
+function returnDialogEmptyResult(returnResource) {
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var dialog = appTNObject.composeDialog("DialogInfoCommon", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "message", "Реестр передачи документов по штрихкоду документа не найден");
+    returnResource.setResource(TunableObjectREST.Resource.create(dialog));
+}
+
+/*
+	Заменяем в тексте символы кириллицы на латинрицу в соответствии с раскладкой клавиатуры
+	(ЙЦУкен -> QWErty)
+*/
+function replaceCyrillicToLatinByKeyboard(inputText) {
+	if (inputText == null || inputText.equals("")) {
+		return inputText;
+	}
+
+    var builder = new StringBuilder();
+
+    var cyrillicSymbols      = "йцукенгшщзфывапролдячсмить";
+    var cyrillicSymbolsUpper = "ЙЦУКЕНГШЩЗФЫВАПРОЛДЯЧСМИТЬ";
+    var latinSymbols         = "qwertyuiopasdfghjklzxcvbnm";
+    var latinSymbolsUpper    = "QWERTYUIOPASDFGHJKLZXCVBNM";
+
+    var inputArray = inputText.split("");
+
+    for (var i = 0; i < inputArray.length; i++) {
+        var symbol = inputArray[i];
+
+        if (cyrillicSymbols.contains(symbol)) {
+            var index = cyrillicSymbols.indexOf(symbol);
+            builder.append(latinSymbols.substring(index, index + 1));
+        } else if (cyrillicSymbolsUpper.contains(symbol)) {
+            var index = cyrillicSymbolsUpper.indexOf(symbol);
+            builder.append(latinSymbolsUpper.substring(index, index + 1));
+        } else {
+            builder.append(symbol);
+        }
+    }
+    return builder.toString();
+}
+]]>
+        </script>
+    </handler>
+    <handler name="RSHB Реестр предачи документов. Сформировать реестр" id="DTR_CreateRegistry">
+        <script lang="JavaScript">
+            <![CDATA[
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.bf.ModuleID);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitOrganization);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitDepartment);
+
+importClass(Packages.java.text.SimpleDateFormat);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.org.apache.commons.lang.StringUtils);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+		var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues()
+			.get("counter"));
+		if (paramPackageId.equals("context")) {
+			dialog(paramsResource, returnResource);
+		} else if (paramPackageId.equals("createRegistryDialog")) {
+			createRegistryDialog(paramsResource, returnResource);
+		}
+}
+
+/**
+	Обработка диалога с подразделением-получателем
+*/
+function createRegistryDialog(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    var obj = createRkkDTR(paramsResource);
+    var res = RkkResource.valueOf(obj);
+    returnResource.setResource(res);
+    return;
+}
+
+/**
+	Создание РКК
+*/
+function createRkkDTR(paramsResource) {
+    var module = ModuleID.valueOf("DTR").getModule();
+    var rkk = module.composeRKK("", "DTR").getRKK();
+
+    var rdate = AFDate.createCurrent().toJavaDate();
+	var dateFormatter = new SimpleDateFormat("dd.MM.yyyy");
+    rkk.setSubject("Реестр передачи документов от " + dateFormatter.format(rkk.created().getTime().getTime()));
+
+    var sender = AFSession.get().currentUser().getBeard();
+	var receiverDep = paramsResource.tuning().getValues().get("receiverDep").getValue();
+	var receiverDepHierarchy = getDepartmentHierarchyString(receiverDep);
+
+    TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "sender", sender);
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "receiverDep", receiverDep);
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "receiverDepHierarchy", receiverDepHierarchy);
+
+	//имитируем формирование и сохранение документа, как если бы это делал пользователь
+	var res = RkkResource.valueOf(rkk);
+	res.updateRkk(rkk);
+	rkk.save();
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+    rkk = appdp.getEntityByUNID(rkk.getUNID());
+	TunableObjectHelper.putAFInstanceValue(rkk.tuning(), "mode", "edit"); //чтобы веб-клиент открыл док именно в режиме редактирования
+    return rkk;
+}
+
+/**
+	Формируем диалог для заполнния подразделения-получателя
+*/
+function dialog(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+
+    var dialog = appTNObject.composeDialog("DTRCreateRegistryDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(dialog.tuning(), "counter", "createRegistryDialog");
+    returnResource.setResource(TunableObjectREST.Resource.create(dialog));
+}
+
+/**
+ Вычисление иерархии подразделений в виде строки
+ */
+function getDepartmentHierarchyString(beard) {
+    var namesList = new ArrayList();
+	var curOrgIsRSHB = isRSHB();
+
+    namesList = getDepartmentHierarchy(beard, namesList, curOrgIsRSHB);
+
+    //преобразуем в строку
+    //var result = beards.stream()
+    //    .map(name -> name.length()>50 ? (StringUtils.left(name,47)+"...") : name)
+    //    .collect(Collectors.joining("\n\\"));
+
+    var result = "";
+    for (var i = 0; i < namesList.size(); i++) {
+        var name = namesList.get(i);
+        var shortName = name.length() > 100 ? (StringUtils.left(name, 97) + "...") : name;
+        if (result.equals("")) {
+            result = shortName;
+        } else {
+            result = result + "\n\\" + shortName;
+        }
+    }
+
+    return result;
+}
+
+/**
+ Вычисление иерархии подразделений вплоть до самостоятельного подразделения
+ */
+function getDepartmentHierarchy(beard, namesList, curOrgIsRSHB) {
+
+    var party = beard.originalData().getParty();
+    var parent = getParent(beard);
+
+    if (party instanceof SOUnitDepartment) {
+
+        namesList.add(party.getFullName());
+		if (curOrgIsRSHB && party.isIndependent()) {
+			var parentParty = parent.originalData().getParty();
+			if (parentParty instanceof SOUnitDepartment && parentParty.isSeparate() && isRF(parent)) {
+				namesList.add(parentParty.getFullName());
+			}
+			return namesList;
+		} else {
+            return getDepartmentHierarchy(parent, namesList, curOrgIsRSHB);
+        }
+    } else if (party instanceof SOUnitOrganization) {
+        namesList.add(party.getFullName());
+        return namesList;
+    } else if (party instanceof AppointmentHead) {
+        namesList.add(party.getBeard().originalData().getShortName());
+        return getDepartmentHierarchy(parent, namesList, curOrgIsRSHB);
+    }
+    return namesList;
+}
+
+function getParent(beard) {
+    var parent = beard.getParent();
+    if (parent != null) {
+        return parent;
+    }
+    //возможно это вакансия, там parent == null, поэтому проверим в tn-объекте
+    var parentDocId = null;
+	var unit = beard.getAccessUnit();
+	if (unit == null) {
+		throw("Ошибка при поиске accessUnit для бороды " + beard.getUNID());
+	}
+    var unidArr = unit.getUNID().split(":");
+    var tnUnid = unidArr[0] + "-TN:" + unidArr[1];
+    var tunApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tnObj = tunApp.getEntityByUNID(tnUnid);
+    if (tnObj != null) {
+        var parentUnit = tnObj.tuning().getValues().get("parentUnit");
+        if (parentUnit != null && parentUnit.getValues().get("basedocid") != null) {
+            parentDocId = parentUnit.getValues().get("basedocid").getValue();
+        }
+    }
+    if (parentDocId != null) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var soObj = soApp.getEntityByUNID(unidArr[0] + ":" + parentDocId);
+        if (soObj != null) {
+            if (soObj instanceof SOParty) {
+		        return soObj.getBeard();
+		    } else if (soObj instanceof SOUnitPost && soObj.appointments().getCurrent() != null) {
+		        return soObj.appointments().getCurrent().getBeard();
+            } else {
+                throw("Ошибка при поиске родительского элемента - soObj " + soObj.getClass().getName());
+            }
+        }
+    }
+    return null;
+}
+
+/**
+	является ли подразделение региональным филиалом
+*/
+function isRF(beard) {
+    var unidArr = beard.getUNID().split(":");
+    var tnUnid = unidArr[0] + "-TN:" + unidArr[1];
+    var tunApp = AFSession.get().getApplication(TunableObjectApplication.class);
+    var tnObj = tunApp.getEntityByUNID(tnUnid);
+    if (tnObj != null) {
+        var depType = TunableObjectHelper.getAFInstanceValue(tnObj.tuning().getValues().get("depType"));
+		if ('рф: региональный филиал'.equalsIgnoreCase(depType)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+	является ли текущая организация банком РСХБ
+*/
+function isRSHB() {
+	var orgName = AFSession.get().getCurrentOrganization().getFullName();
+	return  StringUtils.containsIgnoreCase(orgName, "Акционерное общество") && StringUtils.containsIgnoreCase(orgName, "Российский Сельскохозяйственный банк");
+}
+]]>
+        </script>
+    </handler>
+</ui>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="apr-list-meetings-main" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="483" leftMargin="70" rightMargin="42" topMargin="56" bottomMargin="56" uuid="e95e6c47-e7d7-44cb-96a2-2c55c48026a1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="rel-62.xml"/>
+	<property name="net.sf.jasperreports.export.docx.frames.as.nested.tables" value="false"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[with
+listid as (
+  select qrid.item v, qrid.item_type t
+  from qr_id_list qrid
+    join qr_request req on qrid.request = req.id
+  where req.id = $P{request_id}
+)
+select
+    /*в параметры lid и ltid передаётся идентификатор и его тип листа согласования*/
+	list.id as lid,
+	/*в параметры meetingid и meetingtid передаётся идентификатор и его тип одного из документов модуля заседания по которому запущено согласование*/
+	list.HierRoot as meetingid,
+    list.HierRoot_type as meetingtid
+from Apr_ApprList AS ApprList
+join Apr_List as list on list.id = ApprList.id
+WHERE list.id = (select v from listid) and list.id_type = (select t from listid)
+and list.id is not null]]>
+	</queryString>
+	<field name="lid" class="java.lang.Object"/>
+	<field name="meetingid" class="java.lang.Object"/>
+	<field name="meetingtid" class="java.lang.Object"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="40">
+			<staticText>
+				<reportElement x="0" y="0" width="483" height="20" uuid="292348b3-4606-487e-b62d-01bf2f752fe0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="12"/>
+				</textElement>
+				<text><![CDATA[Лист согласования]]></text>
+			</staticText>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="20" width="483" height="20" uuid="688158e8-2d92-43d3-a25c-1e6a7435ffbb"/>
+				<subreportParameter name="lid">
+					<subreportParameterExpression><![CDATA[$F{lid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="meetingid">
+					<subreportParameterExpression><![CDATA[$F{meetingid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="meetingtid">
+					<subreportParameterExpression><![CDATA[$F{meetingtid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="headerType">
+					<subreportParameterExpression><![CDATA["one"]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["apr-list-dochead-meetings.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="32" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="483" height="32" uuid="b2685930-87c1-4a06-88ea-651798ad666a"/>
+				<subreportParameter name="listType">
+					<subreportParameterExpression><![CDATA["one"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="lid">
+					<subreportParameterExpression><![CDATA[$F{lid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["apr-one-list-meetings.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

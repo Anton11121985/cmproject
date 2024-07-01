@@ -1,0 +1,241 @@
+<collection name="SO_(vw_cmj_livesearch_DepEmplRole)" idField="id">
+    <prototype>
+        <![CDATA[
+select temp.id                                                                          as id,
+       '<id>'                                                                           as self_1,
+       ':'                                                                              as self_2,
+       '</>'                                                                            as close_tag,
+       '<basedocid>'                                                                    as basedocid_1,
+       '<name>'                                                                         as name_1,
+       '-TN:'                                                                           as TN,
+       temp.created_date,
+       name,
+       post,
+       org,
+       ss_module_org.Module,
+       type,
+       displayName,
+       displayName2,
+       displayName3,
+       displayName4,
+       '<post>'                                                                         as post_1,
+       '<type>'                                                                         as typeObj_1,
+       '<displayName>'                                                                  as display_1,
+       '<displayName2>'                                                                 as display_2,
+       '<displayName3>'                                                                 as display_3,
+       '<displayName4>'                                                                 as display_4,
+       '<code>'                                                                         as code_1,
+       '<fullName>'                                                                     as fullName_1,
+       '<$hint>'                                                                        as hint_1,
+       temp.updated_date                                                                as updated_date,
+       '<isVacancy#Boolean>'                                                            as is_vacancy_tag,
+       '-TN:'                                                                           as tnPrefix_1,
+       isVacancy,
+       fullName,
+       CASE
+           WHEN type = 'EMPLOYEE' or type = 'RVZ' THEN temp.post || '; ' || temp.parentOfUnit
+           ELSE displayName2 END
+                                                                                        AS hint,
+       to_char(cast((temp.id_type * 10 ^ 12) as bigint) + temp.id, 'FM0000000000000000') as sochiunid,
+       '<sochiunid>'                                                                    as sochiunid_1
+from (
+         select head.id,
+                head.id_type                                                                as id_type,
+                pers.lastname ||
+                (case
+                     when length(pers.firstname) > 0
+                         then ' ' || substring(pers.firstname, 0, 2) || '.' ||
+                              (case
+                                   when length(pers.middlename) > 0
+                                       then substring(pers.middlename, 0, 2) || '.'
+                                   else '' end)
+                     else (case
+                               when length(pers.middlename) > 0
+                                   then ' ' || substring(pers.middlename, 0, 2) || '.'
+                               else '' end)
+                    end)                                                                    as name,
+                post.name                                                                   as post,
+                replace(postBeard.orig_departmentname, '<<VACANCY>>', '(Вакансия)')         as parentOfUnit,
+                post.hierroot                                                               as org,
+                'RVZ'                                                                       as type,
+                concat(case when app.person is null then 'Вакансия' else postBeard.orig_shortname end, ', ',
+                       post.name)                                                           as displayName,
+                case when (app.isprimary = 1) then '* ' else '' end ||
+                case
+                    when (app.person is null)
+                        then 'Вакансия'
+                    else concat(pers.lastname, ' ', pers.firstname, ' ', pers.middlename)
+                    end
+                    || concat(' (', coalesce(tabnum, ''), ')')                              as displayName2,
+                concat(case when app.person is null then 'Вакансия' else postBeard.orig_shortname end, ', ',
+                       post.name)                                                           as fullName,
+                concat(postBeard.orig_postname, ' ',
+                       replace(postBeard.orig_departmentname, '<<VACANCY>>', '(Вакансия)')) as displayName3,
+                case
+                    when app.person is not null
+                        then post.name
+                    else 'Вакансия' end
+                                                                                            as displayName4,
+                unit.created_date                                                           as created_date,
+                unit.updated_date                                                           as updated_date,
+                case
+                    when app.person is null then 1
+                    else 0 end                                                              as isVacancy,
+                post.isDeleted
+         from so_posthead head
+                  join so_post post on post.id = head.id
+                  join so_unit unit on post.id = unit.id
+                  join so_structureunit hierorg on post.hierroot = hierorg.id
+                  left join so_appointmenthead apphead on head.id = apphead.post
+                  left join so_appointment app on apphead.id = app.id
+                  left join so_person pers on pers.id = app.person
+                  left join so_personsys persSys on pers.id = persSys.id
+                  left join so_parent_su parentDep on post.hierparent = parentDep.id
+                  left join so_structureunit hierDep on hierDep.id = parentDep.owner
+                  left join so_parent_ph parentRvz on post.hierparent = parentRvz.id
+                  left join so_post parentPost on parentRvz.owner = parentPost.id
+                  left join so_beard postBeard on postBeard.id = app.beard
+         where post.isdeleted = 0
+           and postBeard.isactive = 1
+         union all
+         select plain.id,
+                plain.id_type                                                               as id_type,
+                pers.lastname ||
+                (case
+                     when length(pers.firstname) > 0
+                         then ' ' || substring(pers.firstname, 0, 2) || '.' ||
+                              (case
+                                   when length(pers.middlename) > 0
+                                       then substring(pers.middlename, 0, 2) || '.'
+                                   else '' end)
+                     else (case
+                               when length(pers.middlename) > 0
+                                   then ' ' || substring(pers.middlename, 0, 2) || '.'
+                               else '' end)
+                    end)                                                                    as name,
+                post.name                                                                   as post,
+                replace(postBeard.orig_departmentname, '<<VACANCY>>', '(Вакансия)')         as parentOfUnit,
+                post.hierroot                                                               as org,
+                'EMPLOYEE'                                                                  as type,
+                concat(case when app.person is null then 'Вакансия' else postBeard.orig_shortname end, ', ',
+                       post.name)                                                           as displayName,
+                case when (app.isprimary = 1) then '* ' else '' end ||
+                case
+                    when (app.person is null)
+                        then 'Вакансия'
+                    else concat(pers.lastname, ' ', pers.firstname, ' ', pers.middlename)
+                    end
+                    || concat(' (', coalesce(tabnum, ''), ')')                              as displayName2,
+                concat(case when app.person is null then 'Вакансия' else postBeard.orig_shortname end, ', ',
+                       post.name)                                                           as fullName,
+                concat(postBeard.orig_postname, ' ',
+                       replace(postBeard.orig_departmentname, '<<VACANCY>>', '(Вакансия)')) as displayName3,
+                case
+                    when app.person is not null
+                        then post.name
+                    else 'Вакансия' end
+                                                                                            as displayName4,
+                unit.created_date                                                           as created_date,
+                unit.updated_date                                                           as updated_date,
+                case
+                    when app.person is null then 1
+                    else 0 end                                                              as isVacancy,
+                post.isDeleted
+         from so_postplain plain
+                  join so_post post on post.id = plain.id
+                  join so_unit unit on post.id = unit.id
+                  join so_structureunit hierorg on post.hierroot = hierorg.id
+                  left join so_appointmentplain apphead on plain.id = apphead.post
+                  left join so_appointment app on apphead.id = app.id
+                  left join so_person pers on pers.id = app.person
+                  left join so_personsys persSys on pers.id = persSys.id
+                  left join so_parent_su parentDep on post.hierparent = parentDep.id
+                  left join so_structureunit hierDep on hierDep.id = parentDep.owner
+                  left join so_parent_ph parentRvz on post.hierparent = parentRvz.id
+                  left join so_post parentPost on parentRvz.owner = parentPost.id
+                  left join so_beard postBeard on postBeard.id = app.beard
+         where post.isdeleted = 0
+           and postBeard.isactive = 1
+         union all
+         select dep.id,
+                dep.id_type                                                                as id_type,
+                so_structureunit.shortname                                                 as name,
+                coalesce(depBeard.orig_postname, '')                                       as post,
+                ''                                                                         as parentOfUnit,
+                dep.hierroot                                                               as org,
+                'DEPARTMENT'                                                               as type,
+                so_structureunit.fullname                                                  as displayName,
+                so_structureunit.fullname                                                  as displayName2,
+                so_structureunit.fullname                                                  as fullName,
+                concat(depBeard.orig_postname, ' ',
+                       replace(depBeard.orig_departmentname, '<<VACANCY>>', '(Вакансия)')) as displayName3,
+                so_structureunit.shortname                                                 as displayName4,
+                so_unit.created_date                                                       as created_date,
+                so_unit.updated_date                                                       as updated_date,
+                0                                                                          as isVacancy,
+                CASE
+                    WHEN dep.accessredirect IS NULL
+                        THEN 0
+                    ELSE 1 END                                                             as isDeleted
+         from so_department dep
+                  natural join so_unit
+                  natural join so_structureunit
+                  join so_beard depBeard on so_structureunit.beard = depBeard.id
+             and so_structureunit.beard_type = depBeard.id_type
+             and depBeard.isactive <> 0
+         where dep.accessredirect is null
+         union all
+         select role.id,
+                role.id_type                                                  as id_type,
+                role.shortname                                                as name,
+                coalesce(role.code, '')                                       as post,
+                ''                                                            as parentOfUnit,
+                role.organization                                             as org,
+                'FUNCTIONAL_ROLE'                                             as type,
+                role.shortname                                                as displayName,
+                role.fullname                                                 as displayName2,
+                role.fullname                                                 as fullName,
+                concat(coalesce(role.code, ''), ' ', coalesce(role.type, '')) as displayName3,
+                role.shortname                                                as displayName4,
+                unit.created_date                                             as created_date,
+                unit.updated_date                                             as updated_date,
+                0                                                             as isVacancy,
+                CASE
+                    WHEN role.accessredirect IS NULL THEN 0
+                    ELSE 1
+                    END                                                       AS isDeleted
+         from so_role role
+                  join so_unit unit on role.id = unit.id
+                  left join so_parent parent on parent.id = role.hierparent
+         where role.accessredirect is null
+     ) temp ::from-clause WHERE temp.isDeleted <> 1 ::where-clause
+       ]]>
+    </prototype>
+    <filter name="MODULE">
+        <reference placeholder="from-clause">
+            <![CDATA[
+                   join SS_ModuleOrg ss_module_org on ss_module_org.Organization = temp.org
+                ]]>
+        </reference>
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    SS_Module_Org.Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="name">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    lower(temp.name) like ('%' || lower({0}) || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    lower(temp.displayName) like ('%' || lower({0}) || '%') or
+                    lower(temp.displayName2) like ('%' || lower({0}) || '%')
+                ]]>
+        </criteria>
+    </filter>
+</collection>

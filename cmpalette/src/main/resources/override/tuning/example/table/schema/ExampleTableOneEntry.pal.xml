@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="ExampleTableOneEntry" recalc="true">
+    <meta>
+      <category name="Разработка и Аналитика"/>
+      <documentation>Данная схема предназначена для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+    </meta>
+    <actor name="Organization">
+      <meta>
+        <documentation>Организация</documentation>
+      </meta>
+    </actor>
+    <string name="empty" temporal="true" computed="true"/>
+    <string name="INN" computed="true">
+      <meta>
+        <documentation>ИНН</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[Organization == null ?'':Organization.originalData().getParty().bankProperties.getInn()]]></script>
+      </calc-values>
+    </string>
+    <string name="IDOSPARK">
+      <meta>
+        <documentation>ИДО СПАРК</documentation>
+      </meta>
+    </string>
+    <string name="Name">
+      <meta>
+        <documentation>Полное наименование</documentation>
+      </meta>
+    </string>
+    <double name="NDS">
+      <meta>
+        <documentation>НДС</documentation>
+      </meta>
+    </double>
+    <double name="Cost">
+      <meta>
+        <documentation>Сумма + НДС</documentation>
+      </meta>
+    </double>
+    <double name="CostNDS">
+      <meta>
+        <documentation>Сумма + НДС</documentation>
+      </meta>
+    </double>
+    <string name="CostNDSShow" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[ {
+	#symbol = T(java.text.DecimalFormatSymbols).getInstance(),
+    #symbol.setGroupingSeparator(' '),
+    (#this.CostNDS == null)?'0.00':(new java.text.DecimalFormat('###,##0.00', #symbol).format(T(java.lang.Double).parseDouble(#this.CostNDS)))
+}[2]]]>
+        </script>
+      </calc-values>
+    </string>
+    <string name="labelINN" temporal="true" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['ИНН:']]></script>
+      </calc-values>
+    </string>
+    <string name="OrgDescription" computed="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(INN == null || INN == ''?'':'ИНН:' + INN) + ' ' +
+        (IDOSPARK == null || IDOSPARK == ''?'':'И.Д.О.(СПАРК):' + IDOSPARK)]]></script>
+      </calc-values>
+    </string>
+    <string name="CostInfo" computed="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[NDS == null || NDS == 0?'':'НДС:' + NDS.toString() + '%']]></script>
+      </calc-values>
+    </string>
+  </schema>
+</schemas>

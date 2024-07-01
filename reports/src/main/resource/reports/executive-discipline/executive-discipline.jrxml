@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="executive-discipline" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" scriptletClass="GetIdsList" uuid="0f0e9e53-feae-4984-8c20-f65c525ceade">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="EMPL_LIST.Value" class="java.lang.Object"/>
+	<parameter name="DATE.Start" class="java.util.Date"/>
+	<parameter name="DATE.End" class="java.util.Date"/>
+	<parameter name="ExecWhere" class="java.lang.Object">
+		<defaultValueExpression><![CDATA[$P{REPORT_SCRIPTLET}.getExecWhere($P{EMPL_LIST.Value})]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[WITH executorsOfInterest AS
+         (SELECT executorBeard.id             execId,
+                 executorBeard.orig_shortname execName
+          FROM so_beard executorBeard
+              $P!{ExecWhere}
+         ),
+/* резолюции */
+     resolutionsOfInterest AS
+         (SELECT res.id                         resolutId,
+                 resExecCurr.executorcurr       execId,
+                 executorsOfInterest.execName   execName,
+                 resBase.resolution             resText,
+                 res.ctrldateexecution          execDate,
+                 CASE
+                     WHEN exDateCur.execdatecurr BETWEEN '0001.01.02' AND $P{DATE.End} THEN exDateCur.execdatecurr
+                     ELSE res.ctrldeadline END AS ctrlDeadline,
+                 exDateCur.idx                  execIndex
+          FROM f_dp_resolution res
+                   JOIN f_dp_resltnbase resBase on res.id = resBase.id
+                   JOIN f_dp_resltnbase_execcurr resExecCurr ON resBase.id = resExecCurr.owner
+                   JOIN executorsOfInterest ON resExecCurr.executorcurr = executorsOfInterest.execId
+                   JOIN F_DP_Resolution_ExDateCur exDateCur ON res.id = exDateCur.owner AND resExecCurr.idx = exdatecur.idx
+          WHERE res.isproject = 0
+            AND resBase.isdeleted = 0
+            AND resBase.ctrliscontrolled = 1
+            AND (
+              res.ctrldateexecution BETWEEN $P{DATE.Start} AND $P{DATE.End}
+                  OR
+                  ((res.ctrldateexecution IS NULL OR res.ctrldateexecution > $P{DATE.End})
+                  AND res.ctrldeadline < $P{DATE.End})
+              )
+         ),
+
+     ResolutionsInDocumentT AS (SELECT count(DISTINCT resolutionsOfInterest.resolutId) ResolutionsInDocument FROM resolutionsOfInterest),
+
+     totalResolutionsT AS (SELECT resolutionsOfInterest.execId,
+                                  resolutionsOfInterest.execName,
+                                  count(DISTINCT resolutionsOfInterest.resolutId) totalResolutions
+                           FROM resolutionsOfInterest
+                           group by execId,execName),
+
+     totalExecResT AS (SELECT resolutionsOfInterest.execId,
+                              count(distinct resolutionsOfInterest.resolutId) totalExecRes
+                       FROM resolutionsOfInterest
+                       WHERE execDate <= $P{DATE.End}
+                       group by execId),
+
+     ExecResDeadMissedT AS (SELECT resolutionsOfInterest.execId,
+                                   count(distinct resolutionsOfInterest.resolutId) ExecResDeadMissed
+                            FROM resolutionsOfInterest
+                            WHERE execDate <= $P{DATE.End}
+                                AND ctrlDeadline < execDate
+                            group by execId),
+
+     UnexecCtrlRemovedT AS (SELECT resolutionsOfInterest.execId,
+                                   count(distinct resolutionsOfInterest.resolutId) UnexecCtrlRemoved
+                            from resolutionsOfInterest
+                                     LEFT JOIN F_DP_Resolution_ExDOutOwn resExecOut
+                                               ON resExecOut.owner = resolutionsOfInterest.resolutId AND
+                                                  resolutionsOfInterest.execIndex = resExecOut.idx
+                            where (resolutionsOfInterest.execDate IS NULL OR
+                                   resolutionsOfInterest.execDate >  $P{DATE.End})
+                              AND resExecOut.execdateoutcurr BETWEEN '0001.01.02' AND  $P{DATE.End}
+                            group by execId),
+
+    LastReportT AS (SELECT reportId, resolutionParent, reportAuthor, reportDate, reportDeclined, reportApproved
+                    FROM (SELECT report.id            reportId,
+                                 report.hierparent    resolutionParent,
+                                 report.author        reportAuthor,
+                                 report.execdate      reportDate,
+                                 NULLIF(trim(report.declinewhopid),'') reportDeclined,
+                                 report.approvedt     reportApproved,
+                                 row_number()
+                                 over (PARTITION BY resolutionsOfInterest.execId, resolutionsOfInterest.resolutId ORDER BY report.execdate, report.created_date DESC) rowNumber,
+                                 resExecOut.*
+                          FROM resolutionsOfInterest
+                                   JOIN f_dp_report report ON report.hierparent = resolutionsOfInterest.resolutId
+                              AND report.author = resolutionsOfInterest.execId
+                                   LEFT JOIN F_DP_Resolution_ExDOutOwn resExecOut
+                                             ON resExecOut.owner = resolutionsOfInterest.resolutId AND
+                                                resolutionsOfInterest.execIndex = resExecOut.idx
+                          WHERE (resolutionsOfInterest.execDate IS NULL OR
+                                 resolutionsOfInterest.execDate >  $P{DATE.End})
+                            AND report.isdeleted = 0
+                            AND report.type = 1
+                            AND (resExecOut.id IS NULL OR
+                                 resExecOut.execdateoutcurr <  $P{DATE.End} OR
+                                 resolutionsOfInterest.execDate >  $P{DATE.End})
+                         ) orderedReports
+                    WHERE rowNumber = 1),
+
+     UnexecCtrlReportApprovedT AS (SELECT resolutionsOfInterest.execId,
+                                          count(distinct resolutionsOfInterest.resolutId) UnexecCtrlReportApproved
+                                   from resolutionsOfInterest
+                                            JOIN LastReportT
+                                                 ON LastReportT.resolutionParent = resolutionsOfInterest.resolutId AND
+                                                    LastReportT.reportAuthor = resolutionsOfInterest.execId
+                                   where (resolutionsOfInterest.execDate IS NULL OR
+                                          resolutionsOfInterest.execDate >  $P{DATE.End})
+                                     AND LastReportT.reportId IS NOT NULL
+                                     AND reportApproved IS NOT NULL
+                                     AND reportDeclined IS NULL
+                                   group by execId),
+
+
+     UnexecCtrlReportDeclinedT AS (SELECT resolutionsOfInterest.execId,
+                                          count(distinct resolutionsOfInterest.resolutId) UnexecCtrlReportDeclined
+                                   from resolutionsOfInterest
+                                            LEFT JOIN LastReportT
+                                                      ON LastReportT.resolutionParent = resolutionsOfInterest.resolutId AND
+                                                         LastReportT.reportAuthor = resolutionsOfInterest.execId
+                                   where (resolutionsOfInterest.execDate IS NULL OR
+                                          resolutionsOfInterest.execDate >  $P{DATE.End})
+                                     AND (LastReportT.reportId IS NULL
+                                       OR reportDeclined IS NOT NULL)
+                                   group by execId),
+
+     UnexecCtrlReportMissedT AS (SELECT resolutionsOfInterest.execId,
+                                        count(distinct resolutionsOfInterest.resolutId) UnexecCtrlReportMissed
+                                 from resolutionsOfInterest
+                                          JOIN LastReportT
+                                               ON LastReportT.resolutionParent = resolutionsOfInterest.resolutId AND
+                                                  LastReportT.reportAuthor = resolutionsOfInterest.execId
+                                 where (resolutionsOfInterest.execDate IS NULL OR
+                                        resolutionsOfInterest.execDate >  $P{DATE.End})
+                                   AND LastReportT.reportId IS NOT NULL
+                                   AND reportApproved IS NULL
+                                   AND reportDeclined IS NULL
+                                 group by execId),
+
+     UnexecutedTotalT AS
+         (SELECT resolutionsOfInterest.execId,
+                 count(distinct resolutionsOfInterest.resolutId) UnexecutedTotal
+          FROM resolutionsOfInterest
+          WHERE resolutionsOfInterest.execDate IS NULL
+             OR resolutionsOfInterest.execDate >  $P{DATE.End}
+          group by execId),
+/* резолюции */
+
+/* поручения */
+/* все поручения, соответствующие условиям отбора */
+     tasksOfInterest AS (
+         SELECT task.id                        taskId,
+                resExecCurr.executorcurr       execId,
+                executorsOfInterest.execName   execName,
+                task.resolution                taskText,
+                task.ctrldateexecution         execDate,
+                CASE
+                    WHEN exDateCur.execdatecurr BETWEEN '0001.01.02' AND  $P{DATE.End} THEN exDateCur.execdatecurr
+                    ELSE task.ctrldeadline END AS ctrlDeadline,
+                exDateCur.idx                  execIndex
+         FROM f_dp_tasksresolution task
+                  JOIN f_dp_rkkbase rkkBase on task.id = rkkBase.id
+                  JOIN f_dp_tasksresolution_ec resExecCurr ON task.id = resExecCurr.owner
+                  JOIN executorsOfInterest ON resExecCurr.executorcurr = executorsOfInterest.execId
+                  JOIN f_dp_tasksresolution_edc exDateCur ON task.id = exDateCur.owner AND resExecCurr.idx = exdatecur.idx
+         WHERE task.isproject = 0
+           AND rkkBase.isdeleted = 0
+           AND task.ctrliscontrolled = 1
+           AND (
+             task.ctrldateexecution BETWEEN  $P{DATE.Start} AND  $P{DATE.End}
+                 OR
+                 ((task.ctrldateexecution IS NULL OR task.ctrldateexecution >  $P{DATE.End})
+                 AND task.ctrldeadline <  $P{DATE.End})
+             )
+     ),
+
+/* количество поручений, всего */
+     TasksInDocumentT AS (SELECT count(DISTINCT tasksOfInterest.taskId) TasksInDocument FROM tasksOfInterest),
+
+/* количество поручений, по каждому исполнителю */
+     totalTasksT AS (SELECT tasksOfInterest.execId,
+                            tasksOfInterest.execName,
+                            count(DISTINCT tasksOfInterest.taskId) totalTasks
+                     FROM tasksOfInterest
+                     group by execId,execName),
+
+/* количество исполненных поручений, по каждому исполнителю */
+     totalExecTaskT AS (SELECT tasksOfInterest.execId,
+                               count(distinct tasksOfInterest.taskId) totalExecTask
+                        FROM tasksOfInterest
+                        WHERE execDate <=  $P{DATE.End}
+                        group by execId),
+
+/* количество поручений, исполненных с нарушением срока, по каждому исполнителю */
+     ExecTaskDeadMissedT AS (SELECT tasksOfInterest.execId,
+                                    count(distinct tasksOfInterest.taskId) ExecTaskDeadMissed
+                             FROM tasksOfInterest
+                             WHERE execDate <=  $P{DATE.End}
+                                 AND ctrlDeadline < execDate
+                             group by execId),
+
+/* отчеты по неисполненным поручениям */
+     LastTasksReportT AS (SELECT reportId, taskParent, reportAuthor, reportDate, reportDeclined, reportApproved
+                          FROM (SELECT report.id            reportId,
+                                       report.hierparent    taskParent,
+                                       report.author        reportAuthor,
+                                       report.execdate      reportDate,
+                                       NULLIF(trim(report.declinewhopid),'') reportDeclined,
+                                       report.approvedt     reportApproved,
+                                       row_number() over (PARTITION BY tasksOfInterest.execId, tasksOfInterest.taskId
+                                           ORDER BY report.execdate DESC, report.created_date DESC) rowNumber
+                                FROM tasksOfInterest
+                                         JOIN f_dp_report report
+                                              ON report.hierparent = tasksOfInterest.taskId
+                                                  AND report.author = tasksOfInterest.execId
+                                WHERE (tasksOfInterest.execDate IS NULL OR tasksOfInterest.execDate >  $P{DATE.End})
+                                  AND report.isdeleted = 0
+                                  AND report.type = 1
+                               ) orderedReports
+                          WHERE rowNumber = 1),
+
+/* количество неисполненных поручений, со снятым признаком Контроль исполнителя (без отчета), по каждому исполнителю */
+/* отсутствие записи в f_dp_tasksresolution_excl означает снятие контроля с исполнителя */
+     UnexecTasksCtrlRemovedT AS (SELECT tasksOfInterest.execId,
+                                        count(distinct tasksOfInterest.taskId) UnexecTasksCtrlRemoved
+                                 from tasksOfInterest
+                                          LEFT JOIN f_dp_tasksresolution_excl execOut
+                                                    ON execOut.owner = tasksOfInterest.taskId
+                                                        AND execOut.idx = tasksOfInterest.execIndex
+                                          LEFT JOIN LastTasksReportT
+                                                    ON LastTasksReportT.taskParent = tasksOfInterest.taskId
+                                                        AND LastTasksReportT.reportAuthor = tasksOfInterest.execId
+                                 where (tasksOfInterest.execDate IS NULL OR tasksOfInterest.execDate >  $P{DATE.End})
+                                   AND execOut.id is null
+                                   AND (LastTasksReportT.reportApproved is null OR LastTasksReportT.reportDeclined is not null)
+                                 group by execId),
+
+/* количество неисполненных поручений, со снятым признаком Контроль исполнителя (с отчетом), по каждому исполнителю */
+     UnexecTasksCtrlReportApprovedT AS (SELECT tasksOfInterest.execId,
+                                               count(distinct tasksOfInterest.taskId) UnexecTasksCtrlReportApproved
+                                        from tasksOfInterest
+                                                 LEFT JOIN f_dp_tasksresolution_excl execOut
+                                                           ON execOut.owner = tasksOfInterest.taskId
+                                                               AND execOut.idx = tasksOfInterest.execIndex
+                                                 LEFT JOIN LastTasksReportT
+                                                           ON LastTasksReportT.taskParent = tasksOfInterest.taskId
+                                                               AND LastTasksReportT.reportAuthor = tasksOfInterest.execId
+                                        where (tasksOfInterest.execDate IS NULL OR tasksOfInterest.execDate >  $P{DATE.End})
+                                          AND execOut.id is null
+                                          AND LastTasksReportT.reportApproved IS NOT NULL
+                                          AND LastTasksReportT.reportDeclined IS NULL
+                                        group by execId),
+
+/* количество неисполненных поручений, с признаком Контроль исполнителя (без отчета), по каждому исполнителю */
+     UnexecTasksCtrlReportDeclinedT AS (SELECT tasksOfInterest.execId,
+                                               count(distinct tasksOfInterest.taskId) UnexecTasksCtrlReportDeclined
+                                        from tasksOfInterest
+                                                 JOIN f_dp_tasksresolution_excl execOut
+                                                      ON execOut.owner = tasksOfInterest.taskId
+                                                          AND execOut.idx = tasksOfInterest.execIndex
+                                                 LEFT JOIN LastTasksReportT
+                                                           ON LastTasksReportT.taskParent = tasksOfInterest.taskId
+                                                               AND LastTasksReportT.reportAuthor = tasksOfInterest.execId
+                                        where (tasksOfInterest.execDate IS NULL OR tasksOfInterest.execDate >  $P{DATE.End})
+                                          AND (LastTasksReportT.reportId IS NULL OR reportDeclined IS NOT NULL)
+                                        group by execId),
+
+/* количество неисполненных поручений, с признаком Контроль исполнителя (c отчетом), по каждому исполнителю */
+     UnexecTasksCtrlReportMissedT AS (SELECT tasksOfInterest.execId,
+                                             count(distinct tasksOfInterest.taskId) UnexecTasksCtrlReportMissed
+                                      from tasksOfInterest
+                                               JOIN LastTasksReportT
+                                                    ON LastTasksReportT.taskParent = tasksOfInterest.taskId
+                                                        AND LastTasksReportT.reportAuthor = tasksOfInterest.execId
+                                      where (tasksOfInterest.execDate IS NULL OR tasksOfInterest.execDate >  $P{DATE.End})
+                                        AND LastTasksReportT.reportApproved IS NULL
+                                        AND LastTasksReportT.reportDeclined IS NULL
+                                      group by execId),
+
+     UnexecutedTasksTotalT AS (SELECT tasksOfInterest.execId,
+                                      count(distinct tasksOfInterest.taskId) UnexecutedTasksTotal
+                               FROM tasksOfInterest
+                               WHERE tasksOfInterest.execDate IS NULL OR tasksOfInterest.execDate >  $P{DATE.End}
+                               group by execId)
+/* поручения */
+
+select executorsOfInterest.execName,
+       coalesce(ResolutionsInDocument, 0) + coalesce (TasksInDocument, 0)    ResolutionsInDocument,
+       coalesce(totalResolutions, 0) + coalesce(totalTasks, 0)               totalResolutions,
+       coalesce(totalExecRes, 0) + coalesce(totalExecTask, 0)                totalExecRes,
+       coalesce(ExecResDeadMissed, 0) + coalesce(ExecTaskDeadMissed, 0)      ExecResDeadMissed,
+       coalesce(UnexecCtrlRemoved, 0) +  coalesce(UnexecTasksCtrlRemoved, 0) UnexecCtrlRemoved,
+       coalesce(UnexecCtrlReportApproved, 0) + coalesce(UnexecTasksCtrlReportApproved, 0)  UnexecCtrlReportApproved,
+       coalesce(UnexecCtrlReportDeclined, 0) + coalesce(UnexecTasksCtrlReportDeclined, 0) UnexecCtrlReportDeclined,
+       coalesce(UnexecCtrlReportMissed, 0) + coalesce(UnexecTasksCtrlReportMissed, 0) UnexecCtrlReportMissed,
+       coalesce(UnexecutedTotal, 0) +  coalesce(UnexecutedTasksTotal, 0)          UnexecutedTotal
+
+from executorsOfInterest
+         LEFT JOIN ResolutionsInDocumentT ON 1=1     /* резолюции */
+         LEFT JOIN TasksInDocumentT ON 1=1           /* поручения */
+         LEFT JOIN totalResolutionsT ON totalResolutionsT.execId = executorsOfInterest.execId /* резолюции */
+         LEFT JOIN totalTasksT ON totalTasksT.execId = executorsOfInterest.execId             /* поручения */
+         LEFT JOIN totalExecResT ON totalExecResT.execId = totalResolutionsT.execId           /* резолюции */
+         LEFT JOIN totalExecTaskT ON totalExecTaskT.execId = totalTasksT.execId               /* поручения */
+         LEFT JOIN ExecResDeadMissedT ON ExecResDeadMissedT.execId = totalResolutionsT.execId /* резолюции */
+         LEFT JOIN ExecTaskDeadMissedT ON ExecTaskDeadMissedT.execId = totalTasksT.execId     /* поручения */
+         LEFT JOIN UnexecCtrlRemovedT ON UnexecCtrlRemovedT.execId = totalResolutionsT.execId /* резолюции */
+         LEFT JOIN UnexecTasksCtrlRemovedT ON UnexecTasksCtrlRemovedT.execId = totalTasksT.execId /* поручения */
+         LEFT JOIN UnexecCtrlReportApprovedT ON UnexecCtrlReportApprovedT.execId = totalResolutionsT.execId /* резолюции */
+         LEFT JOIN UnexecTasksCtrlReportApprovedT ON UnexecTasksCtrlReportApprovedT.execId = totalTasksT.execId /* поручения */
+         LEFT JOIN UnexecCtrlReportMissedT ON UnexecCtrlReportMissedT.execId = totalResolutionsT.execId /* резолюции */
+         LEFT JOIN UnexecTasksCtrlReportMissedT ON UnexecTasksCtrlReportMissedT.execId = totalTasksT.execId /* поручения */
+         LEFT JOIN UnexecCtrlReportDeclinedT ON UnexecCtrlReportDeclinedT.execId = totalResolutionsT.execId /* резолюции */
+         LEFT JOIN UnexecTasksCtrlReportDeclinedT ON UnexecTasksCtrlReportDeclinedT.execId = totalTasksT.execId /* поручения */
+         LEFT JOIN UnexecutedTotalT ON UnexecutedTotalT.execId = totalResolutionsT.execId /* резолюции */
+         LEFT JOIN UnexecutedTasksTotalT ON UnexecutedTasksTotalT.execId = totalTasksT.execId /* поручения */
+order by execName]]>
+	</queryString>
+	<field name="execName" class="java.lang.String"/>
+	<field name="ResolutionsInDocument" class="java.lang.Integer"/>
+	<field name="totalResolutions" class="java.lang.Integer"/>
+	<field name="totalExecRes" class="java.lang.Integer"/>
+	<field name="ExecResDeadMissed" class="java.lang.Integer"/>
+	<field name="UnexecCtrlRemoved" class="java.lang.Integer"/>
+	<field name="UnexecCtrlReportApproved" class="java.lang.Integer"/>
+	<field name="UnexecCtrlReportDeclined" class="java.lang.Integer"/>
+	<field name="UnexecCtrlReportMissed" class="java.lang.Integer"/>
+	<field name="UnexecutedTotal" class="java.lang.Integer"/>
+	<variable name="totalResolutionsSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{totalResolutions}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="totalExecResSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{totalExecRes}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="ExecResDeadMissedSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{ExecResDeadMissed}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="UnexecCtrlRemovedSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{UnexecCtrlRemoved}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="UnexecCtrlReportApprovedSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{UnexecCtrlReportApproved}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="UnexecCtrlReportDeclinedSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{UnexecCtrlReportDeclined}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="UnexecCtrlReportMissedSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{UnexecCtrlReportMissed}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<variable name="UnexecutedTotalSum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{UnexecutedTotal}]]></variableExpression>
+		<initialValueExpression><![CDATA[0L]]></initialValueExpression>
+	</variable>
+	<title>
+		<band height="70" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField evaluationTime="Report">
+				<reportElement x="0" y="0" width="802" height="70" uuid="95fd292d-211c-4979-a857-82b16a6bd5e1">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph lineSpacing="Double" lineSpacingSize="2.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["АНАЛИЗ ИСПОЛНИТЕЛЬСКОЙ ДИСЦИПЛИНЫ \n" +
+"по контрольным резолюциям/поручениям сроком исполнения в период с "
++new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{DATE.Start}) +
+" по " +
+new java.text.SimpleDateFormat("dd.MM.yyyy").format($P{DATE.End}) + 
+"\nВсего резолюций/поручений - " +$F{ResolutionsInDocument}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="60" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="30" height="60" backcolor="#E6E6E6" uuid="c43739a8-67e3-449b-9459-560718383017">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="5">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["№\nп/п"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="30" y="0" width="132" height="60" backcolor="#E6E6E6" uuid="9faf586c-b07b-44ca-bae5-541a5f860873">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Исполнитель"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="162" y="0" width="40" height="60" backcolor="#E6E6E6" uuid="19adf04a-0ab3-41a8-a958-52ff6514636b">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Всего\nза\nпериод"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="202" y="0" width="208" height="20" backcolor="#E6E6E6" uuid="ae1681d7-bab1-462a-a374-1e3858cf4d64">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Исполнено"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="202" y="20" width="38" height="40" backcolor="#E6E6E6" uuid="0a45eb27-047f-4c02-8bdc-9d332cb743a6">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Всего"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="240" y="20" width="80" height="40" backcolor="#E6E6E6" uuid="9a6878f0-c709-4b54-87bf-c92d4e209bbf">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["С нарушением срока"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="410" y="20" width="80" height="40" backcolor="#E6E6E6" uuid="abb8b173-ef1d-45e8-ae56-75266c294ccb">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Без отчета"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="576" y="0" width="226" height="20" backcolor="#E6E6E6" uuid="2f76449a-d9dc-4233-9170-6e8e80b0b9c9">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Не исполнено"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="490" y="20" width="86" height="40" backcolor="#E6E6E6" uuid="b1fa760e-df2e-44c7-a331-eceb33edc6e2">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["С отчетом"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="410" y="0" width="166" height="20" backcolor="#E6E6E6" uuid="c5aaf72e-4aec-4711-9d5a-b7e322698809">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Снято с контроля"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="715" y="20" width="87" height="40" backcolor="#E6E6E6" uuid="c4943a46-71df-43e8-bfbd-852fc15d2626">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Не исполнено -\n% от общ. кол-ва"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="320" y="20" width="90" height="40" backcolor="#E6E6E6" uuid="8eb6e2c1-812d-4dae-ba42-765f4d26d5e3">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["% просроченных от исполненных"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="576" y="20" width="64" height="40" backcolor="#E6E6E6" uuid="2e7a7172-70c8-4715-90c4-68059f91c9e0">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Без отчета"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="640" y="20" width="75" height="40" backcolor="#E6E6E6" uuid="01bbbd3f-8e52-4a81-a8b6-806700261814">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["С отчетом"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="30" height="20" uuid="95176f35-caf8-46a6-9a5b-d459eee3d845">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+					<paragraph rightIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="30" y="0" width="132" height="20" uuid="2be01a73-4632-4911-8273-1f2281b1bc70">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{execName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="162" y="0" width="40" height="20" uuid="bfccd032-190a-48c8-bb05-dd139a6992de"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalResolutions}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="0" width="38" height="20" uuid="0b51cca5-a782-490a-bfd9-47d0666592a0"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalExecRes}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="240" y="0" width="80" height="20" uuid="0ab30e29-3633-4bb9-ac55-17a6514a74f8"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ExecResDeadMissed}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="0" width="90" height="20" uuid="9c178716-7f7f-4c5f-a1b6-3a8825058adb"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalExecRes} != 0 ? String.format("%.2f",$F{ExecResDeadMissed}.doubleValue()/$F{totalExecRes}*100)+"%" : ""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="410" y="0" width="80" height="20" uuid="250c9b97-67b2-4ed6-b9d1-4f4bb9be1bfa"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{UnexecCtrlRemoved}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="490" y="0" width="86" height="20" uuid="e82e22ee-c129-4326-9cba-1ac9bf39df3f"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{UnexecCtrlReportApproved}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="576" y="0" width="64" height="20" uuid="2c94e7bd-05d4-4616-90bf-1740004d0de3"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{UnexecCtrlReportDeclined}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="715" y="0" width="87" height="20" uuid="4869c6da-bab5-41e3-a292-22db4d23967c"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalResolutions}!=0 ? String.format("%.2f",$F{UnexecutedTotal}.doubleValue()/$F{totalResolutions}.doubleValue()*100) + "%" : "00.00"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="640" y="0" width="75" height="20" uuid="fc615506-bde4-4ace-89c2-d1b46bd4c4d0"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{UnexecCtrlReportMissed}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="60" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="0" y="0" width="30" height="20" uuid="5f662326-fe1f-4de3-9094-107119e4842d"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="30" y="0" width="132" height="20" uuid="5f662326-fe1f-4de3-9094-107119e4842d">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ИТОГО:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="162" y="0" width="40" height="20" uuid="c4ae19c8-880e-4430-8031-44eab81864e0">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalResolutionsSum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="202" y="0" width="38" height="20" uuid="2d713138-998e-4dc6-8d6a-4f62cd595079">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalExecResSum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="240" y="0" width="80" height="20" uuid="e7ea2242-894d-4276-931d-afcf6455ecb5">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{ExecResDeadMissedSum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="0" width="90" height="20" uuid="d556f97f-712e-4814-8da4-3db8db949ad8">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalExecResSum} != 0 ? String.format("%.2f",$V{ExecResDeadMissedSum}.doubleValue()/$V{totalExecResSum}*100)+"%" : ""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="410" y="0" width="80" height="20" uuid="9d912afd-e34a-4ecc-94c0-86563703b1a4">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{UnexecCtrlRemovedSum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="490" y="0" width="86" height="20" uuid="8c40b945-3066-4d63-94b8-f7f0b2e8d9a0">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{UnexecCtrlReportApprovedSum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="576" y="0" width="64" height="20" uuid="10d7249f-bb71-4b38-985e-932af964f1b9">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{UnexecCtrlReportDeclinedSum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="715" y="0" width="87" height="20" uuid="1650c4c6-6924-4f64-9745-bdbc106ff8f7">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalResolutionsSum}!= 0 ? String.format("%.2f",$V{UnexecutedTotalSum}.doubleValue()/$V{totalResolutionsSum}.doubleValue()*100) +"%" : "00.00"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="640" y="0" width="75" height="20" uuid="c946a654-6e77-4a77-916e-2e00c18f8564">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{UnexecCtrlReportMissedSum}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="30" width="802" height="30" uuid="e05a86ae-e5fa-4fff-9d59-f71bec8e38d3"/>
+				<textElement>
+					<font fontName="Arial"/>
+				</textElement>
+				<text><![CDATA[ *Примечание: в отчет отбираются неисполненные резолюции/поручения, срок исполнения которых меньше или равен концу периода, а также исполненные, дата исполнения которых попадает в указанный период времени.]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

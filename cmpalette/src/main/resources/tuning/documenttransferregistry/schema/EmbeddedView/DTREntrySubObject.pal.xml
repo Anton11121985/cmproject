@@ -1,0 +1,324 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="DTREntrySubObject" extends="EmbeddedCollectionSubObject">
+        <meta>
+            <category name="Система\Делопроизводство\Реестр передачи документов"/>
+            <documentation>Подобъект "Запись реестра передачи документов"</documentation>
+        </meta>
+        <string name="$id" system="true"/>
+        <integer name="number" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[ index ]]>
+                </script>
+            </calc-values>
+        </integer>
+
+        <!-- свойства связанного документа -->
+        <string name="documentUnid">
+            <storage-field name="documentUnid"/>
+        </string>
+        <enum-ref name="documentType" ref="DTRDocumentType">
+            <storage-field name="documentType"/>
+        </enum-ref>  <!-- удалить -->
+        <enum-ref name="module" ref="DTRDocumentModule">
+            <storage-field name="module"/>
+        </enum-ref>
+        <string name="reqType">
+            <storage-field name="reqType"/>
+        </string>
+        <boolean name="isAddAgrType">
+            <storage-field name="isAddAgrType"/>
+        </boolean>
+        <!--<boolean name="selectDocumentFlag" temporal="true"/>-->
+        <string name="numberText" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['№']]></script>
+            </calc-values>
+        </string>
+        <string name="regNumber">
+            <storage-field name="regNumber"/>
+        </string>
+        <boolean name="isProject">
+            <storage-field name="isProject"/>
+        </boolean>
+        <string name="fromText" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL"><![CDATA['от']]></script>
+            </calc-values>
+        </string>
+        <date name="regDate">
+            <storage-field name="regDate"/>
+        </date>
+        <string name="regData" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        ((isProject != null && isProject) ? "Проект " : "")
+                         +
+                        (regDate != null ?
+                         (regNumber!=null ? ("№" + regNumber + " от ") : "от ") + new java.text.SimpleDateFormat("dd.MM.yyyy").format(regDate.toJavaDate()) :
+                         (regNumber!=null ? ("№" + regNumber) : ""))
+                    ]]>
+                </script>
+            </calc-values>
+        </string>
+
+        <string name="subject">
+            <storage-field name="subject"/>
+        </string>
+        <enum-ref name="deliveryStatus" ref="DTRDeliveryStatus">
+            <storage-field name="deliveryStatus" />
+        </enum-ref>
+        <string name="comment">
+            <storage-field name="comment"/>
+        </string>
+        <actor name="correspondentContractor" array="true">
+            <storage-field name="correspondentContractor"/>
+        </actor>
+        <string name="correspondentContractorText">
+            <storage-field name="correspondentContractorText"/>
+        </string>
+        <schema-ref name="correspondentForAdd" ref="DTRCorrespondentResource"/>
+
+        <actor name="addInfoBeards" array="true">
+            <storage-field name="addInfoBeards"/>
+        </actor>
+        <string name="addInfoText">
+            <storage-field name="addInfoText"/>
+        </string>
+        <schema-ref name="addInfoForAdd" ref="DTRAdditionalInfoResource"/>
+
+        <hyperlink name="documentLink" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink('Открыть карточку в новой вкладке' +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + documentUnid + '~#newTab~#local')
+                    ]]>
+                </script>
+            </calc-values>
+        </hyperlink>
+        <hyperlink name="documentLinkSubject" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink(subject +'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + documentUnid + '~#newTab~#local')
+                    ]]>
+                </script>
+            </calc-values>
+        </hyperlink>
+        <!--<string name="addInfoToShow" temporal="true">
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        (addInfoBeards == null || addInfoBeards.isEmpty()) ? addInfoText :
+                        T(org.springframework.util.StringUtils).collectionToDelimitedString(#evaluateBeardsListByPath(#this, T(java.util.Collections).singletonList("addInfoBeards")), ", ")
+                    ]]>
+                </script>
+            </calc-values>
+        </string> -->
+        <boolean name="byHand">
+            <storage-field name="byHand"/>
+        </boolean>
+        <string name="barcode" >
+            <storage-field name="barcode"/>
+        </string>
+        <actor name="author" >
+            <storage-field name="author"/>
+            <calc-values>
+                <script event="open" lang="SPEL">
+                    <![CDATA[
+                        author == null ? T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard() : author
+                    ]]>
+                </script>
+            </calc-values>
+        </actor>
+
+        <schema-ref name="transmittedDoc" ref="TransmittedDoc" null-empty="true"/>
+
+        <!-- свойства родительской РКК, нужны для определения доступности действий -->
+        <actor name="senderDep" >
+            <storage-field name="senderDep"/>
+        </actor>
+        <actor name="receiverDep" >
+            <storage-field name="receiverDep"/>
+        </actor>
+        <enum-ref name="parentState" ref="DocumentTransferRegistryState">
+            <storage-field name="parentState"/>
+        </enum-ref>
+
+        <!-- свойства для достуност действий -->
+        <boolean name="canEdit" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    isNew() ? true :
+                    (
+                        parentState == "Project" ?
+                        (#isClerkCustom(#this, #this.getUnid(), "senderDep") && byHand) :
+                        (parentState == "Transmitted" ? (#isClerkCustom(#this, #this.getUnid(), "receiverDep") &&
+                        byHand && deliveryStatus.equals("ReceivedByFact")) : false)
+                    )
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="canDelete" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    isNew() ? true :
+                    (
+                        parentState == "Project" ? #isClerkCustom(#this, #this.getUnid(), "senderDep") :
+                        (parentState == "Transmitted" ? (#isClerkCustom(#this, #this.getUnid(), "receiverDep") && deliveryStatus.equals("ReceivedByFact")) : false)
+                    )
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canCancelReceiving" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    (deliveryStatus == "Received" || deliveryStatus == "ReceivedWithoutMark" ||  ((deliveryStatus == "ReceivedByFact" || deliveryStatus == "ReceivedByFactWithoutMark") && !byHand) )  &&
+                    #isClerkCustom(#this, #this.getUnid(), "receiverDep") && (parentState == "Transmitted")
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$canRollbackReceiving" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    (deliveryStatus == "Received") &&
+                    (
+                    T(ru.intertrust.cmj.af.so.SOBeard.Type).SYS_DEPARTMENT.equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getParent()
+                    .originalData().getType()) ?
+                    (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getParent() == receiverDep) :
+                    (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getParent().getParent() == receiverDep)
+                    )
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <boolean name="$hideUnusedActions" temporal="true">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA[
+                    ((link.?[rel=='edit'].size()>0 && !canEdit) ?
+                    link.remove(link.?[rel=='edit'].get(0)) : true) &&
+                    ((link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].size()>0 && !canDelete) ?
+                    link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#move.to.trash'].get(0)) : true)
+                ]]></script>
+            </calc-values>
+        </boolean>
+        <custom-event-handler lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOParty);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitParent);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPostHead);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitStructure);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.utils.Utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.dp.DPException);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.Schema);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.RPBeard);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+
+
+function queryCreate(object){
+	var parentUnid = TunableObjectHelper.getStringValue(object.tuning(), "parentUnid");
+    var dpApp = AFSession.get().getApplication(DPApplication.class);
+    var rkk = dpApp.getEntityByUNID(parentUnid);
+
+    var senderDep = rkk.registration().getPlace();
+	if (senderDep instanceof RPBeard) {
+		senderDep = AFSession.get().getApplication(SOApplication.class).getBeard(senderDep.getUNID());
+	}
+		var receiverDep = TunableObjectHelper.getAFInstance(rkk.tuning(), "receiverDep");
+    var parentState = TunableObjectHelper.getAFInstance(rkk.tuning(), "state");
+
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "senderDep", senderDep);
+	object.tuning().getValues().put("receiverDep", receiverDep);
+	object.tuning().getValues().put("parentState", parentState);
+}
+function querySave(object, document){}
+function postSave(object, document){}
+function recalc(object, changedField){
+
+	var values = object.tuning().getValues();
+	// --------- заполняем корреспондентов после выбора по кнопке ----------
+	if (changedField == 'correspondentForAdd') {
+		var correspondentText = values.get('correspondentContractorText') == null ? "" : values.get('correspondentContractorText').getValue();
+		var correspondentForAdd = values.get('correspondentForAdd').getValues();
+
+		var correspondent = correspondentForAdd.get('correspondent') == null ? null : correspondentForAdd.get('correspondent').getValue();
+		if (correspondent != null) {
+			correspondentText = correspondent.toString();
+			values.put("correspondentContractorText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentContractorText")));
+		}
+
+		var correspondentList = correspondentForAdd.get('correspondentList') == null ? null :correspondentForAdd.get('correspondentList').getValues();
+		if (correspondentList != null && !correspondentList.isEmpty()) {
+			for (var i = 0; i < correspondentList.size(); i++) {
+				var correspondent = correspondentList.get(i).getValue();
+				if(correspondentText == "") {
+					correspondentText = correspondent.toString();
+				} else {
+					correspondentText = correspondentText + ", \n" + correspondent.toString();
+				}
+			}
+			values.put("correspondentContractorText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentContractorText")));
+		}
+
+        var correspondentForAddObject = values.get('correspondentForAdd');
+		correspondentForAdd.put("correspondent", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondent")));
+		correspondentForAdd.put("correspondentList", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondentList")));
+	}
+
+	// --------  заполняем допинфо после выбора по кнопке -------
+	if (changedField == 'addInfoForAdd') {
+		var addInfoText = values.get('addInfoText') == null ? "" : values.get('addInfoText').getValue();
+		var addInfoForAdd = values.get('addInfoForAdd').getValues();
+
+		var addInfo = addInfoForAdd.get('addInfo') == null ? null : addInfoForAdd.get('addInfo').getValue();
+		if (addInfo != null) {
+			addInfoText = addInfo.toString();
+			values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+		}
+
+		var addInfoList = addInfoForAdd.get('addInfoList') == null ? null :addInfoForAdd.get('addInfoList').getValues();
+		if (addInfoList != null && !addInfoList.isEmpty()) {
+			for (var i = 0; i < addInfoList.size(); i++) {
+				var addInfo = addInfoList.get(i).getValue();
+				if(addInfoText == "") {
+					addInfoText = addInfo.toString();
+				} else {
+					addInfoText = addInfoText + ", \n" + addInfo.toString();
+				}
+			}
+			values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+		}
+
+		addInfoForAdd.put("addInfo", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfo")));
+		addInfoForAdd.put("addInfoList", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfoList")));
+	}
+
+}
+]]></custom-event-handler>
+    </schema>
+</schemas>

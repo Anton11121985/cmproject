@@ -1,0 +1,299 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <handler name="Operation_SentToRegistrationMissions" id="Operation_SentToRegistrationMissions">
+        <meta>
+            <documentation>Отправка на регистрацию</documentation>
+        </meta>
+        <script lang="JavaScript">
+            <![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.entity.rkk.full.RKKFSigning);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK.Registration);
+importClass(Packages.ru.intertrust.cmj.af.core.AFEntityStorage);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.rest.contracts.addagr.Agreement);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if(paramPackageId != null)
+	{
+		if (paramPackageId.equals("context")) {
+			process_context(paramsResource, returnResource);
+		}
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+	var id = appTNObject.getClientContextResourceId(paramsResource.tuning());
+	if (id == null) {
+		throw new AFDaoBadParameterException("Не выбраны документы!");
+	}
+
+	var rkk = AFEntityStorage.getEntityByUNID(id);
+	var schema = rkk.tuning().getSchema().getName();
+
+	var regPlace = rkk.registration().getPlace();
+
+	if (rkk.registration() == null || rkk.registration().getPlace() == null) {
+
+		var warning = appTNObject.composeDialog("ThrowDialog", null, null, null);
+		TunableObjectHelper.putAFInstanceValue(warning.tuning(), "messageText", "Заполните поле Место регистрации!");
+		returnResource.setResource(TunableObjectREST.Resource.create(warning));
+
+	} else if (rkk.signing() == null || (rkk.signing().getSigner() == null && (rkk.signing().getSigners() == null || rkk.signing().getSigners().isEmpty()))) {
+
+	    var warning = appTNObject.composeDialog("ThrowDialog", null, null, null);
+		TunableObjectHelper.putAFInstanceValue(warning.tuning(), "messageText", "Заполните поле Подписант!");
+		returnResource.setResource(TunableObjectREST.Resource.create(warning));
+
+	} else {
+
+	    rkk.registration().send();
+	    var hist = rkk.history();
+	    TunableHistoryHelper.hist_addBasicText(hist, FieldBase.DOC_REGISTER_SENT, null);
+	    rkk.history = hist;
+	    rkk.save();
+	    returnResource.setResource(RkkResource.valueOf(rkk));
+
+	}
+}
+            ]]>
+        </script>
+    </handler>
+    <handler id="SendToDrawingOperation" name="Отправить на оформление">
+        <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.operations.entity.rkk.full.RKKFRegistrationRegistrate);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+        if (paramPackageId.equals("context")) { // обработка первого пакета данных с клиента
+            return process_context(paramsResource, returnResource);
+        }
+        return null;
+    }
+    function process_context(paramsResource, returnResource) {
+        var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+        var id = appTNObject.getClientContextResourceId(paramsResource.tuning());
+        if (id == null) {
+            throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+        }
+		var appdp = AFSession.get().getApplication(DPApplication.class);
+        var obj = appdp.getEntityByUNID(id);
+        var doc = AFCMDomino.getDocByUNID(obj.getUNID());
+        obj.setSendToDrawing(true);
+
+        if (obj.isOnRework()!=null && obj.isOnRework()) {
+            obj.setOnRework(false);
+        }
+        obj.approving().setIsAfterApproving(false);
+
+        obj.save();
+        //отправим уведомление и задачу
+        var to = RKKFRegistrationRegistrate.getDPs(obj);
+        if (!to.isEmpty()) {
+          var bList = new ArrayList(to);
+		  DPNotificationUtils.sendNotice(obj, AFSession.get().currentUser().getBeard(), bList , "", "DRAW1_11", "DRAW1_11", "На оформление", null);
+        }
+
+        //Возвращаем ресурс ркк
+        var resource = RkkResource.valueOf(obj);
+        returnResource.setResource(resource);
+        return returnResource.resource;
+    }
+]]></script>
+    </handler>
+    <handler name="Сохранить и заполнить файл(ы)" id="SaveAndFillFilesMissions">
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.java.io.File);
+importClass(Packages.ru.intertrust.cmj.stamp.service.utils.RemoteServiceUtils);
+importClass(Packages.org.springframework.core.env.Environment);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations);
+importClass(Packages.ru.intertrust.cmj.dp.operations.DPOperations.RkkOperations);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstance);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceSimple);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceObject);
+importClass(Packages.ru.intertrust.cmj.af.tuning.AFInstanceArray);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceArrayImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceSimpleImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.content.ContentResource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate)
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.rest.core.ResourceLink);
+importClass(Packages.ru.intertrust.cmj.rest.bf.ModuleID);
+importClass(Packages.ru.intertrust.cmj.reporter.Reporter);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.ReportResource);
+importClass(Packages.ru.intertrust.cmj.ws.reporter.StartResource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationResource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.OperationListResource);
+
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+function process(paramsResource, returnResource) {
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("dialog1")) {
+        process_dialog1(paramsResource, returnResource);
+    }
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбран документ!");
+    }
+    var message = appTNObject.composeDialog("SaveAndFillFilesMissionsDialog", null, null, null);
+
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "dialog1");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "idsAll", ids);
+
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+function process_dialog1(paramsResource, returnResource) {
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("idsAll"));
+    var rkk = appdp.getEntityByUNID(ids.get(0));
+    var files = rkk.content().getFileItems();
+    var oldFileName = GetValue(rkk, "oldFileName");
+
+    for(var i = 0; i < files.size(); i++) {
+        var file = files.get(i);
+        if(file.getName().equals(oldFileName)){
+            files.remove(file);
+        }
+    }
+
+    var reportName = paramsResource.tuning().getValues().get("missionsTypeSettings").getValues().get("docsType").getValue();
+    var reportTitle = paramsResource.tuning().getValues().get("missionsTypeSettings").getValues().get("docsName").getValue();
+
+    var query = "select path from report_template_attach_dx att \n" +
+        "where report_template in (select r.template from QR_Report r) \n" +
+        "  AND name like \'" + reportName + "%\'";
+    var cs = BeansUtils.getBean("collectionsService");
+    var coll = cs.findCollectionByQuery(query);
+    var environment = BeansUtils.getBean("environment");
+    var filePath = coll.get(0).getString("path");
+    var newFile = new File(environment.getProperty("attachment.storage") + "/" + filePath);
+
+    var contentFile = RemoteServiceUtils.fileToDpFile(newFile, reportTitle + ".docx", rkk);
+    contentFile.setFillLabels(true);
+    files.add(contentFile);
+    SetValue(rkk, "oldFileName", contentFile.getName());
+
+    rkk.save();
+    rkk = appdp.getEntityByUNID(ids.get(0));
+
+    var resource = RkkResource.valueOf(rkk);
+    returnResource.setResource(resource);
+}
+
+function SetValue(doc, fieldName, value)
+{
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fieldName, value);
+}
+
+function GetValue(object, filedName) {
+    var values;
+    if(object instanceof AFInstanceObject) {
+        values = object.getValues();
+    } else if(object instanceof HashMap) {
+        values = object;
+    } else {
+        values = object.tuning().getValues();
+    }
+
+    var tmp = values.get(filedName);
+    if(tmp == null) {
+        return null;
+    }
+
+    return tmp instanceof AFInstanceSimple ? tmp.getValue() : tmp.getValues();
+}
+]]></script>
+    </handler>
+</ui>

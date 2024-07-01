@@ -1,0 +1,137 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<pkd xmlns="http://www.intertrust.ru/schema/palette/pkd">
+  <filter name="Доп. фильтр (типы документов)" type="default" priority="0" edit="true" id="byDBType">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[exists (
+		select
+			1
+		from
+			pkd_documents docs
+		where
+			docs.unid = event.document
+			and (
+				docs.type_db in (
+					'OutputDocs',
+					'OutputDocsPrev',
+					'Requests',
+					'RequestsPrev',
+					'InputDocs',
+					'InputDocsPrev',
+					'Missions',
+					'MissionsPrev',
+					'InternalDocs',
+					'InternalDocsPrev',
+                    'Tasks',
+                    'TasksArch',
+                    'ContractsLite',
+                    'ContractsLiteArch',
+                    'JobApps',
+                    'JobOrders'
+				)
+				or docs.root_type_db in (
+					'OutputDocs',
+					'OutputDocsPrev',
+					'Requests',
+					'RequestsPrev',
+					'InputDocs',
+					'InputDocsPrev',
+					'Missions',
+					'MissionsPrev',
+					'InternalDocs',
+					'InternalDocsPrev',
+                    'Tasks',
+                    'TasksArch',
+                    'ContractsLite',
+                    'ContractsLiteArch',
+                    'JobApps',
+                    'JobOrders'
+				)
+			)
+	) ]]></script>
+    </collection-filter>
+    <task-filter>
+      <script lang="SPEL"><![CDATA[(#this instanceof T(ru.intertrust.cmj.pkd.domain.events.PersonEvent) || #this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument)) && T(com.google.common.collect.Sets).newHashSet("OutputDocs",
+					"OutputDocsPrev",
+					"Requests",
+					"RequestsPrev",
+					"InputDocs",
+					"InputDocsPrev",
+					"Missions",
+					"MissionsPrev",
+					"InternalDocs",
+                    "Tasks",
+                    "TasksArch",
+					"InternalDocsPrev",
+                    "ContractsLite",
+                    "ContractsLiteArch",
+                    'JobApps',
+                    'JobOrders').contains(T(java.util.Optional).ofNullable(#this.getDocument().getRootTypeDatabase()).orElse(#this.getDocument().getTypeDatabase()))]]></script>
+    </task-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocType"/>
+    </filter-values>
+  </filter>
+  <filter name="Доп. фильтр (типы документов)" type="default" priority="0" edit="true" id="byDocDBType">
+    <collection-filter>
+      <script lang="SQL"><![CDATA[
+				d.type_db in (
+					'OutputDocs',
+					'OutputDocsPrev',
+					'Requests',
+					'RequestsPrev',
+					'InputDocs',
+					'InputDocsPrev',
+					'Missions',
+					'MissionsPrev',
+					'InternalDocs',
+					'InternalDocsPrev',
+                    'Tasks',
+                    'TasksArch',
+                    'ContractsLite',
+                    'ContractsLiteArch',
+                    'JobApps',
+                    'JobOrders'
+				)
+	]]></script>
+    </collection-filter>
+    <task-filter>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument) && T(com.google.common.collect.Sets).newHashSet("OutputDocs",
+					"OutputDocsPrev",
+					"Requests",
+					"RequestsPrev",
+					"InputDocs",
+					"InputDocsPrev",
+					"Missions",
+					"MissionsPrev",
+					"InternalDocs",
+                    "Tasks",
+                    "TasksArch",
+					"InternalDocsPrev",
+                    "ContractsLite",
+                    "ContractsLiteArch",
+                    'JobApps',
+                    'JobOrders').contains(#this.getDocument().getTypeDatabase())]]></script>
+    </task-filter>
+    <filter-values>
+      <filter-value-ref ref="byDocType"/>
+    </filter-values>
+  </filter>
+  <filter name="На размещение" type="default" id="byPlacementInputBus">
+    <task-filter>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument) && T(com.google.common.collect.Sets).newHashSet(
+                    'JobOrders').contains(#this.getDocument().getTypeDatabase())]]></script>
+    </task-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[event_direction = 'INPUT' AND event.event_id = 'JOBO1_11']]></script>
+    </collection-filter>
+  </filter>
+  <filter name="На размещение" type="default" id="byPlacementOutputBus">
+    <task-filter>
+      <script lang="SPEL"><![CDATA[#this instanceof T(ru.intertrust.cmj.pkd.domain.events.EventDocument) && T(com.google.common.collect.Sets).newHashSet(
+                    'JobOrders').contains(#this.getDocument().getTypeDatabase())]]></script>
+    </task-filter>
+    <collection-filter>
+      <script lang="SQL"><![CDATA[event_direction = 'OUTPUT' AND event.event_id = 'JOBO1_11']]></script>
+    </collection-filter>
+  </filter>
+</pkd>

@@ -1,0 +1,47 @@
+<search-area name="Meetings_uicoll_extract" replace="runtime">
+    <boost-every-where base="2.0">
+        <field-boost name="minutesNumber" value="10.0"/>
+    </boost-every-where>
+    <!-- Выписка -->
+    <target-domain-object type="F_Meetings_extract">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentFiles_Extr"/>
+        <indexed-content type="F_ContentRT_Extr"/>
+
+        <!-- Вид заседания -->
+        <indexed-field name="meetingType" search-by="substring">
+            <doel>meeting.Subject</doel>
+        </indexed-field>
+
+        <!-- Дата заседания -->
+        <indexed-field name="meetingDate">
+            <doel>meeting.meeting_date</doel>
+        </indexed-field>
+
+        <!-- Номер протокола -->
+        <indexed-field name="minutesNumber" search-by="substring">
+            <doel>meeting.ord_fullnumber</doel>
+        </indexed-field>
+
+        <linked-domain-object type="F_Meetings_extract_des">
+            <!-- Вопрос -->
+            <indexed-field name="questionText" search-by="substring">
+                <doel>decision.pointText</doel>
+            </indexed-field>
+            <!-- Решение -->
+            <indexed-field name="decision" search-by="substring">
+                <doel>decision.text</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+
+</search-area>

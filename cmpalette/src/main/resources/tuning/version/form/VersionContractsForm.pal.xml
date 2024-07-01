@@ -1,0 +1,745 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <form schema-ref="VersionContracts" projection="default" name="${ui.form.VersionContractsForm.name:Карточка версии Договора}" id="VersionContractsForm" showtabs="true">
+    <properties>
+      <hide condition-union="AND">
+        <negative-condition-ref ref="read"/>
+      </hide>
+    </properties>
+    <appearance widget="tabs"/>
+    <component>
+      <section id="Header" group="true">
+        <component>
+          <section id="column" group="true">
+            <component>
+              <section id="row11" group="true">
+                <appearance>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="horizontalSection"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <component>
+                  <field attribute-ref="showIdent">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal">
+                      <label-style field-width="15" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="showType">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal" multiline="false">
+                      <label-style field-width="15" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="securityStamp" name="${ui.form.VersionMissionsForm.section.Header.section.row11.field.securityStamp.name:Гриф доступа:}">
+                    <appearance importance="high" align="left">
+                      <label-style field-unit="symbol" field-width="27">
+                        <style id="tunBlack"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBlack"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="row12" group="true">
+                <appearance>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="horizontalSection"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <component>
+                  <field attribute-ref="title">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="read"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunFontSize14"/>
+                        <style id="tunClickableUnderline"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunFontSize14"/>
+                          <style id="tunClickableUnderline"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section id="row13" group="true">
+                <component>
+                  <field attribute-ref="versionText">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="RootMenu" group="true">
+        <component>
+            <button name="${ui.form.VersionDocumentsForm.section.RootMenu.button.checkECP.name:Проверить ЭП}">
+                <properties>
+                    <hide condition-union="AND">
+                        <negative-condition-ref ref="islockerSingExistVer"/>
+                    </hide>
+                </properties>
+                <action position="104">
+                    <custom>
+                        <operation>
+                            <handler-ref ref="verifyVersionLockerSing"/>
+                        </operation>
+                    </custom>
+                </action>
+            </button>
+            <section id="OTHER" name="${ui.form.VersionRkkForm.section.RootMenu.button.create.OTHER.name:Другое}">
+                <component>
+                    <button name="${ui.form.VersionRkkForm.section.RootMenu.button.create.version.name:В документ}">
+                        <action position="100">
+                            <custom>
+                                <operation>
+                                    <handler-ref ref="openParentObjectFromVer"/>
+                                </operation>
+                            </custom>
+                        </action>
+                    </button>
+                </component>
+            </section>
+          <button name="${ui.form.VersionContractsForm.section.RootMenu.button.showVersion.name:Показать все версии}">
+            <action position="101">
+              <custom>
+                <operation>
+                  <handler-ref ref="showAllVersionsFromVer"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <section id="Create" name="${ui.form.VersionContractsForm.section.RootMenu.section.Create.name:Создать}">
+            <appearance>
+              <action position="103"/>
+            </appearance>
+            <component>
+              <button name="${ui.form.VersionContractsForm.section.RootMenu.button.createRkk.name:Новый документ как копию}">
+                <action position="103.1">
+                  <custom>
+                    <operation>
+                      <handler-ref ref="createNewRkkByVersion"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+              <button name="${ui.form.VersionContractsForm.section.RootMenu.button.createActual.name:Актуальную версию}">
+                  <properties>
+                      <hide condition-union="AND">
+                          <condition-ref ref="canCreateActualVersion"/>
+                      </hide>
+                  </properties>
+                <action position="103.2">
+                  <custom>
+                    <operation>
+                      <handler-ref ref="updateActualByOldVersion"/>
+                    </operation>
+                  </custom>
+                </action>
+              </button>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="Attributes" name="${ui.form.VersionContractsForm.section.Attributes.name:Реквизиты}">
+        <component>
+          <section group="true" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.name:Основные}" id="Main">
+            <component>
+              <section group="true" id="docType">
+                <component>
+                  <field attribute-ref="type"  name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.docType.field.type.name:Вид договора:}">
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="parties.this"  name="${ui.form.VersionContractsForm.section.Attributes.section.Main.field.parties.this.name:Первая сторона:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+              <section group="true" id="firstPartySingleSigner">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="VerContracts_hasMultipleSigners"/>
+                  </hide>
+                </properties>
+                <component>
+                  <section group="true" id="signPers">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="VerContracts_hidePersonalCon"/>
+                      </hide>
+                    </properties>
+                    <component>
+                      <field attribute-ref="signatureContracts.this.signer"  alias="ContractSignerThis2" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartySingleSigner.section.signPers.field.signatureContracts.this.signer.name:Подписант (1-я сторона):}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <condition-ref ref="VerContracts_SelectedPartiesThisIsOrg"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="isPersonal" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartySingleSigner.section.signPers.field.isPersonal.name:Выполнить лично}">
+                        <appearance importance="normal"/>
+                      </field>
+                    </component>
+                    <appearance field-layout="horizontal"/>
+                  </section>
+                  <section group="true" id="signNoPers">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="VerContracts_hidePersonalCon"/>
+                      </hide>
+                    </properties>
+                    <component>
+                      <field attribute-ref="signatureContracts.this.signer"  alias="ContractSignerThis2" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartySingleSigner.section.signNoPers.field.signatureContracts.this.signer.name:Подписант (1-я сторона):}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <condition-ref ref="VerContracts_SelectedPartiesThisIsOrg"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="signatureContracts.this.signer"  alias="ContractSignerThis" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartySingleSigner.section.signNoPers.field.signatureContracts.this.signer.name:Подписант (1-я сторона):}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="VerContracts_SelectedPartiesThisIsOrg"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+              </section>
+              <section group="true" id="firstPartyMultiSigners">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="VerContracts_hasMultipleSigners"/>
+                  </hide>
+                </properties>
+                <component>
+                  <section id="signUtilitySection" group="true">
+                    <appearance field-layout="horizontal"/>
+                    <component>
+                      <field attribute-ref="isPersonal" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartySingleSigner.section.signPers.field.isPersonal.name:Выполнить лично}">
+                        <appearance align="right" importance="normal">
+                          <label-style field-width="2" field-unit="symbol"/>
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                  <section id="signersTableSection" group="true">
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="VerContracts_ThisPartyIsCurrentOrg"/>
+                      </hide>
+                    </properties>
+                    <appearance field-layout="horizontal"/>
+                    <component>
+                      <section group="true" id="firstPartyMultiSignersTableName">
+                        <component>
+                          <field attribute-ref="firstPartyMSTableName" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartyMultiSigners.section.firstPartyMultiSignersTableName.field.firstPartyMSTableName.name:Подписант (1-я сторона):}">
+                          </field>
+                        </component>
+                        <appearance>
+                          <dialog-mode unit="percent" width="5"/>
+                        </appearance>
+                      </section>
+                      <section group="true" id="firstPartyMS">
+                        <component>
+                          <section group="true" id="signersSection">
+                            <component>
+                              <field attribute-ref="signatureContracts.this.signers" >
+                                <appearance importance="normal" location="table"/>
+                              </field>
+                            </component>
+                          </section>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                  <field attribute-ref="signatureContracts.this.signersExt" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.firstPartyMultiSigners.field.signatureContracts.this.signersExt.name:Подписанты:}">
+                    <properties>
+                      <hide condition-union="AND">
+                        <condition-ref ref="VerContracts_ThisPartyIsCurrentOrg"/>
+                      </hide>
+                    </properties>
+                    <appearance>
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                      <field-style>
+                        <value-style>
+                          <style id="tunBorderedFieldLight"/>
+                        </value-style>
+                      </field-style>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <section group="true" id="secondPartySigners">
+                <component>
+                  <section group="true" id="secondPartySignerColumn1">
+                    <component>
+                      <field attribute-ref="parties.other"  name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.secondPartySigners.section.secondPartySignerColumn1.field.parties.other.name:Вторая сторона:}">
+                        <appearance importance="normal">
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                    </component>
+                    <appearance>
+                      <dialog-mode unit="percent" width="50"/>
+                    </appearance>
+                  </section>
+                  <section group="true" id="secondPartySignerColumn2">
+                    <component>
+                      <section group="true" id="secondPartySingleSigner">
+                        <properties>
+                          <hide condition-union="AND">
+                            <condition-ref ref="VerContracts_hasMultipleSigners"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <field attribute-ref="signatureContracts.other.signer" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.secondPartySigners.section.secondPartySignerColumn2.section.secondPartySingleSigner.field.signatureContracts.other.signer.name:Подписант (2-я сторона):}">
+                            <appearance importance="normal">
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                              <field-style>
+                                <value-style>
+                                  <style id="tunBorderedFieldLight"/>
+                                </value-style>
+                              </field-style>
+                            </appearance>
+                          </field>
+                        </component>
+                      </section>
+                      <section group="true" id="secondPartyMultiSigners">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="VerContracts_hasMultipleSigners"/>
+                          </hide>
+                        </properties>
+                        <component>
+                          <field attribute-ref="signatureContracts.other.signers" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.secondPartySigners.section.secondPartySignerColumn2.section.secondPartyMultiSigners.field.signatureContracts.other.signers.name:Подписант (2-я сторона):}">
+                            <appearance>
+                              <label-style>
+                                <style id="tunBorderedFieldLight"/>
+                              </label-style>
+                              <field-style>
+                                <value-style>
+                                  <style id="tunBorderedFieldLight"/>
+                                </value-style>
+                              </field-style>
+                            </appearance>
+                          </field>
+                        </component>
+                      </section>
+                    </component>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <section group="true" id="otherParties">
+                <component>
+                  <section group="true" id="tableName">
+                    <component>
+                      <field attribute-ref="otherPartiesTableName" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.otherParties.section.tableName.field.otherPartiesTableName.name:Другие стороны:}">
+                      </field>
+                    </component>
+                    <appearance>
+                      <dialog-mode unit="percent" width="5"/>
+                    </appearance>
+                  </section>
+                  <section group="true" id="otherPartiesTable">
+                    <component>
+                      <field attribute-ref="otherPartiesTableDisplay" alias="otherPartiesTable" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.otherParties.section.otherPartiesTable.field.otherPartiesTableDisplay.name:Другие стороны}">
+                        <appearance importance="normal" location="table"/>
+                      </field>
+                      <field attribute-ref="otherPartiesTable" alias="otherPartiesTable" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.otherParties.section.otherPartiesTable.field.otherPartiesTable.name:Другие стороны}">
+                        <properties>
+                          <hide condition-union="AND">
+                            <negative-condition-ref ref="edit"/>
+                          </hide>
+                        </properties>
+                        <appearance importance="normal" location="table"/>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <section group="true" id="dateAndNumber">
+                <component>
+                  <section group="true" id="dateColumn">
+                    <component>
+                      <field attribute-ref="registration.date" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.dateAndNumber.section.dateColumn.field.registration.date.name:Дата договора:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="started" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.dateAndNumber.section.dateColumn.field.started.name:  Действует с:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="finished" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.dateAndNumber.section.dateColumn.field.finished.name:Действует по:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                    </component>
+                    <appearance>
+                      <dialog-mode unit="percent" width="50"/>
+                    </appearance>
+                  </section>
+                  <section group="true" id="numberColumn">
+                    <component>
+                      <field attribute-ref="$emptyString">
+                        <appearance>
+                          <label-style field-width="15" field-unit="symbol"/>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="registration.regnumber" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.dateAndNumber.section.numberColumn.field.registration.regnumber.name:Рег. номер:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                      <field attribute-ref="additionalnumber" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.dateAndNumber.section.numberColumn.field.additionalnumber.name:Доп. Номер:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                    </component>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <section group="true" id="checkBoxesAndDuration">
+                <component>
+                  <section id="checkBoxes" group="true">
+                    <appearance field-layout="horizontal">
+                      <dialog-mode unit="percent" width="50"/>
+                    </appearance>
+                    <component>
+                      <field attribute-ref="isIndefinitely"  name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.checkBoxes.field.isIndefinitely.name:Бессрочно}">
+                      </field>
+                      <field attribute-ref="isAutoRollover" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.checkBoxes.field.isAutoRollover.name:Автопролонгация}">
+                      </field>
+                    </component>
+                  </section>
+                  <field attribute-ref="duration" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.field.duration.name:Срок действия:}">
+                    <properties>
+                      <hide>
+                        <condition-ref ref="isIndefinitely"/>
+                      </hide>
+                    </properties>
+                    <appearance importance="normal"/>
+                    <hint-pop-up>${ui.form.VersionContractsForm.section.Attributes.section.Main.field.duration.hintPopUp:Срок действия}</hint-pop-up>
+                  </field>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <section group="true" id="spSection">
+                <component>
+                  <section group="true" id="column1">
+                    <component>
+                      <field attribute-ref="department" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.section.spSection.section.column1.field.dep.name:Подразделение-исполнитель:}">
+                        <appearance>
+                          <label-style>
+                            <style id="tunBorderedFieldLight"/>
+                          </label-style>
+                          <field-style>
+                            <value-style>
+                              <style id="tunBorderedFieldLight"/>
+                            </value-style>
+                          </field-style>
+                        </appearance>
+                      </field>
+                    </component>
+                    <appearance>
+                      <dialog-mode unit="percent" width="50"/>
+                    </appearance>
+                  </section>
+                </component>
+                <appearance field-layout="horizontal"/>
+              </section>
+              <field attribute-ref="responsibles" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.field.responsibles.name:Ответственные за исполнение:}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+              <field attribute-ref="comment" name="${ui.form.VersionContractsForm.section.Attributes.section.Main.field.comment.name:Примечание:}">
+                <appearance>
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <field-style>
+                    <value-style>
+                      <style id="tunBorderedFieldLight"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+              </field>
+          <section id="executorTable" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <section id="executorColumn1" group="true">
+                <component>
+                  <field recalc="true" attribute-ref="preparedBy" name="${ui.form.VersionContractsForm.section.Attributes.section.executor.field.preparedBy.name:Исполнитель:}">
+                    <appearance importance="normal" multiline="true">
+                      <label-style>
+                        <style id="tunBorderedFieldLightLight"/>
+                      </label-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.VersionContractsForm.section.Attributes.section.executor.field.preparedBy.hintPopUp:Исполнитель}</hint-pop-up>
+                    <properties>
+                      <require condition-union="AND">
+                        <condition-ref ref="edit"/>
+                      </require>
+                    </properties>
+                  </field>
+                  <field attribute-ref="execPost" name="${ui.form.VersionContractsForm.section.Attributes.section.executor.field.executorPost.name:Должность:}">
+                    <appearance importance="normal" multiline="true">
+                      <label-style>
+                        <style id="tunBorderedFieldLightLight"/>
+                      </label-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.VersionContractsForm.section.Attributes.section.executor.field.executorPost.hintPopUp:Должность}</hint-pop-up>
+                  </field>
+                  <field attribute-ref="execPhone" name="${ui.form.VersionContractsForm.section.Attributes.section.executor.field.executorPhone.name:Номер телефона:}">
+                    <appearance importance="normal" multiline="true">
+                      <label-style>
+                        <style id="tunBorderedFieldLightLight"/>
+                      </label-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.VersionContractsForm.section.Attributes.section.executor.field.executorPhone.hintPopUp:Телефон}</hint-pop-up>
+                  </field>
+                </component>
+              </section>
+              <section id="executorColumn2" group="true">
+                <appearance>
+                  <dialog-mode width="50" unit="percent"/>
+                </appearance>
+                <component>
+                  <field attribute-ref="execDepartment" name="${ui.form.VersionContractsForm.section.Attributes.section.executor.field.execDepartment.name:Подразделение:}">
+                    <appearance importance="normal" multiline="true">
+                      <label-style>
+                        <style id="tunBorderedFieldLightLight"/>
+                      </label-style>
+                    </appearance>
+                    <show-value schema-ref="VCardResource.EmployeeShortInfo"/>
+                    <hint-pop-up>${ui.form.VersionContractsForm.section.Attributes.section.executor.field.execDepartment.hintPopUp:Подразделение}</hint-pop-up>
+                  </field>
+                  <field attribute-ref="execParentDepartment" name="${ui.form.VersionContractsForm.section.Attributes.section.executor.field.execParentDepartment.name:Вышестоящее подразделение:}">
+                    <appearance importance="normal" multiline="true">
+                      <label-style>
+                        <style id="tunBorderedFieldLightLight"/>
+                      </label-style>
+                    </appearance>
+                    <hint-pop-up>${ui.form.VersionContractsForm.section.Attributes.section.executor.field.execParentDepartment.hintPopUp:Самостоятельное или вышестоящее подразделение:}</hint-pop-up>
+                    <show-value schema-ref="VCardResource.DepOrRvzWithVacancy"/>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
+            </component>
+          </section>
+          <section id="VersionBaseSections" group="true">
+            <component>
+              <field attribute-ref="versionBase.author" name="${ui.form.VersionContractsForm.section.Attributes.versionInfo.author:Автор}">
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <section id="commentGroup" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="versionBase.comment" name="${ui.form.VersionContractsForm.section.Attributes.versionInfo.comment:Комментарий}">
+                    <appearance importance="normal">
+                      <label-style>
+                        <style id="tunBorderedFieldLight"/>
+                      </label-style>
+                    </appearance>
+                  </field>
+                  <button name="${ui.form.VersionContractsForm.section.Attributes.versionInfo.comment.change:Изменить комментарий}">
+                    <action>
+                      <custom>
+                        <operation>
+                          <handler-ref ref="changeCommentVersion"/>
+                        </operation>
+                      </custom>
+                    </action>
+                    <properties>
+                      <hide condition-union="AND">
+                        <negative-condition-ref ref="isAuthorOrSubstitutor"/>
+                      </hide>
+                    </properties>
+                    <appearance align="left">
+                      <label-style>
+                        <style id="tunBtn tunBlue"/>
+                      </label-style>
+                    </appearance>
+                  </button>
+                </component>
+              </section>
+            </component>
+            <appearance field-layout="horizontal"/>
+          </section>
+        </component>
+      </section>
+      <section id="ContentSection" name="${ui.form.VersionContractsForm.section.ContentSection.name:Содержание}">
+        <component>
+          <field attribute-ref="content" name="${ui.form.VersionContractsForm.section.ContentSection.content.name:Файлы:}"/>
+        </component>
+      </section>
+    </component>
+  </form>
+</ui>

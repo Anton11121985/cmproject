@@ -1,0 +1,70 @@
+<search-area name="so_role_search_uicoll" replace="runtime">
+
+    <boost-every-where>
+        <field-boost name="shortname" value="20.0"/>
+        <field-boost name="fullname" value="20.0"/>
+        <field-boost name="substitutesPlain" value="20.0"/>
+        <field-boost name="substitutesHead" value="20.0"/>
+        <field-boost name="substitutesUnit" value="20.0"/>
+        <field-boost name="substitutesGroup" value="20.0"/>
+        <field-boost name="auditorsPlain" value="20.0"/>
+        <field-boost name="auditorsHead" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_role">
+        <!-- Краткое  название -->
+        <indexed-field name="shortname"/>
+        <!-- Полное название -->
+        <indexed-field name="fullname"/>
+        <!-- Код -->
+        <indexed-field name="code"/>
+
+        <indexed-field name="headorbranchoffice">
+            <doel>headorbranchoffice.shortname</doel>
+        </indexed-field>
+
+        <!-- Тип -->
+        <indexed-field name="roleType">
+            <doel>type</doel>
+        </indexed-field>
+        <linked-domain-object type="Tn_Field_String" nested="true">
+            <!-- Профиль рабочего времени-->
+            <indexed-field name="WTP_Name">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("WTP_Name")</doel>
+                </filter>
+            </indexed-field>
+            <!--Комментарий -->
+            <indexed-field name="comment">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("comment")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <indexed-field name="substitutesPlain" search-by="substring">
+            <script>
+                var name = ctx.get('SO_ConstSubstitute^owner.substitute.so_appointmentplain^post.beard.orig_shortName:join(", ")');
+                ctx.setResult(name);
+            </script>
+        </indexed-field>
+        <indexed-field name="substitutesHead" search-by="substring">
+            <doel>SO_ConstSubstitute^owner.substitute.so_appointmenthead^post.beard.orig_shortName:join(", ")</doel>
+        </indexed-field>
+        <indexed-field name="substitutesUnit" search-by="substring">
+            <doel>SO_ConstSubstitute^owner.substitute.beard.orig_shortName:join(", ")</doel>
+        </indexed-field>
+        <indexed-field name="substitutesGroup" search-by="substring">
+            <doel>SO_ConstSubstitute^owner.SO_ConstSubstitute_Group^substitute.SO_Group^name:join(", ")</doel>
+        </indexed-field>
+        <indexed-field name="auditorsPlain" search-by="substring">
+            <doel>SO_Auditor^owner.auditor.so_appointmentplain^post.beard.orig_shortName:join(", ")</doel>
+        </indexed-field>
+        <indexed-field name="auditorsHead" search-by="substring">
+            <doel>SO_Auditor^owner.auditor.so_appointmenthead^post.beard.orig_shortName:join(", ")</doel>
+        </indexed-field>
+    </target-domain-object>
+</search-area>

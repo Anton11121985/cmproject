@@ -1,0 +1,632 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema extends="RkkResource" name="RkkResourceExpeditionOrders">
+    <meta>
+      <category name="Экспедиции/Заказы"/>
+    </meta>
+    <string name="pagename" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Заказ']]></script>
+      </calc-values>
+    </string>
+    <string name="showIdent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Заказ']]></script>
+      </calc-values>
+    </string>
+    <string name="parcel">
+      <storage-field name="parcel"/>
+    </string>
+    <string name="SHPIcode">
+      <storage-field name="SHPIcode"/>
+    </string>
+    <boolean name="isParcelEmpty"  temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[parcel == null || ''.equals(parcel)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isSHPIcodeEmpty" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[SHPIcode == null || ''.equals(SHPIcode)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="serviceId">
+      <storage-field name="serviceId"/>
+    </string>
+    <string name="shortDocInfo">
+      <storage-field name="shortDocInfo"/>
+    </string>
+    <schema-ref name="showOrderNumber" ref="RequestNumberInfo" temporal="true"/>
+    <string name="docNumberPr" tunable="true"/>
+    <string name="docNumberSuf" tunable="true"/>
+    <string name="docNumber" tunable="true">
+      <storage-field name="docNumber"/>
+    </string>
+    <date name="docDate" tunable="true">
+      <storage-field name="docDate"/>
+    </date>
+    <actor name="recepient" tunable="true">
+      <storage-field name="recepient"/>
+    </actor>
+    <actor array="true" name="initiator" tunable="true"/>
+    <actor name="mainExpeditorsBeards" array="true">
+      <storage-field name="mainExpeditorsBeards" substituties="AF$A_MainExpeditors" auditors="AF$R_MainExpeditors"/>
+    </actor>
+    <string name="valueTypeRPO" tunable="true">
+      <storage-field name="valueTypeRPO"/>
+    </string>
+    <string name="Weight" tunable="true">
+      <storage-field name="Weight"/>
+    </string>
+    <string name="Value">
+      <storage-field name="Value"/>
+    </string>
+    <double name="valueRub" temporal="true">
+      <meta>
+        <documentation>Объявленная ценность в рублях, денежный формат, используется для отображения на форме</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Value == null || Value == "" ? null : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Value).matches() ?
+          T(java.lang.Double).parseDouble(Value)/100 : null]]>
+        </script>
+      </calc-values>
+    </double>
+    <string name="valueCategoryRPO">
+      <storage-field name="valueCategoryRPO"/>
+    </string>
+    <string name="paymentType" tunable="true">
+      <storage-field name="paymentType"/>
+    </string>
+    <boolean name="needShowpaymentType" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA['Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="price" tunable="true">
+      <storage-field name="price"/>
+    </string>
+    <double name="priceRub" temporal="true">
+      <meta>
+        <documentation>Стоимость в рублях, денежный формат, используется для отображения на форме</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[price == null || price == "" ? null : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(price).matches() ?
+          T(java.lang.Double).parseDouble(price)/100 : null]]>
+        </script>
+      </calc-values>
+    </double>
+    <string name="sentPoint" tunable="true">
+      <storage-field name="sentPoint"/>
+    </string>
+    <string name="stage" tunable="true" createlog="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!isNew ? stage : 'Проект']]></script>
+      </calc-values>
+      <storage-field name="stage"/>
+    </string>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open">
+          <![CDATA[status != null && status.deleted != null && status.deleted]]>
+        </script>
+      </calc-values>
+    </boolean>
+    <string name="deletedLabel" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Удалён']]></script>
+      </calc-values>
+    </string>
+    <datetime name="readyToSentTime" tunable="true" createlog="true">
+      <storage-field name="readyToSentTime"/>
+    </datetime>
+    <datetime name="addressNormalizationTime" tunable="true" createlog="true">
+      <storage-field name="addressNormalizationTime"/>
+    </datetime>
+    <string name="address">
+      <storage-field name="address"/>
+    </string>
+    <string name="all_address" array="true"/>
+    <schema-ref ref="NormalizedAddress" name="normAddress"/>
+    <integer name="postId" createlog="true">
+      <storage-field name="postId"/>
+    </integer>
+    <string name="wpLabel2" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Исполнитель']]></script>
+      </calc-values>
+    </string>
+    <boolean name="withReturnReceipt">
+      <storage-field name="withReturnReceipt"/>
+    </boolean>
+    <boolean name="withInventory">
+      <storage-field name="withInventory"/>
+    </boolean>
+    <string name="typeEnvelope">
+      <storage-field name="typeEnvelope"/>
+    </string>
+    <string name="party">
+      <storage-field name="party"/>
+    </string>
+    <boolean name="isCurUserClerkExpeditionOrders" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[!(T(ru.intertrust.cmj.rest.bf.ModuleID).INTERNAL.getModule().getRegplaces('ExpeditionOrders').isEmpty())]]></script>
+      </calc-values>
+    </boolean>
+    <actor name="regplace">
+      <storage-field name="regplace"/>
+    </actor>
+    <boolean name="isEmptyRecepient">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[recepient == null ? true : false]]></script>
+      </calc-values>
+    </boolean>
+    <string name="requestId">
+      <storage-field name="requestId"/>
+    </string>
+    <string name="idOutputRKK">
+      <storage-field name="idOutputRKK"/>
+    </string>
+    <string name="idSDRequestRKK">
+      <storage-field name="idSDRequestRKK"/>
+    </string>
+    <boolean name="isFromOutputRKK" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(idOutputRKK != null && idOutputRKK != "") || (idSDRequestRKK != null && idSDRequestRKK != "")]]></script>
+      </calc-values>
+    </boolean>
+    <string name="errorCode">
+      <storage-field name="errorCode"/>
+    </string>
+    <boolean name="needShowErrorCode" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[stage == "Ошибка отправки" && errorCode != null && errorCode != ""]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="showButtonReadyToSend" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[!(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser() != null && executor!= null && executor == (T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard()) && !(isCurUserClerkExpeditionOrders != null && isCurUserClerkExpeditionOrders))
+            && (stage == "Проект" || stage == "Ошибка нормализации" || stage == "Ошибка отправки")]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="showButtonCancelSend" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[(stage == "Ошибка нормализации" || (isFromOutputRKK && stage == "Проект") || "Адрес нормализован".equalsIgnoreCase(stage)) && isCurUserClerkExpeditionOrders != null && isCurUserClerkExpeditionOrders]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="WeightIsNumber" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? false : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches()]]></script>
+      </calc-values>
+    </boolean>
+    <string name="WeightIsFrom0To99" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+           T(java.lang.Integer).parseInt(Weight) < 100 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="WeightIsFrom100To500" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+          T(java.lang.Integer).parseInt(Weight) > 99 && T(java.lang.Integer).parseInt(Weight) < 501 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="WeightIsFrom501To2500" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+          T(java.lang.Integer).parseInt(Weight) > 500 && T(java.lang.Integer).parseInt(Weight) < 2501 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="WeightIsFrom2501To5000" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+           T(java.lang.Integer).parseInt(Weight) > 2500 && T(java.lang.Integer).parseInt(Weight) < 5001 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="WeightIsFrom5001To10000" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+           T(java.lang.Integer).parseInt(Weight) > 5000 && T(java.lang.Integer).parseInt(Weight) < 10001 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="WeightIsFrom10001To20000" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+           T(java.lang.Integer).parseInt(Weight) > 10000 && T(java.lang.Integer).parseInt(Weight) < 20001 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="WeightIsFrom20001" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[Weight == null || Weight == "" ? 'false' : T(java.util.regex.Pattern).compile("^[0-9]*$").matcher(Weight).matches() ?
+           T(java.lang.Integer).parseInt(Weight) > 20000 ? 'true' : 'false' : 'false']]></script>
+      </calc-values>
+    </string>
+    <boolean name="needShowWithReturnReceipt" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA['Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO) || 'Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="needShowWithInventory" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA['Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO)]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="valueIsRequired" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA['С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью и наложенным платежом'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью и обязательным платежом'.equalsIgnoreCase(valueCategoryRPO) || 'Комбинированное с объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO) || 'Комбинированное с объявленной ценностью и наложенным платежом'.equalsIgnoreCase(valueCategoryRPO)]]></script>
+      </calc-values>
+    </boolean>
+    <string name="postOfficeIndex">
+      <storage-field name="postOfficeIndex"/>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.ru.intertrust.cmj.af.so);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.org.apache.commons.lang3.StringUtils);
+importClass(Packages.java.lang.String);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.DepartmentUnit);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.af.utils.DominoUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.impl.AppointmentHead);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.admin.AdminApplicationImpl);
+importClass(Packages.ru.intertrust.cmj.admin.so.worktimeprofile.SOWorkTimeProfile);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.java.util.Date);
+importClass(Packages.java.util.ArrayList);
+importClass(Packages.java.lang.Integer);
+importClass(Packages.java.util.Calendar);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.so.SOAppointment);
+importClass(Packages.ru.intertrust.cmj.rest.bf.ModuleID);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.java.util.regex.Pattern);
+
+function queryCreate(object) {
+    var values = object.tuning().getValues();
+
+    var isCurUserClerkExpeditionOrders = !(ModuleID.INTERNAL.getModule().getRegplaces('ExpeditionOrders').isEmpty());
+    values.put("isCurUserClerkExpeditionOrders", TuningHelper.createPropertyValue(isCurUserClerkExpeditionOrders, object.tuning().getSchema().getProperty("isCurUserClerkExpeditionOrders")));
+
+    var currentDate = AFDate.fromJavaDate(Calendar.getInstance().getTime(), false);
+    values.put("docDate", TuningHelper.createPropertyValue(currentDate, object.tuning().getSchema().getProperty("docDate")));
+
+    setRegPlace(object);
+    SetIsEmptyRecepient(object);
+}
+
+function querySave(object, document) {
+
+    var sentPoint = GetValue(object, "sentPoint");
+    var regplace = GetValue(object, "regplace");
+    if ((sentPoint == null || sentPoint == "") && (regplace != null)) {
+        var regplace_unid = regplace.getUNID().split(":");
+        var code = regplace_unid[1];
+        var CodeReplica= regplace_unid[0];
+        var sodep_db = AFCMDomino.getDbByReplicaID(CodeReplica);
+        var sodep_doc = AFCMDomino.getDocByUNID(sodep_db, code );
+        if (sodep_doc != null) {
+            var officePostSending = AFCMDomino.getItemValueVectorString(sodep_doc, "officePostSending");
+            if (officePostSending.size() > 0) {
+                SetValue(object, "sentPoint", officePostSending.get(0));
+            }
+        }
+    }
+    var valueCategoryRPO1 = GetValue(object, "valueCategoryRPO");
+    if (!'Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO1)) {
+       var paymentType = GetValue(object, "paymentType");
+       if ((paymentType == null || paymentType == "") && (regplace != null)) {
+        var regplace_unid = regplace.getUNID().split(":");
+        var code = regplace_unid[1];
+        var CodeReplica= regplace_unid[0];
+        var sodep_db = AFCMDomino.getDbByReplicaID(CodeReplica);
+        var sodep_doc = AFCMDomino.getDocByUNID(sodep_db, code );
+        if (sodep_doc != null) {
+            var defaultPaymentType = AFCMDomino.getItemValueVectorString(sodep_doc, "defaultPaymentType");
+            if (defaultPaymentType.size() > 0) {
+                SetValue(object, "paymentType", defaultPaymentType.get(0));
+            }
+        }
+       }
+    }
+
+
+    var weightStr = GetValue(object, "Weight");
+	    if (!StringUtils.isEmpty(weightStr)) {
+	        var pattern = Pattern.compile("^[0-9]*$");
+	        var matcher = pattern.matcher(weightStr);
+	        if (matcher.matches()) {
+	            var weight = Integer.parseInt(weightStr);
+	            var valueTypeRPO = GetValue(object, "valueTypeRPO");
+	            var valueCategoryRPO = GetValue(object, "valueCategoryRPO");
+
+	            if (weight < 100) {
+	                var value = ('Письмо'.equalsIgnoreCase(valueTypeRPO) && ('Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO) || 'Простое'.equalsIgnoreCase(valueCategoryRPO) || 'Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Письмо 1-го класса'.equalsIgnoreCase(valueTypeRPO) && ('Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ? true : false;
+                    if (!value) {
+                        throw("Для указанного веса Вид РПО должен быть 'Письмо' (Категория РПО 'Простое', 'Заказное', 'С объявленной ценностью') или " +
+                        "'Письмо 1-го класса' (Категория РПО 'Заказное', 'С объявленной ценностью')");
+                    }
+	            } else if (weight > 99 && weight < 501) {
+	                var value = ('Письмо 1-го класса'.equalsIgnoreCase(valueTypeRPO) && ('Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Бандероль'.equalsIgnoreCase(valueTypeRPO) && ('Простое'.equalsIgnoreCase(valueCategoryRPO) || 'Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Бандероль 1-го класса'.equalsIgnoreCase(valueTypeRPO) && ('Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ? true : false;
+                    if (!value) {
+                         throw("Для указанного веса Вид РПО должен быть 'Письмо 1-го класса' (Категория РПО 'Заказное', 'С объявленной ценностью') или " +
+                         "'Бандероль' (Категория РПО 'Простое', 'Заказное', 'С объявленной ценностью'), или " +
+                         "'Бандероль 1-го класса' (Категория РПО 'Заказное', 'С объявленной ценностью')");
+                    }
+	            } else if (weight > 500 && weight < 2501) {
+	                var value = ('Бандероль'.equalsIgnoreCase(valueTypeRPO) && ('Простое'.equalsIgnoreCase(valueCategoryRPO) || 'Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Бандероль 1-го класса'.equalsIgnoreCase(valueTypeRPO) && ('Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка 1-го класса'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ? true : false;
+                    if (!value) {
+                         throw("Для указанного веса Вид РПО должен быть 'Бандероль' (Категория РПО 'Простое', 'Заказное', 'С объявленной ценностью') или " +
+                         "'Бандероль 1-го класса' (Категория РПО 'Заказное', 'С объявленной ценностью'), или " +
+                         "'Посылка \"нестандартная\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью'), или " +
+                         "'Посылка \"онлайн\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью'), или " +
+                         "'Посылка 1-го класса' (Категория РПО 'Обыкновенное', 'С объявленной ценностью')");
+                    }
+	            } else if (weight > 2500 && weight < 5001) {
+	                var value = ('Бандероль'.equalsIgnoreCase(valueTypeRPO) && ('Простое'.equalsIgnoreCase(valueCategoryRPO) || 'Заказное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка 1-го класса'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ? true : false;
+                    if (!value) {
+                         throw("Для указанного веса Вид РПО должен быть 'Бандероль' (Категория РПО 'Простое', 'Заказное', 'С объявленной ценностью') или " +
+                         "'Посылка \"нестандартная\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью'), или " +
+                         "'Посылка \"онлайн\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью'), или " +
+                         "'Посылка 1-го класса' (Категория РПО 'Обыкновенное', 'С объявленной ценностью')");
+                    }
+	            } else if (weight > 5000 && weight < 10001) {
+                    var value = ('Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ||
+                    ('Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ? true : false;
+                    if (!value) {
+                         throw("Для указанного веса Вид РПО должен быть 'Посылка \"нестандартная\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью') или " +
+                         "'Посылка \"онлайн\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью')");
+                    }
+	            } else if (weight > 10000 && weight < 20001) {
+                    var value = ('Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) && ('Обыкновенное'.equalsIgnoreCase(valueCategoryRPO) || 'С объявленной ценностью'.equalsIgnoreCase(valueCategoryRPO))) ? true : false;
+                    if (!value) {
+                         throw("Для указанного веса Вид РПО должен быть 'Посылка \"онлайн\"' (Категория РПО 'Обыкновенное', 'С объявленной ценностью')");
+                    }
+	            } else {
+	                throw("Значение в поле \"Вес\" не должно превышать 20000 г");
+	            }
+	        } else {
+	            throw("Значение в поле \"Вес\" должно быть в граммах (целое число)");
+	        }
+	    }
+
+    writeHistory(object, document);
+}
+
+function recalc(object, changedField) {
+
+    if (changedField == "valueTypeRPO") {
+        object.tuning().getValues().put("valueCategoryRPO", null);
+        SetValue(object, "withReturnReceipt", false);
+        SetValue(object, "withInventory", false);
+    }
+
+    if (changedField == "valueCategoryRPO") {
+        var category = getPropertyValue(object, "valueCategoryRPO", "str");
+        SetValue(object, "withReturnReceipt", false);
+        SetValue(object, "withInventory", false);
+        var valueCategoryRPO = GetValue(object, "valueCategoryRPO");
+        if ('Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO)) {
+	        SetValue(object, "paymentType", null);
+	    }
+    }
+
+    if (changedField == "recepient") {
+        object.tuning().getValues().put("address", null);
+        object.tuning().getValues().put("all_address", null);
+
+        if (object.tuning().getValues().get('recepient') != null && object.tuning().getValues().get('recepient').getValue() != null) {
+            var empl = object.tuning().getValues().get('recepient').getValue();
+            TuningHelper.processProperty(object.tuning().getValues(), "address", empl.getAddress(), object.tuning().getSchema().getProperty("address"));
+
+            var empls = new ArrayList();
+            if(empl.getAddress()!=""){
+              empls.add(empl.getAddress());
+            }
+
+            if(empl.originalData().getType() == SOBeard.Type.NONSYS_ORGANIZATION) {
+              if(empl.originalData().getParty().addressInfo().legal().getAddress()!="") {
+                empls.add(empl.originalData().getParty().addressInfo().legal().getAddress());
+              }
+            }
+
+            if(!empls.isEmpty()) {
+              TuningHelper.processProperty(object.tuning().getValues(), "all_address", empls, object.tuning().getSchema().getProperty("all_address"));
+            }
+        }
+        SetIsEmptyRecepient(object);
+    }
+
+    if (changedField == "regplace") {
+        var regplace = GetValue(object, "regplace");
+        SetValue(object, "sentPoint", null);
+        SetValue(object, "paymentType", null);
+        if(regplace != null) {
+            var regplace_unid = regplace.getUNID().split(":");
+            var code = regplace_unid[1];
+            var CodeReplica= regplace_unid[0];
+            var sodep_db = AFCMDomino.getDbByReplicaID(CodeReplica);
+            var sodep_doc = AFCMDomino.getDocByUNID(sodep_db, code );
+            if (sodep_doc != null) {
+                var officePostSending = AFCMDomino.getItemValueVectorString(sodep_doc, "officePostSending");
+                if (officePostSending.size() > 0) {
+                    SetValue(object, "sentPoint", officePostSending.get(0));
+                }
+                var valueCategoryRPO2 = GetValue(object, "valueCategoryRPO");
+                if (!'Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO2)) {
+	                var defaultPaymentType = AFCMDomino.getItemValueVectorString(sodep_doc, "defaultPaymentType");
+                    if (defaultPaymentType.size() > 0) {
+                        SetValue(object, "paymentType", defaultPaymentType.get(0));
+                    }
+	            }
+            }
+        }
+        object.registration().setPlace(regplace);
+	}
+
+	if(changedField == "priceRub"){
+	    var priceRub = GetValue(object, "priceRub");
+	    if (priceRub == null) {
+	        SetValue(object, "price", "");
+	    } else {
+	        SetValue(object, "price", String.valueOf(Double.valueOf(priceRub*100).intValue()));
+	    }
+	}
+
+	if(changedField == "valueRub"){
+	    var valueRub = GetValue(object, "valueRub");
+	    if (valueRub == null) {
+	        SetValue(object, "Value", "");
+	    } else {
+	        SetValue(object, "Value", String.valueOf(Double.valueOf(valueRub*100).intValue()));
+	    }
+	}
+
+}
+
+function setRegPlace(object) {
+    var regplace = object.registration().getPlace();
+    if(regplace != null){
+        SetValue(object, "regplace", regplace);
+
+        var regplace_unid = regplace.getUNID().split(":");
+        var code = regplace_unid[1];
+        var CodeReplica= regplace_unid[0];
+        var sodep_db = AFCMDomino.getDbByReplicaID(CodeReplica);
+        var sodep_doc = AFCMDomino.getDocByUNID(sodep_db, code );
+        if (sodep_doc != null) {
+            var officePostSending = AFCMDomino.getItemValueVectorString(sodep_doc, "officePostSending");
+            if (officePostSending.size() > 0) {
+                SetValue(object, "sentPoint", officePostSending.get(0));
+            }
+            var valueCategoryRPO3 = GetValue(object, "valueCategoryRPO");
+            if (!'Электронное заказное письмо'.equalsIgnoreCase(valueCategoryRPO3)) {
+                var defaultPaymentType = AFCMDomino.getItemValueVectorString(sodep_doc, "defaultPaymentType");
+                if (defaultPaymentType.size() > 0) {
+                    SetValue(object, "paymentType", defaultPaymentType.get(0));
+                }
+            }
+        }
+    }
+}
+
+function SetIsEmptyRecepient(object) {
+    var recepient = GetValue(object, "recepient");
+    if (recepient == null) {
+        SetValue(object, "isEmptyRecepient", true);
+    } else {
+        SetValue(object, "isEmptyRecepient", false);
+    }
+}
+
+function SetValue(doc, fileName, value) {
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function GetValue(doc, fileName) {
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValue();
+}
+
+function writeHistory(object, document) {
+
+	var hist = object.history();
+
+	if (!object.isNew()) {
+		writeTextHistory(object, document, hist, "valueCategoryRPO", "valueCategoryRPO", FieldBase.ORDERS_CATEGORYRPO_CHANGED, "str");
+		writeTextHistory(object, document, hist, "Value", "Value", FieldBase.ORDERS_DECLARED_VALUE_CHANGED, "str");
+		writeTextHistory(object, document, hist, "withReturnReceipt", "withReturnReceipt", FieldBase.ORDERS_WITH_RETURN_RECEIPT_CHANGED, "bool");
+		writeTextHistory(object, document, hist, "valueTypeRPO", "valueTypeRPO", FieldBase.ORDERS_VALUETYPERPO_CHANGED, "str");
+		writeTextHistory(object, document, hist, "sentPoint", "sentPoint", FieldBase.ORDERS_SENTPOINT_CHANGED, "str");
+		writeTextHistory(object, document, hist, "address", "address", FieldBase.ORDERS_ADDRESS_CHANGED, "str");
+		writeTextHistory(object, document, hist, "Weight", "Weight", FieldBase.ORDERS_WEIGHT_CHANGED, "str");
+		writeTextHistory(object, document, hist, "price", "price", FieldBase.ORDERS_PRICE_CHANGED, "str");
+		writeTextHistory(object, document, hist, "stage", "stage", FieldBase.ORDERS_STAGE_CHANGED, "str");
+		writeTextHistory(object, document, hist, "SHPIcode", "SHPIcode", FieldBase.ORDERS_BARCODE_CHANGED, "str");
+	}
+	object.history = hist;
+}
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName, type) {
+    var oldValue = getFieldValue(document, fieldName, type);
+	var newValue = getPropertyValue(object, propertyName, type);
+	if (!(oldValue == newValue)) {
+		TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+	}
+}
+
+function getFieldValue(document, fieldName, type) {
+    if (type == "str") {
+        var value = document.getItemValueString(fieldName);
+        if (value == null) {
+            value = "";
+        }
+        return value;
+    }
+    else if (type == "bool") {
+        var value = document.getItemValueInteger(fieldName);
+        if(value == null || value == 0) {
+            return "нет";
+        } else if(value == 1) {
+            return "да";
+        }
+    }
+}
+
+function getPropertyValue(object, propertyName, type) {
+	var value = "";
+	if (object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+		value = object.tuning().getValues().get(propertyName).getValue();
+            if (type == "bool") {
+            if(value == null || value == 0) {
+                return "нет";
+            } else if(value == 1) {
+                return "да";
+            }
+        }
+	}
+	return value;
+}
+]]></custom-event-handler>
+  </schema>
+</schemas>

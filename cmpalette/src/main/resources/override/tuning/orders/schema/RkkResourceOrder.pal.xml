@@ -1,0 +1,537 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema extends="RkkResourceInternal" name="RkkResourceOrder" recalc="true">
+    <meta>
+      <category name="Система\Договора"/>
+      <documentation>основная схема "Заказа"</documentation>
+    </meta>
+    <string name="pagename" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Заказ']]></script>
+      </calc-values>
+    </string>
+    <string name="showIdent" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Заказ']]></script>
+      </calc-values>
+    </string>
+    <string name="showState" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[#this.isAfterApproving ? #this.approveAddState?.state?.title() : #this.apre == T(ru.intertrust.cmj.rest.rkk.APREStatus).ON_APPROVING ? 'На согласовании' : (isOnRework?:false) ? 'На доработке' : (#root?.signature?.signIsRecalled?:false) ? ('Отозван с утверждения') : "rejected".equals(signature?.state?.status) ? 'Отказано в утверждении' : "sent".equals(signature?.state?.status) ? 'На утверждении' : "signed".equals(signature?.state?.status) ? 'Утвержден' : 'Проект']]></script>
+      </calc-values>
+    </string>
+    <actor name="consumer" required="true">
+        <storage-field name="consumer"/>
+    </actor>
+    <string name="secondPartyID" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[consumer == null ? null : {#secParty = consumer.getOrganizationUNID('').split(':'), #secParty[1] + #secParty[0]}[1]]]></script>
+      </calc-values>
+    </string>
+    <string name="dialogueCommentName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Причина повторной отправки на утверждение: ']]></script>
+      </calc-values>
+    </string>
+    <string name="signatureTextRejectName" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Причина отказа в утверждении: ']]></script>
+      </calc-values>
+    </string>
+    <string name="labelExecutor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Инициатор"]]></script>
+      </calc-values>
+    </string>
+    <string name="statePlacement" temporal="true">
+      <meta>
+        <documentation>Статусное состояние "На размещении"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["На размещении"]]></script>
+      </calc-values>
+    </string>
+    <string name="statePlacementRejected" temporal="true">
+      <meta>
+        <documentation>Статусное состояние "Отказано в размещении"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Отказано в размещении"]]></script>
+      </calc-values>
+    </string>
+    <boolean name="onPlacement">
+      <meta>
+        <documentation>На размещении</documentation>
+      </meta>
+      <storage-field name="onPlacement"/>
+      <storage-string value="1"/>
+    </boolean>
+    <string name="labelExecution" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Исполнение"]]></script>
+      </calc-values>
+    </string>
+    <datetime name="signDate" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["signed".equals(signature?.state?.status) ? signature?.state?.changedAt : null]]></script>
+      </calc-values>
+    </datetime>
+    <string name="labelSign" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Утверждение"]]></script>
+      </calc-values>
+    </string>
+    <actor name="execManager">
+      <meta>
+          <documentation>Ответственный исполнитель</documentation>
+      </meta>
+      <storage-field name="execManager" substituties="AF$A_ExecManager"/>
+    </actor>
+    <date name="deadline">
+        <storage-field name="deadline"/>
+    </date>
+    <date name="plannedDeadline">
+        <storage-field name="plannedDeadline"/>
+    </date>
+    <schema-ref name="documentLink" ref="DocumentLink" null-empty="true"/>
+    <hyperlink name="documentHyperLink">
+      <calc-values>
+        <script lang="SPEL" event="open"><![CDATA[documentLink == null ? null : (T(ru.intertrust.cmj.af.misc.HyperLink).createHyperLink({
+        #document = T(ru.intertrust.cmj.af.core.AFSession).get().getApplication(T(ru.intertrust.cmj.dp.DPApplication)).getEntityByUNID(documentLink.tnUnid),
+        #parent = (#document instanceof T(ru.intertrust.cmj.dp.DPM$Entity$HasParents) ? #document?.parents()?.getParent() : null),
+        #grandparent = (#parent instanceof T(ru.intertrust.cmj.dp.DPM$Entity$HasParents) ? #parent?.parents()?.getParent() : null),
+        (#document instanceof T(ru.intertrust.cmj.dp.DPMInternal.RKK) ?
+        (#document?.getType()+' № '+(#document?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        #document instanceof T(ru.intertrust.cmj.dp.DPMContracts.RKK) ?
+        ('документ № '+(#document?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        #document instanceof T(ru.intertrust.cmj.dp.DPMContracts.Addagr) ?
+        ('доп. соглашение № '+(#document?.registrationSimple()?.number?:'б/н')
+        +' к документу № '+(#parent?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        (#document?.getType()+' № '+(#document?.registrationSimple()?.number?:'б/н')
+        +(#parent instanceof T(ru.intertrust.cmj.dp.DPMContracts.RKK) ?
+        ('к документу № '+(#document?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')) :
+        (' к доп. соглашению № '+(#parent?.registrationSimple()?.number?:'б/н')
+        +' к документу № '+(#grandparent?.registration()?.getRegisteredInfo()?.getNumber()?:'б/н')))))
+        +' от '+(T(ru.intertrust.cmj.pkd.tools.PkdTools).formatDate((#grandparent?:#parent?:#document)?.registration?.date)?:'б/д')
+        }[3]+'~#'+T(ru.intertrust.cmj.ws.base.servlet.ServletUrlHolder).getServerUrlStr() + '/ids/' + documentLink.tnUnid +'~#newTab~#local'))]]></script>
+       </calc-values>
+    </hyperlink>
+    <string name="labelNomenclature" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Номенклатура']]></script>
+      </calc-values>
+    </string>
+    <schema-ref name="nomenclatureTable" ref="NomenclatureTable" array="true"/>
+    <string name="labelSummary" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Итого']]></script>
+      </calc-values>
+    </string>
+    <integer name="numberOfItems" computed="true">
+      <storage-field name="numberOfItems"/>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[nomenclatureTable?.size()]]></script>
+      </calc-values>
+    </integer>
+    <double name="valueSummary" computed="true">
+      <storage-field name="valueSummary"/>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[nomenclatureTable == null ? null : {#sum = 0.0, nomenclatureTable.![#sum = #sum + #this.value], T(Math).ceil(#sum*100)/100}[2]]]></script>
+      </calc-values>
+    </double>
+    <double name="vatSumSummary" computed="true">
+      <storage-field name="vatSumSummary"/>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[nomenclatureTable == null ? null : {#sum = 0.0, nomenclatureTable.![#sum = #sum + #this.vatSum], T(Math).ceil(#sum*100)/100}[2]]]></script>
+      </calc-values>
+    </double>
+    <double name="vatSumContract" computed="true">
+      <storage-field name="vatSumContract"/>
+    </double>
+    <string name="vatSumSummaryStr" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[vatSumSummary == null ? "" : vatSumSummary.toString()]]></script>
+      </calc-values>
+    </string>
+    <boolean name="curUserIsExecutor" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+{
+	#curUsr = T(ru.intertrust.cmj.af.core.AFSession).get().currentUser(),
+	executor != null && (executor.contains(#curUsr.getBeard()) || executor.?[T(com.google.common.collect.Lists).transform(#this, T(ru.intertrust.cmj.rest.vcards.VCardResource).vcardTobeard).?[#curUsr.isSubstituteOf(#this)].size() > 0].size() > 0)
+}[1]
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <string name="stateSendToSignOnPaper" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(sendToSignOnPaper != null && sendToSignOnPaper) ? 'На утверждении на бумаге' : '']]></script>
+      </calc-values>
+    </string>
+    <string name="$signStatusInfo" system="true"/>
+    <string name="signStatusInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA["rejected".equals(signature?.state?.status) ? 'Отказано в утверждении' : "sent".equals(signature?.state?.status) ? 'На утверждении' : "signed".equals(signature?.state?.status) ? 'Утвержден' : ' ']]></script>
+      </calc-values>
+    </string>
+    <string name="stateSignRecall" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Отозван с утверждения']]></script>
+      </calc-values>
+    </string>
+    <string name="infoStateSign" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(isSignRejected?:false) ? 'Отказано в утверждении' : (isSigned?:false) ? 'Утвержден':'']]></script>
+      </calc-values>
+    </string>
+    <boolean name="curUserIsExecManager" temporal="true">
+      <calc-values>
+        <script event="open"><![CDATA[#this.execManager != null && (#this.execManager.getUNID().equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().getBeard().getUNID())
+        || T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().isSubstituteOf(#this.execManager.getUNID()))]]></script>
+      </calc-values>
+    </boolean>
+    <string name="stateCommentInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(#this.regStateStatusSent?:false) && #this.dialogueCommentReg!= null? #this.dialogueCommentReg:
+        (#this.isOnSign?:false) && #this.dialogueComment != null? #this.dialogueComment:
+        (#this.onPlacement?:false) && !(#this.placementRejected?:false) ? #this.placementDate +' '+ (#this.placementComment?:''):'']]></script>
+      </calc-values>
+    </string>
+    <string name="stateCommentLabelInfo" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'registration')
+        &&  "sent".equals(#this?.registration?.state?.status) && #this.dialogueCommentReg!= null?'Повторная отправка на регистрацию:':
+        #this.signature != null && #this.signature.state != null && #this.signature.state.status != null
+        && (#this.signature.state.status == "sent") && #this.dialogueComment != null?'Повторная отправка на утверждение:':
+        (#this.onPlacement?:false) && !(#this.placementRejected?:false) ? 'Отправка на размещение:':'']]></script>
+      </calc-values>
+    </string>
+    <string name="stateCommentWarn" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature') && #this.signature?.lastRefuseInfo?.comment != null ? #this.signature.lastRefuseInfo.comment:
+        T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signatureContracts') && #this.signatureContracts?.ours?.state?.comment != null ? #this.signatureContracts.ours.state.comment:
+        T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'registration') && #this.registration?.state?.comment != null ? #this.registration.state.comment:
+        (#this.onPlacement?:false) && (#this.placementRejected?:false) ? #this.placementDate +' '+ (#this.placementComment?:''):'']]></script>
+      </calc-values>
+    </string>
+    <string name="stateCommentLabelWarn" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signature') && #this.signature?.lastRefuseInfo?.comment != null ? 'Причина отказа в утверждении:':
+         T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'signatureContracts') && #this.signatureContracts?.ours?.state?.comment != null?  'Причина отказа в утверждении:':
+         T(ru.intertrust.cmj.rest.tuning.expressions.TuningFunctions).isObjectContains(#this, 'registration') && #this.registration?.state?.comment != null?  'Причина отказа в регистрации:':
+        (#this.onPlacement?:false) && (#this.placementRejected?:false) ? 'Причина отказа в размещении:':'']]></script>
+      </calc-values>
+    </string>
+    <string name="labelPlaceManager" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA["Ответственный за размещение"]]></script>
+      </calc-values>
+    </string>
+    <boolean name="isDeleted" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(status == null || status['deleted'] == null) ? false : status['deleted']]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$editAccessLink" temporal="true">
+      <meta>
+        <documentation>Вычисление видимости кнопки "Редактировать"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isNew? true : #hasRole(#this, 'Supervisor') && !#this.isDeleted? true :
+!onPlacement && #this.registration?.number==null && curUserIsExecutor ? true :
+onPlacement && curUserIsExecutor ? true :
+#this.registration?.number!=null && curUserIsExecManager ? true:false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$visibleEditAccessLink" temporal="true">
+      <meta>
+        <documentation>Управление видимостью кнопки "Редактировать"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[(!$editAccessLink ||
+         'Webdocs2.0'.equals(T(ru.intertrust.cmj.af.core.AFSession).get().currentUser().extendedAttributes().getOrDefault('ClientAlias', ''))) && link.?[rel=='edit'].size()>0 ? link.remove(link.?[rel=='edit'].get(0)):
+$editAccessLink && link.?[rel=='edit'].size() == 0 ? #this.link.add(new ru.intertrust.cmj.rest.core.ResourceLink("edit",#this.getResourceReference())): false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$startApprovalLink" temporal="true">
+      <meta>
+        <documentation>Вычисление видимости кнопки "Отправить\На согласование"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isNew? false : #this.isDeleted? false :
+#this.registration?.number!=null ? false :
+onPlacement && curUserIsExecutor ? true : false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$removeStartApprovalLink" temporal="true">
+      <meta>
+        <documentation>Удаление ссылки "Отправить\На согласование"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!$startApprovalLink && link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].size()>0 ? link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#approving.start'].get(0)): false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$signSentlLink" temporal="true">
+      <meta>
+        <documentation>Вычисление видимости кнопки "Отправить\На утверждение"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[isNew? false : #this.isDeleted? false :
+#this.registration?.number!=null ? false :
+onPlacement && curUserIsExecutor ? true : false]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="$removeSignSentLink" temporal="true">
+      <meta>
+        <documentation>Удаление ссылки "Отправить\На утверждение"</documentation>
+      </meta>
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!$signSentlLink && link.?[rel=='http://intertrust.ru/cmj/relations#sign.sent'].size()>0 ? link.remove(link.?[rel=='http://intertrust.ru/cmj/relations#sign.sent'].get(0)): false]]></script>
+      </calc-values>
+    </boolean>
+    <string name="placementComment">
+      <storage-field name="placementComment"/>
+    </string>
+    <date name="placementDate">
+      <storage-field name="placementDate"/>
+    </date>
+    <boolean name="placementRejected">
+      <storage-field name="placementRejected"/>
+      <storage-string value="1"/>
+    </boolean>
+    <boolean name="canSendForPlacement" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[!(onPlacement?:false) || (placementRejected?:false)]]></script>
+      </calc-values>
+    </boolean>
+    <actor name="joInitiator">
+      <storage-field name="joInitiator" substituties="AF$A_Initiator" auditors="AF$R_Initiator"/>
+    </actor>
+    <actor name="joExecutorWD" array="true">
+      <meta>
+        <documentation>Дублирование поля для отображения в карточке WD</documentation>
+      </meta>
+      <storage-field name="joExecutorWD"/>
+      <calc-values>
+        <script event="save" lang="SPEL"><![CDATA[#this.executor == null ? null : #this.executor]]></script>
+      </calc-values>
+    </actor>
+    <string name="customStatusJO" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+"sent_to_sign".equals(documentStatus.get('main')) ? "На утверждении" :
+"signing_rejected".equals(documentStatus.get('main')) ? "В утверждении отказано" :
+"signed".equals(documentStatus.get('main')) ? "Утвержден" :
+documentStatus.get('main')]]></script>
+      </calc-values>
+    </string>
+    <schema-ref name="documentStatusWD" ref="CustomStatusJobOrders"/>
+    <custom-event-handler lang="JavaScript"><![CDATA[
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.links.AFLinksApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.org.slf4j.LoggerFactory);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.java.text.SimpleDateFormat);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.so.SOUnitPost);
+
+function queryCreate(object){
+
+    var log = LoggerFactory.getLogger("schema.RkkResourceOrder");
+    var values = object.tuning().getValues();
+    var user = AFSession.get().currentUser().getBeard();
+
+    values.put("joInitiator", TuningHelper.createPropertyValue(user, object.tuning().getSchema().getProperty("joInitiator")));
+    log.trace("Заполнение поля Сотрудник");
+    fillExecutorField(object, log);
+
+}
+
+function recalc(object, changedField) {}
+
+function querySave(object, document) {
+    var log = LoggerFactory.getLogger("schema.RkkResourceOrder");
+
+    //добавление связи "На основании"
+    if (object.isNew()) {
+        var tnUnid = object.tuning().getValues().get("documentLink").getValues().get("tnUnid").getValue();
+        createLink(object, AFSession.get().getApplication(DPApplication.class).getEntityByUNID(tnUnid), 'BASED_ON')
+    }
+
+    //утверждение
+    if (object.signing().getState() == DPM.RKK.HasSigning.Signing.State.SIGNED && !document.getItemValueString("Signed").equals("1")) {
+        Event.bus().post(new CompleteEvent(object,"JOBO1_11",object.executors.getList()));
+    }
+
+    log.trace("querySave.Запись истории");
+	writeHistory(object, document);
+	log.trace("querySave.Завершение сохранения");
+}
+
+function writeHistory(object, document) {
+
+	var hist = object.history();
+
+	if (!object.isNew()) {
+		writeTextHistory(object, document, hist, "execManager", "execManager", "order.execManager.change","arrayb","act");
+		writeTextHistory(object, document, hist, "plannedDeadline", "plannedDeadline", "order.plannedDeadline.change","date","");
+		writeTextHistory(object, document, hist, "ExtControlDate", "deadline", "order.deadLine.change","date","control");
+		writeTextHistory(object, document, hist, "Comments", "comment", "order.comment.change","str","comment");
+	}
+	object.history = hist;
+}
+
+function writeTextHistory(object, document, hist, fieldName, propertyName, eventName, typeField, typeProperty) {
+	var oldValue = getFieldValue(document, fieldName, typeField);
+	var newValue = getPropertyValue(object, propertyName, typeProperty);
+	if (!oldValue.equals(newValue)) {
+		TunableHistoryHelper.hist_addTextOne(hist, eventName, oldValue, newValue);
+	}
+}
+
+// Получение значения из документа
+function getFieldValue(document, fieldName, type) {
+	var value = "";
+	if(type.equals("str")) {
+		value = document.getItemValueString(fieldName);
+	} else if(type.equals("date")) {
+		if(!document.getItemValue(fieldName).isEmpty()) {
+		    value = document.getItemValue(fieldName).get(0).toJavaDate();
+		    value = new java.text.SimpleDateFormat("dd.MM.yyyy").format(value)
+        }
+    } else if (type.equals("arrayb")) {
+		for (var i = 0; i < document.getItemValue(fieldName).size(); i++) {
+			var elem = getShortName(document, fieldName);
+			if (value.equals("")){
+				value = elem;
+			} else {
+				value = value + ", " + elem;
+			}
+		}
+	}
+	return value;
+}
+
+// Получение краткого имени по бороде
+function getShortName(document, fieldName) {
+	var beardStr = document.getItemValueString(fieldName);
+	if (beardStr != null && !beardStr.equals("")) {
+        var soApp = AFSession.get().getApplication(SOApplication.class);
+        var soBeard = soApp.getBeard(beardStr);
+        if (soBeard != null) {
+            value = soBeard.originalData().getShortName();
+        }
+	}
+	return value;
+}
+
+// Текущее значение поля
+function getPropertyValue(object, propertyName, typeProperty) {
+    var value = null;
+    if (object != null &&
+        object.tuning().getValues().get(propertyName) != null && object.tuning().getValues().get(propertyName).getValue() != null) {
+        value = object.tuning().getValues().get(propertyName).getValue();
+        if ("act".equals(typeProperty)) {
+            value =  value.originalData().getShortName();
+        }
+    } else if ("control".equals(typeProperty)) {
+        var deadlineValue = object.control().deadline;
+        if (deadlineValue != null) {
+            value = new java.text.SimpleDateFormat("dd.MM.yyyy").format(deadlineValue);
+        }
+    } else if ("comment".equals(typeProperty)) {
+        var commentValue = object.comment;
+        if (commentValue != null) {
+            value = commentValue;
+        }
+    }
+    return value != null ? value : "";
+}
+
+function postSave(object, document) {}
+
+function createLink(rkk, mp, STRLINK) {
+    var afLinks = AFSession.get().getApplication(AFLinksApplication.class);
+    var availableLinks = afLinks.getRegisteredLinksBySrcAndTrg(rkk, mp, false);
+    for (var i = 0; i < availableLinks.size(); i++) {
+        var link = availableLinks.get(i);
+        if (link.getType().equals(STRLINK)) {
+            rkk.links().add(link);
+            rkk.links().changeList(rkk.links(), true);
+            rkk.tuning().getRelatedLinkObjects().put("related."+STRLINK, mp);
+            break;
+        }
+    }
+}
+
+function fillExecutorField(object, log) {
+
+    var result = new ArrayList();
+    var user = AFSession.get().currentUser().getBeard();
+    var relationUsers = BeansUtils.getBean("relationUsers");
+    try {
+        var relBeards = relationUsers.getBeardsByFormula('Ответственный за размещение заказа', user);
+    } catch(e) {
+        var relBeards = new ArrayList();
+    }
+
+    if (relBeards.size() > 0) {
+        beard = relBeards.get(0);
+        if (beard.originalData().getType().toString().equals("SYS_ROLE")){
+            result = getSubstitutesBeard(beard.originalData().getParty().getSubstitutes());
+        } else {
+            log.trace("Реляция вернула не роль");
+            result.add(user);
+        }
+    } else {
+        log.trace("Не удалось вычислить реляцию");
+        result.add(user);
+    }
+    var listExecutors = object.executors().getList();
+    listExecutors.clear();
+    listExecutors.addAll(result);
+}
+
+function getSubstitutesBeard(substitutes){
+    var result = new ArrayList();
+    if(substitutes == null)
+        return result;
+
+    for (var i1 = 0; i1 < substitutes.size(); i1++) {
+        var unit = substitutes.get(i1);
+        var user = null;
+        if (unit == null) {
+            continue;
+        }
+        if (unit instanceof SOUnitPost) {
+            var app2 = unit.appointments();
+            if (app2 == null) {
+                continue;
+            }
+            var app2cur = app2.getCurrent();
+            if (app2cur == null) {
+                continue;
+            }
+            user = app2cur.getBeard();
+        } else if (unit instanceof SOParty) {
+            user = unit.getBeard();
+        }
+        if (user != null) {
+            result.add(user);
+        }
+    }
+    return result;
+}
+]]></custom-event-handler>
+  </schema>
+</schemas>

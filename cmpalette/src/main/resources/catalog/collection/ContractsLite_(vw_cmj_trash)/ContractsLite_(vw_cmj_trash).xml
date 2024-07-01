@@ -1,0 +1,799 @@
+<collection name="ContractsLite_(vw_cmj_trash)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+	id,
+	created_date,
+	Module,
+	self_1,
+	self_2,
+	self_3,
+	date,
+	hasAttachments,
+	met_who,
+	deletedDate,
+	objectType,
+	contractNumberForTrash,
+	executorName,
+	createdBy
+FROM (
+	------------------------------------------- RKK -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogRkk.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogRkk.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogRkk.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'РКК'																					AS objectType,
+		(coalesce(rkk.regnumprist, '') ||
+		coalesce(cast(rkk.regnumcnt as VARCHAR), '') ||
+		coalesce(rkk.regnumfin, '')) 						                                    AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractRkk_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogRkk.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM F_DP_ContractRkk dogRkk
+	JOIN F_DP_Rkk rkk ON rkk.id = dogRkk.id
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogRkk.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- DS -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogDS.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogDS.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogDS.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'Доп. соглашение'																		AS objectType,
+		dogDS.regNumber																			AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDS_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogDS.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM F_DP_ContractDS dogDS
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogDS.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- Doc -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogDoc.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogDoc.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogDoc.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'Документ'																				AS objectType,
+		dogDoc.regNumber																		AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDoc_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogDoc.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM F_DP_ContractDoc dogDoc
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogDoc.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- FD -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogFd.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogFd.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogFd.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'Финансовый документ'																	AS objectType,
+		dogFd.regNumber																		    AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDoc_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogFd.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM f_dp_contractfd dogFd
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogFd.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- RESOLUTION -------------------------------------------
+
+	SELECT
+		resbase.id,
+		resbase.created_date,
+		resbase.created_date                                                AS date,
+		resbase.module		                                                AS Module,
+		'<id>'				                                                AS self_1,
+		':'					                                                AS self_2,
+		'</>'				                                                AS self_3,
+        (SELECT coalesce(max(a), cast(0 AS SMALLINT))
+          FROM (
+                 SELECT cast(1 AS SMALLINT) a
+                 FROM f_ContentFiles_Rkk CF
+                 WHERE CF.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM f_ContentRichText_Rkk CRT
+                 WHERE CRT.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM F_VERIFYIMAGE_CONTRACT VI
+                 WHERE VI.f_dp_contractcommon = rkkbase.id
+               ) t
+        )                                                                   AS hasAttachments,
+        coalesce((SELECT
+            '<id>'
+            || substring(beardDel.cmjunid, 33, 48)
+            || ':'
+            || substring(beardDel.cmjunid, 1, 32)
+            || '</><shortName>'
+            || beardDel.Orig_ShortName
+            || '</>'
+         FROM so_beard beardDel
+         WHERE beardDel.id = resbase.deletewho), '<id></><shortName></>')   AS met_who,
+         resbase.deletedate                                                 AS deleted_date,
+        'Резолюция'                                                         AS objectType,
+        ''																    AS contractNumberForTrash,
+        (
+            SELECT STRING_AGG(name,'; ')
+            FROM (
+                SELECT so_beard.orig_shortname as name, resExecCurr.idx as idx
+                FROM f_dp_resltnbase_execcurr resExecCurr
+                LEFT JOIN so_beard ON so_beard.id = resExecCurr.executorcurr
+                WHERE resExecCurr.owner = resRkk.id
+                UNION
+                SELECT so_beard.orig_shortname as name, resExecExt.idx as idx
+                FROM F_DP_ResltnBase_ExecExt resExecExt
+                LEFT JOIN SO_Beard ON so_beard.id = resExecExt.ExecutorExt
+                WHERE resExecExt.owner = resRkk.id order by idx
+            ) s
+        )                                                                   AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = resbase.created_by)									AS createdBy
+       FROM
+         F_DP_Resolution resRkk
+         JOIN F_DP_ResltnBase resbase ON resbase.id = resRkk.id
+         JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resRkk.HierRoot
+       WHERE resbase.isdeleted = 1
+
+       UNION ALL
+
+	------------------------------------------- REPORT -------------------------------------------
+
+    SELECT
+        rep.id,
+        rep.created_date,
+		rep.created_date    AS date,
+		rep.module		    AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+        (SELECT coalesce(max(a), cast(0 AS SMALLINT))
+          FROM (
+                 SELECT cast(1 AS SMALLINT) a
+                 FROM f_ContentFiles_Rkk CF
+                 WHERE CF.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM f_ContentRichText_Rkk CRT
+                 WHERE CRT.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM F_VERIFYIMAGE_CONTRACT VI
+                 WHERE VI.f_dp_contractcommon = rkkbase.id
+               ) t
+        )                                                                   AS hasAttachments,
+        coalesce((SELECT
+            '<id>'
+            || substring(beardDel.cmjunid, 33, 48)
+            || ':'
+            || substring(beardDel.cmjunid, 1, 32)
+            || '</><shortName>'
+            || beardDel.Orig_ShortName
+            || '</>'
+         FROM so_beard beardDel
+         WHERE beardDel.id = rep.deletewho), '<id></><shortName></>')       AS met_who,
+		rep.deletedate                          AS deleted_date,
+		'Исполнение'                            AS objectType,
+		''																    AS contractNumberForTrash,
+        ''                                                                  AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rep.created_by)									    AS createdBy
+    FROM
+       F_DP_Report rep
+       JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rep.HierRoot
+    WHERE rep.isdeleted = 1
+) s
+WHERE
+	1 = 1
+	::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+SELECT
+	COUNT(*)
+FROM (
+	------------------------------------------- RKK -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogRkk.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogRkk.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogRkk.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'РКК'																					AS objectType,
+		(coalesce(rkk.regnumprist, '') ||
+		coalesce(cast(rkk.regnumcnt as VARCHAR), '') ||
+		coalesce(rkk.regnumfin, '')) 						                                    AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractRkk_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogRkk.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM F_DP_ContractRkk dogRkk
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogRkk.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- DS -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogDS.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogDS.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogDS.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'Доп. соглашение'																		AS objectType,
+		dogDS.regNumber																			AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDS_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogDS.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM F_DP_ContractDS dogDS
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogDS.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- Doc -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogDoc.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogDoc.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogDoc.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'Документ'																				AS objectType,
+		dogDoc.regNumber																		AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDoc_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogDoc.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM F_DP_ContractDoc dogDoc
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogDoc.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- FD -------------------------------------------
+	SELECT
+		rkkbase.id,
+		rkkbase.created_date,
+		rkkbase.created_date AS date,
+		rkkbase.module		AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+		COALESCE(
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentFiles_Rkk CF
+			 WHERE CF.f_dp_rkkbase = dogFd.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_ContentRichText_Rkk CRT
+			 WHERE CRT.f_dp_rkkbase = dogFd.id LIMIT 1),
+			(SELECT CAST(1 AS SMALLINT) FROM F_VerifyImage_Rkk VI
+			 WHERE VI.f_dp_rkk = dogFd.id LIMIT 1),
+			CAST(0 AS SMALLINT)
+		)																						AS hasAttachments,
+		COALESCE(
+			(SELECT
+				'<shortName>' || sb.Orig_ShortName || '</><id>'
+				|| RIGHT(sb.cmjunid, 16) || ':' || LEFT(sb.cmjunid, 32) || '</>'
+			 FROM SO_Beard sb
+			 WHERE sb.id = rkkbase.deleteWho),
+			'<id></><shortName></>')															AS met_who,
+		rkkbase.deletedate																		AS deletedDate,
+		'Финансовый документ'																				AS objectType,
+		dogFd.regNumber																		AS contractNumberForTrash,
+		(SELECT ARRAY_TO_STRING(ARRAY_AGG(s.s), ';')
+		 FROM (SELECT sb.Orig_ShortName AS s
+			   FROM F_DP_ContractDoc_PrepBy prep
+			   JOIN SO_Beard sb ON sb.id = prep.preparedBy
+			   WHERE prep.owner = dogFd.id
+			   GROUP BY sb.Orig_ShortName, sb.cmjunid, idx
+			   ORDER BY idx) s)																	AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rkkbase.created_by)														AS createdBy
+	FROM f_dp_contractfd dogFd
+	JOIN F_DP_RkkBase rkkbase ON rkkbase.id = dogFd.id
+	WHERE rkkbase.isDeleted = 1
+
+	UNION ALL
+
+	------------------------------------------- RESOLUTION -------------------------------------------
+
+	SELECT
+		resbase.id,
+		resbase.created_date,
+		resbase.created_date                                                AS date,
+		resbase.module		                                                AS Module,
+		'<id>'				                                                AS self_1,
+		':'					                                                AS self_2,
+		'</>'				                                                AS self_3,
+        (SELECT coalesce(max(a), cast(0 AS SMALLINT))
+          FROM (
+                 SELECT cast(1 AS SMALLINT) a
+                 FROM f_ContentFiles_Rkk CF
+                 WHERE CF.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM f_ContentRichText_Rkk CRT
+                 WHERE CRT.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM F_VERIFYIMAGE_CONTRACT VI
+                 WHERE VI.f_dp_contractcommon = rkkbase.id
+               ) t
+        )                                                                   AS hasAttachments,
+        coalesce((SELECT
+            '<id>'
+            || substring(beardDel.cmjunid, 33, 48)
+            || ':'
+            || substring(beardDel.cmjunid, 1, 32)
+            || '</><shortName>'
+            || beardDel.Orig_ShortName
+            || '</>'
+         FROM so_beard beardDel
+         WHERE beardDel.id = resbase.deletewho), '<id></><shortName></>')   AS met_who,
+         resbase.deletedate                                                 AS deleted_date,
+        'Резолюция'                                                         AS objectType,
+        ''																    AS contractNumberForTrash,
+        (
+            SELECT STRING_AGG(name,'; ')
+            FROM (
+                SELECT so_beard.orig_shortname as name, resExecCurr.idx as idx
+                FROM f_dp_resltnbase_execcurr resExecCurr
+                LEFT JOIN so_beard ON so_beard.id = resExecCurr.executorcurr
+                WHERE resExecCurr.owner = resRkk.id
+                UNION
+                SELECT so_beard.orig_shortname as name, resExecExt.idx as idx
+                FROM F_DP_ResltnBase_ExecExt resExecExt
+                LEFT JOIN SO_Beard ON so_beard.id = resExecExt.ExecutorExt
+                WHERE resExecExt.owner = resRkk.id order by idx
+            ) s
+        )                                                                   AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = resbase.created_by)									AS createdBy
+       FROM
+         F_DP_Resolution resRkk
+         JOIN F_DP_ResltnBase resbase ON resbase.id = resRkk.id
+         JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resRkk.HierRoot
+       WHERE resbase.isdeleted = 1
+
+       UNION ALL
+
+	------------------------------------------- REPORT -------------------------------------------
+
+    SELECT
+        rep.id,
+        rep.created_date,
+		rep.created_date    AS date,
+		rep.module		    AS Module,
+		'<id>'				AS self_1,
+		':'					AS self_2,
+		'</>'				AS self_3,
+        (SELECT coalesce(max(a), cast(0 AS SMALLINT))
+          FROM (
+                 SELECT cast(1 AS SMALLINT) a
+                 FROM f_ContentFiles_Rkk CF
+                 WHERE CF.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM f_ContentRichText_Rkk CRT
+                 WHERE CRT.f_dp_rkkbase = rkkbase.id
+                 UNION
+                 SELECT cast(1 AS SMALLINT)
+                 FROM F_VERIFYIMAGE_CONTRACT VI
+                 WHERE VI.f_dp_contractcommon = rkkbase.id
+               ) t
+        )                                                                   AS hasAttachments,
+        coalesce((SELECT
+            '<id>'
+            || substring(beardDel.cmjunid, 33, 48)
+            || ':'
+            || substring(beardDel.cmjunid, 1, 32)
+            || '</><shortName>'
+            || beardDel.Orig_ShortName
+            || '</>'
+         FROM so_beard beardDel
+         WHERE beardDel.id = rep.deletewho), '<id></><shortName></>')       AS met_who,
+		rep.deletedate                          AS deleted_date,
+		'Исполнение'                            AS objectType,
+		''																    AS contractNumberForTrash,
+        ''                                                                  AS executorName,
+		(SELECT
+		 	COALESCE(
+				CONCAT_WS(' ', sp.LastName, LEFT(sp.FirstName, 1) || '.',
+						  LEFT(sp.MiddleName, 1) || '.'),
+				CONCAT_WS(' ', per.LastName, LEFT(sp.FirstName, 1) || '.'))
+		 FROM Person per
+		 JOIN SO_PersonSys sps ON sps.platformPerson = per.id AND sps.platformPerson_type = per.id_type
+		 JOIN SO_Person sp ON sp.id = sps.id
+		 WHERE per.id = rep.created_by)									    AS createdBy
+    FROM
+       F_DP_Report rep
+       JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rep.HierRoot
+    WHERE rep.isdeleted = 1
+) s
+WHERE
+	1 = 1
+	::where-clause
+        ]]>
+    </counting-prototype>
+
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="met_who_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(met_who) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="deletedDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    TO_CHAR(deletedDate, 'DD.MM.YYYY') = TO_CHAR(DATE({0}), 'DD.MM.YYYY')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    deletedDate IS NULL
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="objectType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    objectType = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="objectType_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(objectType) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="contractNumberForTrash">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    contractNumberForTrash = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="contractNumberForTrash_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(contractNumberForTrash) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(executorName) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="createdBy_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    UPPER(createdBy) LIKE UPPER('%'||{0}||'%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (created_date is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(created_date as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(created_date as date) >= cast({0} as date) and cast(created_date as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+
+</collection>

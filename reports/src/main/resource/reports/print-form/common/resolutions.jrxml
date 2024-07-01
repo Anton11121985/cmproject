@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="resolutions" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5d0b0afa-0408-47c3-bdf2-f4f9e76c9e19">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="ID" class="java.lang.Object"/>
+	<parameter name="margin" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    res.id AS resId,
+    res.ctrldeadline,
+    (SELECT string_agg(t.author_resp, ', ') AS author_resp
+      FROM (SELECT author_resp.orig_shortname AS author_resp
+              FROM F_DP_ResltnBase_ExecResp resp
+              JOIN So_Beard author_resp ON author_resp.id = resp.ExecutorResp
+             WHERE resp.owner = res.id
+             ORDER BY resp.idx asc) t
+     ) AS ExecResp,
+    (SELECT string_agg(author_curr.orig_shortname,', ') AS author_curr
+     FROM F_DP_ResltnBase_ExecCurr curr
+        JOIN So_Beard author_curr ON author_curr.id = curr.ExecutorCurr
+     WHERE (curr.ExecutorCurr NOT IN (SELECT resp.ExecutorResp FROM F_DP_ResltnBase_ExecResp resp WHERE resp.owner = res.id )) AND curr.owner  = res.id
+     ) AS ExecCurr,
+     resBase.resolution,
+     res.Date AS resDate,
+     author.orig_shortname AS authorName,
+  		  CASE
+    		WHEN res.isproject = 1 THEN 'Проект'
+    		WHEN res.ctrldateexecution IS NOT NULL THEN 'Исполнена'
+    		--WHEN res.ctrldeadline IS NOT NULL THEN 'На контроле'
+    		ELSE 'В работе'
+  		  END AS resStatus,
+     res.CtrlDateExecution
+FROM F_DP_Resolution res
+    JOIN F_DP_ResltnBase resBase ON resBase.id = res.id
+    JOIN So_Beard author ON author.id = resBase.author
+    JOIN f_dp_inputrkk inputrkk ON inputrkk.id = res.hierroot
+WHERE
+    res.HierParent IN ( $P{ID} ) AND res.isproject = 0
+    AND resBase.module NOT IN (SELECT module.id FROM SS_Module module JOIN SS_ModuleType moduletype ON moduletype.id = module.type WHERE moduletype.Alias='TempStorage')
+    AND resBase.isdeleted=0
+ORDER BY resBase.created_date]]>
+	</queryString>
+	<field name="resid" class="java.lang.Object"/>
+	<field name="ctrldeadline" class="java.sql.Timestamp"/>
+	<field name="execresp" class="java.lang.String"/>
+	<field name="execcurr" class="java.lang.String"/>
+	<field name="resolution" class="java.lang.String"/>
+	<field name="resdate" class="java.sql.Timestamp"/>
+	<field name="authorName" class="java.lang.String"/>
+	<field name="resStatus" class="java.lang.String"/>
+	<field name="ctrldateexecution" class="java.sql.Timestamp"/>
+	<variable name="marginLeft" class="java.lang.String">
+		<variableExpression><![CDATA[$P{margin}+"&nbsp;&nbsp;&nbsp;&nbsp;"]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="555" height="20" isPrintWhenDetailOverflows="true" uuid="a5842be1-e332-488d-bf00-3b199703c35d">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font fontName="Times New Roman" size="10" isBold="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Cp1251" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{authorName} != null ? ($V{marginLeft} + "<b>"+"Автор резолюции: "+  $F{authorName} + "</b>" + "( "+ new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{resdate}) + " )" + "<br />") : "") + 
+($F{execresp} != null ? ($V{marginLeft} + "Отв. исполнитель: " + "<u>"+ $F{execresp} + "</u>" + "<br />") : "") + 
+($F{execcurr} != null ? ($V{marginLeft} + "Исполнители: " +  $F{execcurr} +"<br />") : "") + 
+($F{resolution} != null ? ($V{marginLeft} +  $F{resolution} + "<br />") : "") + 
+($F{ctrldeadline} != null ? ($V{marginLeft} + "Срок: " +  "<u>" + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{ctrldeadline}) + "</u>" + "<br />") : "") + 
+($F{resStatus} != null ? ($V{marginLeft}+"Статус: " +  $F{resStatus}) : "") + 
+($F{ctrldateexecution} != null ?  (", " + new java.text.SimpleDateFormat("dd.MM.yyyy").format($F{ctrldateexecution}))  :  "")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="1" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<subreport>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="0" width="555" height="1" isPrintWhenDetailOverflows="true" uuid="5b5674bc-4bdc-4ddd-b68b-dd75a087e5b5">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="ID">
+					<subreportParameterExpression><![CDATA[$F{resid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="margin">
+					<subreportParameterExpression><![CDATA[$V{marginLeft}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["resolutions.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

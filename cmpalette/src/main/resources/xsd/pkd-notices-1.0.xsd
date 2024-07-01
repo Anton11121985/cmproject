@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:com="http://www.intertrust.ru/schema/palette/common">
+
+  <xs:import namespace="http://www.intertrust.ru/schema/palette/common" schemaLocation="common-1.0.xsd">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Общие типы]]></xs:documentation>
+    </xs:annotation>
+  </xs:import>
+
+  <xs:complexType name="codeJSType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[язык написания формулы JavaScript ctx.setResult(domainObject.getBoolean("isPersonal"))]]></xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="lang" fixed="JavaScript"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="notificationType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Почтовые сообщения. Указывается идентификатор]]></xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="ref" type="xs:string" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="notificationsType">
+    <xs:sequence>
+      <xs:element name="notification" type="notificationType" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!--ПКД тип уведомление-->
+  <xs:complexType name="pkdNoticeType">
+    <xs:annotation>
+      <xs:documentation><![CDATA[ПКД тип уведомление]]></xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="personal-formula" type="codeJSType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Формула для расчёта признака "лично", работает
+            с настройкой в СО "Доступен режим "Выполнить лично"
+            ( https://conf.inttrust.ru:8443/pages/viewpage.action?pageId=118064448 )]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="notifications" type="notificationsType" minOccurs="0"/>
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation><![CDATA[ID события]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="name" type="com:placeholderType" use="required">
+      <xs:annotation>
+        <xs:documentation><![CDATA[название уведомления]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="task" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation><![CDATA[создавать задачу]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="redirect-task" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation><![CDATA[перенаправлять задачу]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="open-id-section" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation><![CDATA[id секции в форме, которая должна открываться при переходе из уведомления/задачи]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="cancel-task" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation><![CDATA[отменить задачу]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+</xs:schema>

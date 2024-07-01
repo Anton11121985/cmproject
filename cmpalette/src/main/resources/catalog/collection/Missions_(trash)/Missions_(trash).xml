@@ -1,0 +1,647 @@
+<collection name="Missions_(trash)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[ SELECT
+    id,
+    Module,
+    deletedPerson,
+    deletedDate,
+    objectType,
+    deleted_date,
+    hasAttachments,
+    reqType,
+    createdNote,
+    created_date,
+    CreatedDateDoc,
+    subject,
+    self_1,
+    self_2,
+    self_3
+FROM (
+         SELECT
+             rkkbase.id,
+             rkkbase.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+             'РКК'                                   AS objectType,
+             rkkbase.deletedate                      AS deletedDate,
+             rkkbase.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+             (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdNote,
+             rkkbase.created_date,
+             rkkbase.created_date                    AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_OrdRkk ordrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = ordrkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             resbase.id,
+             resbase.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = resbase.deletewho) as deletedPerson,
+
+             'Резолюция'                             AS objectType,
+             resbase.deletedate                      AS deletedDate,
+             resbase.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+
+             (SELECT  Beard.Orig_ShortName
+              FROM SO_Beard Beard
+              WHERE Beard.id = resbase.Author)   AS createdNote,
+
+             resbase.created_date,
+             resbase.created_date                    AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_Resolution resRkk
+                 JOIN f_dp_rkk rkk ON rkk.id = resRkk.HierRoot
+                 JOIN F_DP_ResltnBase resbase ON resbase.id = resRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resRkk.HierRoot
+                 JOIN SO_Beard Beard ON Beard.id = resbase.Operator
+         WHERE resbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rep.id,
+             rep.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rep.deletewho) as deletedPerson,
+
+             'Исполнение'                            AS objectType,
+             rep.deletedate                          AS deletedDate,
+             rep.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+             (SELECT   Beard.Orig_ShortName
+              FROM SO_Beard Beard
+              WHERE Beard.id = rep.Author)    AS createdNote,
+             rep.created_date,
+             rep.created_date                        AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_Report rep
+                 JOIN F_DP_Rkk rkk ON rkk.id = rep.HierRoot
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 JOIN SO_Beard Beard ON Beard.id = rep.Operator
+         WHERE rep.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rkkbase.id,
+             rkkbase.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+             'Шаблон РКК'                            AS objectType,
+             rkkbase.deletedate                      AS deletedDate,
+             rkkbase.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+             (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdNote,
+             rkkbase.created_date,
+             rkkbase.created_date                    AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             f_DP_RkkTemplate rkkT
+                 JOIN f_dp_rkk rkk ON rkk.id = rkkT.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 JOIN SO_Beard Beard ON Beard.id = rkkbase.Operator
+         WHERE rkkbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             resRkkT.id,
+             resRkkT.Module,
+             (SELECT   beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = resRkkT.deletewho) AS deletedPerson,
+             'Шаблон резолюции'                      AS objectType,
+             resRkkT.deletedate                      AS deletedDate,
+             resRkkT.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = resRkkT.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = resRkkT.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = resRkkT.id
+                   ) t
+             )                                       AS hasAttachments,
+             ''                                      AS reqType,
+             (SELECT   Beard.Orig_ShortName
+              FROM SO_Beard Beard
+              WHERE Beard.id = resRkkT.author)     AS createdNote,
+             resRkkT.created_date,
+             resRkkT.created_date                    AS CreatedDateDoc,
+             ''                                      AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_ResolutionT resRkkT
+                 LEFT JOIN f_dp_rkk rkk ON rkk.id = resRkkT.id
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE resRkkT.isdeleted = 1
+
+         UNION
+
+         SELECT
+            npa.id,
+            npa.Module,
+            (SELECT   beardDel.Orig_ShortName
+             FROM so_beard beardDel
+            WHERE beardDel.id = npa.deletewho)      AS deletedPerson,
+            'Карточка публикации'                   AS objectType,
+            npa.deletedate                          AS deletedDate,
+            npa.deletedate                          AS deleted_date,
+            0                                       AS hasAttachments,
+            ''                                      AS reqType,
+            (SELECT   Beard.Orig_ShortName
+             FROM SO_Beard Beard
+             WHERE Beard.id = npa.operator)         AS createdNote,
+            npa.created_date,
+            npa.created_date                        AS CreatedDateDoc,
+            ''                                      AS subject,
+            '<id>'                                  AS self_1,
+            ':'                                     AS self_2,
+            '</>'                                   AS self_3
+         FROM Npa_Publication npa
+         where npa.isdeleted = 1
+     ) s
+     WHERE
+        1=1
+        ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(*)
+FROM (
+         SELECT
+             rkkbase.id,
+             rkkbase.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+             'РКК'                                   AS objectType,
+             rkkbase.deletedate                      AS deletedDate,
+             rkkbase.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+             (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdNote,
+             rkkbase.created_date,
+             rkkbase.created_date                    AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_OrdRkk ordrkk
+                 JOIN f_dp_rkk rkk ON rkk.id = ordrkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE rkkbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             resbase.id,
+             resbase.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = resbase.deletewho) as deletedPerson,
+
+             'Резолюция'                             AS objectType,
+             resbase.deletedate                      AS deletedDate,
+             resbase.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+
+             (SELECT  Beard.Orig_ShortName
+              FROM SO_Beard Beard
+              WHERE Beard.id = resbase.Author)   AS createdNote,
+
+             resbase.created_date,
+             resbase.created_date                    AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_Resolution resRkk
+                 JOIN f_dp_rkk rkk ON rkk.id = resRkk.HierRoot
+                 JOIN F_DP_ResltnBase resbase ON resbase.id = resRkk.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = resRkk.HierRoot
+                 JOIN SO_Beard Beard ON Beard.id = resbase.Operator
+         WHERE resbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rep.id,
+             rep.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rep.deletewho) as deletedPerson,
+
+             'Исполнение'                            AS objectType,
+             rep.deletedate                          AS deletedDate,
+             rep.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+             (SELECT   Beard.Orig_ShortName
+              FROM SO_Beard Beard
+              WHERE Beard.id = rep.Author)    AS createdNote,
+             rep.created_date,
+             rep.created_date                        AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_Report rep
+                 JOIN F_DP_Rkk rkk ON rkk.id = rep.HierRoot
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 JOIN SO_Beard Beard ON Beard.id = rep.Operator
+         WHERE rep.isdeleted = 1
+
+         UNION
+
+         SELECT
+             rkkbase.id,
+             rkkbase.Module,
+
+             (SELECT beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = rkkbase.deletewho) as deletedPerson,
+
+             'Шаблон РКК'                            AS objectType,
+             rkkbase.deletedate                      AS deletedDate,
+             rkkbase.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = rkk.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = rkk.id
+                   ) t
+             )                                       AS hasAttachments,
+             rkkbase.type                            AS reqType,
+             (SELECT createdBeard.Orig_ShortName
+              FROM so_beard createdBeard
+              WHERE createdBeard.id = rkkbase.operator) as createdNote,
+             rkkbase.created_date,
+             rkkbase.created_date                    AS CreatedDateDoc,
+             rkkbase.subject                         AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             f_DP_RkkTemplate rkkT
+                 JOIN f_dp_rkk rkk ON rkk.id = rkkT.id
+                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 JOIN SO_Beard Beard ON Beard.id = rkkbase.Operator
+         WHERE rkkbase.isdeleted = 1
+
+         UNION
+
+         SELECT
+             resRkkT.id,
+             resRkkT.Module,
+             (SELECT   beardDel.Orig_ShortName
+              FROM so_beard beardDel
+              WHERE beardDel.id = resRkkT.deletewho) AS deletedPerson,
+             'Шаблон резолюции'                      AS objectType,
+             resRkkT.deletedate                      AS deletedDate,
+             resRkkT.deletedate                      AS deleted_date,
+             (SELECT
+                  coalesce(max(a), cast(0 AS SMALLINT))
+              FROM (
+                       SELECT
+                           cast(1 AS SMALLINT) a
+                       FROM f_ContentFiles_Rkk CF
+                       WHERE CF.f_dp_rkkbase = resRkkT.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_ContentRichText_Rkk CRT
+                       WHERE CRT.f_dp_rkkbase = resRkkT.id
+                       UNION SELECT
+                           cast(1 AS SMALLINT)
+                       FROM f_VerifyImage_Rkk VI
+                       WHERE VI.f_dp_rkk = resRkkT.id
+                   ) t
+             )                                       AS hasAttachments,
+             ''                                      AS reqType,
+             (SELECT   Beard.Orig_ShortName
+              FROM SO_Beard Beard
+              WHERE Beard.id = resRkkT.author)     AS createdNote,
+             resRkkT.created_date,
+             resRkkT.created_date                    AS CreatedDateDoc,
+             ''                                      AS subject,
+             '<id>'                                  AS self_1,
+             ':'                                     AS self_2,
+             '</>'                                   AS self_3
+         FROM
+             F_DP_ResolutionT resRkkT
+                 LEFT JOIN f_dp_rkk rkk ON rkk.id = resRkkT.id
+                 LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE resRkkT.isdeleted = 1
+
+         UNION
+
+         SELECT
+            npa.id,
+            npa.Module,
+            (SELECT   beardDel.Orig_ShortName
+             FROM so_beard beardDel
+            WHERE beardDel.id = npa.deletewho)      AS deletedPerson,
+            'Карточка публикации'                   AS objectType,
+            npa.deletedate                          AS deletedDate,
+            npa.deletedate                          AS deleted_date,
+            0                                       AS hasAttachments,
+            ''                                      AS reqType,
+            (SELECT   Beard.Orig_ShortName
+             FROM SO_Beard Beard
+             WHERE Beard.id = npa.operator)         AS createdNote,
+            npa.created_date,
+            npa.created_date                        AS CreatedDateDoc,
+            ''                                      AS subject,
+            '<id>'                                  AS self_1,
+            ':'                                     AS self_2,
+            '</>'                                   AS self_3
+         FROM Npa_Publication npa
+         where npa.isdeleted = 1
+     ) s
+     WHERE
+        1=1
+        ::where-clause
+]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedPerson">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        deletedPerson = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedPerson_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                       deletedPerson ilike '%'||{0}||'%'
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (deletedDate is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(deletedDate as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedDate_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(deletedDate as date) >= cast({0} as date) and cast(deletedDate as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="objectType">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        objectType = {0}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="createdNote">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                createdNote = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="createdNote_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                createdNote iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="CreatedDateDoc_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                     ('б/д' ilike '%'||{0}||'%' and (CreatedDateDoc is null))
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CreatedDateDoc">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(CreatedDateDoc as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CreatedDateDoc_interval">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+              cast(CreatedDateDoc as date) >= cast({0} as date) and cast(CreatedDateDoc as date) <= cast({1} as date)
+                ]]>
+        </criteria>
+    </filter>
+</collection>

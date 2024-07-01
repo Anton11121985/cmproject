@@ -1,0 +1,173 @@
+<collection name="OutputDocs_(vw_cmj_for_select)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+        id,
+        created_date,
+        Module,
+        rNumber,
+        self_1,
+        self_2,
+        self_3,
+        regNumber,
+        regDate,
+        addresseeOrganizaton,
+        numberWOTags,
+        docnumber_tag,
+        subject_tag,
+	    regDate_tag,
+        numberWOTags as  docNumber,
+        numberWOTags || ', ' || regDate || ', ' || subject as description,
+        subject
+FROM (
+       SELECT
+         rkkbase.id AS id,
+         rkkbase.created_date AS created_date,
+         rkkbase.module AS Module,
+         rkk.regnumcnt AS rNumber,
+         '<id>' AS self_1,
+         ':' AS self_2,
+         '</>' AS self_3,
+         '' AS resOfRkkExecutionStatusOutput,
+         '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+         || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt as varchar), '') || '</>'
+         || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>' AS regNumber,
+         rkk.regdate AS regDate,
+         (SELECT coalesce(
+             string_agg(
+                 orgInfBeard.Orig_ShortName
+                 , ';')
+             , ''
+         )FROM F_DP_OutputRkk_OrgInf orgInf
+           LEFT JOIN SO_Beard orgInfBeard on orgInfBeard.id = orgInf.FirmId
+           WHERE orgInf.Owner = outputrkk.id
+         ) AS addresseeOrganizaton,
+
+         COALESCE(rkk.regnumprist, '') ||
+         COALESCE(cast(rkk.regnumcnt as varchar), '') ||
+         COALESCE(rkk.regnumfin, '')                            AS numberWOTags,
+         '<docNumber>'                                      AS docnumber_tag,
+         '<subject>'                                        AS subject_tag,
+		 '<regDate>'                                        AS regDate_tag,
+
+         rkkbase.subject AS subject
+       FROM
+         F_DP_OutputRkk outputrkk
+         JOIN f_dp_rkk rkk on rkk.id = outputrkk.id
+         JOIN f_dp_rkkbase rkkbase on rkkbase.id = rkk.id
+       WHERE
+         rkkbase.isdeleted <> 1
+         AND rkk.regnumcnt IS NOT NULL
+     ) s
+WHERE
+  1=1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+                SELECT
+                    COUNT(*)
+                FROM (
+                    SELECT
+                        rkkbase.id AS id,
+                        rkkbase.created_date AS created_date,
+                        rkkbase.module AS Module
+                    FROM
+                        F_DP_OutputRkk outputrkk
+                        JOIN f_dp_rkk rkk on rkk.id = outputrkk.id
+                        JOIN f_dp_rkkbase rkkbase on rkkbase.id = rkk.id
+                    WHERE
+                        rkkbase.isdeleted <> 1
+                        AND rkk.regnumcnt IS NOT NULL
+                    ) s
+                WHERE
+                    1=1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    created_date = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	created_date < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	created_date >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="created_date_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	created_date LIKE {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    rNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regDate">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regDate = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="addresseeOrganizaton">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    addresseeOrganizaton = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="linkedDoc">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    linkedDoc = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+</collection>

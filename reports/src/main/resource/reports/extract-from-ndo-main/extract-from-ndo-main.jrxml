@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="extract-from-ndo-main" pageWidth="595" pageHeight="842" columnWidth="388" leftMargin="85" rightMargin="42" topMargin="56" bottomMargin="56" uuid="85dc07a1-e25a-4bbe-a20d-c39e82a60f5f">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="cm"/>
+	<parameter name="request_id" class="java.lang.Object" isForPrompting="false"/>
+	<parameter name="archiveManager" class="java.lang.Object" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select 
+	ndps.id as ndp,
+	coalesce((select fullname from SO_StructureUnit where beard = ndo.organization), '') as organization,
+	coalesce(', ' || (select fullname from SO_StructureUnit where beard = ndo.orgDepartment), '') as orgDepartment,
+
+	archiveManager.orig_postname AS archiveManagerPostName,
+	CASE WHEN archiveManager.orig_shortname LIKE '% %.'
+		THEN SUBSTRING(archiveManager.orig_shortname, (STRPOS(archiveManager.orig_shortname, ' ') + 1))
+				|| ' ' || SUBSTRING(archiveManager.orig_shortname, 1, STRPOS(archiveManager.orig_shortname, ' ') - 1)
+		ELSE archiveManager.orig_shortname
+	END AS archiveManagerName, -- Заведующий архивом
+
+	ndoCreator.creatorPostName,
+	ndoCreator.creatorName -- Архивариус
+
+from FR_OrgRegister ndo
+LEFT JOIN FR_OrgRegister_Ndps ndps ON ndps.owner = ndo.id
+LEFT JOIN SO_Beard archiveManager ON archiveManager.id = $P{archiveManager}
+-- Создатель карточки НДО (Архивариус)
+LEFT JOIN LATERAL (
+	SELECT
+		sps.platformPerson,
+		sb.orig_postname AS creatorPostName,
+		CASE WHEN sb.orig_shortname LIKE '% %.'
+			THEN SUBSTRING(sb.orig_shortname, (STRPOS(sb.orig_shortname, ' ') + 1))
+					|| ' ' || SUBSTRING(sb.orig_shortname, 1, STRPOS(sb.orig_shortname, ' ') - 1)
+			ELSE sb.orig_shortname
+		END AS creatorName
+	FROM SO_PersonSys sps
+	JOIN SO_Appointment sa ON sa.person = sps.id AND sps.platformPerson = ndo.created_by
+	JOIN SO_Beard sb ON sb.id = sa.beard
+) ndoCreator ON ndoCreator.platformPerson = ndo.created_by
+where ndo.id IN (SELECT item FROM QR_Id_List WHERE request = $P{request_id});]]>
+	</queryString>
+	<field name="creatorPostName" class="java.lang.String"/>
+	<field name="creatorName" class="java.lang.String"/>
+	<field name="archiveManagerPostName" class="java.lang.String"/>
+	<field name="archiveManagerName" class="java.lang.String"/>
+	<field name="organization" class="java.lang.String"/>
+	<field name="orgDepartment" class="java.lang.String"/>
+	<field name="ndp" class="java.lang.Object"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="36">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+			<subreport>
+				<reportElement x="0" y="0" width="468" height="35" uuid="4cbfeedb-3db8-47e3-946d-b12e8342c4de"/>
+				<subreportParameter name="creatorPostName">
+					<subreportParameterExpression><![CDATA[$F{creatorPostName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="creatorName">
+					<subreportParameterExpression><![CDATA[$F{creatorName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="archiveManagerPostName">
+					<subreportParameterExpression><![CDATA[$F{archiveManagerPostName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="archiveManagerName">
+					<subreportParameterExpression><![CDATA[$F{archiveManagerName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="organization">
+					<subreportParameterExpression><![CDATA[$F{organization}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="orgDepartment">
+					<subreportParameterExpression><![CDATA[$F{orgDepartment}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ndp">
+					<subreportParameterExpression><![CDATA[$F{ndp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["extract-from-ndo.jasper"]]></subreportExpression>
+			</subreport>
+			<break>
+				<reportElement x="0" y="35" width="468" height="1" uuid="b78390d9-4909-4802-a5ac-5f60bd5eba07"/>
+			</break>
+		</band>
+	</detail>
+</jasperReport>

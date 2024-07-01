@@ -1,0 +1,88 @@
+<collection name="FileRegister_(vw_cmj_nd_settings_trash)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+                 SELECT
+                    id,
+                    created_date,
+                    module,
+                    module_type,
+                    real_module,
+                    real_module_type,
+                    '<id>' AS self_1,
+                    ':' AS self_2,
+                    '</>'  AS self_3,
+                    datedeletetotrash,
+					deletedPerson,
+					ndObject
+                FROM(
+                        select
+                            sp.id as id,
+                            sp.created_date as created_date,
+                              (select ss_module.id
+                                   from Person
+                                   join SO_PersonSys as person_sys on person.id = person_sys.platformperson
+                                   join ss_moduleorg on person_sys.organization = ss_moduleorg.organization
+                                   join ss_module on ss_moduleorg.module = ss_module.id
+                                   join ss_moduletype on ss_module.type = ss_moduletype.id
+                                where ss_moduletype.alias = 'FileRegister' and Person.id = :CURRENT_PERSON) AS module,
+                            sp."module_type",
+                            sp."module" AS real_module,
+                            sp."module_type" AS real_module_type,
+                            Date(sp.datedeletetotrash) as datedeletetotrash,
+			  				beard.orig_shortname as deletedPerson,
+			  				'Срок хранения' as ndObject
+                        from SPD_Period sp
+                                 join person p on p.id = sp.updated_by and p.id_type = sp.updated_by_type
+                                 left join SO_PersonSys sops on sops.platformperson = p.id
+                                 left JOIN SO_Person sop on sops.id=sop.id
+                                 left join so_appointment app on sop.id = app.person and sop.id_type = app.person_type
+                                 left join so_beard beard on beard.id = app.beard and beard.id_type = app.beard_type
+                        where sp.DateDeleteToTrash is not null
+
+					union
+
+					  select
+                            fs.id as id,
+                            fs.created_date as created_date,
+                            fs.module as module,
+                            fs.module_type,
+                            fs.module AS real_module,
+                            fs.module_type AS real_module_type,
+                            Date(fs.datedeletetotrash) as datedeletetotrash,
+			  				beard.orig_shortname as deletedPerson,
+			  				'Настройка' as ndObject
+                        from FR_FileSettings fs
+                                 join person p on p.id = fs.updated_by and p.id_type = fs.updated_by_type
+                                 left join SO_PersonSys sops on sops.platformperson = p.id
+                                 left JOIN SO_Person sop on sops.id=sop.id
+                                 left join so_appointment app on sop.id = app.person and sop.id_type = app.person_type
+                                 left join so_beard beard on beard.id = app.beard and beard.id_type = app.beard_type
+                        where fs.isdeleted = 1
+                    ) t1
+                where
+                        1=1
+                    ::where-clause
+         ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="deletedPerson_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        lower(deletedPerson) like lower('%' || {0} || '%')
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="ndObject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        lower(ndObject) like lower('%' || {0} || '%')
+                    ]]>
+        </criteria>
+    </filter>
+</collection>

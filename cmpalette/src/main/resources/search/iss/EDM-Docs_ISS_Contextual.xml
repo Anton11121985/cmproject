@@ -1,0 +1,185 @@
+<search-area name="EDM-Docs_ISS_Contextual" replace="runtime">
+
+    <solr-server-url>search.iss.solr.server</solr-server-url>
+    <content-search-by>words</content-search-by>
+    <!-- имя фильтра по идентификаторам вложений в коллекции для выборки документов (см. collections/example-cntx-internal.xml)-->
+    <target-filter-name>CNTX_ID_FILTER</target-filter-name>
+
+    <highlighting-config hl-require-match="true"  hl-frag-size="255" hl-post-tag="&lt;/b&gt;" hl-pre-tag="&lt;b&gt;">
+    </highlighting-config>
+
+    <target-domain-object type="ISS_Document">
+
+        <indexed-field name="Module" />
+
+        <indexed-content type="F_IssDoc_RichText" parent-fk-field="iss_document">
+            <content-field target-field-name="iss_rt_name" type="name" show-in-results="true"/>
+            <content-field target-field-name="iss_rt_mimetype" type="mimetype"/>
+            <content-field target-field-name="iss_rt_length" type="length"/>
+            <content-field target-field-name="iss_rt_path" type="path" show-in-results="true"/>
+            <content-field target-field-name="iss_rt_description" type="description"/>
+            <content-field target-field-name="iss_rt_highlighting" type="highlighting" show-in-results="true"/>
+        </indexed-content>
+        <!--  <indexed-content type="F_IssDoc_Files" parent-fk-field="iss_document">
+            <content-field target-field-name="iss_file_name" type="name"/>
+            <content-field target-field-name="iss_file_mimetype" type="mimetype"/>
+            <content-field target-field-name="iss_file_length" type="length"/>
+            <content-field target-field-name="iss_file_path" type="path"/>
+            <content-field target-field-name="iss_file_description" type="description"/>
+            <content-field target-field-name="iss_file_highlighting" type="highlighting"/>
+        </indexed-content> -->
+
+        <!-- Вид документа -->
+        <indexed-field name="docTypeEDMISS" multi-valued="true" show-in-results="true">
+            <doel>DocType.Name</doel>
+        </indexed-field>
+
+        <!-- Папки -->
+        <linked-domain-object type="Abstract_Doc_Folder">
+            <indexed-field name="foldersISS" multi-valued="true">
+                <doel>value:toString</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Дата документа -->
+        <indexed-field name="regDateISS" show-in-results="true" >
+            <doel>DocDate</doel>
+            <filter>
+                <doel>Category:in("Документы ВТБ24", "Нормативные документы"):not</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Дата начала действия -->
+        <indexed-field name="beginDateISS" show-in-results="true" >
+            <doel>BeginDate</doel>
+            <filter>
+                <doel>Category:in("Распорядительные документы", "Графические образы"):not</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Дата окончания действия -->
+        <indexed-field name="endDateISS" show-in-results="true">
+            <doel>EndDate</doel>
+            <filter>
+                <doel>Category:in("Распорядительные документы", "Графические образы"):not</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Категория -->
+        <indexed-field name="category">
+            <doel>DocType.Category</doel>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="subject" show-in-results="true" />
+
+        <!-- Статус (для отображения в результатах) -->
+        <indexed-field name="statusStringRes" show-in-results="true">
+            <doel>DocStatus.Name</doel>
+        </indexed-field>
+
+        <!-- Статус (здесь вычисляется значение, которое будет записано в SOLR) -->
+        <indexed-field name="statusString" show-in-results="false">
+            <script>
+                var code = ctx.get('DocStatus.identifier');
+                switch (code) {
+                case 'Project':
+                'NOT_ACTIVE';
+                break;
+                case 'Active':
+                'ACTIVE';
+                break;
+                case 'Changed':
+                'ACTIVE';
+                break;
+                case 'Canceled':
+                'NOT_ACTIVE';
+                break;
+                case 'Expired':
+                'NOT_ACTIVE';
+                break;
+                case 'Disabled':
+                'NOT_ACTIVE';
+                break;
+                case 'ProjectOnPreparation':
+                'NOT_ACTIVE';
+                break;
+                case 'ProjectPreparationCompleted':
+                'NOT_ACTIVE';
+                break;
+                default:
+                '';
+                }
+            </script>
+        </indexed-field>
+
+        <!-- код статуса (код иконки) -->
+        <indexed-field name="statusCode" search-by="substring" show-in-results="true">
+            <script>
+                var code = ctx.get('DocStatus.identifier');
+                switch (code) {
+                case 'Project':
+                '01';
+                break;
+                case 'Active':
+                '167';
+                break;
+                case 'Changed':
+                '168';
+                break;
+                case 'Canceled':
+                '81';
+                break;
+                case 'Expired':
+                '65';
+                break;
+                case 'Disabled':
+                '80';
+                break;
+                case 'ProjectOnPreparation':
+                '34';
+                break;
+                case 'ProjectPreparationCompleted':
+                '35';
+                break;
+                default:
+                '';
+                }
+            </script>
+        </indexed-field>
+
+        <!-- Ввод в действие -->
+        <indexed-field name="enactString" show-in-results="true" >
+            <script>
+                var docDate = ctx.get('docdate');
+                var docNum = ctx.get('docnumber');
+                ctx.setResult(docDate + ' №' + docNum);
+            </script>
+        </indexed-field>
+
+        <!-- Ввод в действие (для отображения в результатах) -->
+        <indexed-field name="enactStringRes" show-in-results="true" >
+            <script>
+                var docDate = (ctx.get('docdate') != null) ? ctx.get('docdate') : '';
+                var docNum = ctx.get('docnumber');
+                ctx.setResult(docDate + ';' + docNum);
+            </script>
+        </indexed-field>
+
+        <!-- Период действия действие (для отображения в результатах) -->
+        <indexed-field name="validityPeriodISS" show-in-results="true" >
+            <script>
+                var beginDate = (ctx.get('BeginDate') != null) ? ctx.get('BeginDate') : '';
+                var endDate = (ctx.get('EndDate') != null) ? ctx.get('EndDate') : '';
+                var category = ctx.get('Category');
+                if (category == 'Распорядительные документы') '';
+                ctx.setResult(beginDate + ';' + endDate);
+            </script>
+        </indexed-field>
+
+        <target-collection name="EDM-Docs_ISS_(searchContextual_EDM-Docs_ISS)"/>
+    </target-domain-object>
+</search-area>

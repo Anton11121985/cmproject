@@ -1,0 +1,669 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <form schema-ref="ArchivesDocResource" id="ArchivesDocResourceForm" projection="default" showtabs="true">
+    <properties>
+      <hide condition-union="AND">
+        <negative-condition-ref ref="edit"/>
+        <negative-condition-ref ref="read"/>
+      </hide>
+    </properties>
+    <appearance widget="tabs"/>
+    <component>
+      <button name="${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.name:Связанный документ}">
+        <properties>
+          <hide condition-union="AND">
+            <negative-condition-ref ref="read"/>
+          </hide>
+        </properties>
+        <hint-pop-up>${ui.form.RkkResourceAttorneyDocsForm.button.Связанный документ.hintPopUp:Связанный документ}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#create.linked.document"/>
+        </action>
+      </button>
+      <button name="${ui.form.AgreementResourceForm.button.В корзину.name:В корзину}">
+        <hint-pop-up>${ui.form.AgreementResourceForm.button.В корзину.hintPopUp:В корзину}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#move.to.trash"/>
+        </action>
+      </button>
+      <button name="${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.name:Восстановить}">
+        <hint-pop-up>${ui.form.RkkTemplateResourceOutputForm.button.Восстановить.hintPopUp:Восстановить}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#restore.from.trash"/>
+        </action>
+      </button>
+      <button attribute-ref="$canSendToApproving" name="${ui.form.RkkResourceContractsForm.button.canSendToApproving.name:На согласование}">
+        <hint-pop-up>${ui.form.RkkResourceContractsForm.button.canSendToApproving.hintPopUp:На согласование}</hint-pop-up>
+        <action>
+          <system name="http://intertrust.ru/cmj/relations#approving.start"/>
+        </action>
+      </button>
+      <section id="RootMenu">
+        <component>
+          <button name="${ui.form.ArchivesActDestructionResourceForm.section.RootMenu.button.Сохранить скрыта системная.name:Сохранить скрыта системная}">
+            <properties>
+              <hide condition-union="AND">
+                <condition>true</condition>
+              </hide>
+            </properties>
+            <action>
+              <system name="SAVE" />
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesActDestructionResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="ArchivesDocIsShowSaveButtonForNew" />
+              </hide>
+            </properties>
+            <appearance>
+              <label-style>
+                <style id="tunBtnHeader" />
+                <style id="tunIconSave" />
+              </label-style>
+            </appearance>
+            <action>
+              <custom>
+                <save />
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesActDestructionResourceForm.section.RootMenu.button.Сохранить.name:Сохранить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="ArchivesDocIsShowSaveButton" />
+              </hide>
+            </properties>
+            <appearance>
+              <label-style>
+                <style id="tunBtnHeader" />
+                <style id="tunIconSave" />
+              </label-style>
+            </appearance>
+            <action>
+              <custom>
+                <save-existing />
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesActDestructionResourceForm.section.RootMenu.button.RecordCheckResult.name:Зафиксировать результаты проверки}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="archivesDoc_CanRecordCheckResult" />
+              </hide>
+            </properties>
+            <action position="10">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">RecordCheckResult</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesActDestructionResourceForm.section.RootMenu.button.RecordCheckResult.name:Повторить формирование документа}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="archivesDoc_CanRepeatDocumentFormation" />
+              </hide>
+            </properties>
+            <action position="10">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">RepeatDocumentFormation</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.Verify.name:Заверить}">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="ArchivesDoc_canVerify" />
+              </hide>
+            </properties>
+            <action position="20">
+              <custom>
+                <operation>
+                  <handler>
+                    <script lang="JavaBean">ArchivesDocsVerify</script>
+                  </handler>
+                </operation>
+              </custom>
+            </action>
+          </button>
+          <button name="${ui.form.ArchivesDocResourceForm.section.RootMenu.button.DeletePermanent.name:Удалить из корзины}">
+            <properties>
+              <hide>
+                <negative-condition-ref ref="ArchivesDoc_isSuperAdminAndDeleted"/>
+              </hide>
+            </properties>
+            <action position="30">
+              <custom>
+                <operation>
+                  <handler-ref ref="DeletePermanentlyArcDocs"/>
+                </operation>
+              </custom>
+            </action>
+          </button>
+        </component>
+      </section>
+      <section id="Header" name="${ui.form.CaseRKKResourceForm.section.Header.name:шапка}">
+        <component>
+          <section id="row1" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="showType">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="left">
+                  <label-style field-width="17" field-unit="symbol"/>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+              </field>
+              <field attribute-ref="organization">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+              </field>
+              <field attribute-ref="docType" name="${ui.form.ArchDoc.originalType:Тип документа:}">
+                <properties>
+                  <read-only>
+                    <condition-ref ref="NotManualCreate"/>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                </properties>
+                <directories>
+                  <directory-ref ref="arcdocDocType"/>
+                </directories>
+              </field>
+              <field attribute-ref="docType">
+                <appearance>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementWithIcon"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+                <properties>
+                  <read-only>
+                    <condition-ref ref="NotManualCreate"/>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+                <directories>
+                  <directory-ref ref="arcdocDocType"/>
+                </directories>
+              </field>
+              <field attribute-ref="kindDeal" recalc="true">
+                <appearance align="right" importance="normal" multiline="false" widget="radio"/>
+                <directories>
+                  <directory-ref ref="archivesKindDocs" />
+                </directories>
+                <properties>
+                  <read-only>
+                    <condition-ref ref="NotManualCreate"/>
+                  </read-only>
+                </properties>
+              </field>
+              <field attribute-ref="mainState">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="right" importance="high" multiline="false">
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="rightAlign"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                  <label-style field-width="7" field-unit="symbol">
+                    <style id="tunBold"/>
+                  </label-style>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <section id="row2" group="true">
+            <appearance field-layout="horizontal"/>
+            <component>
+              <field attribute-ref="tags">
+                <appearance align="left"/>
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="tags" name="${ui.form.ArchDoc.SpecialMarks:Особые отметки:}">
+                <appearance align="left">
+                  <label-style field-width="45" field-unit="symbol">
+                  </label-style>
+                </appearance>
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="additionalState">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance align="right" importance="high" multiline="false">
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="rightAlign"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                  <label-style field-width="7" field-unit="symbol">
+                    <style id="tunBold"/>
+                  </label-style>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="subject">
+            <properties>
+              <require condition-union="AND">
+                <condition>true</condition>
+              </require>
+              <read-only>
+                <condition-ref ref="NotManualCreate"/>
+              </read-only>
+            </properties>
+            <hint-in-field>${ui.form.ArchDoc.subject:Введите заголовок документа}</hint-in-field>
+          </field>
+          <section id="row3" group="true">
+            <appearance>
+              <alt-appearancies>
+                <alt-appearance>
+                  <appearance-ref ref="horizontalSection"/>
+                  <enable condition-union="AND">
+                    <condition>true</condition>
+                  </enable>
+                </alt-appearance>
+              </alt-appearancies>
+            </appearance>
+            <component>
+              <field attribute-ref="showProject">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="IsProject_RKK"/>
+                  </hide>
+                </properties>
+                <appearance align="left" importance="normal">
+                  <label-style field-width="7" field-unit="symbol"/>
+                  <alt-appearancies>
+                    <alt-appearance>
+                      <appearance-ref ref="css_headerElementGrayBold"/>
+                      <enable condition-union="AND">
+                        <condition>true</condition>
+                      </enable>
+                    </alt-appearance>
+                  </alt-appearancies>
+                </appearance>
+              </field>
+              <field attribute-ref="docNum">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="IsProject_RKK"/>
+                  </hide>
+                </properties>
+                <appearance location="subform" importance="normal"/>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="parentDealLink" name="${ui.form.ArchDoc.parentDealLink:Включен в Архивное дело:}">
+            <appearance>
+              <label-style label-width="22" label-unit="symbol"/>
+            </appearance>
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+            </properties>
+          </field>
+          <section id="showRegInfoSection" group="true">
+            <appearance field-layout="horizontal" align="left"/>
+            <properties>
+              <hide>
+                <negative-condition-ref ref="read"/>
+              </hide>
+            </properties>
+            <component>
+              <field attribute-ref="emptyString">
+                <appearance>
+                  <label-style field-width="1" field-unit="symbol"/>
+                </appearance>
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="showRegInfo">
+                <properties>
+                  <read-only condition-union="AND">
+                    <condition>true</condition>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+              </field>
+            </component>
+          </section>
+          <field attribute-ref="archiveOrg" name="${ui.form.ArchDoc.archiveOrg:Архивное учреждение:}">
+            <appearance>
+              <label-style label-width="19" label-unit="symbol"/>
+            </appearance>
+            <properties>
+              <read-only condition-union="AND">
+                <condition>true</condition>
+              </read-only>
+              <hide>
+                <negative-condition-ref ref="Archives_canSeeArchiveOrg"/>
+              </hide>
+            </properties>
+          </field>
+
+        </component>
+      </section>
+      <section id="ContentSection" name="${ui.form.ArchivesDepDealResourceForm.section.ContentSection.name:Содержание}">
+        <properties>
+          <hide condition-union="AND">
+            <condition-ref ref="archivesDoc_ContentEmpty"/>
+          </hide>
+          <read-only>
+            <condition-ref ref="ArchivesDoc_isVerified"/>
+          </read-only>
+        </properties>
+        <component>
+          <field attribute-ref="contentDocuments.content">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="archivesDoc_contentDocumentsNotEmpty"/>
+              </hide>
+              <require>
+                <condition>true</condition>
+              </require>
+              <read-only>
+                <condition-ref ref="ArchivesDoc_isVerified"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+          <field attribute-ref="contentDocuments.content">
+            <properties>
+              <hide condition-union="AND">
+                <negative-condition-ref ref="archivesDoc_contentDocumentsEmpty"/>
+                <negative-condition-ref ref="edit"/>
+              </hide>
+              <require>
+                <condition>true</condition>
+              </require>
+              <read-only>
+                <condition-ref ref="ArchivesDoc_isVerified"/>
+              </read-only>
+            </properties>
+            <appearance importance="normal"/>
+          </field>
+        </component>
+      </section>
+      <section id="Attributes" name="${ui.form.CaseRKKResourceForm.section.Attributes.name:Реквизиты}">
+        <component>
+          <section id="Main" name="${ui.form.ArchDoc.section.Attributes.section.Main.name:Основные}">
+            <component>
+              <field attribute-ref="themeDoc" name="${ui.form.ArchDoc.archiveOrg:Тематика:}">
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="kindDoc" name="${ui.form.ArchDoc.archiveOrg:Вид документа:}">
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="docDate" name="${ui.form.ArchDoc.archiveOrg:Дата документа:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                  <hide>
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol" field-width="25" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="showDate" name="${ui.form.ArchDoc.archiveOrg:Дата документа:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                  <hide>
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol" field-width="25" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="docNum" name="${ui.form.ArchDoc.archiveOrg:Регистрационный номер:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                  <hide>
+                    <negative-condition-ref ref="edit"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol" field-width="25" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="showNumber" name="${ui.form.ArchDoc.archiveOrg:Регистрационный номер:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                  <hide>
+                    <negative-condition-ref ref="read"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol" field-width="25" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="regDate" name="${ui.form.ArchDoc.archiveOrg:Дата регистрации:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol" field-width="25" field-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="numberInDeal" name="${ui.form.ArchDoc.archiveOrg:Порядковый № в деле:}">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="onTheBasis" name="${ui.form.ArchDoc.archiveOrg:Создано на основании:}">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                  <hide>
+                    <negative-condition-ref ref="NotManualCreate"/>
+                  </hide>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+            </component>
+          </section>
+          <section id="Additional" name="${ui.form.ArchDoc.section.Attributes.section.Additional.name:Дополнительные}">
+            <component>
+              <field attribute-ref="regPlaceBeard" name="${ui.form.ArchDoc.archiveOrg:Место регистрации:}">
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+                <hint-pop-up>${ui.form.ArchivesArcInternalRkkResourceForm.section.Attributes.section.Additional.field.RegPlace.hintPopUp:Место регистрации}</hint-pop-up>
+                <directories livesearch="true" limit-livesearch="sys-current">
+                  <directory-category-custom-coll ref="CURRENT_SYS_DEP"/>
+                  <directory-category-custom-coll ref="CURRENT_SYS_DEP_HIER"/>
+                  <directory-category-custom-coll ref="FV_CURR_HH_DEP_ORG"/>
+                </directories>
+              </field>
+              <field attribute-ref="createPlaceBeard" name="${ui.form.ArchDoc.archiveOrg:Место создания:}">
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+                <hint-pop-up>${ui.form.ArchivesArcInternalRkkResourceForm.section.Attributes.section.Additional.field.RegPlace.hintPopUp:Место создания}</hint-pop-up>
+                <directories livesearch="true">
+                  <directory-category-custom-coll ref="CURRENT_SYS_DEP"/>
+                  <directory-category-custom-coll ref="CURRENT_SYS_DEP_HIER"/>
+                  <directory-category-custom-coll ref="orgsAll"/>
+                  <directory-category-custom-coll ref="PrivatePeople"/>
+                </directories>
+              </field>
+              <field attribute-ref="originalType" name="${ui.form.ArchDoc.archiveOrg:Документ является:}">
+                <properties>
+                  <hide>
+                    <condition-ref ref="IsPaper"/>
+                  </hide>
+                </properties>
+                <directories>
+                  <directory-ref ref="electronicOriginalType"/>
+                </directories>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="originalType" name="${ui.form.ArchDoc.archiveOrg:Документ является:}">
+                <properties>
+                  <hide>
+                    <negative-condition-ref ref="IsPaper"/>
+                  </hide>
+                </properties>
+                <directories>
+                  <directory-ref ref="paperOriginalType"/>
+                </directories>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="sheetsPaper" name="${ui.form.ArchDoc.archiveOrg:Кол-во листов:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                  <hide>
+                    <negative-condition-ref ref="IsPaper"/>
+                  </hide>
+                  <read-only>
+                    <condition-ref ref="ArchivesDoc_isVerified"/>
+                  </read-only>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="sizeDocs" name="${ui.form.ArchDoc.archiveOrg:Объем, Мб:}">
+                <properties>
+                  <require>
+                    <condition>true</condition>
+                  </require>
+                  <hide>
+                    <condition-ref ref="IsPaper"/>
+                  </hide>
+                  <read-only>
+                    <condition-ref ref="ArchivesDoc_isVerified"/>
+                  </read-only>
+                </properties>
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+              <field attribute-ref="commentary" name="${ui.form.ArchDoc.archiveOrg:Комментарий:}">
+                <appearance>
+                  <label-style label-width="20" label-unit="symbol"/>
+                </appearance>
+              </field>
+            </component>
+          </section>
+        </component>
+      </section>
+      <section id="Links" name="${ui.form.ArchivesArcDealResourceForm.section.Links.name:Связанные}">
+        <appearance widget="leftMenu"/>
+        <component>
+          <section id="Documents" name="${ui.form.ArchivesArcDealResourceForm.section.Links.section.Documеnts.name:Документы}"/>
+          <section name="${ui.form.ArchivesAnnualInventoryResourceForm.section.Links.section.Visualization.name:Визуализация}" id="Visualization"/>
+        </component>
+      </section>
+      <section id="History" name="${ui.form.RkkResourceAttorneyDocsForm.section.History.name:История}"/>
+    </component>
+  </form>
+</ui>

@@ -1,0 +1,485 @@
+<collection name="SO_(vw_cmj_employees_by_org)" idField="id">
+	<prototype>
+		<![CDATA[
+SELECT
+	                temp.id,
+	                temp.id_type,
+	                '<id>' as self_1,
+		            ':' as self_2,
+		            '</>' as self_3,
+	                temp.created_date,
+	                temp.Module,
+	                temp.replica,
+					temp.replica_type,
+	                temp.iconId,
+	                temp.iconHint,
+	                temp.isDeleted,
+	                temp.isLiquidated,
+					temp.edited,
+					temp.origShortName as soLeaderShortName,
+ 					case
+					    when  temp.phone is null then ''
+					    else  temp.phone
+					end as soPhone,
+ 					case
+					    when  temp.email is null then ''
+					    else  temp.email
+					end as vcardEmail,
+					case
+					    when  temp.inn is null then ''
+					    else  temp.inn
+					end as inn ,
+ 					case
+					    when  temp.ogrn is null then ''
+					    else  temp.ogrn
+					end as ogrn,
+	                temp.isRequest,
+					temp.replacedWith,
+					CASE
+						WHEN temp.counterparty='' THEN ''
+						WHEN temp.counterparty='entity' THEN 'юридическое лицо'
+						WHEN temp.counterparty='individualentrepreneur' THEN 'индивидуальный предприниматель'
+						WHEN temp.counterparty='authority' THEN 'орган государственной (муниципальной) власти'
+						WHEN temp.counterparty is NULL THEN ''
+					END as counterparty,
+                    temp.RequestState,
+	                case
+					    when temp.isRequest = 1 then '01'
+					    else ''
+				    end as iconId,
+				    case
+					    when temp.isRequest = 1 then 'Заявка'
+					    else ''
+				    end as iconHint,
+		            temp.shortNameULIP,
+					temp.shortNameULIP as sortIndex1,
+		            temp.fullNameOrganization,
+		            temp.street,
+                    temp.streettype,
+                    temp.house,
+				 	temp.corp,
+					temp.building,
+					temp.office,
+ 					case
+					when  temp.settlement is null then ''
+					else  temp.settlement
+					end as settlement,
+					temp.city,
+					temp.locality,
+					temp.region as regionPost,
+					temp.country,
+					temp.zipcode,
+					temp.comment,
+					case
+							when (temp.street IS NOT NULL AND temp.street <> '')
+							then coalesce(NULLIF(temp.streettype, ''), 'ул.') || ' ' || temp.street
+							else ''
+						end
+						|| coalesce(' д. ' || NULLIF(temp.house, ''), '')
+						|| coalesce(' корп. ' || NULLIF(temp.corp, ''), '')
+						|| coalesce(' стр. ' || NULLIF(temp.building, ''), '')
+						|| coalesce(' офис ' || NULLIF(temp.office, ''), '')
+						|| coalesce(' н/п ' || NULLIF(temp.settlement, ''), '')
+						|| coalesce(' г. ' || NULLIF(temp.city, ''), '')
+						|| coalesce(' р-н. ' || NULLIF(temp.locality, ''), '')
+						|| coalesce(' ' || NULLIF(temp.region, ''), '')
+						|| coalesce(' ' || NULLIF(temp.country, ''), '')
+						|| coalesce(' ' || NULLIF(temp.zipcode, ''), '') as soAddress,
+					case
+					    when temp.isRequest = 1 then 'Заявка'
+					    else 'Организация'
+				    end as form,
+ 					case
+					    when  temp.category is null then ''
+					    else  temp.category
+					end as category,
+ 					case
+				 	    when  temp.thematic  is null then null
+					    else  temp.thematic
+					end as thematic,
+		            temp.updated_date as updated_date,
+					case
+					    when  temp.namepers is null then ''
+					    else  temp.namepers
+					end as namepers,
+					case
+					    when  temp.deppers is null then ''
+					    else  temp.deppers
+					end as deppers,
+ 					temp.parent,
+ 					temp.parent_type,
+					case
+					    when  temp.hasChilds is null then 0
+                                            WHEN temp.hasChilds = 0 THEN 0
+					    else  1
+					end as hasChilds
+                FROM(
+                    SELECT
+                        org.id,
+                        org.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        orgdesc.Module,
+                        orgdesctemp.replica ,
+                        orgdesc.isDeleted,
+                        orgdesc.isLiquidated,
+                        orgdesc.edited,
+                        orgdesc.note as comment,
+                        orgdesc.isRequest,
+                        orgdesc.replacedWith,
+                        orgdesc.RequestState,
+                        case when org.shortName='' then org.fullName else org.shortName end as shortNameULIP,
+						case
+			    			when orgdesc.isRequest = 1 then '01'
+			    			else ''
+						end as iconId,
+						case
+						    when orgdesc.isRequest = 1 then 'Заявка'
+						    else ''
+						end as iconHint,
+                        org.fullName as fullNameOrganization,
+                        adrs.street,
+                        adrs.streettype,
+                        adrs.house,
+						adrs.corp,
+						adrs.building,
+						adrs.office,
+						adrs.settlement,
+						adrs.city,
+						adrs.locality,
+						adrs.region,
+						adrs.country,
+						adrs.zipcode,
+                        orgcat.name as category,
+						(SELECT
+            		DISTINCT coalesce(string_agg(phone, '; '), '')
+            		FROM(
+         					SELECT
+                  		phone.phone as phone
+                  	FROM
+                  		so_phone_org phoneorg
+											join so_phone phone on phone.id= phoneorg.id
+                  	WHERE
+                    			phoneorg.owner = org.id
+							) q
+            ) as phone,
+						(SELECT
+            		DISTINCT coalesce(string_agg(email,E'\n'), '')
+            		FROM(
+         					SELECT
+                  		email.email as email
+                  	FROM
+                  		so_email_org emailorg
+											join so_email email on email.id= emailorg.id
+                  	WHERE
+                    			emailorg.owner = org.id
+							) q
+            ) as email,
+				orgdescription.inn,
+				orgdescription.ogrn,
+				concat_ws(',',so_personnonsysorgtemp.origShortName) as origShortName,
+										orgdesc.topic as thematic,
+				tfs.value as counterparty,
+				null as namepers,
+				null as deppers,
+				null as parent,
+				null as parent_type,
+				so_pers.hasChilds
+                FROM
+					so_orgdescriptionnonsys org
+					inner join so_orgdescription orgdesc on org.id = orgdesc.id
+					left join(select sm.id,sm.id_type, sm.title,sm2.organization ,temp1.title,temp1.id as replica, temp1.id_type as replica_type
+					from ss_module sm
+					join ss_moduleorg sm2 on sm.id = sm2.module
+					join (select smod.id,  smod.id_type, smod.title , smodorg.organization
+					from ss_module smod
+					join ss_moduleorg smodorg on smod.id = smodorg.module
+					join ss_moduletype moduletype on smod.type = moduletype.id and moduletype.alias='SO') temp1 on temp1.organization=sm2.organization) orgdesctemp on orgdesctemp.id=orgdesc.Module
+					left join so_addressdata_org_f orgadrs on orgadrs.owner = orgdesc.id
+					left join so_addressdata adrs on adrs.id = orgadrs.id
+					left join so_orgcategory_sch orgcat on orgcat.owner = orgdesc.id
+					left join (select
+					organization, string_agg(pers.lastName || (case when length(pers.firstname) > 0 then ' ' || pers.firstname else '' end) ||
+												(case when length(pers.middlename) > 0 then ' ' || pers.middlename else '' end), ', ') as origShortName
+				FROM so_personnonsysorg
+					JOIN so_personnonsys ON so_personnonsysorg.id = so_personnonsys.id and so_personnonsys.IsLiquidated<>1
+					join so_person pers on so_personnonsysorg.id = pers.id and pers.isdeleted <> 1
+					where so_personnonsysorg.postrole=1
+					GROUP BY organization) as so_personnonsysorgtemp  on  so_personnonsysorgtemp.organization  = org.id
+					left join (select
+					organization,
+					count (organization) as hasChilds
+					FROM so_personnonsysorg
+					join so_person pers on so_personnonsysorg.id = pers.id
+					GROUP BY organization) as so_pers  on  so_pers.organization  = org.id
+					left join tn_field tf on tf.owner = orgdesc.id and tf.owner_type = orgdesc.id_type and tf.cmjfield ='counterparty'
+					left join tn_field_string tfs on tfs.id=tf.id
+					left join so_orgdescription orgdescription on org.id = orgdescription.id
+				UNION ALL
+                SELECT
+                        persorg.id,
+                        persorg.id_type as id_type,
+                        orgdesc.created_date,
+                        orgdesc.updated_date,
+                        persnonsys.Module,
+						persnonsystemp.replica,
+                        pers.isDeleted,
+                        persnonsys.isLiquidated,
+                        orgdesc.edited,
+                        orgdesc.note as comment,
+                        orgdesc.isRequest,
+                        orgdesc.replacedWith,
+                        orgdesc.RequestState,
+                        case when org.shortName='' then org.fullName else org.shortName end as shortNameULIP,
+						case
+			    			when orgdesc.isRequest = 1 then '01'
+			    			else ''
+						end as iconId,
+						case
+						    when orgdesc.isRequest = 1 then 'Заявка'
+						    else ''
+						end as iconHint,
+                        org.fullName as fullNameOrganization,
+                        adrs.street,
+                        adrs.streettype,
+                        adrs.house,
+						adrs.corp,
+						adrs.building,
+						adrs.office,
+						adrs.settlement,
+						adrs.city,
+						adrs.locality,
+						adrs.region,
+						adrs.country,
+						adrs.zipcode,
+                        orgcat.name as category,
+'' as phone,
+'' as email,
+orgdescription.inn,
+orgdescription.ogrn,
+concat_ws(',',so_personnonsysorgtemp.origShortName) as origShortName,
+                        orgdesc.topic as thematic,
+tfs.value as counterparty,
+pers.lastName || (case when length(pers.firstname) > 0 then ' ' || pers.firstname else '' end) ||
+							(case when length(pers.middlename) > 0 then ' ' || pers.middlename else '' end) as namepers,
+persorg.departmentname as deppers,
+org.id as parent, org.id_type as parent_type,
+0 as hasChilds
+                    from
+                        so_personnonsysorg persorg
+ inner join so_personnonsys persnonsys on persorg.id = persnonsys.id
+left join(select sm.id,sm.id_type, sm.title,sm2.organization ,temp1.title,temp1.id as replica, temp1.id_type as replica_type
+from ss_module sm
+join ss_moduleorg sm2 on sm.id = sm2.module
+join (select smod.id,  smod.id_type, smod.title , smodorg.organization
+from ss_module smod
+join ss_moduleorg smodorg on smod.id = smodorg.module
+join ss_moduletype moduletype on smod.type = moduletype.id and moduletype.alias='SO') temp1 on temp1.organization=sm2.organization) persnonsystemp on persnonsystemp.id=persnonsys.Module
+                        join so_orgdescriptionnonsys org on persorg.organization = org.id
+                        inner join so_orgdescription orgdesc on org.id = orgdesc.id
+                        left join so_addressdata_org_f orgadrs on orgadrs.owner = orgdesc.id
+                        left join so_addressdata adrs on adrs.id = orgadrs.id
+                        left join so_orgcategory_sch orgcat on orgcat.owner = orgdesc.id
+left join (select
+organization, string_agg(pers.lastName || (case when length(pers.firstname) > 0 then ' ' || pers.firstname else '' end) ||
+							(case when length(pers.middlename) > 0 then ' ' || pers.middlename else '' end), ', ') as origShortName
+FROM so_personnonsysorg
+JOIN so_personnonsys ON so_personnonsysorg.id = so_personnonsys.id and so_personnonsys.IsLiquidated<>1
+join so_person pers on so_personnonsysorg.id = pers.id and pers.isdeleted <> 1
+where so_personnonsysorg.postrole=1
+GROUP BY organization) as so_personnonsysorgtemp  on  so_personnonsysorgtemp.organization  = org.id
+join so_person pers on persorg.id = pers.id
+left join tn_field tf on tf.owner = orgdesc.id and tf.owner_type = orgdesc.id_type and tf.cmjfield ='counterparty'
+left join tn_field_string tfs on tfs.id=tf.id
+left join so_orgdescription orgdescription on org.id = orgdescription.id
+                )temp
+                WHERE
+                    temp.edited is null AND temp.replacedWith is null AND (temp.RequestState is null OR temp.RequestState = 0)
+                     AND temp.isDeleted <> 1 AND (temp.isLiquidated IS NULL OR temp.isLiquidated <> 1)
+                    ::where-clause
+            ]]>
+	</prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                     temp.replica = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="shortNameULIP_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.shortNameULIP) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="fullNameOrganization_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.fullNameOrganization) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="soLeaderShortName_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.origShortName) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="depOName_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.depOName) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="counterparty_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                   CASE
+						    WHEN temp.counterparty='' THEN ''
+						    WHEN temp.counterparty='entity' THEN 'юридическое лицо'
+						    WHEN temp.counterparty='individualentrepreneur' THEN 'индивидуальный предприниматель'
+						    WHEN temp.counterparty='authority' THEN 'орган государственной (муниципальной) власти'
+						    WHEN temp.counterparty is NULL THEN ''
+						END like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="soPhone_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+						 case
+					    when  temp.phone is null then ''
+					    else  temp.phone
+					 end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="vcardEmail_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+						 case
+					    when  temp.email is null then ''
+					    else  temp.email
+					 end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="INN_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+						 case
+					    when  temp.inn is null then ''
+					    else  temp.inn
+					end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="OGRN_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+						case
+					    when  temp.ogrn is null then ''
+					    else  temp.ogrn
+					end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="category_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.category) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="thematic_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.thematic) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="regionPost_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.region) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="namepers_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                     case
+					    when  temp.namepers is null then ''
+					    else  temp.namepers
+					 end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="deppers_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                     case
+					    when  temp.deppers is null then ''
+					    else  temp.deppers
+					 end like ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="comment_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(temp.comment) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="Form_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(case when temp.isRequest = 1 then 'Заявка'
+					    	else 'Организация' end) like lower('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="nullParent">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    temp.parent is null
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="nullParent_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    and temp.parent is null
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="soAddress_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    lower(concat(temp.street,
+							temp.streettype,
+							temp.house,
+							temp.corp,
+							temp.building,
+							temp.office,
+							temp.settlement,
+							temp.city,
+							temp.locality,
+							temp.region,
+							temp.country,
+							temp.zipcode)) like lower ('%' || {0} || '%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="UNID">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    temp.id = {0}
+                ]]>
+		</criteria>
+	</filter>
+</collection>

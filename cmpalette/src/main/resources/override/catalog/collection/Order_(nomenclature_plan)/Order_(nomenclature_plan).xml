@@ -1,0 +1,310 @@
+<collection name="Order_(nomenclature_plan)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    reqType,
+    orderNumber,
+    consumerName,
+    orderDeadline,
+    plannedDeadline,
+    vatSum,
+    comment,
+    nomenclatureName,
+    value,
+    executorName
+FROM (
+        SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'consumer') as consumerName,
+
+            rkk.CtrlDeadline AS orderDeadline,
+
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.id = tfd.id
+                where tn_field."owner" = rkk.id
+                and tn_field.owner_type = rkk.id_type
+                and tn_field.cmjfield = 'plannedDeadline') as plannedDeadline,
+
+            (select tfs."value" as v
+                from tn_field_decimal tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.vatSum'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as vatSum,
+
+            (select tfs."value" as v
+                from tn_field_string tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.subject'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as nomenclatureName,
+
+            (select tfs."value" as v
+                from tn_field_decimal tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.value'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as value,
+
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_nomenclatureTable.executor'
+                and tn_field.idx = entry.idx) as executorName,
+
+            coalesce(nullif(
+                coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, ''), ''),
+                concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin)) as orderNumber,
+
+            (select tfs."value" as v
+                from tn_field_string tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.comment'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as comment
+
+        from
+            f_dp_intrkk internalrkk
+                JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
+                JOIN tn_field entry on entry."owner" = rkkbase.id and entry.owner_type = rkkbase.id_type
+        WHERE rkkbase.isdeleted = 0 and entry.cmjfield = 'Tn$_nomenclatureTable' and rkk.regnumcnt is not null and rkk.ctrldateexecution is null
+    ) as s
+    WHERE 1=1
+                ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+        SELECT
+            COUNT(1)
+FROM (
+        SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS reqType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'consumer') as consumerName,
+
+            rkk.CtrlDeadline AS orderDeadline,
+
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_dateonly tfd on tn_field.id = tfd.id
+                where tn_field."owner" = rkk.id
+                and tn_field.owner_type = rkk.id_type
+                and tn_field.cmjfield = 'plannedDeadline') as plannedDeadline,
+
+            (select tfs."value" as v
+                from tn_field_decimal tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.vatSum'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as vatSum,
+
+            (select tfs."value" as v
+                from tn_field_string tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.subject'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as nomenclatureName,
+
+            (select tfs."value" as v
+                from tn_field_decimal tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.value'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as value,
+
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_nomenclatureTable.executor'
+                and tn_field.idx = entry.idx) as executorName,
+
+            coalesce(nullif(
+                coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, ''), ''),
+                concat(rkk.prjnumprist, rkk.prjnumcounter, rkk.prjnumfin)) as orderNumber,
+
+            (select tfs."value" as v
+                from tn_field_string tfs
+                join tn_field tnf on tnf.id = tfs.id and tnf.cmjfield = 'Tn$_nomenclatureTable.comment'
+                where tnf."owner" = rkkbase.id and tnf.owner_type = rkkbase.id_type and tnf.idx = entry.idx) as comment
+
+        from
+            f_dp_intrkk internalrkk
+                JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
+                JOIN tn_field entry on entry."owner" = rkkbase.id and entry.owner_type = rkkbase.id_type
+        WHERE rkkbase.isdeleted = 0 and entry.cmjfield = 'Tn$_nomenclatureTable' and rkk.regnumcnt is not null and rkk.ctrldateexecution is null
+    ) as s
+    WHERE 1=1
+                ::where-clause
+    ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="consumerName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    consumerName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="consumerName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                consumerName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    snomenclatureName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    nomenclatureName iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                executorName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="comment">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    comment = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="comment_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                comment iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="orderNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                orderNumber = {0}
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="orderDeadline">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(orderDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="plannedDeadline">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(plannedDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="orderDeadline_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(orderDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="plannedDeadline_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    cast(plannedDeadline as date) = cast({0} as date)
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="vatSum">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                case when ({0} similar to '\A[0-9]*[,\.]?[0-9]*')
+                    then vatSum = cast(regexp_replace({0}, ',', '.') as numeric)
+                    else 'false'
+                end
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="value">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                case when ({0} similar to '\A[0-9]*[,\.]?[0-9]*')
+                    then value = cast(regexp_replace({0}, ',', '.') as numeric)
+                    else 'false'
+                end
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="vatSum_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                case when ({0} similar to '\A[0-9]*[,\.]?[0-9]*')
+                    then vatSum = cast(regexp_replace({0}, ',', '.') as numeric)
+                    else 'false'
+                end
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="value_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                case when ({0} similar to '\A[0-9]*[,\.]?[0-9]*')
+                    then value = cast(regexp_replace({0}, ',', '.') as numeric)
+                    else 'false'
+                end
+                ]]>
+        </criteria>
+    </filter>
+</collection>

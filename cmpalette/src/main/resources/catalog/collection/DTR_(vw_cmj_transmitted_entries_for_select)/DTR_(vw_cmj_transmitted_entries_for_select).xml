@@ -1,0 +1,211 @@
+<collection name="DTR_(vw_cmj_transmitted_entries_for_select)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+            SELECT
+				id,
+				created_date,
+				Module,
+                self_1,
+                self_2,
+                self_3,
+				barcode,
+				(CASE
+     				WHEN moduleName='InputDocs'  THEN 'Входящие документы'
+     				WHEN moduleName='InternalDocs'  THEN 'Внутренние документы'
+				 	WHEN moduleName='Missions'  THEN 'ОРД'
+				 	WHEN moduleName='OutputDocs'  THEN 'Исходящие документы'
+				 	WHEN moduleName='ContractsLite'  THEN 'Договоры'
+				 	WHEN moduleName='EmplCredentials'  THEN 'Полномочия'
+				 	WHEN moduleName='Directives'  THEN 'Директивы'
+				 	WHEN moduleName='WorkplaceRequests'  THEN 'Заявки на организацию РМ'
+				 	WHEN moduleName='ServiceRequests'  THEN 'Сервисные заявки'
+				 	WHEN moduleName='SendDocRequests'  THEN 'Заявки на отправку документов'
+				 	WHEN moduleName='AttorneyDocs'  THEN 'Доверенности'
+				 	WHEN moduleName='MeetingsPacks'  THEN 'Пакеты материалов для заседаний'
+				 	WHEN moduleName='ProcessRegistry'  THEN 'Реестры процессов'
+				 	WHEN moduleName='ProductRegistry'  THEN 'Реестры продуктов'
+				 	WHEN moduleName='Documents'  THEN 'Документы'
+				 	WHEN moduleName='Directives'  THEN 'Директивы'
+				 	WHEN moduleName='Protocols'  THEN 'Протоколы УОБ'
+     				ELSE  'Документы'
+				END) as moduleName,
+				reqType,
+				regFullNumber as regFullNumberDTR,
+				regDate as regDateDTR,
+				subject,
+				comment,
+				correspondentContractor,
+				addInfo,
+				documentLink,
+				deliveryStatus,
+				parentUnid,
+				schema_1,
+				schema,
+				hyper_link_1,
+				rkkLink,
+				idForSelfLink_1,
+				documentUnid,
+				(SELECT rkkbase.module FROM  f_dp_rkk lrkk
+                      LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = lrkk.id
+                      LEFT JOIN nunid2punid_map n2p on cast(substring(n2p.punid, 1, 4) as int) = lrkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = lrkk.id
+					  where n2p.nunid = substring(documentUnid, 18, 32)
+
+				) as document_1,
+				(SELECT rkkbase.id FROM  f_dp_rkk lrkk
+                      LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = lrkk.id
+                      LEFT JOIN nunid2punid_map n2p on cast(substring(n2p.punid, 1, 4) as int) = lrkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = lrkk.id
+					  where n2p.nunid = substring(documentUnid, 18, 32)
+
+				) as document_2,
+
+				(SELECT rkkbase.created_date FROM  f_dp_rkk lrkk
+                      LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = lrkk.id
+                      LEFT JOIN nunid2punid_map n2p on cast(substring(n2p.punid, 1, 4) as int) = lrkk.id_type and cast(substring(n2p.punid, 5, 12) as int) = lrkk.id
+					  where n2p.nunid = substring(documentUnid, 18, 32)
+
+				) as document_3,
+				byHand_1,
+				CASE
+                    WHEN (byHand is null) THEN 'true'
+                    WHEN (byHand = 1) THEN 'true'
+                    WHEN (byHand = 0) THEN 'false'
+                END as byHand
+
+			FROM (
+				SELECT
+                   subobj.id,
+                   subobj.created_date,
+                   rkkbase.module                                   AS Module,
+                   '<id>'                                           AS self_1,
+                   '-TN:'                                           AS self_2,
+                   '</>'                                            AS self_3,
+                   '<idForSelfLink>'                                AS idForSelfLink_1,
+                   '<schema>'                                       AS schema_1,
+                   'DTRSelectEntriesTunableColumn'                  AS schema,
+                   '<hyperLink>'                                    AS hyper_link_1,
+                   'Показать'                                       AS rkkLink,
+                   '<byHand>'                                       AS byHand_1,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'barCode') as barcode,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'module') as moduleName,
+        		   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'reqType') as reqType,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'regNumber') as regFullNumber,
+				   (select tfd."value" as v
+        				from tn_field
+        				join tn_field_dateonly tfd on tn_field.access_object_id = tfd.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'regDate') as regDate,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'subject') as subject,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'comment') as comment,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'correspondentContractorText') as correspondentContractor,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'addInfoText') as addInfo,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'documentLink') as documentLink,
+				   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'documentUnid') as documentUnid,
+        		   (select tfs."value" as v
+        				from tn_field
+        				join tn_field_string tfs on tn_field.access_object_id = tfs.id
+        				where tn_field."owner" = subobj.id
+        				and tn_field.owner_type = subobj.id_type
+        				and tn_field.cmjfield = 'deliveryStatus') as deliveryStatus,
+    			   (select tfs."value" as v
+                        from tn_field
+                        join tn_field_decimal tfs ON tn_field.access_object_id = tfs.id
+                        WHERE tn_field."owner" = subobj.id
+                        and tn_field.owner_type = subobj.id_type
+                        and tn_field.cmjfield = 'byHand') as byHand,
+					subobj.parentUnid
+
+                FROM EmbeddedCollSubObject subobj
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = subobj.hierroot
+                WHERE subobj.subObjectType = 'documents'
+				) as docs
+                WHERE deliveryStatus = 'Transferred'
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+            SELECT
+				id,
+				created_date,
+				Module,
+				parentUnid
+			FROM (
+				SELECT
+                   subobj.id,
+                   subobj.created_date,
+                   rkkbase.module AS Module,
+				   subobj.parentUnid
+                FROM EmbeddedCollSubObject subobj
+                JOIN f_dp_rkkbase rkkbase ON rkkbase.id = subobj.hierroot
+                WHERE subobj.subObjectType = 'documents'
+				) as docs
+                WHERE 1 = 1
+                    ::where-clause
+            ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="parentUnid">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                parentUnid = {0}
+            ]]>
+        </criteria>
+    </filter>
+</collection>

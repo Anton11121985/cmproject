@@ -1,0 +1,203 @@
+<collection name="ContractsLite_(vw_cmj_for_select)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+SELECT
+    id,
+    created_date,
+    Module,
+    self_1,
+    self_2,
+    self_3,
+    hasAttachments,
+    rNumber,
+    regNumber,
+	addNumber,
+    concludedDate,
+    dogParty2,
+    Subject,
+    numberWOTags,
+    docnumber_tag,
+    subject_tag,
+	regDate_tag,
+    numberWOTags as  docNumber,
+    numberWOTags || ', ' || concludedDate || ', ' || subject as description
+
+  FROM (
+         SELECT
+           rkkbase.id,
+           rkkbase.created_date,
+           rkkbase.module                                                 AS Module,
+           '<id>'                                                         AS self_1,
+           ':'                                                            AS self_2,
+           '</>'                                                          AS self_3,
+
+           (SELECT
+           coalesce(max(a), cast(0 AS SMALLINT))
+            FROM (
+                   SELECT
+                     cast(1 AS SMALLINT) a
+                   FROM f_ContentFiles_Rkk CF
+                   WHERE CF.f_dp_rkkbase = rkkbase.id
+                   UNION SELECT
+                           cast(1 AS SMALLINT)
+                         FROM f_ContentRichText_Rkk CRT
+                         WHERE CRT.f_dp_rkkbase = rkkbase.id
+                   UNION SELECT
+                           cast(1 AS SMALLINT)
+                         FROM f_VerifyImage_Rkk VI
+                         WHERE VI.f_dp_rkk = rkk.id
+                 ) t
+           )                                                              AS hasAttachments,
+           rkk.regnumcnt                                                  AS rNumber,
+
+           '<regNumberPrefix>' || coalesce(rkk.regnumprist, '') || '</>'
+           || '<regNumberCounter#Number>' || coalesce(cast(rkk.regnumcnt AS VARCHAR), '') || '</>'
+           || '<regNumberSuffix>' || coalesce(rkk.regnumfin, '') || '</>' AS regNumber,
+
+		   case
+           when contractrkk.additionalnumber<>''
+           then coalesce('<addNumberCounter#Number>' || contractrkk.additionalnumber || '</>')
+           else ''
+           end as addNumber,
+
+           contractrkk.concludedate                                       AS concludedDate,
+
+           CASE
+           WHEN contractrkk.Party2Type = 1 THEN
+             '<id>' ||
+             coalesce(substring(sign2signer.cmjunid, 33, 48) || ':' || substring(sign2signer.cmjunid, 1, 32), '') ||
+             '</>'
+           ELSE
+             '<id>' ||
+             coalesce(substring(party2ida.cmjunid, 33, 48) || ':' || substring(party2ida.cmjunid, 1, 32), '')
+             || '</>'
+           END
+           || '<shortName>' ||
+           CASE
+           WHEN contractrkk.Party2IdB IS NULL AND contractrkk.Party2IdA IS NULL
+           THEN '<Не указан>'
+           WHEN party2idb.orig_shortName IS NOT NULL
+           THEN party2idb.orig_shortName
+           WHEN party2ida.orig_shortName IS NOT NULL
+           THEN party2ida.orig_shortName
+           END
+           || '</>'
+                                                                          AS dogParty2,
+           rkkbase.subject                                                AS Subject,
+           COALESCE(rkk.regnumprist, '') ||
+           COALESCE(cast(rkk.regnumcnt as varchar), '') ||
+           COALESCE(rkk.regnumfin, '')                            AS numberWOTags,
+           '<docNumber>'                                      AS docnumber_tag,
+           '<subject>'                                        AS subject_tag,
+		   '<regDate>'                                        AS regDate_tag
+
+         FROM f_dp_contractrkk contractrkk
+           JOIN f_dp_rkk rkk ON rkk.id = contractrkk.id
+           JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+           LEFT JOIN SO_Beard sign2signer ON sign2signer.id = contractrkk.Sign2Signer
+           LEFT JOIN SO_Beard party2ida ON contractrkk.party2ida = party2ida.id
+           LEFT JOIN so_beard party2idb ON contractrkk.Party2IdB = party2idb.id
+
+         WHERE
+           rkkbase.isdeleted <> 1
+           AND rkk.regnumcnt IS NOT NULL
+       ) s
+  WHERE
+    1 = 1
+                    ::where-clause
+            ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+           SELECT
+COUNT(*)
+  FROM (
+         SELECT
+           rkkbase.id,
+           rkkbase.created_date,
+           rkkbase.module                                                 AS Module
+            ,coalesce(rkk.regnumcnt, 0) AS rNumber
+         FROM f_dp_contractrkk contractrkk
+           JOIN f_dp_rkk rkk ON rkk.id = contractrkk.id
+           JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+         WHERE
+           rkkbase.isdeleted <> 1
+           AND rkk.regnumcnt IS NOT NULL
+       ) s
+  WHERE
+    1 = 1
+            ::where-clause
+        ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    rNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="hasAttachments">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    hasAttachments = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="regNumber">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    regNumber = {0}
+                ]]>
+        </criteria>
+    </filter>
+
+    <filter name="linkedDoc">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    linkedDoc = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="Subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    Subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_L">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                	rNumber < {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_GE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	rNumber >= {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="rNumber_Partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    	rNumber LIKE {0}
+                ]]>
+        </criteria>
+    </filter>
+</collection>

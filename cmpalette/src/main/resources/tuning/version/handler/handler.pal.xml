@@ -1,0 +1,664 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <!-- Создать версию РКК -->
+  <handler id="createVersionRkk" name="createVersionRkk">
+    <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.links.AFLinksApplication);
+importClass(Packages.ru.intertrust.cmj.meetings.MeetingsApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	if (paramPackageId.equals("context")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer1")) {
+		process_dialog1(paramsResource, returnResource);
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var message = appTNObject.composeDialog("CreateNewVersionDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message, "commentText", "");
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer1");
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	returnResource.resource = TunableObjectREST.Resource.create(message);
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dialog1(paramsResource, returnResource) {
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = paramsResource.tuning().getValues().get("selectIds").getValues().get(0).getValue();
+    var appdp = null;
+    if (AFCMDomino.getDbInfoByReplicaID(id.split(":")[0]).ident.equals("Meetings")) {
+		appdp = AFSession.get().getApplication(MeetingsApplication.class);
+	} else {
+	    appdp = AFSession.get().getApplication(DPApplication.class);
+	}
+    var obj = appdp.getEntityByUNID(id);
+	var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("commentText"));
+    var verCard = versionApp.createVersionCard(obj, comment, null);
+	verCard.setTuning(AFSession.get().getApplication(TuningApplication.class).getEmptyTuning(verCard));
+	var verRes = new VersionCardResource(verCard);
+	var resObj = readResourceByObj(obj);
+	verRes = versionApp.copyBySchema(resObj, verRes);
+	var resVer = verRes.update(verCard);
+	versionApp.updateVersionInfo(obj);
+	verCard.save();
+	relationVersion(obj, verCard.getUNID());
+	returnResource.setResource(readResourceByObj(obj));
+}
+
+function readResourceByObj(obj) {
+	var ref = ReferenceFactory.get().getReference(obj);
+	var resObj;
+	if (ref instanceof ExtendedResourceReference) {
+		resObj = ref.readResource(obj);
+	} else {
+		resObj = ref.readResource();
+	}
+	return resObj;
+}
+
+function relationVersion(obj, ver)
+{
+    var rkkLinks = obj.links();
+
+    for (var t = 0; t < rkkLinks.size(); t++)
+    {
+        if (rkkLinks.get(t).getStatus() == 0)
+        {
+            var l = rkkLinks.get(t);
+            l.setStatus(4);
+            rkkLinks.set(t, l);
+        }
+    }
+    var afLinks = AFSession.get().getApplication(AFLinksApplication.class);
+    var saveList = new ArrayList()
+    for(var i = 0; i < rkkLinks.size(); i++)
+    {
+        var link = rkkLinks.get(i);
+        if(!link.getTargetApplicationType().equals("ProductRegistry") && !link.getTargetApplicationType().equals("ProcessRegistry"))
+            continue;
+
+        var target = link.getTarget();
+        var tmpStatus = target.tuning().getValues().get("Status");
+        if(tmpStatus == null || !"Утратил силу".equals(tmpStatus.getValue()))
+            continue;
+
+        var needSaveTarget = false;
+        for(var j = 0; j < target.links().size(); j++)
+        {
+            var parLink = target.links().get(j);
+            if(!parLink.getTargetUNID().equals(obj.getUNID()))
+                continue;
+
+            var availableLinks = afLinks.getRegisteredLinksBySrcAndTrg(obj, target, false);
+
+            for(var k = 0; k < availableLinks.size(); k++)
+            {
+                var availableLink = availableLinks.get(k);
+                if(availableLink.getType().equals(link.getType() + "_UN"))
+                {
+                    rkkLinks.remove(link);
+                    rkkLinks.add(availableLink);
+                    parLink.setTargetUNID(ver);
+                    target.links().set(j, parLink);
+                    needSaveTarget = true;
+                    break;
+                }
+            }
+        }
+        if(needSaveTarget)
+        {
+            saveList.add(target);
+        }
+    }
+
+    obj.save();
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    for(var c = 0; c < saveList.size(); c++) {
+        var rkk = appdp.getEntityByUNID(saveList.get(c).getUNID());
+        rkk.links().changeList(saveList.get(c).links(), false);
+        rkk.save();
+    }
+}
+
+function GetValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValues();
+}
+
+function GetSimpleValue(doc, fileName)
+{
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValue();
+}
+	]]></script>
+  </handler>
+
+  <!-- Показать список версий -->
+  <handler id="showAllVersions" name="Все версии" use-by-link="true">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardCollectionResource);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	process_context(paramsResource, returnResource);
+
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = appTNObject.getClientContextIds(paramsResource.tuning()).get(0);
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+	var verCol = versionApp.getAllVersionByParentUnid(id);
+
+	var replica =  AFCMDomino.getReplicaFromTNReplica(id.split(":")[0]);
+	var ident = AFCMDomino.getIdent(replica);
+	var complect = AFCMDomino.getComplectByDbReplicaId(replica);
+	returnResource.resource = new VersionCardCollectionResource(verCol, TuningHelper.getBaseSchemaPath("AllVersionInfo", ident, complect, "replica"));
+}]]></script>
+  </handler>
+
+  <handler id="changeCommentVersion" name="changeCommentVersion">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	if (paramPackageId.equals("context")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer1")) {
+		process_dialog1(paramsResource, returnResource);
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var message = appTNObject.composeDialog("ChangeCommentVersionDialog", null, null, null);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	var obj = getVerCard(ids.get(0));
+	TunableObjectHelper.putAFInstanceValue(message, "commentText", obj.getVersionInfo().getComment());
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer1");
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	returnResource.resource = TunableObjectREST.Resource.create(message);
+}
+
+function process_dialog1(paramsResource, returnResource) {
+    var id = paramsResource.tuning().getValues().get("selectIds").getValues().get(0).getValue();
+  var doc = AFCMDomino.getDocByUNID(id.replace("-VER", ""));
+	var oldValue = doc.getItemValueString("commentVersion");
+
+	var obj = getVerCard(id);
+	var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("commentText"));
+	obj.getVersionInfo().setComment(comment);
+	obj.save();
+
+	var parentUnid = obj.getParentUnid();
+	if (AFCMDomino.getDbInfoByReplicaID(parentUnid.split(":")[0]).ident.equals("OutputDocs")) {
+	    appdp = AFSession.get().getApplication(DPApplication.class);
+	    var object = appdp.getEntityByUNID(parentUnid);
+	    if (!oldValue.equals(comment)) {
+          var text = "Было: " + oldValue + ". Стало: " + comment;
+          var currentUser = AFSession.get().currentUser().getBeard();
+          var historyRecordChng = object.history().createNewRecord("version.comment.changed", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+
+          if (historyRecordChng != null) {
+              historyRecordChng.update(text, null, id);
+          }
+          object.save();
+      }
+	}
+
+	returnResource.setResource(new VersionCardResource(obj));
+}
+
+function getVerCard(id) {
+	 var versionApp = AFSession.get().getApplication(VersionApplication.class);
+	 return versionApp.getEntityByUNID(id);
+}
+	]]></script>
+  </handler>
+
+  <handler id="showAllVersionsFromVer" name="Все версии" use-by-link="true">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardCollectionResource);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	process_context(paramsResource, returnResource);
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = appTNObject.getClientContextIds(paramsResource.tuning()).get(0);
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+    var obj = versionApp.getEntityByUNID(id);
+	var verCol = versionApp.getAllVersionByParentUnid(obj.getParentUnid());
+	returnResource.resource = new VersionCardCollectionResource(verCol, TuningHelper.getBaseSchemaPath("AllVersionInfo", obj.getDbIdent(), obj.getComplect(), "replica"));
+}]]></script>
+  </handler>
+
+  <handler id="openParentObjectFromVer" name="Открыть актуальную версию" use-by-link="true">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.meetings.MeetingsApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	process_context(paramsResource, returnResource);
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = appTNObject.getClientContextIds(paramsResource.tuning()).get(0);
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+    var obj = versionApp.getEntityByUNID(id);
+    var appdp = null;
+    if (AFCMDomino.getDbInfoByReplicaID(id.split(":")[0].replace("-VER","")).ident.equals("Meetings")) {
+		appdp = AFSession.get().getApplication(MeetingsApplication.class);
+	} else {
+	    appdp = AFSession.get().getApplication(DPApplication.class);
+	}
+    var parObj = appdp.getEntityByUNID(obj.getParentUnid());
+	TunableObjectHelper.putAFInstanceValue(parObj.tuning(), "closeContextObject", true, true);
+	returnResource.setResource(readResourceByObj(parObj));
+}
+function readResourceByObj(obj) {
+	var ref = ReferenceFactory.get().getReference(obj);
+	var resObj;
+	if (ref instanceof ExtendedResourceReference) {
+		resObj = ref.readResource(obj);
+	} else {
+		resObj = ref.readResource();
+	}
+	return resObj;
+}]]></script>
+  </handler>
+
+  <handler id="openTNParentObjectFromVer" name="Открыть актуальную версию (TunableObject)">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	process_context(paramsResource, returnResource);
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = appTNObject.getClientContextIds(paramsResource.tuning()).get(0);
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+    var obj = versionApp.getEntityByUNID(id);
+    var parObj = appTNObject.getEntityByUNID(AFCMDomino.ormUnidToTNUnid(obj.getParentUnid()));
+    var resObj = readResourceByObj(parObj)
+	TunableObjectHelper.putAFInstanceValue(resObj.tuning(), "closeContextObject", true, true);
+	returnResource.setResource(resObj);
+}
+
+function readResourceByObj(obj) {
+	var ref = ReferenceFactory.get().getReference(obj);
+	var resObj;
+	if (ref instanceof ExtendedResourceReference) {
+		resObj = ref.readResource(obj);
+	} else {
+		resObj = ref.readResource();
+	}
+	return resObj;
+}]]></script>
+  </handler>
+
+  <handler id="updateActualByOldVersion" name="Создать актуальную версию на основе старой">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.meetings.MeetingsApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.meetings.MeetingTypeSettings);
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+	if (paramPackageId.equals("context")) {
+		process_context(paramsResource, returnResource);
+	} else if (paramPackageId.equals("answer1")) {
+		process_dialog1(paramsResource, returnResource);
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+	var message = appTNObject.composeDialog("CreateNewVersionDialog", null, null, null);
+	TunableObjectHelper.putAFInstanceValue(message, "commentText", "");
+	TunableObjectHelper.putAFInstanceValue(message, "counter", "answer1");
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+	TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+	returnResource.resource = TunableObjectREST.Resource.create(message);
+}
+
+function process_dialog1(paramsResource, returnResource) {
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = paramsResource.tuning().getValues().get("selectIds").getValues().get(0).getValue();
+    var appdp = null;
+    if (AFCMDomino.getDbInfoByReplicaID(id.split(":")[0].replace("-VER","")).ident.equals("Meetings")) {
+		appdp = AFSession.get().getApplication(MeetingsApplication.class);
+	} else {
+	    appdp = AFSession.get().getApplication(DPApplication.class);
+	}
+    var verInf = versionApp.getEntityByUNID(id);
+    var obj = appdp.getEntityByUNID(verInf.getParentUnid());
+    var showIdent = "";
+    var isNormDocs = AFCMDomino.getDbInfoByReplicaID(verInf.getParentUnid().split(":")[0]).ident.equals("NormDocs");
+    if (isNormDocs && obj.tuning().getValues().get("showIdent") != null) {
+        showIdent = obj.tuning().getValues().get("showIdent").getValue();
+    }
+	var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("commentText"));
+    var verCard = versionApp.createVersionCard(obj, comment, null);
+	verCard.setTuning(AFSession.get().getApplication(TuningApplication.class).getEmptyTuning(verCard));
+	var verRes = new VersionCardResource(verCard);
+	var resObj = readResourceByObj(obj);
+	verRes = versionApp.copyBySchema(resObj, verRes);
+	var resVer = verRes.update(verCard);
+	verCard.save();
+	var verResOld = new VersionCardResource(verInf);
+	if (obj instanceof DPMContracts.Addagr || obj instanceof DPMContracts.Doc || obj instanceof DPMContracts.Finance) {
+		versionApp.copyBySchema(verResOld, resObj, Collections.singleton("regInfo")).update(obj, false);
+	} else if (obj instanceof MeetingTypeSettings) {
+	    versionApp.copyBySchema(verResOld, resObj).update(obj, false);
+	} else {
+        versionApp.copyBySchema(verResOld, resObj, Collections.singleton("registration")).updateRkk(obj);
+	}
+	versionApp.updateVersionInfo(obj, verInf.getVersionInfo());
+	if (isNormDocs) {
+	    TunableObjectHelper.putAFInstanceValue(obj.tuning(), "showIdent", showIdent);
+	}
+	obj.save();
+	var rkk = readResourceByObj(obj);
+	TuningHelper.processProperty(rkk.tuning().getValues(), "mode", "edit", rkk.tuning().getSchema().getProperty("mode"));
+	returnResource.setResource(readResourceByObj(obj));
+}
+
+function readResourceByObj(obj) {
+	var ref = ReferenceFactory.get().getReference(obj);
+	var resObj;
+	if (ref instanceof ExtendedResourceReference) {
+		resObj = ref.readResource(obj);
+	} else {
+		resObj = ref.readResource();
+	}
+	return resObj;
+}	]]></script>
+  </handler>
+
+  <handler id="createNewRkkByVersion" name="Создать РКК по версии">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.AnyTunableObject);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.af.version.VersionApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning.impl);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.rest.version.VersionCardResource);
+importClass(Packages.ru.intertrust.cmj.rest.core.ExtendedResourceReference);
+importClass(Packages.ru.intertrust.cmj.rest.core.ReferenceFactory);
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.history.TunableHistoryHelper);
+importClass(Packages.ru.intertrust.cmj.af.history.HasHistory);
+importClass(Packages.ru.intertrust.cmj.af.history.FieldBase);
+importClass(Packages.ru.intertrust.cmj.rest.rkktemplate.ApplyTemplateAction);
+importClass(Packages.ru.intertrust.cmj.rest.bf.ModuleAndComplect);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResourceContracts);
+function process(paramsResource, returnResource) {
+	if (paramsResource == null) {
+		throw new IllegalArgumentException("paramsResource must no be null.");
+	}
+	if (paramsResource.tuning().getValues().containsKey("$clientContext")) {
+		process_context(paramsResource, returnResource);
+	} else {
+		process_save(paramsResource, returnResource);
+	}
+}
+
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = appTNObject.getClientContextIds(paramsResource.tuning()).get(0);
+    var versionApp = AFSession.get().getApplication(VersionApplication.class);
+    var obj = versionApp.getEntityByUNID(id);
+	var apTemp = createAppTemp(obj.getDbIdent(), obj.getComplect());
+	var rkk = apTemp.readResource(null);
+	    rkk = versionApp.copyByFields(new VersionCardResource(obj), rkk, new HashSet(Arrays.asList("type", "title", "$content")));
+	TuningHelper.processProperty(rkk.tuning().getValues(), "mode", "edit", rkk.tuning().getSchema().getProperty("mode"));
+	returnResource.resource = rkk;
+}
+
+function process_save(paramsResource, returnResource) {
+	var idCom = paramsResource.ident.split("%");
+	var apTemp = createAppTemp(idCom[0], idCom[1]);
+	returnResource.resource = apTemp.apply(paramsResource);
+}
+
+function createAppTemp(ident, complect) {
+	var m = new HashMap();
+	m.put("module", ident);
+	m.put("ident", ident);
+	m.put("complect", complect);
+	return ApplyTemplateAction.APPLY_DEFAULT_TEMPLATE_REFERENCE(ModuleAndComplect.fromUriVariables(m));
+}
+	]]></script>
+  </handler>
+</ui>

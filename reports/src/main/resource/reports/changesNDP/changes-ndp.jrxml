@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.8.0.final using JasperReports Library version 6.8.0-2ed8dfabb690ff337a5797129f2cd92902b0c87b  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="changes-nds" pageWidth="595" pageHeight="842" columnWidth="466" leftMargin="86" rightMargin="43" topMargin="57" bottomMargin="75" uuid="33a6e414-07af-4c7e-8dd2-4227b847b06d">
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<parameter name="leader" class="java.lang.Object"/>
+	<parameter name="formerNdp" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[select uc.id as ndpCh_id,
+	formerNdp.orig_postname AS formerNdpPostName,
+	CASE WHEN formerNdp.orig_shortname LIKE '% %.'
+		THEN SUBSTRING(formerNdp.orig_shortname, (STRPOS(formerNdp.orig_shortname, ' ') + 1))
+				|| ' ' || SUBSTRING(formerNdp.orig_shortname, 1, STRPOS(formerNdp.orig_shortname, ' ') - 1)
+		ELSE formerNdp.orig_shortname
+	END AS formerNdpName,
+	orgLeader.orig_postname AS leaderPostName,
+	CASE WHEN orgLeader.orig_shortname LIKE '% %.'
+		THEN SUBSTRING(orgLeader.orig_shortname, (STRPOS(orgLeader.orig_shortname, ' ') + 1))
+				|| ' ' || SUBSTRING(orgLeader.orig_shortname, 1, STRPOS(orgLeader.orig_shortname, ' ') - 1)
+		ELSE orgLeader.orig_shortname
+	END AS leaderName
+from fr_unitregisterchange as uc
+LEFT JOIN SO_Beard formerNdp ON formerNdp.id = $P{formerNdp}
+LEFT JOIN SO_Beard orgLeader ON orgLeader.id = $P{leader}
+where uc.id IN (SELECT item FROM QR_Id_List WHERE request = $P{request_id})]]>
+	</queryString>
+	<field name="ndpCh_id" class="java.lang.Object"/>
+	<field name="formerNdpPostName" class="java.lang.String"/>
+	<field name="formerNdpName" class="java.lang.String"/>
+	<field name="leaderPostName" class="java.lang.String"/>
+	<field name="leaderName" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="181" splitType="Stretch">
+			<subreport>
+				<reportElement positionType="Float" x="0" y="0" width="280" height="150" uuid="f042bce2-7897-42f3-996b-f4fe4cfebcbc"/>
+				<subreportParameter name="ndpChangeId">
+					<subreportParameterExpression><![CDATA[$F{ndpCh_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["title-sub.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="150" width="460" height="4" uuid="57f720e1-35b3-445f-a16d-95785d970dd3"/>
+				<subreportParameter name="ndpChangeId">
+					<subreportParameterExpression><![CDATA[$F{ndpCh_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["changes-to-files-sub.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="154" width="460" height="4" uuid="43a7983c-8bdd-45e2-9170-65bdbe91e888"/>
+				<subreportParameter name="ndpChangeId">
+					<subreportParameterExpression><![CDATA[$F{ndpCh_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["reserved-files-sub.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="158" width="460" height="4" uuid="4aa50d8d-7449-4660-aaf2-ada03e880f6b"/>
+				<subreportParameter name="ndpChangeId">
+					<subreportParameterExpression><![CDATA[$F{ndpCh_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["other-deps-files-sub.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="170" width="450" height="10" uuid="502f7366-79fe-4186-a36b-0ebef2f03506">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<subreportParameter name="formerNdpName">
+					<subreportParameterExpression><![CDATA[$F{formerNdpName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="formerNdpPostName">
+					<subreportParameterExpression><![CDATA[$F{formerNdpPostName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="leaderName">
+					<subreportParameterExpression><![CDATA[$F{leaderName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="leaderPostName">
+					<subreportParameterExpression><![CDATA[$F{leaderPostName}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["change-ndp-footer.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

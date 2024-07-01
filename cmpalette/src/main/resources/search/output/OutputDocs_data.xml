@@ -1,0 +1,122 @@
+<nosql-data name="OutputDocs_data">
+    <configuration-object type="F_DP_OutputRkk">
+        <indexed-field name="moduleName" show-in-results="true">
+            <doel>Module.Title</doel>
+        </indexed-field>
+
+        <indexed-field name="subject" show-in-results="true"/>
+
+        <indexed-field name="realAuthor" show-in-results="true">
+            <script>
+                <![CDATA[
+                    var lastName = ctx.evaluate('created_by*.so_personsys^platformPerson.lastname');
+                    var result = null;
+                    if (!lastName.isEmpty()) {
+                        var lstName = lastName.get(0);
+                        if (lstName != null && !lstName.isEmpty()) {
+                            result = lstName + ' ';
+                            var firstNames = ctx.evaluate('created_by*.so_personsys^platformPerson.firstname');
+                             if (!firstNames.isEmpty()) {
+                                var firstName = firstNames.get(0);
+                                if (firstName != null && !firstName.isEmpty()) {
+                                    result = result + firstName.substring(0, 1) + '.';
+                                }
+                             }
+
+                             var middleNames = ctx.evaluate('created_by*.so_personsys^platformPerson.middleName');
+                             if (!middleNames.isEmpty()) {
+                                var middleName = middleNames.get(0);
+                                if (middleName != null && !middleName.isEmpty()) {
+                                    result = result + middleName.substring(0, 1) + '.';
+                                }
+                             }
+                        }
+                    }
+                    if (result == null) {
+                        result = 'Система';
+                    }
+                    ctx.setResult(result);
+                ]]>
+            </script>
+        </indexed-field>
+        <indexed-field name="date_create" show-in-results="true">
+            <doel>created_date:format("DD.MM.YYYY HH:mm")</doel>
+        </indexed-field>
+        <indexed-field name="descriptionInfo" target-field-name="descriptionInfo" show-in-results="true">
+            <script>
+                <![CDATA[
+var result = '';
+var type = ctx.get('type');
+if (type != null) {
+    result = type;
+}
+var rn = ctx.get('regnumcnt');
+var rNumber = null;
+if (rn != null) {
+    var prist = ctx.get('regnumprist');
+    if (prist == null) prist = '';
+    var fin = ctx.get('regnumfin');
+    if (fin == null) fin = '';
+     rNumber = ' № ' +  prist + rn + fin;
+
+} else {
+    var pn = ctx.get('prjnumcounter');
+    if (pn != null) {
+        var prist = ctx.get('prjnumprist');
+        if (prist == null) prist = '';
+        var fin = ctx.get('prjnumfin');
+        if (fin == null) fin = '';
+        rNumber = ' Проектный № ' +  prist + pn + fin;
+	} else {
+		rNumber = ' ПРОЕКТ';
+	}
+}
+result = result + rNumber;
+var rDate = ctx.evaluate('regdate:format("dd-mm-yyyy")');
+if (rDate != null && !rDate.isEmpty()) {
+	result = result + ' от ' + rDate.get(0);
+}
+result = result + '<br>';
+var StringJoiner = Java.type('java.util.StringJoiner');
+var signers = ctx.evaluate('F_DP_Rkk_SigningInfo^Owner.signer.orig_shortname');
+if (signers.size() > 0) {
+    var joiner = new StringJoiner(', ');
+    for each(var signer in signers) {
+        if (signer != null) {
+            joiner.add(signer);
+        }
+    }
+    result = result + 'Подпись:' + joiner.toString();
+}
+var corrs = ctx.evaluate('F_DP_OutputRkk_OrgInf^Owner.FirmId.orig_shortname');
+if (corrs.size() > 0) {
+    var corsSub;
+    var another = 0;
+    if (corrs.size() > 3) {
+        corsSub = corrs.subList(0, 3);
+        another = corrs.size() - 3;
+    } else {
+        corsSub = corrs;
+    }
+    var joiner = new StringJoiner(', ');
+    for each(var corr in corsSub) {
+        if (corr != null) {
+            joiner.add(corr);
+        }
+    }
+    var joinRes = joiner.toString();
+    if (!joinRes.isEmpty()) {
+        result = result + ' (кому:' + joiner.toString();
+        if (another != 0) {
+            result = result + ' + ещё ' + another;
+        }
+        result = result + ')';
+    }
+}
+result = result + '</br>'
+result;
+]]>
+            </script>
+        </indexed-field>
+    </configuration-object>
+</nosql-data>

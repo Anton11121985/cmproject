@@ -1,0 +1,214 @@
+<collection name="Application_(template)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    templateName,
+    accessTypeColl,
+    applicationType,
+    subject,
+    executorName,
+    correspondentName,
+    signer
+FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS applicationType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'correspondent') as correspondentName,
+
+             (CASE
+                  WHEN (SELECT count(lnfield)
+                        FROM (SELECT lnfield
+                              FROM dp_lnacc_intrkkt
+                                       natural JOIN dp_lnacc
+                              WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnacc_intrkkt.owner = internalrkkt.id
+                              UNION
+                              SELECT lnfield
+                              FROM  dp_lnaccrole_intrkkt
+                                        natural JOIN dp_lnaccrole
+                              WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnaccrole_intrkkt.owner = internalrkkt.id) pub) <> 0
+                      THEN 'Доступен всем'
+                  WHEN rkkT.isfavouritesaccess <> 0
+                      THEN 'Доступен выбранным'
+                  ELSE 'Личный доступ' END)                             AS accessTypeColl,
+
+             rkkt.name                                                  AS templateName,
+
+             rkkbase.subject                                            AS subject,
+
+             COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')        AS executorName,
+
+             (SELECT
+             coalesce(
+                 '<id>'
+                 || substring(signer.cmjunid, 33, 48)
+                 || ':'
+                 || substring(signer.cmjunid, 1, 32)
+                 || '</><shortName>'
+                 || signer.Orig_ShortName
+                 || '</>',
+                 '<id></><shortName></>')
+              FROM
+                So_BEARD signer
+              WHERE signer.id = InternalRkkT.SignSigner) AS signer
+
+         FROM
+             F_dp_intrkkt internalrkkt
+             LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = internalrkkt.id
+             LEFT JOIN f_dp_rkktemplate rkkt ON rkkt.id = internalrkkt.id
+             LEFT JOIN f_dp_rkk rkk ON rkk.id = rkkt.id
+           WHERE rkkbase.isdeleted != 1
+     ) as s
+     WHERE 1=1
+                ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+        SELECT
+            COUNT(1)
+        FROM (
+         SELECT
+             rkkbase.id                                             AS id,
+             rkkbase.created_date                                   AS created_date,
+             rkkbase.type                                           AS applicationType,
+             rkkbase.module                                         AS Module,
+             '<id>'                                                 AS self_1,
+             ':'                                                    AS self_2,
+             '</>'                                                  AS self_3,
+             (select coalesce(nullif(split_part(tfs."value", '%', 1), '$'), split_part(tfs."value", '%', 2)) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = rkkbase.id
+                and tn_field.owner_type = rkkbase.id_type
+                and tn_field.cmjfield = 'Tn$_correspondent') as correspondentName,
+
+             (CASE
+                  WHEN (SELECT count(lnfield)
+                        FROM (SELECT lnfield
+                              FROM dp_lnacc_intrkkt
+                                       natural JOIN dp_lnacc
+                              WHERE dp_lnacc.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnacc_intrkkt.owner = internalrkkt.id
+                              UNION
+                              SELECT lnfield
+                              FROM  dp_lnaccrole_intrkkt
+                                        natural JOIN dp_lnaccrole
+                              WHERE dp_lnaccrole.lnfield = 'AF$R_CommonAccess'
+                                AND dp_lnaccrole_intrkkt.owner = internalrkkt.id) pub) <> 0
+                      THEN 'Доступен всем'
+                  WHEN rkkT.isfavouritesaccess <> 0
+                      THEN 'Доступен выбранным'
+                  ELSE 'Личный доступ' END)                             AS accessTypeColl,
+
+             rkkt.name                                                  AS templateName,
+
+             rkkbase.subject                                            AS subject,
+
+             COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>')        AS executorName,
+
+             (SELECT
+             coalesce(
+                 '<id>'
+                 || substring(signer.cmjunid, 33, 48)
+                 || ':'
+                 || substring(signer.cmjunid, 1, 32)
+                 || '</><shortName>'
+                 || signer.Orig_ShortName
+                 || '</>',
+                 '<id></><shortName></>')
+              FROM
+                So_BEARD signer
+              WHERE signer.id = InternalRkkT.SignSigner) AS signer
+
+         FROM
+             F_dp_intrkkt internalrkkt
+             LEFT JOIN f_dp_rkkbase rkkbase ON rkkbase.id = internalrkkt.id
+             LEFT JOIN f_dp_rkktemplate rkkt ON rkkt.id = internalrkkt.id
+             LEFT JOIN f_dp_rkk rkk ON rkk.id = rkkt.id
+           WHERE rkkbase.isdeleted != 1
+     ) as s
+     WHERE 1=1
+                ::where-clause
+    ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    correspondentName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="correspondentName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                correspondentName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="subject">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="subject_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    subject iLIKE '%'||{0}||'%'
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    executorName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="executorNamer_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                executorName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+</collection>

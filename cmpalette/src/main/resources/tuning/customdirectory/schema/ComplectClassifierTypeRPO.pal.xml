@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema extends="ComplexClassifierAbstract" name="ComplectClassifierTypeRPO">
+    <meta>
+      <category name="Справочники"/>
+    </meta>
+    <string name="type" tunable="true">
+      <default-values>
+        <default-value>Вид РПО</default-value>
+      </default-values>
+    </string>
+    <string name="showIdent" temporal="true" computed="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Справочник']]></script>
+        </calc-values>
+    </string>
+    <string name="valueTypeRPO" tunable="true"/>
+    <string name="KeyUnique" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL"><![CDATA['valueTypeRPO']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom0To99" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+          <![CDATA['Письмо'.equalsIgnoreCase(valueTypeRPO) || 'Письмо 1-го класса'.equalsIgnoreCase(valueTypeRPO) ? 'true' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom100To500" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+          <![CDATA['Письмо 1-го класса'.equalsIgnoreCase(valueTypeRPO) || 'Бандероль'.equalsIgnoreCase(valueTypeRPO) || 'Бандероль 1-го класса'.equalsIgnoreCase(valueTypeRPO) ? 'true' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom501To2500" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+           <![CDATA['Бандероль'.equalsIgnoreCase(valueTypeRPO) || 'Бандероль 1-го класса'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка 1-го класса'.equalsIgnoreCase(valueTypeRPO) ? 'true' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom2501To5000" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+          <![CDATA['Бандероль'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка 1-го класса'.equalsIgnoreCase(valueTypeRPO) ? 'true' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom5001To10000" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+          <![CDATA['Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) ? 'true' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom10001To20000" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+          <![CDATA['Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) ? 'true' : 'false']]></script>
+      </calc-values>
+    </string>
+    <string name="isForWeightFrom20001" tunable="true">
+      <calc-values>
+        <script event="save" lang="SPEL">
+          <![CDATA['false']]></script>
+      </calc-values>
+    </string>
+    <custom-event-handler lang="JavaScript"><![CDATA[importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+
+function querySave(object, document) {
+
+    var valueTypeRPO = GetValue(object, "valueTypeRPO");
+    if (valueTypeRPO != null) {
+        var isForWeightFrom0To99 = GetValue(object, "isForWeightFrom0To99");
+        if (isForWeightFrom0To99 == null) {
+            var value = 'Письмо'.equalsIgnoreCase(valueTypeRPO) || 'Письмо 1-го класса'.equalsIgnoreCase(valueTypeRPO);
+            SetValue(object, "isForWeightFrom0To99", (value ? "true" : "false"));
+        }
+        var isForWeightFrom100To500 = GetValue(object, "isForWeightFrom100To500");
+        if (isForWeightFrom100To500 == null) {
+            var value = 'Письмо 1-го класса'.equalsIgnoreCase(valueTypeRPO) || 'Бандероль'.equalsIgnoreCase(valueTypeRPO) || 'Бандероль 1-го класса'.equalsIgnoreCase(valueTypeRPO);
+            SetValue(object, "isForWeightFrom100To500", (value ? "true" : "false"));
+        }
+        var isForWeightFrom501To2500 = GetValue(object, "isForWeightFrom501To2500");
+        if (isForWeightFrom501To2500 == null) {
+            var value = 'Бандероль'.equalsIgnoreCase(valueTypeRPO) || 'Бандероль 1-го класса'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка 1-го класса'.equalsIgnoreCase(valueTypeRPO);
+            SetValue(object, "isForWeightFrom501To2500", (value ? "true" : "false"));
+        }
+        var isForWeightFrom2501To5000 = GetValue(object, "isForWeightFrom2501To5000");
+        if (isForWeightFrom2501To5000 == null) {
+            var value = 'Бандероль'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка 1-го класса'.equalsIgnoreCase(valueTypeRPO);
+            SetValue(object, "isForWeightFrom2501To5000", (value ? "true" : "false"));
+        }
+        var isForWeightFrom5001To10000 = GetValue(object, "isForWeightFrom5001To10000");
+        if (isForWeightFrom5001To10000 == null) {
+            var value = 'Посылка "нестандартная"'.equalsIgnoreCase(valueTypeRPO) || 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO);
+            SetValue(object, "isForWeightFrom5001To10000", (value ? "true" : "false"));
+        }
+        var isForWeightFrom10001To20000 = GetValue(object, "isForWeightFrom10001To20000");
+        if (isForWeightFrom10001To20000 == null) {
+            var value = 'Посылка "онлайн"'.equalsIgnoreCase(valueTypeRPO);
+            SetValue(object, "isForWeightFrom10001To20000", (value ? "true" : "false"));
+        }
+    }
+
+}
+
+function SetValue(doc, fileName, value) {
+    return TunableObjectHelper.putAFInstanceValue(doc.tuning(), fileName, value);
+}
+
+function GetValue(doc, fileName) {
+    var tmp = doc.tuning().getValues().get(fileName);
+    if(tmp == null)
+        return null;
+
+    return tmp.getValue();
+}
+
+]]></custom-event-handler>
+  </schema>
+</schemas>

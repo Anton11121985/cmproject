@@ -1,0 +1,292 @@
+<search-area name="so_empl_search_uicoll" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="name" value="20.0"/>
+        <field-boost name="shortName" value="20.0"/>
+        <field-boost name="origShortName" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="SO_Post">
+        <indexed-field name="name"/>
+
+        <indexed-field name="PersonalId" search-by="substring">
+            <script>
+                <![CDATA[
+                if (ctx.get('PersonalId') != null) {
+                    ctx.setResult(ctx.get('PersonalId'));
+                } else {
+                    var person = calcCurPers('so_appointmenthead^post');
+                    if (person == null) {
+                        person = calcCurPers('so_appointmentplain^post');
+                    }
+                    if (person != null) {
+                        var effName = person.getString('tabnum');
+                        if (effName != null) {
+                            ctx.setResult("~" + effName);
+                        }
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+
+        <indexed-field name="tabel" search-by="substring">
+            <script>
+                <![CDATA[
+                var beard = calcCurBeard('so_appointmenthead^post');
+                if (beard == null) {
+                    beard = calcCurBeard('so_appointmentplain^post');
+                }
+                if (beard != null) {
+                    var effName = beard.getString('eff_departmentname');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    } else {
+                        ctx.setResult(beard.getString('orig_departmentname'));
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurBeard(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('beard'));
+                        }
+                    }
+                    return null;
+                }
+
+                ]]>
+            </script>
+        </indexed-field>
+
+        <!-- Родительское подразделение / РВЗ-->
+        <indexed-field name="depName" search-by="substring">
+            <script>
+                <![CDATA[
+                var beard = calcCurBeard('so_appointmenthead^post');
+                if (beard == null) {
+                    beard = calcCurBeard('so_appointmentplain^post');
+                }
+                if (beard != null) {
+                    var effName = beard.getString('eff_departmentname');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    } else {
+                        ctx.setResult(beard.getString('orig_departmentname'));
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurBeard(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('beard'));
+                        }
+                    }
+                    return null;
+                }
+
+                ]]>
+            </script>
+        </indexed-field>
+
+
+        <indexed-field name="email" search-by="substring">
+            <script>
+                if (ctx.get('so_appointmenthead^post') != null) {
+                ctx.get('so_appointmenthead^post.person.so_email_person^owner.email');
+                } else {
+                ctx.get('so_appointmentplain^post.person.so_email_person^owner.email');
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="phoneMobile" search-by="substring">
+            <script>
+                if (ctx.get('so_appointmenthead^post') != null) {
+                ctx.get('so_appointmenthead^post.person.so_phone_person_m^owner.phone');
+                } else {
+                ctx.get('so_appointmentplain^post.person.so_phone_person_m^owner.phone');
+                }
+            </script>
+        </indexed-field>
+
+
+        <indexed-field name="phoneWork" search-by="substring">
+            <script>
+                if (ctx.get('so_appointmenthead^post') != null) {
+                ctx.get('so_appointmenthead^post.person.so_phone_person_w^owner.phone');
+                } else {
+                ctx.get('so_appointmentplain^post.person.so_phone_person_w^owner.phone');
+                }
+            </script>
+        </indexed-field>
+
+        <indexed-field name="code" search-by="substring">
+            <doel>so_parent_su^owner.code</doel>
+            <filter>
+                <doel>so_parent_su^owner:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Номенклатурный индекс -->
+        <indexed-field name="numIndex" search-by="substring">
+            <doel>so_parent_su^owner.numIndex</doel>
+            <filter>
+                <doel>so_parent_su^owner:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Входит в рабочие группы -->
+        <indexed-field name="workGroup" search-by="substring">
+            <doel>SO_WorkGroup^owner.value</doel>
+            <filter>
+                <doel>SO_WorkGroup^owner:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!--Должность-->
+        <indexed-field name="postName" search-by="substring">
+            <script>
+                <![CDATA[
+                var beard = calcCurBeard('so_appointmenthead^post');
+                if (beard == null) {
+                    beard = calcCurBeard('so_appointmentplain^post');
+                }
+                if (beard != null) {
+                    var effName = beard.getString('eff_postname');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    } else {
+                        ctx.setResult(beard.getString('orig_postname'));
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurBeard(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('beard'));
+                        }
+                    }
+                    return null;
+                }
+
+                ]]>
+            </script>
+        </indexed-field>
+        <indexed-field name="shortName" search-by="substring">
+            <script>
+
+                <![CDATA[
+                var beard = calcCurBeard('so_appointmenthead^post');
+                if (beard == null) {
+                    beard = calcCurBeard('so_appointmentplain^post');
+                }
+                if (beard != null) {
+                    var effName = beard.getString('eff_shortName');
+                    if (effName != null) {
+                        ctx.setResult(effName);
+                    } else {
+                        ctx.setResult(beard.getString('orig_shortName'));
+                    }
+                }
+                var empty = null;
+                empty;
+                function calcCurBeard(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('beard'));
+                        }
+                    }
+                    return null;
+                }
+
+                ]]>
+            </script>
+        </indexed-field>
+        <!-- ФИО Персоны, назначенной на ШЕ-->
+        <indexed-field name="origShortName" search-by="substring">
+            <script>
+                <![CDATA[
+                var person = calcCurPers('so_appointmenthead^post');
+                if (person == null) {
+                    person = calcCurPers('so_appointmentplain^post');
+                }
+                if (person != null) {
+                  ctx.setResult(person.getString('lastname') + ' ' + person.getString('firstname') + ' ' + person.getString('middlename'));
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]>
+            </script>
+        </indexed-field>
+        <linked-domain-object type="Tn_Field_String" nested="true">
+            <!-- Код РВЗ -->
+            <indexed-field name="Index">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("Index")</doel>
+                </filter>
+            </indexed-field>
+
+            <!--Комментарий -->
+            <indexed-field name="comment">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("comment")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+</search-area>

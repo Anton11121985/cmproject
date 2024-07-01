@@ -1,0 +1,127 @@
+<search-area name="CorpApproving_uicoll" replace="runtime">
+    <target-domain-object type="F_DP_RkkBase">
+        <indexed-field name="Subject" search-by="substring" index-boost-value="4.0" show-in-results="true"/>
+        <indexed-field name="docType" search-by="substring" >
+            <script>
+                var moduleType = ctx.get('Module.Type.Alias');
+                var collectionDS = session.findByQuery("SELECT id from F_DP_ContractDS where id = {0}", ctx.getId()).size();
+                var collectionDoc = session.findByQuery("SELECT id from F_DP_ContractDoc where id = {0}", ctx.getId()).size();
+                var collectionFin = session.findByQuery("SELECT id from F_DP_ContractFD where id = {0}", ctx.getId()).size();
+                var result = "";
+                if ("InternalDocs".equals(moduleType)) {
+                result = "Внутренний";
+                } else if("OutputDocs".equals(moduleType)) {
+                result = "Исходящий";
+                } else if("Missions".equals(moduleType)) {
+                result = "ОРД";
+                } else if(collectionDS != 0) {
+                result = "Доп.соглашение";
+                } else if(collectionDoc != 0) {
+                result = "Документ к договору";
+                } else if(collectionFin != 0) {
+                result = "Фин.документ";
+                } else if("ContractsLite".equals(moduleType)) {
+                result = "Договор";
+                }
+                result;
+            </script>
+        </indexed-field>
+        <indexed-field name="ReqType" search-by="substring">
+            <doel>Type</doel>
+        </indexed-field>
+        <indexed-field name="prjRegNumber" search-by="substring" >
+            <script>
+                var rn = ctx.get('prjnumcounter');
+                if (rn == null) rn;
+                else {
+                var prist = ctx.get('prjnumprist');
+                if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin');
+                if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn
+                }
+            </script>
+
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <indexed-field name="regDate" search-by="substring">
+            <doel>regDate:toString</doel>
+            <filter>
+                <doel>regDate:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <indexed-field name="signer" search-by="substring" >
+            <script>
+                var collInt = session.findByQuery("SELECT orig_shortname from f_dp_intrkk rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(collInt.size() != 0) collInt.get(0, 0).get();
+
+                var collOut = session.findByQuery("SELECT orig_shortname from f_dp_outputrkk rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(collOut.size() != 0) collOut.get(0, 0).get();
+
+                var colOrd = session.findByQuery("SELECT orig_shortname from f_dp_ordrkk rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(colOrd.size() != 0) colOrd.get(0, 0).get();
+
+
+                var colCon = session.findByQuery("SELECT orig_shortname from f_dp_contractRkk rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(colCon.size() != 0) colCon.get(0, 0).get();
+
+                var colConExt = session.findByQuery("SELECT orig_shortname from f_dp_contractRkk rkk join so_beard b on b.id = signsignerext  where rkk.id = {0}", ctx.getId());
+                if(colConExt.size() != 0) colConExt.get(0, 0).get();
+
+                var colDs = session.findByQuery("SELECT orig_shortname from f_dp_ContractDS rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(colDs.size() != 0) colDs.get(0, 0).get();
+
+                var colDoc = session.findByQuery("SELECT orig_shortname from f_dp_ContractDoc rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(colDoc.size() != 0) colDoc.get(0, 0).get();
+
+                var colFd = session.findByQuery("SELECT orig_shortname from f_dp_ContractFD rkk join so_beard b on b.id = signsigner  where rkk.id = {0}", ctx.getId());
+                if(colFd.size() != 0) colFd.get(0, 0).get();
+            </script>
+        </indexed-field>
+    </target-domain-object>
+
+    <target-domain-object type="F_Meetings_Meeting">
+        <indexed-field name="Subject" search-by="substring" index-boost-value="4.0" show-in-results="true"/>
+        <indexed-field name="docType" search-by="substring" >
+            <script>"Заседание"</script>
+        </indexed-field>
+        <indexed-field name="regDate" search-by="substring">
+            <doel>meeting_date:toString</doel>
+        </indexed-field>
+    </target-domain-object>
+
+    <target-domain-object type="f_meetings_pointbase">
+        <indexed-field name="Subject" search-by="substring" index-boost-value="4.0" show-in-results="true"/>
+        <indexed-field name="docType" search-by="substring" >
+            <script>"Вопрос Заседания"</script>
+        </indexed-field>
+        <indexed-field name="ReqType" search-by="substring">
+            <doel>meetingType</doel>
+        </indexed-field>
+    </target-domain-object>
+
+    <target-domain-object type="f_meetings_decision">
+        <indexed-field name="Subject" search-by="substring" index-boost-value="4.0" show-in-results="true">
+            <doel>pointText</doel>
+        </indexed-field>
+        <indexed-field name="docType" search-by="substring" >
+            <script>"Решение по вопросу"</script>
+        </indexed-field>
+        <indexed-field name="ReqType" search-by="substring">
+            <doel>meeting.subject</doel>
+        </indexed-field>
+    </target-domain-object>
+    <target-domain-object type="f_meetings_decisionpr">
+        <indexed-field name="Subject" search-by="substring" index-boost-value="4.0" show-in-results="true">
+            <doel>text</doel>
+        </indexed-field>
+        <indexed-field name="docType" search-by="substring" >
+            <script>"Решение по вопросу"</script>
+        </indexed-field>
+        <indexed-field name="ReqType" search-by="substring">
+            <doel>point.meetingType</doel>
+        </indexed-field>
+    </target-domain-object>
+</search-area>

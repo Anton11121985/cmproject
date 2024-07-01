@@ -1,0 +1,314 @@
+<search-area name="so_orgs_descr_search_uicoll" replace="runtime">
+
+    <boost-every-where>
+        <field-boost name="fullNameAdmin" value="20.0"/>
+        <field-boost name="soOrgShortNameOrOrgAdmin" value="20.0"/>
+    </boost-every-where>
+    <target-domain-object type="so_orgdescriptionnonsys">
+
+        <!-- Содержание -->
+        <indexed-content type="F_AddFiles_OrgDesc"/>
+        <indexed-content type="OrgNonSys_files"/>
+        <!-- Полное название -->
+        <indexed-field name="fullNameAdmin" search-by="substring">
+            <doel>fullname</doel>
+        </indexed-field>
+        <!-- Краткое название -->
+        <indexed-field name="soOrgShortNameOrOrgAdmin">
+            <doel>shortName</doel>
+        </indexed-field>
+        <!-- Примечание -->
+        <indexed-field name="note">
+            <doel>Note</doel>
+        </indexed-field>
+
+        <!-- Реплика СПО -->
+        <indexed-field name="replicaId" search-by="exactmatch">
+            <doel>module.replica</doel>
+        </indexed-field>
+        <!-- Адрес-->
+        <linked-domain-object type="SO_AddressData_Org_L">
+            <indexed-field name="address_l" search-by="substring">
+                <script>
+                    ctx.setResult(ctx.get('streettype') + ' ' + ctx.get('street') + ' ' +ctx.get('house') + ' ' +ctx.get('corp') + ' ' +ctx.get('building') + ' ' +ctx.get('office') + ' '
+                    +ctx.get('settlement') + ' ' +ctx.get('city') + ' ' +ctx.get('locality') + ' ' +ctx.get('region') + ' ' +ctx.get('country') + ' ' +ctx.get('zipcode'));
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Org_F">
+            <indexed-field name="address_f" search-by="substring">
+                <script>
+                    ctx.setResult(ctx.get('streettype') + ' ' + ctx.get('street') + ' ' +ctx.get('house') + ' ' +ctx.get('corp') + ' ' +ctx.get('building') + ' ' +ctx.get('office') + ' '
+                    +ctx.get('settlement') + ' ' +ctx.get('city') + ' ' +ctx.get('locality') + ' ' +ctx.get('region') + ' ' +ctx.get('country') + ' ' +ctx.get('zipcode'));
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Org_J">
+            <indexed-field name="address_j" search-by="substring">
+                <script>
+                    ctx.setResult(ctx.get('streettype') + ' ' + ctx.get('street') + ' ' +ctx.get('house') + ' ' +ctx.get('corp') + ' ' +ctx.get('building') + ' ' +ctx.get('office') + ' '
+                    +ctx.get('settlement') + ' ' +ctx.get('city') + ' ' +ctx.get('locality') + ' ' +ctx.get('region') + ' ' +ctx.get('country') + ' ' +ctx.get('zipcode'));
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Телефон -->
+        <linked-domain-object type="SO_Phone_Org">
+            <indexed-field name="phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Email -->
+        <linked-domain-object type="SO_Email_Org">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Факс -->
+        <linked-domain-object type="SO_Fax_Org">
+            <indexed-field name="fax"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- ИНН -->
+        <indexed-field name="INN" />
+        <!-- КПП -->
+        <indexed-field name="KPP" />
+        <!-- ОКПО -->
+        <indexed-field name="OKPO" />
+        <!-- ОГРН -->
+        <indexed-field name="OGRN" />
+        <!-- ОКВЭД -->
+        <indexed-field name="OKONH" />
+        <!-- Сайт -->
+        <indexed-field name="Telex"/>
+
+        <!-- Расчётный счёт-->
+        <indexed-field name="Account"/>
+        <!-- Название банка-->
+        <indexed-field name="Bank"/>
+        <!-- Тематика-->
+        <indexed-field name="topic"/>
+        <!-- Бик банка -->
+        <indexed-field name="BIK"/>
+        <!-- Корреспондентский счет банка -->
+        <indexed-field name="AccountCorr"/>
+
+        <!-- GUID в МЭДО-->
+        <indexed-field name="medoguid"/>
+
+        <!-- Адрес в МЭДО-->
+        <indexed-field name="medoaddress"/>
+
+        <!-- GUID ССТУ-->
+        <indexed-field name="SSTUGUID"/>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <!--ОКАТО -->
+            <indexed-field name="COKATO">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("COKATO")</doel>
+                </filter>
+            </indexed-field>
+            <!--Альтернативное название -->
+            <indexed-field name="alternativeName">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("alternativeName")</doel>
+                </filter>
+            </indexed-field>
+            <!--Комментарий -->
+            <indexed-field name="comment">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("comment")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+    </target-domain-object>
+    <!-- Организация СО -->
+    <target-domain-object type="so_orgdescriptionsys">
+        <!-- Полное название -->
+        <indexed-field name="fullNameAdmin" search-by="substring">
+            <doel>orgsystem.fullName</doel>
+        </indexed-field>
+        <!-- Краткое название -->
+        <indexed-field name="soOrgShortNameOrOrgAdmin" search-by="substring">
+            <doel>orgsystem.shortName</doel>
+        </indexed-field>
+
+        <!-- Код -->
+        <indexed-field name="code"/>
+        <!-- Номенклатурный индекс -->
+        <indexed-field name="numIndex" search-by="substring">
+            <doel>so_parent_su^owner.numIndex</doel>
+        </indexed-field>
+
+        <!-- Реплика СО -->
+        <indexed-field name="replicaId" search-by="exactmatch">
+            <doel>module.replica</doel>
+        </indexed-field>
+
+        <!-- GUID в МЭДО-->
+        <indexed-field name="medoguid"/>
+
+        <!-- Адрес в МЭДО-->
+        <indexed-field name="medoaddress"/>
+
+        <!-- GUID ССТУ-->
+        <indexed-field name="SSTUGUID"/>
+        <!-- Адрес-->
+        <linked-domain-object type="SO_AddressData_Org_L">
+            <indexed-field name="address_l" search-by="substring">
+                <script>
+                    ctx.setResult(ctx.get('streettype') + ' ' + ctx.get('street') + ' ' +ctx.get('house') + ' ' +ctx.get('corp') + ' ' +ctx.get('building') + ' ' +ctx.get('office') + ' '
+                    +ctx.get('settlement') + ' ' +ctx.get('city') + ' ' +ctx.get('locality') + ' ' +ctx.get('region') + ' ' +ctx.get('country') + ' ' +ctx.get('zipcode'));
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Org_F">
+            <indexed-field name="address_f" search-by="substring">
+                <script>
+                    ctx.setResult(ctx.get('streettype') + ' ' + ctx.get('street') + ' ' +ctx.get('house') + ' ' +ctx.get('corp') + ' ' +ctx.get('building') + ' ' +ctx.get('office') + ' '
+                    +ctx.get('settlement') + ' ' +ctx.get('city') + ' ' +ctx.get('locality') + ' ' +ctx.get('region') + ' ' +ctx.get('country') + ' ' +ctx.get('zipcode'));
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="SO_AddressData_Org_J">
+            <indexed-field name="address_j" search-by="substring">
+                <script>
+                    ctx.setResult(ctx.get('streettype') + ' ' + ctx.get('street') + ' ' +ctx.get('house') + ' ' +ctx.get('corp') + ' ' +ctx.get('building') + ' ' +ctx.get('office') + ' '
+                    +ctx.get('settlement') + ' ' +ctx.get('city') + ' ' +ctx.get('locality') + ' ' +ctx.get('region') + ' ' +ctx.get('country') + ' ' +ctx.get('zipcode'));
+                </script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- ИНН -->
+        <indexed-field name="INN" />
+        <!-- КПП -->
+        <indexed-field name="KPP" />
+        <!-- ОКПО -->
+        <indexed-field name="OKPO" />
+        <!-- ОГРН -->
+        <indexed-field name="OGRN" />
+        <!-- ОКВЭД -->
+        <indexed-field name="OKONH" />
+        <!-- Сайт -->
+        <indexed-field name="Telex"/>
+
+        <!-- Расчётный счёт-->
+        <indexed-field name="Account"/>
+        <!-- Название банка-->
+        <indexed-field name="Bank"/>
+        <!-- Бик банка -->
+        <indexed-field name="BIK"/>
+        <!-- Корреспондентский счет банка -->
+        <indexed-field name="AccountCorr"/>
+
+        <!-- Телефон -->
+        <linked-domain-object type="SO_Phone_Org">
+            <indexed-field name="phone"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Email -->
+        <linked-domain-object type="SO_Email_Org">
+            <indexed-field name="email"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Факс -->
+        <linked-domain-object type="SO_Fax_Org">
+            <indexed-field name="fax"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <!--ОКАТО -->
+            <indexed-field name="COKATO">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("COKATO")</doel>
+                </filter>
+            </indexed-field>
+            <!--Комментарий -->
+            <indexed-field name="comment">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("comment")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+
+    <target-domain-object type="so_unit">
+
+        <!-- ФИО Персоны, назначенной на ШЕ-->
+        <indexed-field name="origShortName" search-by="substring">
+            <script>
+                <![CDATA[
+                var person = calcCurPers('so_appointmenthead^post');
+                if (person == null) {
+                    person = calcCurPers('so_appointmentplain^post');
+                }
+                if (person != null) {
+                  ctx.setResult(person.getString('lastname') + ' ' + person.getString('firstname') + ' ' + person.getString('middlename'));
+                }
+                var empty = null;
+                empty;
+                function calcCurPers(dopEval) {
+                    var evals = ctx.evaluate(dopEval);
+                    if (evals == null || evals.isEmpty()) {
+                        return null;
+                    }
+                    for(var i = 0; i < evals.size(); i++) {
+                        var app = crudService.find(evals.get(i));
+                        if (app.getReference('AccessRedirect') == null) {
+                            return crudService.find(app.getReference('person'));
+                        }
+                    }
+                    return null;
+                }
+                ]]> </script>
+        </indexed-field>
+    </target-domain-object>
+</search-area>

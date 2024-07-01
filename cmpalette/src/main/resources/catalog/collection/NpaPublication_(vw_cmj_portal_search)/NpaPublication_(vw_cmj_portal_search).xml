@@ -1,0 +1,47 @@
+<collection name="NpaPublication_(vw_cmj_portal_search)" idField="id">
+    <prototype>
+        <![CDATA[
+        SELECT s.id,
+               s.created_date,
+               s.Module,
+               s.self_1,
+               s.self_2,
+               s.self_3,
+               s.name
+        FROM (
+            select
+                np.name as name,
+                np.id as id,
+                np.created_date as created_date,
+                np."module" as Module,
+                '<id>' as self_1,
+                ':' as self_2,
+                '</>' as self_3
+            from npa_portal np
+            ) s
+        WHERE 1 = 1
+            ::where-clause
+        ]]>
+    </prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                   s.Module = {0}
+               ]]>
+        </criteria>
+    </filter>
+    <filter name="name">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    LOWER(s.name) LIKE LOWER('%' || {0} || '%')
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="CQSEARCH">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    (LOWER(s.name) LIKE LOWER('%' || {0} || '%') OR LOWER(s.name) LIKE LOWER('%' || {0} || '%'))
+                ]]>
+        </criteria>
+    </filter>
+</collection>

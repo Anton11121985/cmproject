@@ -1,0 +1,52 @@
+<collection name="SO_(depAndPostIsGAS)" idField="id" replace="runtime">
+        <prototype>
+            <![CDATA[
+			SELECT
+    s.id,
+    '<id>' as self_1,
+    ':' as self_2,
+    '</>' as self_3,
+    s.created_date,
+    s.module
+FROM (      
+         SELECT
+             so_department.id AS id,
+             so_unit.created_date,                  
+             ss_module_org.module as module
+
+         FROM SO_Department so_department
+                  natural join so_unit                  
+                  join SS_ModuleOrg ss_module_org on ss_module_org.Organization = so_department.HierRoot
+				  join ss_module on ss_module.id = ss_module_org.module
+				  join ss_moduletype on ss_moduletype.id = ss_module.type
+         WHERE         
+			 (ss_moduletype.alias='SO') and (so_department.accessredirect is null ) and so_department.isGAS = 1
+		 UNION ALL		 
+		 SELECT
+		 so_unit.id as id,
+		 so_unit.created_date,
+		 ss_module_org.module as module
+		 FROM SO_Post so_post
+		 natural join so_unit
+		 join SS_ModuleOrg ss_module_org on ss_module_org.Organization = so_post.HierRoot
+		 join ss_module on ss_module.id = ss_module_org.module
+		 join ss_moduletype on ss_moduletype.id = ss_module.type
+		  WHERE         
+			 (ss_moduletype.alias='SO') and (so_post.isdeleted = 0) and so_post.isGAS = 1
+			 
+     ) s
+        WHERE
+            1=1
+            ::where-clause
+           ]]>
+        </prototype>
+        <filter name="MODULE">
+            <criteria placeholder="where-clause">
+                <![CDATA[
+                Module = {0}
+            ]]>
+            </criteria>
+        </filter>
+      
+
+    </collection>

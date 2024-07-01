@@ -1,0 +1,516 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+    <schema name="DTRAddToRegistryDialog" extends="Dialog" recalc="true">
+        <meta>
+            <category name="Диалоги"/>
+            <documentation>Схема диалога добавления документов в реестр модуля "Реестр передачи документов"</documentation>
+        </meta>
+        <string name="counter"/>
+        <schema-ref name="transmittedDoc" ref="TransmittedDoc" null-empty="true"/>
+        <schema-ref name="selectTransmittedDoc" ref="SelectTransmittedDocResource" temporal="true"/>
+        <!--<boolean name="selectDocumentFlag" temporal="true"/>-->
+        <string name="barCode"/>
+        <string name="documentUnid"/>
+        <string name="savedBarCode"/> <!-- чтобы сохранить не обтображая -->
+        <enum-ref name="documentType" ref="DTRDocumentType"/>
+        <enum-ref name="module" ref="DTRDocumentModule"/>
+        <string name="reqType"/>
+        <boolean name="isAddAgrType"/>
+        <string name="regNumber"/>
+        <date name="date"/>
+        <string name="subject"/>
+        <string name="note"/>
+        <schema-ref name="correspondentForAdd" ref="DTRCorrespondentResource"/>
+<!--        <actor name="correspondent"/>-->
+<!--        <actor name="correspondentList" array="true"/>-->
+        <string name="correspondentText"/>
+        <!--<actor name="dopInfo"/>-->
+<!--        <actor name="dopInfoList" array="true"/>-->
+        <schema-ref name="addInfoForAdd" ref="DTRAdditionalInfoResource"/>
+        <string name="addInfoText"/>
+        <enum-ref ref="DTRDocSelectionMode" name="selectionMode">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['barcode']]></script>
+            </calc-values>
+        </enum-ref>
+        <string name="ids" array="true"/>
+        <string name="barcodeLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Введите штрихкод']]></script>
+            </calc-values>
+        </string>
+        <string name="requisitesLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Найдите документ в системе']]></script>
+            </calc-values>
+        </string>
+        <string name="manualLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Укажите реквизиты документа']]></script>
+            </calc-values>
+        </string>
+        <boolean name="notFoundDocByBarcode" default-value="false"/>
+        <string name="notFoundDocByBarcodeLabel">
+            <calc-values>
+                <script lang="SPEL" event="open"><![CDATA['Документ по штрихкоду не найден']]></script>
+            </calc-values>
+        </string>
+        <boolean name="showAddButton" temporal="true"/>
+        <custom-event-handler lang="JavaScript" ><![CDATA[
+importClass(Packages.ru.intertrust.cmj.rest.tuning.TuningHelper);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importClass(Packages.ru.intertrust.cmj.dp.DPBeardList);
+importClass(Packages.ru.intertrust.cmj.af.so.SOOrganizationDescription);
+importClass(Packages.ru.intertrust.cmj.af.so.SOApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.core.AFCMDomino);
+importClass(Packages.ru.intertrust.cmj.af.barcode.BarcodeSearchService);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.RKK);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.Addagr);
+importClass(Packages.ru.intertrust.cmj.dp.DPMInput);
+importClass(Packages.ru.intertrust.cmj.dp.DPM);
+importClass(Packages.ru.intertrust.cmj.dp.DPM.RKK);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.java.util.Date);
+importPackage(Packages.java.lang);
+importPackage(Packages.java.util);
+importPackage(Packages.java.text);
+
+function queryCreate(object) {
+    var values = object.tuning().getValues();
+	var selectionMode =  values.get("selectionMode") != null ? values.get("selectionMode").getValue() : "";
+	if (selectionMode == "manual") {
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", true);
+	} else {
+	    TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", false);
+	}
+}
+
+function recalc(object, changedField){
+	var values = object.tuning().getValues();
+	var selectionMode = object.tuning().getValues().get("selectionMode").getValue();
+
+	// отображение кнопки добавления записи
+	if (changedField == 'selectionMode') {
+		clearRequisites(object);
+		if (selectionMode == "barcode") {
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", false);
+		} else if (selectionMode == "requisites") {
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", false);
+		} else if (selectionMode == "manual") {
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", true);
+		}
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", false);
+	}
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+
+	if (changedField == 'barCode') {
+		if (values.get('barCode') != null && values.get('barCode').getValue() != null && !values.get('barCode').getValue().equals("")) {
+			var barCode = values.get('barCode').getValue();
+
+			var rkk = findDocumentByBarCode(barCode);
+			if (rkk == null) {
+			    clearRequisites(object);
+		        TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", false);
+				TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", true);
+		        return;
+			}
+			var documentUnid = rkk.getUNID();
+			var documentModule = rkk.getDbIdent();
+			var reqType = getReqType(rkk);
+			var regNumber = getRegNumber(rkk, documentModule);
+			var subject = rkk.getSubject() != null ? rkk.getSubject() : "";
+			var date = null;
+			var comment = getComment(rkk, documentModule);
+			var correspondentText = getCorrespondentText(rkk, documentModule);
+			var addInfoText = getAddInfoText(rkk, documentModule);
+			//var barCodeText = getFullBarcode(rkk);
+
+			if (documentModule.equals("ContractsLite")  && rkk instanceof DPMContracts.Addagr) {
+                date = rkk.registrationSimple().getDate();
+			} else {
+				date = rkk.registration().getDate();
+			}
+
+			//записываем вычисленные реквизиты
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "documentUnid", documentUnid);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", documentModule);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", reqType);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "subject", subject);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "date", (date == null ? null :AFDate.fromJavaDate(date, false)));
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "regNumber", regNumber);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "note", comment);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentText", correspondentText);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoText", addInfoText);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "savedBarCode", barCode);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoForAdd", null);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentForAdd", null);
+
+			//отображаем кнопку "Добавить"
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", true);
+		} else {
+		    TunableObjectHelper.putAFInstanceValue(object.tuning(), "savedBarCode", "");
+		    TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", false);
+			TunableObjectHelper.putAFInstanceValue(object.tuning(), "notFoundDocByBarcode", false);
+		}
+	}
+
+	if (changedField == 'module') {
+        var tunapp = AFSession.get().getApplication(TuningApplication.class);
+
+		//заполняем объекты для выбора корреспондентов и доп.инфы, чтобы в них оказался выбор с учётом вида документа
+		var correspondentForAddObject = values.get('correspondentForAdd');
+		if (correspondentForAddObject == null) {
+			var schemaCorresp = tunapp.getSchemaByName("DTRCorrespondentResource");
+			correspondentForAddObject = new AFInstanceObjectImpl(schemaCorresp);
+		}
+		correspondentForAddObject.getValues().put("module", values.get("module"));
+
+		var addInfoForAddObject = values.get('addInfoForAdd');
+		if (addInfoForAddObject == null) {
+			var schemaAddInfo = tunapp.getSchemaByName("DTRAdditionalInfoResource");
+			addInfoForAddObject = new AFInstanceObjectImpl(schemaAddInfo);
+		}
+		addInfoForAddObject.getValues().put("module", values.get("module"));
+
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "isAddAgrType", false);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", "");
+	}
+
+	// --------- заполняем корреспондентов после выбора по кнопке ----------
+	if (changedField == 'correspondentForAdd') {
+		var correspondentText = values.get('correspondentText') == null ? "" : values.get('correspondentText').getValue();
+		var correspondentForAdd = values.get('correspondentForAdd').getValues();
+
+		var correspondent = correspondentForAdd.get('correspondent') == null ? null : correspondentForAdd.get('correspondent').getValue();
+		if (correspondent != null) {
+			correspondentText = correspondent.toString();
+			values.put("correspondentText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentText")));
+		}
+
+		var correspondentList = correspondentForAdd.get('correspondentList') == null ? null :correspondentForAdd.get('correspondentList').getValues();
+		if (correspondentList != null && !correspondentList.isEmpty()) {
+			for (var i = 0; i < correspondentList.size(); i++) {
+				var correspondent = correspondentList.get(i).getValue();
+				if(correspondentText == "") {
+					correspondentText = correspondent.toString();
+				} else {
+					correspondentText = correspondentText + ", \n" + correspondent.toString();
+				}
+			}
+			values.put("correspondentText", TuningHelper.createPropertyValue(correspondentText, object.tuning().getSchema().getProperty("correspondentText")));
+		}
+
+        var correspondentForAddObject = values.get('correspondentForAdd');
+		correspondentForAdd.put("correspondent", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondent")));
+		correspondentForAdd.put("correspondentList", TuningHelper.createPropertyValue(null, correspondentForAddObject.getSchema().getProperty("correspondentList")));
+	}
+
+	// --------  заполняем допинфо после выбора по кнопке -------
+	if (changedField == 'addInfoForAdd') {
+		var addInfoText = values.get('addInfoText') == null ? "" : values.get('addInfoText').getValue();
+		var addInfoForAdd = values.get('addInfoForAdd').getValues();
+
+		var addInfo = addInfoForAdd.get('addInfo') == null ? null : addInfoForAdd.get('addInfo').getValue();
+		if (addInfo != null) {
+			addInfoText = addInfo.toString();
+			values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+		}
+
+		var addInfoList = addInfoForAdd.get('addInfoList') == null ? null :addInfoForAdd.get('addInfoList').getValues();
+		if (addInfoList != null && !addInfoList.isEmpty()) {
+			for (var i = 0; i < correspondentList.size(); i++) {
+				var addInfo = addInfoList.get(i).getValue();
+				if(addInfoText == "") {
+					addInfoText = addInfo.toString();
+				} else {
+					addInfoText = addInfoText + ", \n" + addInfo.toString();
+				}
+			}
+			values.put("addInfoText", TuningHelper.createPropertyValue(addInfoText, object.tuning().getSchema().getProperty("addInfoText")));
+		}
+
+		addInfoForAdd.put("addInfo", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfo")));
+		addInfoForAdd.put("addInfoList", TuningHelper.createPropertyValue(null, values.get('addInfoForAdd').getSchema().getProperty("addInfoList")));
+	}
+
+	// --------- заполнение данными на основании выбранного документа --------------
+	if (changedField == 'selectTransmittedDoc') {
+		var selectTransmittedDocValues = values.get('selectTransmittedDoc').getValues();
+		var transmittedDoc = selectTransmittedDocValues.get("transmittedDoc");
+		values.put("transmittedDoc", transmittedDoc);
+
+		var unid = transmittedDoc.getValues().get("id").getValue();
+		var rkk = appdp.getEntityByUNID(unid);
+		var documentModule = rkk.getDbIdent();
+		var regNumber = getRegNumber(rkk, documentModule);
+        //var regDateStr = transmittedDoc.getValues().get("regDate");
+		var date = null;
+		if (documentModule.equals("ContractsLite")  && rkk instanceof DPMContracts.Addagr) {
+            date = rkk.registrationSimple().getDate();
+		} else {
+			date = rkk.registration().getDate();
+		}
+		/*if (regDateStr != null && regDateStr.getValue() != null && !regDateStr.getValue().equals("")) {
+			var formatter = new SimpleDateFormat("EEE MMM d HH:mm:ss z yyyy", Locale.ENGLISH);
+			var regDate = formatter.parse(regDateStr.getValue());
+		}*/
+        var subject = rkk.getSubject() != null ? rkk.getSubject() : "";
+		//var description = transmittedDoc.getValues().get("description");
+		var reqType = getReqType(rkk);
+		var comment = getComment(rkk, documentModule);
+		var correspondentText = getCorrespondentText(rkk, documentModule);
+		var addInfoText = getAddInfoText(rkk, documentModule);
+		var barCode = getFullBarcode(rkk);
+
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "documentUnid", unid);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", documentModule);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "subject", subject);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "note", comment);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "regNumber", regNumber);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "date", (date == null ? null : AFDate.fromJavaDate(date, false)));
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", reqType);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", documentModule);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "savedBarCode", barCode);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentText", correspondentText);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoText", addInfoText);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoForAdd", null);
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentForAdd", null);
+
+		TunableObjectHelper.putAFInstanceValue(object.tuning(), "showAddButton", true);
+	}
+	// --------------------------------------------------------
+
+}
+
+/*
+	Поиск в системе документа с указанным штрихкодом
+*/
+function findDocumentByBarCode(barcode) {
+    var barcodeSearchService = BeansUtils.getBean("BarcodeSearchService");
+    //var isBarcodeUnid = barcodeSearchService.support(barcode);
+    //if (isBarcodeUnid) {
+
+	var doc = null;
+	try {
+		doc = barcodeSearchService.search(barcode);
+	} catch (e) {
+		return null;
+	}
+
+    if (doc == null) {
+        return null;
+    }
+    var replicaID = doc.getParentDatabase().getReplicaID();
+    var unid = doc.getUniversalID();
+    var fullUnid = AFCMDomino.cmUNIDToORMUNID(unid, replicaID);
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var documentEntity = appdp.getEntityByUNID(fullUnid);
+    return documentEntity;
+    //} else {
+    //    return null;
+    //}
+}
+
+/*
+    Вычисление штрихкода документа
+*/
+function getFullBarcode(rkk) {
+    var barcode = "";
+    var barcodeInstance = rkk.tuning().getValues().get("barCode");
+    if (barcodeInstance != null && barcodeInstance.getValue() != null) {
+        barcode = TunableObjectHelper.getAFInstanceValue(barcodeInstance)
+    }
+    return barcode;
+}
+
+/*
+	Вычисляем вид документа
+*/
+function getReqType(document) {
+	if (document instanceof DPMContracts.Addagr) {
+		return "Дополнительное соглашение";
+	}
+	if (document instanceof DPM.RKK) {
+		return document.getType();
+	}
+	return "";
+}
+
+/*
+	Вычисляем инфу о корреспондентах/контрагентах
+*/
+function getCorrespondentText(rkk, documentModule) {
+	var correspondentText = "";
+	if (documentModule.equals("InputDocs") || documentModule.equals("NotRegistered")) {
+		if (rkk.correspondent()!=null) {
+			if (rkk.correspondent().getType() != null) {
+				if (rkk.correspondent().getType().toString().equals("NOT_SPECIFIED")) {
+					correspondentText = "Не указан";
+				} else if (rkk.correspondent().getType().toString().equals("ORGANIZATION")) {
+					correspondentText = rkk.correspondent().getOrganization().getOrganization().getFullName().toString();
+				} else {
+					if (!rkk.correspondent().getAuthors().getList().isEmpty()) {
+						correspondentText = rkk.correspondent().getAuthors().getList().get(0).toString();
+					}
+				}
+			}
+		}
+	} else if (documentModule.equals("OutputDocs")) {
+		if (rkk.addressees()!=null) {
+			correspondentText="";
+			var addresseesBeardList = rkk.addressees().getBeardList().getList();
+			if (!addresseesBeardList.isEmpty()) {
+				for (var i=0; i<addresseesBeardList.size(); i++) {
+					correspondentText+="\n"+addresseesBeardList.get(i).toString();
+				}
+			}
+		}
+	} else if (documentModule.equals("ContractsLite")) {
+		if (rkk instanceof DPMContracts.RKK) {
+			var party2 = rkk.getParty2();
+			if (party2 != null) {
+				correspondentText = party2.toString();
+			} else {
+				var party2Manual = rkk.getParty2Other();
+				if (party2Manual != null) {
+					correspondentText = party2Manual.getName();
+				}
+			}
+		} else {
+			var partiesInstance = rkk.tuning().getValues().get("parties");
+			if (partiesInstance != null) {
+				var partySecondInstance = partiesInstance.getValues().get("second");
+				if (partySecondInstance != null) {
+					correspondentText = partySecondInstance.getValue().toString();
+				}
+			}
+		}
+	}
+	return correspondentText;
+}
+
+/*
+	Вычисляем допинфо
+*/
+function getAddInfoText(rkk, documentModule) {
+	var addInfoText = "";
+	if (documentModule.equals("InputDocs") || documentModule.equals("NotRegistered")) {
+		if (rkk.addressees()!=null) {
+			addInfoText="";
+			for (var i=0; i<rkk.addressees().getList().size(); i++) {
+				if (!addInfoText.equals("")) {
+					addInfoText += "\n";
+				}
+				addInfoText += rkk.addressees().getList().get(i).toString();
+			}
+		}
+	} else if (documentModule.equals("ContractsLite")) {
+
+		var rkkWithAddInfo = rkk;
+		//для допсоглашений берем из корневого договора
+		if (rkk instanceof DPMContracts.Addagr) {
+			rkkWithAddInfo = rkk.parents().getRoot();
+		}
+		var spOwnerInstance = rkkWithAddInfo.tuning().getValues().get("dep");
+		if (spOwnerInstance != null) {
+			var spOwnerList = spOwnerInstance.getValues();
+			for (var i=0; i<spOwnerList.size(); i++) {
+				var spOwner = spOwnerList.get(i);
+				if (spOwner != null && spOwner.getValue() != null) {
+					if (!addInfoText.equals("")) {
+						addInfoText += "\n";
+					}
+					addInfoText += spOwner.getValue().toString();
+				}
+			}
+		}
+	}
+	return addInfoText;
+}
+
+/*
+	Вычисляем комметарий к документу
+*/
+function getComment(rkk, documentModule) {
+	var comment = "";
+    if (documentModule.equals("WorkplaceRequests")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("wpComments"));
+    } else if (documentModule.equals("ServiceRequests")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("servComments"));
+	} else if (documentModule.equals("SendDocRequests")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("comment"));
+    } else if (documentModule.equals("ProcessRegistry")) {
+		if (TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")) != null) {
+		    for (var i=0; i<TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")).size(); i++) {
+                comment+="\n"+TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("CriticalComments")).get(i);
+		    }
+		}
+    } else if (documentModule.equals("ProductRegistry")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("ProdComments"));
+	} else if (documentModule.equals("OutputDocs")) {
+        comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("outMainNote"));
+	} else if (documentModule.equals("ContractsLite") && rkk instanceof DPMContracts.Addagr) {
+		comment = TunableObjectHelper.getAFInstanceValue(rkk.tuning().getValues().get("agrComment"));
+    } else {
+		comment = rkk.getComment() != null ? rkk.getComment() : "";
+	}
+	return comment;
+}
+
+/*
+	Вычисляем номер документа
+*/
+function getRegNumber(rkk, documentModule) {
+	var regNumber = "";
+	var numberInstance = null;
+    if (documentModule.equals("WorkplaceRequests") || documentModule.equals("ServiceRequests") || documentModule.equals("SendDocRequests") || documentModule.equals("NotRegistered")) {
+		regNumber = rkk.projectNumber();
+    } else if (documentModule.equals("ProcessRegistry")) {
+		numberInstance = rkk.tuning().getValues().get("Number");
+		if (numberInstance != null || numberInstance.getValue() != null) {
+			regNumber = TunableObjectHelper.getAFInstanceValue(numberInstance);
+		}
+    } else if (documentModule.equals("ProductRegistry")) {
+		numberInstance = rkk.tuning().getValues().get("Number");
+		if (numberInstance != null || numberInstance.getValue() != null) {
+			regNumber = TunableObjectHelper.getAFInstanceValue(numberInstance);
+		}
+    } else if (documentModule.equals("ContractsLite") && rkk instanceof DPMContracts.Addagr) {
+        regNumber = rkk.registrationSimple().getNumber();
+    } else {
+		regNumber = rkk.registration().getRegisteredInfo() != null ? rkk.registration().getRegisteredInfo().getNumber().toString() : "";
+	}
+	return regNumber;
+}
+
+/* Очищаем все реквизиты в диалоге, чтобы можно было искать документ заново */
+function clearRequisites(object) {
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "documentUnid", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "barCode", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "savedBarCode", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "module", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "reqType", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "subject", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "date", null);
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "regNumber", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "note", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentText", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "correspondentForAdd", null);
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoText", "");
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "addInfoForAdd", null);
+	TunableObjectHelper.putAFInstanceValue(object.tuning(), "isAddAgrType", false);
+}
+        ]]></custom-event-handler>
+    </schema>
+</schemas>

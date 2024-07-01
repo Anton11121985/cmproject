@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="apr-all-list-meetings-main" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="483" leftMargin="70" rightMargin="42" topMargin="56" bottomMargin="56" uuid="e95e6c47-e7d7-44cb-96a2-2c55c48026a1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="rel-62.xml"/>
+	<property name="net.sf.jasperreports.export.docx.frames.as.nested.tables" value="false"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="request_id" class="java.lang.Object"/>
+	<parameter name="docType" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[with
+--params as (select '381C24FAEBABB77C4325861B00380F4A' AS docId, 'Повестка' AS type)
+params as (
+    SELECT
+    	n2p.nunid AS docId,
+    	param.item,
+		param.item_type ItemType
+    FROM QR_Request AS req
+        JOIN QR_Id_List AS param ON param.request = req.id
+        JOIN nunid2punid_map AS n2p
+            ON substring(n2p.punid, 5, 12)::BIGINT = param.item AND left(n2p.punid, 4)::INT = param.item_type
+    WHERE req.id = $P{request_id}
+)
+select
+/*в параметры lid и ltid передаётся идентификатор и его тип листа согласования*/
+lid,
+/*в параметры meetingid и meetingtid передаётся идентификатор и его тип одного из документов модуля заседания по которому запущено согласование*/
+(select item from params) as meetingid,
+(select ItemType from params) as meetingtid,
+/*в параметр listnum передаётся порядковый номер листа согласования*/
+1 + count(*) over () - row_number() over (order by TimeBegin desc) as listnum
+	from (
+select
+    ApprList.id as lid,
+    list."Begin" as TimeBegin
+from Apr_ApprList AS ApprList
+left join Apr_List as list on list.id = ApprList.id
+where substr(list.RKKId, 1, 32) = (select docid from params)) as t]]>
+	</queryString>
+	<field name="lid" class="java.lang.Object"/>
+	<field name="meetingid" class="java.lang.Object"/>
+	<field name="meetingtid" class="java.lang.Object"/>
+	<field name="listnum" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.label" value="listnum"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="38">
+			<textField>
+				<reportElement x="0" y="0" width="483" height="20" uuid="d23a82ea-2b30-4112-9de9-07e4e05e279e"/>
+				<textElement textAlignment="Left">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Лист согласования"]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="20" width="483" height="18" uuid="6fa22654-c4dd-4bc6-8153-3bb277735148"/>
+				<subreportParameter name="lid">
+					<subreportParameterExpression><![CDATA[$F{lid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="meetingid">
+					<subreportParameterExpression><![CDATA[$F{meetingid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="meetingtid">
+					<subreportParameterExpression><![CDATA[$F{meetingtid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="headerType">
+					<subreportParameterExpression><![CDATA["all"]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["apr-list-dochead-meetings.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="32" splitType="Stretch">
+			<subreport>
+				<reportElement positionType="Float" x="0" y="0" width="483" height="32" uuid="b2685930-87c1-4a06-88ea-651798ad666a"/>
+				<subreportParameter name="listType">
+					<subreportParameterExpression><![CDATA["all"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="listNum">
+					<subreportParameterExpression><![CDATA[$F{listnum}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="lid">
+					<subreportParameterExpression><![CDATA[$F{lid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["apr-one-list-meetings.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

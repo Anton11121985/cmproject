@@ -1,0 +1,347 @@
+<collection name="ExpeditionOrders_(vw_cmj_archive)" idField="id" replace="runtime">
+	<prototype>
+		<![CDATA[
+			SELECT
+				id,
+				created_date,
+				Module,
+				hasAttachments,
+				self_1,
+				self_2,
+				self_3,
+				regPlace,
+				state,
+				rNumber,
+				number,
+				docSendDate,
+				valueTypeRPO,
+				recepient,
+				executorName,
+				address,
+				expDocNumber,
+				docNumber
+			FROM ( SELECT
+			  rkkbase.id,
+				rkkbase.created_date,
+				rkkbase.module                                   AS Module,
+				'<id>'                                           AS self_1,
+				':'                                              AS self_2,
+				'</>'                                            AS self_3,
+				(SELECT
+				coalesce(max(a), cast(0 AS SMALLINT))
+				FROM (
+				SELECT
+					cast(1 AS SMALLINT) a
+					FROM f_ContentFiles_Rkk CF
+					WHERE CF.f_dp_rkkbase = rkk.id
+					UNION SELECT
+					cast(1 AS SMALLINT)
+					FROM f_ContentRichText_Rkk CRT
+					WHERE CRT.f_dp_rkkbase = rkk.id
+					UNION SELECT
+					cast(1 AS SMALLINT)
+					FROM f_VerifyImage_Rkk VI
+					WHERE VI.f_dp_rkk = rkk.id
+					) t
+				) AS hasAttachments,
+
+			coalesce(
+				 (SELECT
+							CASE WHEN regplace.orig_shortname IS NULL THEN 'Не указано'
+									 ELSE regplace.orig_shortname
+									END
+					FROM so_beard RegPlace
+					WHERE RegPlace.id = rkkbase.RegCode),
+				 CASE WHEN rkkbase.RegCode IS NULL THEN 'Не указано' END
+			)  AS regPlace,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'stage'
+			)  AS state,
+
+			rkk.regnumcnt AS rNumber,
+			prjnumcounter AS number,
+
+			to_char((SELECT tfd.value
+				FROM tn_field_dateonly tfd left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfd.id and tf.cmjfield = 'docDate'
+			 ), 'YYYY-MM-DD')  AS docSendDate,
+
+			(SELECT tfs.value
+				 FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				 WHERE tf.id = tfs.id and tf.cmjfield = 'valueTypeRPO'
+			)  AS valueTypeRPO,
+
+			(SELECT case
+							 when count (*) = 0 then 'Не указано'
+							 else array_to_string(array_agg(
+								case when split_part(tfs.value, '%', 1) = '$' then split_part(tfs.value, '%', 2)
+								else split_part(tfs.value, '%', 1) || ' (' || split_part(tfs.value, '%', 2) || ')'
+								end
+								), ' ', '')
+						 end
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'recepient'
+			)  AS recepient,
+
+			COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>') as executorName,
+
+			(SELECT split_part(tfs.value, '%', 1)
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'address'
+			)  AS address,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'Tn$_docNumber'
+			)  AS docNumber,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+			)  AS expDocNumber
+
+			FROM   f_dp_intrkk internalrkk
+						JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+						JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+			where rkkbase.isdeleted = 0) s
+			where state IN ('Перемещена в архив','Перемещен в архив','Отправка отменена','Отправка завершена')
+			::where-clause
+		]]>
+	</prototype>
+	<counting-prototype>
+		<![CDATA[
+			SELECT
+				COUNT(1)
+
+			FROM ( SELECT
+			  rkkbase.id,
+				rkkbase.created_date,
+				rkkbase.module                                   AS Module,
+				'<id>'                                           AS self_1,
+				':'                                              AS self_2,
+				'</>'                                            AS self_3,
+				(SELECT
+				coalesce(max(a), cast(0 AS SMALLINT))
+				FROM (
+				SELECT
+					cast(1 AS SMALLINT) a
+					FROM f_ContentFiles_Rkk CF
+					WHERE CF.f_dp_rkkbase = rkk.id
+					UNION SELECT
+					cast(1 AS SMALLINT)
+					FROM f_ContentRichText_Rkk CRT
+					WHERE CRT.f_dp_rkkbase = rkk.id
+					UNION SELECT
+					cast(1 AS SMALLINT)
+					FROM f_VerifyImage_Rkk VI
+					WHERE VI.f_dp_rkk = rkk.id
+					) t
+				) AS hasAttachments,
+
+			coalesce(
+				 (SELECT
+							CASE WHEN regplace.orig_shortname IS NULL THEN 'Не указано'
+									 ELSE regplace.orig_shortname
+									END
+					FROM so_beard RegPlace
+					WHERE RegPlace.id = rkkbase.RegCode),
+				 CASE WHEN rkkbase.RegCode IS NULL THEN 'Не указано' END
+			)  AS regPlace,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'stage'
+			)  AS state,
+
+			rkk.regnumcnt AS rNumber,
+			prjnumcounter AS number,
+
+			to_char((SELECT tfd.value
+				FROM tn_field_dateonly tfd left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfd.id and tf.cmjfield = 'docDate'
+			 ), 'YYYY-MM-DD')  AS docSendDate,
+
+			(SELECT tfs.value
+				 FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				 WHERE tf.id = tfs.id and tf.cmjfield = 'valueTypeRPO'
+			)  AS valueTypeRPO,
+
+			(SELECT case
+							 when count (*) = 0 then 'Не указано'
+							 else array_to_string(array_agg(
+								case when split_part(tfs.value, '%', 1) = '$' then split_part(tfs.value, '%', 2)
+								else split_part(tfs.value, '%', 1) || ' (' || split_part(tfs.value, '%', 2) || ')'
+								end
+								), ' ', '')
+						 end
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'recepient'
+			)  AS recepient,
+
+			COALESCE((SELECT string_agg(beardExec.Orig_ShortName, ',') AS Orig_ShortName
+              FROM F_DP_IntRkk_Executor intexec
+              LEFT JOIN so_beard beardExec ON beardExec.id = intexec.Executor
+              WHERE intexec.owner = rkkbase.id), '<Не указано>') as executorName,
+
+			(SELECT split_part(tfs.value, '%', 1)
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'address'
+			)  AS address,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'Tn$_docNumber'
+			)  AS docNumber,
+
+			(SELECT tfs.value
+				FROM tn_field_string tfs left join tn_field tf on tf.owner=rkk.id
+				WHERE tf.id = tfs.id and tf.cmjfield = 'docNumber'
+			)  AS expDocNumber
+
+			FROM   f_dp_intrkk internalrkk
+						JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+						JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+			where rkkbase.isdeleted = 0) s
+			where state IN ('Перемещена в архив','Перемещен в архив','Отправка отменена','Отправка завершена')
+			::where-clause
+		]]>
+	</counting-prototype>
+	<filter name="MODULE">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    Module = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="created_date">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    created_date = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="self">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    Module = {0} and id = {1}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="rNumber">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    rNumber = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="rNumber_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    rNumber iLIKE ('%'||{0}||'%')
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="number">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    number = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="number_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					number ilike '%'||{0}||'%'
+			]]>
+		</criteria>
+	</filter>
+	<filter name="docSendDate">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+				 cast(docSendDate as date) = cast({0} as date)
+			]]>
+		</criteria>
+	</filter>
+	<filter name="valueTypeRPO">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					valueTypeRPO = {0}
+			]]>
+		</criteria>
+	</filter>
+	<filter name="valueTypeRPO_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					valueTypeRPO ilike '%'||{0}||'%'
+			]]>
+		</criteria>
+	</filter>
+	<filter name="recepient">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    recepient = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="recepient_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					recepient ilike '%'||{0}||'%'
+			]]>
+		</criteria>
+	</filter>
+	<filter name="executorName">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					executorName = {0}
+			]]>
+		</criteria>
+	</filter>
+	<filter name="executorName_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					executorName ilike '%'||{0}||'%'
+			]]>
+		</criteria>
+	</filter>
+	<filter name="address">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					address = {0}
+			]]>
+		</criteria>
+	</filter>
+	<filter name="address_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+					address ilike '%'||{0}||'%'
+			]]>
+		</criteria>
+	</filter>
+	<filter name="expDocNumber">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    expDocNumber = {0}
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="expDocNumber_partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    expDocNumber ilike '%'||{0}||'%'
+                ]]>
+		</criteria>
+	</filter>
+	<filter name="expDocNumber_Partial">
+		<criteria placeholder="where-clause">
+			<![CDATA[
+                    expDocNumber ~* ('(^|\W)'||{0})
+                ]]>
+		</criteria>
+	</filter>
+</collection>

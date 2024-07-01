@@ -1,0 +1,350 @@
+<search-area name="OutputDocs" replace="runtime">
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="20.0"/>
+        <field-boost name="Subject" value="20.0"/>
+    </boost-every-where>
+    <!-- Исполнение -->
+    <target-domain-object type="F_DP_Report">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate">
+            <doel>HierRoot.regDate</doel>
+        </indexed-field>
+        <!-- Автор отчета -->
+        <indexed-field name="Author" search-by="substring">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+        <!-- Дата исполнения -->
+        <indexed-field name="reportDate">
+            <doel>ExecDate</doel>
+        </indexed-field>
+        <!-- Текст отчета -->
+        <indexed-field name="reportText" search-by="exactmatch">
+            <doel>Text</doel>
+        </indexed-field>
+
+        <target-collection name="F_DP_Report_(search)"/>
+
+        <filter>
+            <conditions-script>
+                <![CDATA[
+                    var result = false;
+                    var typeName = session.find(ctx.get('HierRoot')).getDomainObject().getTypeName();
+                    var qqz=ctx.get('Module.Type.Alias');
+                    if (typeName.equals('F_DP_OutputRkk') && (qqz.equals('OutputDocs') || qqz.equals('OutputDocsPrev'))){
+                        result=true;
+                    }
+                    ctx.setResult(result);
+                    ]]>
+            </conditions-script>
+        </filter>
+    </target-domain-object>
+
+    <!-- Резолюция -->
+    <target-domain-object type="F_DP_Resolution">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+        <!-- Контрольный -->
+        <indexed-field name="isControl">
+            <doel>CtrlIsControlled</doel>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecuted">
+            <doel>CtrlDateExecution</doel>
+        </indexed-field>
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate">
+            <doel>HierRoot.regDate</doel>
+        </indexed-field>
+        <!-- Автор резолюции -->
+        <indexed-field name="Superior" search-by="substring">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+        <!-- Дата резолюции -->
+        <indexed-field name="resDate">
+            <doel>Date</doel>
+        </indexed-field>
+        <!-- Срок резолюции -->
+        <indexed-field name="resExDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+        <!-- Текст резолюции -->
+        <indexed-field name="resText">
+            <doel>Resolution</doel>
+        </indexed-field>
+        <!-- Рег. номер документа -->
+        <indexed-field name="docNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }</script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Исполнитель резолюции -->
+        <linked-domain-object type="F_DP_ResltnBase_ExecCurr">
+            <indexed-field name="Executor" search-by="substring">
+                <doel>ExecutorCurr.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="F_DP_ResltnBase_ExecExt">
+            <indexed-field name="execpeoples" search-by="substring">
+                <doel>ExecutorExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="ORGANISATIONNAME" search-by="substring">
+                <doel>ExecutorExt.OrgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Контролер резолюции -->
+        <linked-domain-object type="F_DP_ResltnBase_Cntrller">
+            <indexed-field name="ControlPeopleRes" search-by="substring">
+                <doel>Controller.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Оператор -->
+        <indexed-field name="resolutionOperator" search-by="substring">
+            <doel>Operator.orig_shortname</doel>
+        </indexed-field>
+
+        <target-collection name="F_DP_Resolution_(search)"/>
+
+        <filter>
+            <!--conditions-script>session.find(ctx.get('HierRoot')).getDomainObject().getTypeName() == 'F_DP_OutputRkk'</conditions-script-->
+            <conditions-script>
+                <![CDATA[
+                    var result = false;
+                    var typeName = session.find(ctx.get('HierRoot')).getDomainObject().getTypeName();
+                    var qqz=ctx.get('Module.Type.Alias');
+                    if (typeName.equals('F_DP_OutputRkk') && (qqz.equals('OutputDocs') || qqz.equals('OutputDocsPrev'))){
+                        result=true;
+                    }
+                    ctx.setResult(result);
+                    ]]>
+            </conditions-script>
+        </filter>
+    </target-domain-object>
+
+    <target-domain-object type="F_DP_OutputRkk">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!--Содержание-->
+        <indexed-content type="F_ContentRichText_Rkk"/>
+        <indexed-content type="F_ContentFiles_Rkk"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+        <indexed-field name="SuperiorOld" search-by="substring">
+            <doel>SignSigner.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject"/>
+        <!--Подпись -->
+        <linked-domain-object type="F_DP_Rkk_SigningInfo">
+            <indexed-field name="Superior" search-by="substring">
+                <doel>signer.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Контрольный -->
+        <indexed-field name="isControl">
+            <script>ctx.get("RkkCtrlState") > 0 ? 1 : null;</script>
+        </indexed-field>
+        <!-- Исполнен -->
+        <indexed-field name="isExecuted">
+            <doel>CtrlDateExecution</doel>
+        </indexed-field>
+        <!-- Дата регистрации -->
+        <indexed-field name="regDate"/>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>RegDate</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDateSimple">
+            <doel>RegDate</doel>
+        </indexed-field>
+
+        <!-- Номер проекта -->
+        <indexed-field name="PNumber_Full" search-by="substring">
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Регистрационный номер, по точному совпадению -->
+        <indexed-field name="regNumberExact" search-by="exactmatch">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin }
+            </script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+        <!-- Вид документа -->
+        <indexed-field name="reqType" search-by="exactmatch">
+            <doel>Type</doel>
+        </indexed-field>
+        <!-- Зарегистрирован -->
+        <indexed-field name="isRegistered">
+            <doel>RegNumCnt</doel>
+        </indexed-field>
+        <!-- Срок исполнения -->
+        <indexed-field name="extControlDate">
+            <doel>CtrlDeadline</doel>
+        </indexed-field>
+        <!-- Место регистрации -->
+        <indexed-field name="Registration" search-by="substring">
+            <doel>RegCode.orig_shortname</doel>
+        </indexed-field>
+        <!-- Адрес (Адреса адресатов документа) -->
+        <indexed-field name="CorrespondentAddress" search-by="substring">
+            <script>
+                var Arrays = Java.type('java.util.Arrays');
+                var StringJoiner = Java.type('java.util.StringJoiner');
+
+                var AFSession = Java.type('ru.intertrust.cmj.af.core.AFSession');
+                var SOApplication = Java.type('ru.intertrust.cmj.af.so.SOApplication');
+
+
+                var query = "SELECT coalesce(string_agg(right(beard.cmjunid, 16) || ':' || left(beard.cmjunid, 32), ','), '') "
+                + "FROM F_DP_OutputRkk_OrgInf AS org "
+                + "	LEFT JOIN F_DP_OutputRkk_OrgInfAddr AS addr ON addr.owner = org.id AND org.orgsorepid = '#' "
+                + "	JOIN SO_Beard AS beard ON beard.id = org.firmid OR beard.id = addr.addressee "
+                + "WHERE org.owner = {0}";
+                var collection = session.findByQuery(query, ctx.getId());
+                var unids = collection.get(0, 0).get();
+                var result;
+                if (unids.isEmpty()) {
+                result = null;
+                } else {
+                var definedOrOpened = AFSession.isDefinedOrOpened();
+                try {
+                if (!definedOrOpened) {
+                AFSession.Manual.defineLocalUser();
+                }
+                var app = AFSession.get().getApplication(SOApplication.class);
+                var arr = unids.split(',');
+                var beards = app.getBeards(Arrays.asList(arr), true);
+                var joiner = new StringJoiner(" ; ");
+                for each (var beard in beards) {
+                joiner.add(beard.getAddress());
+                }
+                result = joiner.toString();
+                } finally {
+                if (!definedOrOpened) {
+                AFSession.Manual.close();
+                }
+                }
+                }
+                result;
+            </script>
+        </indexed-field>
+        <!-- Исполнение контролируют -->
+        <linked-domain-object type="F_DP_RkkBase_Controller">
+            <indexed-field name="ControlPeople" search-by="substring">
+                <doel>Controller.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="exactmatch"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Исполнитель -->
+        <linked-domain-object type="F_DP_OutputRkk_Executor">
+            <indexed-field name="From" search-by="substring">
+                <doel>Executor.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <!-- Адресат -->
+        <linked-domain-object type="F_DP_OutputRkk_OrgInfAddr">
+            <indexed-field name="Recepient" search-by="substring">
+                <doel>Addressee.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="To" search-by="substring">
+                <doel>Owner.firmid.orgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner.Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- linkedDoc -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_ULnk">
+            <indexed-field name="linkedDocs" include-everywhere = "false">
+                <script>ctx.get('docname') + ' ' + ctx.get('docsubjects')</script>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- SpecMark -->
+        <linked-domain-object type="F_DP_RkkWORegAndCtrl_SMrk">
+            <indexed-field name="specMark" search-by="exactmatch">
+                <doel>specmark</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="OutputDocs_(search)"/>
+
+        <filter>
+            <doel>Module.Type.Alias:in("OutputDocs", "OutputDocsPrev")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

@@ -1,0 +1,71 @@
+<search-area name="Tasks_uicoll" replace="runtime">
+
+    <target-domain-object type="F_DP_TasksResolution">
+
+        <!-- Заголовок -->
+        <indexed-field name="subject" search-by="substring">
+            <doel>resolution</doel>
+        </indexed-field>
+
+        <!--Дата регистрации -->
+        <indexed-field name="regDate">
+            <doel>date</doel>
+        </indexed-field>
+
+        <!-- Дата документа -->
+        <indexed-field name="docDate">
+            <doel>Date</doel>
+        </indexed-field>
+
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring">
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+        </indexed-field>
+
+        <!-- Вложения -->
+        <indexed-content type="F_ContentRichText_TaskRes"/>
+        <indexed-content type="F_ContentFiles_TaskRes"/>
+        <indexed-content type="F_RvzContentFilesTR"/>
+        <indexed-content type="F_AddFiles_Rkk"/>
+
+        <!-- Автор -->
+        <indexed-field name="Superior" search-by="substring">
+            <doel>Author.orig_shortname</doel>
+        </indexed-field>
+
+        <!-- Исполнитель резолюции -->
+        <linked-domain-object type="F_DP_TasksResolution_EC">
+            <indexed-field name="Executor" search-by="substring">
+                <doel>ExecutorCurr.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="F_DP_TasksResolution_EE">
+            <indexed-field name="execpeoples" search-by="substring">
+                <doel>ExecutorExt.orig_shortname</doel>
+            </indexed-field>
+            <indexed-field name="ORGANISATIONNAME" search-by="substring">
+                <doel>ExecutorExt.OrgName</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <!-- Тематика -->
+        <linked-domain-object type="F_DP_RkkBase_Theme">
+            <indexed-field name="Theme" search-by="substring"/>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+    </target-domain-object>
+
+</search-area>

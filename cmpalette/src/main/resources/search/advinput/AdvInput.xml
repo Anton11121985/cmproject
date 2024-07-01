@@ -1,0 +1,71 @@
+<search-area name="AdvInput" replace="runtime">
+
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="20.0"/>
+        <field-boost name="subject" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object type="F_DP_AdvinpRkk">
+        <!-- Модуль -->
+        <indexed-field name="Module">
+            <doel>Module</doel>
+        </indexed-field>
+
+        <!-- Заголовок -->
+        <indexed-field name="Subject"/>
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber">
+            <doel>ForeignNumber</doel>
+        </indexed-field>
+        <!-- Регистрационный номер, по точному совпадению -->
+        <indexed-field name="regNumberExact" search-by="exactmatch">
+            <doel>ForeignNumber</doel>
+        </indexed-field>
+        <!-- дата учета -->
+        <indexed-field name="indate">
+            <doel>Indate</doel>
+        </indexed-field>
+        <!-- дата учета (расширенный поиск ВТБ) -->
+        <indexed-field name="regDateAdvInput">
+            <doel>RegDateTime</doel>
+        </indexed-field>
+        <!-- дата учета -->
+        <indexed-field name="docDate">
+            <doel>ForeignRegDate</doel>
+        </indexed-field>
+        <indexed-field name="regDate">
+            <doel>ForeignRegDate</doel>
+        </indexed-field>
+        <!-- Корреспондент -->
+        <indexed-field name="from" search-by="substring">
+            <doel>FromId.orig_shortname</doel>
+        </indexed-field>
+        <!-- Адресат -->
+        <linked-domain-object type="F_DP_AdvinpRkk_Addressee">
+            <indexed-field name="To" search-by="substring">
+                <doel>Addressee.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="F_DP_AdvinpRkk_AuthorM">
+            <indexed-field name="UserFrom" search-by="substring">
+                <doel>Value</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <linked-domain-object type="F_DP_AdvinpRkk_Author">
+            <indexed-field name="UserFrom" search-by="substring">
+                <doel>Value.orig_shortname</doel>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <target-collection name="AdvInput_(search)"/>
+    </target-domain-object>
+</search-area>

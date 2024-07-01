@@ -1,0 +1,318 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+  <handler name="CreateOrderFromContract" id="CreateOrderFromContract">
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.TuningApplication);
+importClass(Packages.ru.intertrust.cmj.af.tuning.impl.AFInstanceObjectImpl);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.Doc);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.Entity);
+importClass(Packages.ru.intertrust.cmj.dp.DPMContracts.Entity.HasPartiesBeards);
+importClass(Packages.ru.intertrust.cmj.rest.bf.ModuleID);
+importClass(Packages.ru.intertrust.cmj.af.links.AFLinksApplication);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+    if ("RkkResourceOrder".equals(paramsResource.tuning().getSchema().getName())){
+        process_save(paramsResource, returnResource);
+        return;
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    if (paramPackageId.equals("context")) {
+        return process_dialog1(paramsResource, returnResource);
+    }
+
+    return null;
+}
+
+
+/**
+ * Обработка первого пакета данных с клиента.
+ */
+function process_dialog1(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class); //TunableObjectApplication
+    var ids = appTNObject.getClientContextResourceId(paramsResource.tuning()); //String
+    if (ids == null) {
+        throw new AFDaoBadParameterException("Не удалось определить контекстный документ!");
+    }
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var apl = AFSession.get().getApplication(TuningApplication.class);
+
+    var obj = appdp.internal().composeRKK('', 'JobOrders').getRKK();
+    var document = appdp.getEntityByUNID(ids);
+
+    var schema = apl.getSchemaByName("DocumentLink");
+    var documentLink = new AFInstanceObjectImpl(schema);
+    TunableObjectHelper.putAFInstanceValue(documentLink, "tnUnid", ids);
+
+    if (document instanceof DPMContracts.Entity.HasPartiesBeards){
+        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "consumer", document.getParty2());
+        var total = document.value().getTotalValue();
+        if (total instanceof Integer) {
+          total = Double.parseDouble(total*100)/100;
+        } else if (total instanceof Double) {
+          total = total;
+        } else {
+          total = 0.0;
+        }
+        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "vatSumContract", total);
+    } else if (document instanceof DPMContracts.Doc){
+        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "consumer", TunableObjectHelper.getAFInstanceValue(document.tuning().getValues().get("customer")));
+        var total = TunableObjectHelper.getAFInstanceValue(document.tuning().getValues().get("total"));
+        var vat = parseFloat(TunableObjectHelper.getAFInstanceValue(document.tuning().getValues().get("vat")));
+        if (total instanceof Integer) {
+          total = Double.parseDouble(total*100+vat)/100;
+        } else if (total instanceof Double) {
+          total = (total*100+vat)/100;
+        } else {
+          total = 0.0;
+        }
+        TunableObjectHelper.putAFInstanceValue(obj.tuning(), "vatSumContract", total);
+    }
+
+    obj.tuning().put("documentLink", documentLink);
+
+    //переоткрываем документ
+    TunableObjectHelper.putAFInstanceValue(obj.tuning(), "mode", "edit");
+    returnResource.setResource(RkkResource.valueOf(obj));
+}
+
+function process_save(paramsResource, returnResource) {
+    var dbIdent = paramsResource.ident.split("%")[0];
+    var module = ModuleID.valueOf(dbIdent).getModule();
+    var rkk = module.composeRKK("", dbIdent).getRKK();
+    var composedRKKId = rkk.getUNID();
+    rkk = paramsResource.updateRkk(rkk);
+    rkk.setUNID(composedRKKId);
+    rkk.save();
+    var res = RkkResource.valueOf(AFSession.get().getApplication(DPApplication.class).getEntityByUNID(rkk.getUNID()));
+    returnResource.setResource(res);
+}
+    ]]></script>
+  </handler>
+  <handler name="SendOrderToPlacement" id="SendOrderToPlacement">
+    <meta>
+      <documentation>Отправить на размещение</documentation>
+    </meta>
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFNotice);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importClass(Packages.ru.intertrust.cmj.af.so.SOBeard);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues()
+        .get("counter"));
+    if (paramPackageId.equals("context")) { // обработка первого пакета данных
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("dialog1")) {
+        process_dialog1(paramsResource, returnResource);
+    }
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("OrderPlacementDialog", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Отправка на размещение");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "dialog1");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+function process_dialog1(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+	var currentUser = AFSession.get().currentUser().getBeard();
+
+	var respManager = obj.executors.getList();
+    TunableObjectHelper.putAFInstanceValue(obj, "onPlacement", true);
+    TunableObjectHelper.putAFInstanceValue(obj, "placementComment", paramsResource.tuning().getValues().get("comment"));
+    TunableObjectHelper.putAFInstanceValue(obj, "placementDate", new AFDate(Calendar.getInstance()));
+    TunableObjectHelper.putAFInstanceValue(obj, "placementRejected", false);
+    DPNotificationUtils.sendNotice(obj, currentUser, respManager, "JOBO1_11", EventCode.getByString("JOBO1_11"), "JOBO1_11", "JOBO1_11", "JOBO1_11");
+
+    // Запись в историю
+    var historyRecord = obj.history().createNewRecord("send.placement", currentUser.toString(SOBeard.ToStringFormat.CMDOMINO_STD));
+    historyRecord.update(getFioFromBeardList(respManager), null, null);
+
+	try {
+	    obj.save();
+	} catch (e) {
+	    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+		var resultMessage = "При сохранении заказа произошел конфликт, сохранение изменений невозможно.\nЗаказ будет переоткрыт в актуальном состоянии."
+		var message = appTNObject.composeDialog("SystemDialogWarn", null, null, null);
+		TunableObjectHelper.putAFInstanceValue(message.tuning(), "contextObjectUnid", ids);
+		TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+		TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+
+    	returnResource.resource = TunableObjectREST.Resource.create(message);
+	    return returnResource.resource;
+	}
+
+
+	obj = appdp.getEntityByUNID(ids.get(0));
+	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}
+
+function getFioFromBeardList(beards) {
+    var value = "";
+    for (var i = 0; i < beards.size(); i++) {
+        var elem = beards.get(i).originalData().getShortName();
+        if (value.equals("")){
+            value = elem;
+        } else {
+            value = value + ", " + elem;
+        }
+    }
+    return value;
+}
+]]></script>
+  </handler>
+  <handler name="RejectOrderPlacement" id="RejectOrderPlacement">
+    <meta>
+      <documentation>Отказать в размещении</documentation>
+    </meta>
+    <script lang="JavaScript"><![CDATA[importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.af.core.AFNotice);
+importClass(Packages.ru.intertrust.cmj.af.pkd.EventCode);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.dp._stdimpl.dao.DPNotificationUtils);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDate);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importClass(Packages.ru.intertrust.cmj.af.events.Event);
+importClass(Packages.ru.intertrust.cmj.af.pkd.CompleteEvent);
+
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues()
+        .get("counter"));
+    if (paramPackageId.equals("context")) { // обработка первого пакета данных
+        process_context(paramsResource, returnResource);
+    } else if (paramPackageId.equals("dialog1")) {
+        process_dialog1(paramsResource, returnResource);
+    }
+}
+
+/**
+ * Обработка первого пакета данных с клиента.
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_context(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = appTNObject.getClientContextIds(paramsResource.tuning());
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("OrderPlacementRejectDialog", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Отказ в размещении");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "dialog1");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+function process_dialog1(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+    if (ids.isEmpty()) {
+        throw new AFDaoBadParameterException("Не выбраны документы!");
+    }
+
+	var appdp = AFSession.get().getApplication(DPApplication.class);
+	var obj = appdp.getEntityByUNID(ids.get(0));
+
+	var respManager = obj.executors.getList();
+  TunableObjectHelper.putAFInstanceValue(obj, "onPlacement", true);
+  TunableObjectHelper.putAFInstanceValue(obj, "placementComment", paramsResource.tuning().getValues().get("comment"));
+  TunableObjectHelper.putAFInstanceValue(obj, "placementDate", new AFDate(Calendar.getInstance()));
+  TunableObjectHelper.putAFInstanceValue(obj, "placementRejected", true);
+  Event.bus().post(new CompleteEvent(obj,"JOBO1_11",respManager));
+
+	try {
+	    obj.save();
+	} catch (e) {
+	    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+		var resultMessage = "При сохранении заказа произошел конфликт, сохранение изменений невозможно.\nЗаказ будет переоткрыт в актуальном состоянии."
+		var message = appTNObject.composeDialog("SystemDialogWarn", null, null, null);
+		TunableObjectHelper.putAFInstanceValue(message.tuning(), "contextObjectUnid", ids);
+		TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+		TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+
+    	returnResource.resource = TunableObjectREST.Resource.create(message);
+	    return returnResource.resource;
+	}
+
+
+	obj = appdp.getEntityByUNID(ids.get(0));
+	var res = RkkResource.valueOf(obj);
+	returnResource.setResource(res);
+}]]></script>
+  </handler>
+</ui>

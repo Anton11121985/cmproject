@@ -1,0 +1,91 @@
+<search-area name="ExpeditionParty_uicoll">
+
+    <boost-every-where base="2.0">
+        <field-boost name="regFullNumber" value="10.0"/>
+    </boost-every-where>
+    <target-domain-object  type="F_DP_IntRkk">
+
+        <!-- Проектный номер -->
+        <indexed-field name="projectNumber" search-by="substring" >
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <!-- Регистрационный номер -->
+        <indexed-field name="regFullNumber" search-by="substring" >
+            <script>var rn = ctx.get('regnumcnt'); if (rn == null) rn; else {
+                var prist = ctx.get('regnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('regnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }</script>
+            <filter>
+                <doel>regnumcnt:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+        <indexed-field name="createdDate">
+            <doel>created_date</doel>
+        </indexed-field>
+
+        <!-- Номер проекта -->
+        <indexed-field name="PNumber_Full" search-by="substring" >
+            <script>
+                var rn = ctx.get('prjnumcounter'); if (rn == null) rn; else {
+                var prist = ctx.get('prjnumprist'); if (prist == null) prist = '';
+                var fin = ctx.get('prjnumfin'); if (fin == null) fin = '';
+                prist + rn + fin + ' ' + rn }
+            </script>
+            <filter>
+                <doel>prjnumcounter:isNotEmpty</doel>
+            </filter>
+        </indexed-field>
+
+
+        <linked-domain-object type="Tn_Field_String" nested="true">
+
+            <indexed-field name="type_rpo">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("type_rpo")</doel>
+                </filter>
+            </indexed-field>
+            <indexed-field name="postServiceNumber">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("postServiceNumber")</doel>
+                </filter>
+            </indexed-field>
+            <indexed-field name="patry_status">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("patry_status")</doel>
+                </filter>
+            </indexed-field>
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+
+        <linked-domain-object type="Tn_Field_Dateonly" nested="true">
+
+            <indexed-field name="date_shipment" solr-prefix="cm_dt">
+                <doel>value</doel>
+                <filter>
+                    <doel>cmjfield:in("date_shipment")</doel>
+                </filter>
+            </indexed-field>
+            <!-- ============================== -->
+
+            <parent-link>
+                <doel>Owner</doel>
+            </parent-link>
+        </linked-domain-object>
+        <filter>
+            <doel>Module.Type.Alias:in("ExpeditionParty")</doel>
+        </filter>
+    </target-domain-object>
+</search-area>

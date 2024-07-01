@@ -1,0 +1,194 @@
+<collection name="Nomenclature_(default)" idField="id" replace="runtime">
+    <prototype>
+        <![CDATA[
+        SELECT
+    id,
+    self_1,
+    self_2,
+    self_3,
+    Module,
+    created_date,
+    nomenclatureCode,
+    nomenclatureName,
+    to_char(nomenclaturePrice, 'FM999G999G999G999G990D00') as nomenclaturePrice,
+    to_char(nomenclaturePrice * (1+nomenclatureVat/100), 'FM999G999G999G999G990D00') as nomenclatureVatPrice,
+    nomenclatureUnit
+FROM (
+        SELECT
+            tc.id                                             AS id,
+            tc.created_date                                   AS created_date,
+            tc.module                                         AS Module,
+            '<id>'                                                 AS self_1,
+            '-TN:'                                                    AS self_2,
+            '</>'                                                  AS self_3,
+            (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_code') as nomenclatureCode,
+            (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_subject') as nomenclatureName,
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_decimal tfd on tn_field.access_object_id = tfd.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_price') as nomenclaturePrice,
+            (select CAST(tfs."value" AS DECIMAL ) as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_vat') as nomenclatureVat,
+            (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_unit') as nomenclatureUnit
+        FROM tunable_classifier tc
+        WHERE met != 1
+     ) as s
+     WHERE 1=1
+                ::where-clause
+        ]]>
+    </prototype>
+    <counting-prototype>
+        <![CDATA[
+        SELECT
+            COUNT(1)
+        FROM (
+        SELECT
+            tc.id                                             AS id,
+            tc.created_date                                   AS created_date,
+            tc.module                                         AS Module,
+            '<id>'                                                 AS self_1,
+            ':'                                                    AS self_2,
+            '</>'                                                  AS self_3,
+            (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_code') as nomenclatureCode,
+            (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = '$titleHeader') as nomenclatureName,
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_decimal tfd on tn_field.access_object_id = tfd.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_price') as nomenclaturePrice,
+            (select tfd."value" as v
+                from tn_field
+                join tn_field_decimal tfd on tn_field.access_object_id = tfd.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_vat') as nomenclatureVat,
+            (select tfs."value" as v
+                from tn_field
+                join tn_field_string tfs on tn_field.access_object_id = tfs.id
+                where tn_field."owner" = tc.id
+                and tn_field.owner_type = tc.id_type
+                and tn_field.cmjfield = 'Tn$_unit') as nomenclatureUnit
+        FROM tunable_classifier tc
+        WHERE met != 1
+     ) as s
+     WHERE 1=1
+                ::where-clause
+    ]]>
+    </counting-prototype>
+    <filter name="MODULE">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+				Module = {0}
+			]]>
+        </criteria>
+    </filter>
+    <filter name="self">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                        Module = {0} and id = {1}
+                    ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureCode">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    nomenclatureCode = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureCode_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                nomenclatureCode iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureName">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    nomenclatureName = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureName_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                nomenclatureName iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclaturePrice">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    nomenclaturePrice = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclaturePrice_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                nomenclaturePrice iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureVatPrice">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    nomenclatureVatPrice = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureVatPrice_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                nomenclatureVatPrice iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureUnit">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                    nomenclatureUnit = {0}
+                ]]>
+        </criteria>
+    </filter>
+    <filter name="nomenclatureUnit_partial">
+        <criteria placeholder="where-clause">
+            <![CDATA[
+                nomenclatureUnit iLIKE ('%'||{0}||'%')
+            ]]>
+        </criteria>
+    </filter>
+</collection>

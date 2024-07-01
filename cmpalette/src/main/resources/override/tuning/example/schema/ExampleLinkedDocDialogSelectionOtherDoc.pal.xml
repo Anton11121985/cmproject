@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<schemas xmlns="http://www.intertrust.ru/schema/palette/tn-schema">
+  <schema name="ExampleLinkedDocDialogSelectionOtherDoc" extends="LinkedDocSelectionParamsCommon">
+    <meta>
+      <category name="Разработка и Аналитика"/>
+      <documentation>Данная схема предназначена для демонстрации возможностей Палитры XML 7.0.х.</documentation>
+    </meta>
+    <string name="title" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Выберите документ']]></script>
+      </calc-values>
+    </string>
+    <boolean name="allowedManual" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[true]]></script>
+      </calc-values>
+    </boolean>
+    <boolean name="isManySelect" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[true]]></script>
+      </calc-values>
+    </boolean>
+    <string name="modules" array="true" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL">
+          <![CDATA[
+                        T(java.util.Arrays).asList(
+                          "InputDocs",
+                          "InternalDocs")
+                    ]]>
+        </script>
+      </calc-values>
+    </string>
+    <boolean name="addLinks" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA[
+            #this.link.add(
+              T(ru.intertrust.cmj.rest.core.ResourceLink).getResourceLink(
+                'http://intertrust.ru/cmj/relations#searchByNavigator.linked.simple',
+                "/searchByNavigator/dpQueryFormSimpleForLinks/{navigator}/entry-point?modules=" + T(java.lang.String).join(",", modules),
+                "Поиск связанных (простой)")) &&
+            #this.link.add(
+              T(ru.intertrust.cmj.rest.core.ResourceLink).getResourceLink(
+                'http://intertrust.ru/cmj/relations#searchByNavigator.linked.advansed',
+                "/searchByNavigator/dpQueryFormAdvansedForLinks/{navigator}/entry-point?modules=" + T(java.lang.String).join(",", modules),
+                "Поиск связанных (расширенный)")) &&
+            #this.link.add(
+              T(ru.intertrust.cmj.rest.core.ResourceLink).getResourceLink(
+                'http://intertrust.ru/cmj/relations#modules.to.link',
+                new ru.intertrust.cmj.rest.cmjlinks.GetModulesToLink.Reference("registered", modules, false, replica, null),
+                "Список модулей для связей от документа"))
+        ]]></script>
+      </calc-values>
+    </boolean>
+    <string name="submit_caption" temporal="true">
+      <calc-values>
+        <script event="open" lang="SPEL"><![CDATA['Добавить документ']]></script>
+      </calc-values>
+    </string>
+  </schema>
+</schemas>

@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<links xmlns="http://www.intertrust.ru/schema/palette/links">
+  <link>
+    <calc-doc-info lang="JavaScript"><![CDATA[
+var complect = ctx.get('Complect');
+complect = complect.size() > 0 ? complect.get(0) : '';
+var complect2 = complect != '' ? complect.substring(complect.lastIndexOf('%') + 1) : '';
+
+var Form = ctx.get('Form');
+Form = Form.size() > 0 ? Form.get(0) : '';
+
+var context = ctx;
+
+var resolutionType = '';
+if ("resolution".equals(Form)) {	
+	if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("OutputDocs", "OutputDocsPrev", "Missions", "MissionsPrev", "Tasks", "ContractsLite"))) {
+		resolutionType = "Поручение по документу ";
+	} else {
+		resolutionType = "Резолюция по документу ";
+	}
+	var rkkDocId = ctx.get('RkkDocId');
+	rkkDocId = rkkDocId.size() > 0 ? rkkDocId.get(0) : '';
+	if (rkkDocId !== '') {
+		context = session.findByStrId(rkkDocId);
+		Form = context.get('Form');
+		Form = Form.size() > 0 ? Form.get(0) : '';
+	}
+}
+
+var OutDate = context.get('OutDate');
+OutDate = OutDate.size() > 0 ? OutDate.get(0) : '';
+var Date;
+
+if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    Date = context.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InternalDocs", "InternalDocsPrev", "Missions", "MissionsPrev"))) {
+    Date = OutDate;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("Tasks"))) {
+    Date = context.get('ResDate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+} else {
+    Date = context.get('Rdate');
+    Date = Date.size() > 0 ? Date.get(0) : '';
+}
+
+
+var OutNumber = context.get('OutNumber');
+OutNumber = OutNumber.size() > 0 ? OutNumber.get(0) : '';
+var Type;
+
+if ("spismo".equals(Form)) {
+    Type = "СП ";
+} else if ("Dog".equals(Form)) {
+    Type = context.get('dogtype');
+    Type = Type.size() > 0 ? Type.get(0) : '';
+} else if ("AddAgr".equals(Form)) {
+    Type = "ДС ";
+} else if ("DocDogovor".equals(Form)) {
+    Type = "Документ по договору ";
+} else if ("Finance".equals(Form)) {
+    Type = "Фин. документ ";
+} else {
+    Type = context.get('reqtype');
+    Type = Type.size() > 0 ? Type.get(0) : '';
+}
+
+var Number;
+if ("spismo".equals(Form)) {
+    Number = OutNumber;
+} else if (session.equalsArrays(session.createArray(complect, complect2), session.createArray("InputDocs", "InputDocsPrev"))) {
+    var rprist = context.get('rprist');
+    var RNumber = context.get('RNumber');
+    var rfin = context.get('rfin');
+    rprist = rprist.size() > 0 ? rprist.get(0) : '';
+    RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+    rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+} else if ("Finance".equals(Form)) {
+    Number = context.get("Number");
+    Number = Number.size() > 0 ? Number.get(0) : '';    
+} else {
+    var rprist = context.get('rprist');
+    var RNumber = context.get('RNumber');
+    var rfin = context.get('rfin');
+    rprist = rprist.size() > 0 ? rprist.get(0) : '';
+    RNumber = RNumber.size() > 0 ? RNumber.get(0) : '';
+    rfin = rfin.size() > 0 ? rfin.get(0) : '';
+    Number = rprist + RNumber + rfin;
+}
+
+Date = Date == '' ? "" : Date.toString();
+var result = resolutionType + Type + " " + Number + " от " + Date;
+ctx.setResult(result);
+    ]]>
+    </calc-doc-info>
+    <source doc-type="ARCHIVES_ANNUAL_INVENTORY">
+      <module ident="Archives"/>
+    </source>
+    <target doc-type="">
+      <module ident="InternalDocs"/>
+      <module ident="InternalDocsPrev"/>
+      <module ident="Missions"/>
+      <module ident="MissionsPrev"/>
+      <module ident="OutputDocs"/>
+      <module ident="OutputDocsPrev"/>
+    </target>
+    <link-types>
+      <link-type-ref ref="LINK_WITH" direction="without" back-ref="LINK_WITH" select="true" link-on="now" default="true"/>
+    </link-types>
+    <calc-name lang="JavaScript"><![CDATA[var result;var Form = ctx.get('form');Form = Form.size() > 0 ? Form.get(0) : '';var secStamp = ctx.get('security_stamp_name');if (secStamp.size() > 0 && !secStamp.get(0).equals('')) {ctx.setResult('Имеется гриф ограничения доступа');} else  if ("Dog".equals(Form) || "Finance".equals(Form)) {    result = ctx.get('DocSubject');result = result.size() > 0 ? result.get(0) : '';ctx.setResult(result);} else if ("AddAgr".equals(Form)) {    result = ctx.get('SubjectA');result = result.size() > 0 ? result.get(0) : '';ctx.setResult(result);} else if ("DocDogovor".equals(Form)) {    result = ctx.get('Displayheader');result = result.size() > 0 ? result.get(0) : '';ctx.setResult(result);} else {    result = ctx.get('Subject');result = result.size() > 0 ? result.get(0) : '';ctx.setResult(result);}]]></calc-name>
+    <get-doc way="byDocID"/>
+  </link>
+</links>
