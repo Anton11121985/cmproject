@@ -12,7 +12,8 @@
     reqType,
     subject,
     linkedDoc,
-    fullRegNumber
+    fullRegNumber,
+    placeOfMeeting
 FROM (
          SELECT
              rkkbase.id                                             AS id,
@@ -40,7 +41,10 @@ FROM (
                    ) t
              )                                                AS hasAttachments,
              rkkbase.subject                                                    AS subject,
-
+             (select tfs."value" as v
+             from tn_field_string tfs
+             join tn_field tf on tf.id = tfs.id
+             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type and tf.cmjfield = 'Tn$_placeOfMeeting') AS placeOfMeeting,
              (SELECT COALESCE(string_agg((CASE
               WHEN link.doclinktype = '' THEN '<id></>'
               ELSE (COALESCE(
