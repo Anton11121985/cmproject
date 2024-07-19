@@ -6,36 +6,187 @@
       <section id="Header">
         <appearance field-layout="horizontal"/>
         <component>
-          <field attribute-ref="showIdent">
-            <properties>
-              <read-only condition-union="AND">
-                <condition>true</condition>
-              </read-only>
-            </properties>
-            <appearance align="left" importance="normal">
-              <label-style field-width="4" field-unit="symbol"/>
-              <alt-appearancies>
-                <alt-appearance>
-                  <appearance-ref ref="css_headerElementWithIcon"/>
-                  <enable condition-union="AND">
-                    <condition>true</condition>
-                  </enable>
-                </alt-appearance>
-              </alt-appearancies>
-            </appearance>
-          </field>
+          <section id="meetingInfo" group="true">
+            <appearance field-layout="vertical"/>
+            <component>
+              <section id="showStatusAndInitiator" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="showIdent">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="left" importance="normal">
+                      <label-style field-width="4" field-unit="symbol"/>
+                      <alt-appearancies>
+                        <alt-appearance>
+                          <appearance-ref ref="css_headerElementWithIcon"/>
+                          <enable condition-union="AND">
+                            <condition>true</condition>
+                          </enable>
+                        </alt-appearance>
+                      </alt-appearancies>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="status">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                  </field>
+                  <field attribute-ref="initiator">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="right" importance="high">
+                      <label-style field-width="10" field-unit="symbol"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="user">
+                    <properties>
+                      <read-only condition-union="AND">
+                        <condition>true</condition>
+                      </read-only>
+                    </properties>
+                    <appearance align="right" importance="high">
+                      <label-style field-width="10" field-unit="percent"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="meetingAim">
+                <hint-in-field>${ui.form.RkkResourceMeetingsALForm.component.section.Header.component.field.meetingAim.hint-in-field:Цель встречи}</hint-in-field>
+              </field>
+              <section id="showTypeAndControllers" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="meetingType">
+                    <appearance widget="radio"/>
+                    <directories>
+                      <directory-ref ref="aliasMeetingType"/>
+                    </directories>
+                  </field>
+                  <field attribute-ref="controller">
+                    <directories>
+                      <directory-ref ref="CURR_HUMAN_HH"/>
+                    </directories>
+                    <hint-in-field>${ui.form.component.section.Header.component.field.controller.name:Контролеры}</hint-in-field>
+                  </field>
+                </component>
+              </section>
+            </component>
+          </section>
         </component>
       </section>
 
-      <section id="Attributes" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.name:Реквизиты}">
+      <section id="Attributes"
+               name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.name:Реквизиты}">
         <component>
-          <field attribute-ref="planning" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.planning.name:Планирование:}" />
-          <field attribute-ref="link" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.link.name:Ссылка}" />
-          <field attribute-ref="meetingPlace" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.meetingPlace.name:Место встречи}" />
-          <field attribute-ref="meetingDate" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.meetingDate.name:Дата встречи}" />
-          <field attribute-ref="meetingTime" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.meetingTime.name:Время встречи}" />
-          <field attribute-ref="participants" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.participants.name:Участник встречи}" />
-          <field attribute-ref="file" name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.file.name:Файлы}" />
+          <section id="Planning"
+                   group="true">
+            <component>
+              <field attribute-ref="labelPlanning">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="meetingPlace" name="${ui.form.meetingPlace.name:Место встречи:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <negative-condition-ref ref="selectTypeOffline"/>
+                  </hide>
+                </properties>
+              </field>
+              <field attribute-ref="link" name="${ui.form.link.name:Ссылка:}">
+                <properties>
+                  <hide condition-union="AND">
+                    <condition-ref ref="selectTypeOffline"/>
+                  </hide>
+                </properties>
+              </field>
+
+              <section id="showDateAndTime" group="true">
+                <appearance field-layout="horizontal"/>
+                <component>
+                  <field attribute-ref="meetingDate"
+                         name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.meetingDate.name:Дата встречи:}">
+                    <appearance>
+                      <label-style field-width="10" field-unit="symbol"/>
+                    </appearance>
+                  </field>
+                  <field attribute-ref="meetingTime"
+                         name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.meetingTime.name:Время встречи:}">
+                    <appearance>
+                      <label-style field-width="4" field-unit="symbol"/>
+                    </appearance>
+                  </field>
+                </component>
+              </section>
+              <field attribute-ref="participants"
+                     name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.participants.name:Участники:}"/>
+              <field attribute-ref="files"
+                     name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.file.name:Файлы:}"/>
+            </component>
+          </section>
+
+          <section id="Result"
+                   group="true">
+            <component>
+              <field attribute-ref="labelResult">
+                <properties>
+                  <read-only>
+                    <condition>true</condition>
+                  </read-only>
+                </properties>
+                <appearance importance="normal">
+                  <label-style>
+                    <style id="tunBgGrayBlue"/>
+                    <style id="tunCaption"/>
+                  </label-style>
+                </appearance>
+              </field>
+              <field attribute-ref="result">
+                <appearance widget="radio">
+                  <field-style space-for-empty-name="true">
+                    <value-style value="Success">
+                      <style id="tunGreen"/>
+                    </value-style>
+                    <value-style value="OneMoreMeeting">
+                      <style id="tunBlack"/>
+                    </value-style>
+                    <value-style value="Fail">
+                      <style id="tunBrown"/>
+                    </value-style>
+                  </field-style>
+                </appearance>
+                <directories>
+                  <directory-ref ref="aliasResult"/>
+                </directories>
+              </field>
+              <field attribute-ref="comment"
+                     name="${ui.form.RkkResourceMeetingsALForm.component.section.Attributes.component.field.comment.name:Комментарий:}">
+                <appearance multiline="true">
+                  <label-style>
+                    <style id="tunBorderedFieldLight"/>
+                  </label-style>
+                  <limit height="3" max-lenght="1024"/>
+                </appearance>
+              </field>
+            </component>
+          </section>
         </component>
       </section>
     </component>
