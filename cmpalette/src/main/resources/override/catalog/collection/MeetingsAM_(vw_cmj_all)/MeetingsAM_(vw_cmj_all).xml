@@ -13,7 +13,11 @@
     subject,
     linkedDoc,
     fullRegNumber,
-    placeOfMeeting
+    statuses,
+    timeOfMeeting,
+    initiator,
+    Participant,
+    aimOfMeeting
 FROM (
          SELECT
              rkkbase.id                                             AS id,
@@ -25,7 +29,7 @@ FROM (
              '</>'                                                  AS self_3,
              (SELECT
                   coalesce(max(a), cast(0 AS SMALLINT))
-              FROM (
+             FROM (
                        SELECT
                            cast(1 AS SMALLINT) a
                        FROM f_ContentFiles_Rkk CF
@@ -41,10 +45,34 @@ FROM (
                    ) t
              )                                                AS hasAttachments,
              rkkbase.subject                                                    AS subject,
+
              (select tfs."value" as v
              from tn_field_string tfs
              join tn_field tf on tf.id = tfs.id
-             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type and tf.cmjfield = 'Tn$_placeOfMeeting') AS placeOfMeeting,
+             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type and tf.cmjfield = 'statuses') AS statuses,
+
+             (select tfs."value" as v
+             from tn_field_string tfs
+             join tn_field tf on tf.id = tfs.id
+             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type and tf.cmjfield = 'Tn$_aimOfMeeting') AS aimOfMeeting,
+
+             (select tft."value" as v
+             from tn_field_timeonly tft
+             join tn_field tf on tf.id = tft.id
+             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type and tf.cmjfield = 'Tn$_timeOfMeeting') AS timeOfMeeting,
+
+             (select coalesce((select string_agg(SPLIT_PART(tfs.value, '%', 1),',') as v
+             from tn_field_string tfs
+             join tn_field tf on tf.id = tfs.id
+             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type
+             and tf.cmjfield = 'Tn$_initiator'),'Не указано')) AS initiator,
+
+             (select coalesce((select string_agg(SPLIT_PART(tfs.value, '%', 1),', ') as v
+             from tn_field_string tfs
+             join tn_field tf on tf.id = tfs.id
+             where tf.owner = rkkbase.id and tf.owner_type = rkkbase.id_type
+             and tf.cmjfield = 'Participant'),'Не указано')) AS Participant,
+
              (SELECT COALESCE(string_agg((CASE
               WHEN link.doclinktype = '' THEN '<id></>'
               ELSE (COALESCE(
@@ -59,11 +87,13 @@ FROM (
               WHERE link.owner = rkk.id)                                         AS linkedDoc,
               coalesce(rkk.regnumprist, '') || coalesce(cast(rkk.regnumcnt as varchar), '') || coalesce(rkk.regnumfin, '') AS fullRegNumber
          FROM
-             f_dp_intrkk internalrkk
-                 JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
-                 JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
-                 LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
-         WHERE rkkbase.isdeleted = 0
+            f_dp_intrkk internalrkk
+            JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
+            JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+            join tn_field tf on rkkbase.id = tf.owner and tf.owner_type = rkkbase.id_type
+            join tn_field_dateonly tfd on tf.access_object_id = tfd.id
+            join tn_field_dateonly on tf.id = tn_field_dateonly.id
+            LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id WHERE rkkbase.isdeleted = 0 and tn_field_dateonly.value = current_date
      ) as s
      WHERE 1=1
                 ::where-clause
@@ -117,8 +147,11 @@ FROM (
              f_dp_intrkk internalrkk
                  JOIN f_dp_rkk rkk ON rkk.id = InternalRkk.id
                  JOIN f_dp_rkkbase rkkbase ON rkkbase.id = rkk.id
+                 join tn_field tf on rkkbase.id = tf.owner and tf.owner_type = rkkbase.id_type
+                 join tn_field_dateonly tfd on tf.access_object_id = tfd.id
+                 join tn_field_dateonly on tf.id = tn_field_dateonly.id
                  LEFT JOIN f_dp_rkkworegandctrl rkkworeg ON rkkworeg.id = internalrkk.id
-         WHERE rkkbase.isdeleted = 0
+         WHERE rkkbase.isdeleted = 0 and tn_field_dateonly.value = current_date
      ) as s
      WHERE 1=1
                 ::where-clause

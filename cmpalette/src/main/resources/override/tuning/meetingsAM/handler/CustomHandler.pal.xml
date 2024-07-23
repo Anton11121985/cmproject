@@ -1,0 +1,219 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui xmlns="http://www.intertrust.ru/schema/palette/tn-ui">
+    <handler name="Завершить" id="CustomHandler">
+        <meta>
+            <documentation>Завершить</documentation>
+        </meta>
+        <script lang="JavaScript"><![CDATA[
+importClass(Packages.ru.intertrust.cmj.af.core.AFSession);
+importClass(Packages.ru.intertrust.cmj.af.exceptions.AFDaoBadParameterException);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.TunableObjectREST.Resource);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.TunableOperation);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication);
+importClass(Packages.ru.intertrust.cmj.tunable.object.TunableObjectApplication.ClientContextKey);
+importClass(Packages.ru.intertrust.cmj.tunable.object.common.TunableObjectHelper);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST);
+importClass(Packages.ru.intertrust.cmj.rest.tunable.object.action.OperationJScriptREST.ReturnParamsResource);
+importClass(Packages.ru.intertrust.cmj.dp.DPApplication);
+importClass(Packages.ru.intertrust.cmj.rest.rkk.RkkResource);
+importClass(Packages.ru.intertrust.cmj.af.utils.BeansUtils);
+importClass(Packages.ru.intertrust.cmj.af.misc.AFDateTime);
+importPackage(Packages.ru.intertrust.cmj.af.utils);
+importPackage(Packages.ru.intertrust.cmj.af.tuning);
+importPackage(Packages.ru.intertrust.cmj.rest.tuning);
+importPackage(Packages.java.util);
+importPackage(Packages.java.lang);
+
+
+/**
+ * Стартовая функция
+ */
+function process(paramsResource, returnResource) {
+
+    if (paramsResource == null) {
+        throw new IllegalArgumentException("paramsResource must no be null.");
+    }
+
+    var systemNames = ['ClientContextRequest','CustomDialog','dlgInfo','dlgError','dlgWarning'];
+
+    paramSchemaName = paramsResource.tuning().getSchema().getName();
+    var paramPackageId = "";
+    if (systemNames.indexOf(paramSchemaName)!=-1) {
+        paramPackageId = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("counter"));
+    } else {
+        paramPackageId = "contextWithResource";
+    }
+
+    if (paramPackageId.equals("context")) {
+        createContextResourceRequest(returnResource);    //Создание открытого контекстного объекта
+    } else if (paramPackageId.equals("contextWithResource")) {
+        process_dlgCustom(paramsResource, returnResource);   //Вызов кастомного диалога
+    } else if (paramPackageId.equals("answer")) {
+        process_context(paramsResource, returnResource); //Основная обработка объекта
+    } else if (paramPackageId.equals("exit")) {
+        process_refresh(paramsResource, returnResource); //Выход и обновление объекта
+    }
+}
+
+/**
+ * Инициализация контекста открытого документа
+ * @return возвращение контекста открытого документа
+ */
+function createContextResourceRequest(returnResource) {
+  var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+  var afObjectContextRequest = appTNObject.createClientContextRequest(TunableObjectApplication.ClientContextKey.resourceid, TunableObjectApplication.ClientContextKey.resource);
+
+  TunableObjectHelper.putAFInstanceValue(afObjectContextRequest, "counter", "contextWithResource");
+  returnResource.setResource(TunableObjectREST.Resource.create(afObjectContextRequest));
+}
+
+/**
+ * Обновление документа
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_refresh(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds"));
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    var res = RkkResource.valueOf(obj);
+    returnResource.setResource(res);
+}
+
+/**
+ * Проверка объекта на актуальность
+ * @id идентификатор объекта
+ * @version текущая версия контекста
+ * @return статус актуальности
+ */
+ function isActualObject(id, version){
+    var versionObj = "";
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(id);
+
+    var versionParts = version.split('$$');
+    var versionContext = versionParts[0];
+
+    if (obj != null){
+        versionObj = obj.getVersionStamp().toString();
+    }
+
+    return versionContext == versionObj;
+}
+
+
+/**
+ * Диалог Информации
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlginfo(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("dlgInfo", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Диалог Предупреждение
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlgWarning(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("dlgWarning", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Диалог Ошибка
+ * @ids текущий идентификатор документа
+ * @resultMessage сообщение
+ * @return ресурс
+ */
+function process_dlgError(ids, resultMessage,returnResource){
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var message = appTNObject.composeDialog("dlgEror", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", resultMessage);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "exit");
+    returnResource.resource = TunableObjectREST.Resource.create(message);
+    return returnResource.resource;
+}
+
+/**
+ * Вывод настраиваемого диалога
+ * @param paramsResource
+ * @return ресурс первого диалога сценария
+ */
+function process_dlgCustom(paramsResource, returnResource) {
+    var appTNObject = AFSession.get().getApplication(TunableObjectApplication.class);
+    var id = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("$id")); //id объекта открытого в web
+    var ids = Utils.newArrayList();
+    ids.add(id);
+
+    //Проверка на актуальность документа
+    var version = paramsResource.getVersion();
+    if (!isActualObject(ids.get(0), version)){
+        process_dlginfo(ids,"<>",returnResource);
+        return returnResource.resource;
+    }
+
+    //Кастомный диалог
+    var message = appTNObject.composeDialog("CustomDialog", null, null, null);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "message", "Комментарий:");
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "selectIds", ids);
+    TunableObjectHelper.putAFInstanceValue(message.tuning(), "versionContext", version);
+    TunableObjectHelper.putAFInstanceValue(message, "counter", "answer");
+
+    returnResource.setResource(TunableObjectREST.Resource.create(message));
+}
+
+/**
+ * Обработка данных
+ * @param paramsResource
+ * @return ресурс
+ */
+function process_context(paramsResource, returnResource) {
+    var ids = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("selectIds")); //Идентификатор отрытого объекта
+    var results = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("results")); //Комментарий из кастомного диалога
+    var comment = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("comment"));
+    var version = TunableObjectHelper.getAFInstanceValue(paramsResource.tuning().getValues().get("versionContext")); //Версия открытого объекта
+
+    var appdp = AFSession.get().getApplication(DPApplication.class);
+    var obj = appdp.getEntityByUNID(ids.get(0));
+
+    //Проверка на актуальность документа
+    if (!isActualObject(ids.get(0), version)){
+        process_dlgWarning(ids,"Данная версия объекта/документа была изменена. Требуется обновить документ!",returnResource);
+        return returnResource.resource;
+    }
+
+    /*
+    Алгоритм
+    */
+
+    //Проверка при сохранении
+    try {
+        obj.save();
+    } catch (e) {
+        process_dlgError(ids,"Произошел конфликт при сохранении документа. Требуется обновить документ!",returnResource);
+        return returnResource.resource;
+    }
+}
+]]></script>
+    </handler>
+</ui>
